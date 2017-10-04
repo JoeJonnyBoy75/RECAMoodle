@@ -261,8 +261,10 @@ if (!empty($forcejs)) {
 }
 
 // Add the checknet system to keep checking for a connection.
+/*
 $PAGE->requires->string_for_js('networkdropped', 'mod_scorm');
 $PAGE->requires->yui_module('moodle-core-checknet', 'M.core.checknet.init', array(array(
     'message' => array('networkdropped', 'mod_scorm'),
 )));
+*/
 echo $OUTPUT->footer();
