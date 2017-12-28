@@ -115,10 +115,24 @@ require(['theme_remui/loader'], function () {
         }
     });
 
-    jQuery('body#page-course-view-topics div.panel-heading a.panel-title, body#page-course-view-weeks div.panel-heading a.panel-title').click(function(){
+    jQuery('body#page-course-view-topics div.content a.panel-title, body#page-course-view-weeks div.content a.panel-title').click(function(){
         jQuery(this).find('i').toggleClass('fa-angle-down');
         jQuery(this).find('i').toggleClass('fa-angle-up');
     });
 
+    jQuery('.course-content .open-all').click(function() {
+        jQuery('.course-content .collapse').collapse("show");
+        jQuery('.course-content .panel-title').find('i').removeClass('fa-angle-down');
+        jQuery('.course-content .panel-title').find('i').addClass('fa-angle-up');
+    });
+
+    jQuery('.course-content .close-all').click(function() {
+        jQuery('.course-content .collapse').collapse("hide");
+        jQuery('.course-content .panel-title').find('i').addClass('fa-angle-down');
+        jQuery('.course-content .panel-title').find('i').removeClass('fa-angle-up');
+    });
+
+    var finishedNodes = jQuery("[data-icon=auto-y]"); 
+    jQuery(jQuery(".autocompletion .icon")[jQuery(".autocompletion .icon").index(finishedNodes[finishedNodes.length-1]) + 1]).closest('li').addClass("nextactivity");
 });
 {{/js}}

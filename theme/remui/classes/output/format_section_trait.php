@@ -125,14 +125,14 @@ trait format_section_trait {
                     
                     // show activity list panel only if there are activities
                     if(!empty($cm_list)) {
-                        echo '<div class="panel activity-list">
-                            <div class="panel-heading" role="tab">
-                                <a class="panel-title px-30 pt-0" data-toggle="collapse" href="#sectionwrapper-'.$section.'" aria-expanded="true" aria-controls="sectionwrapper-'.$section.'">
-                                    '.get_string('sectionactivities', 'theme_remui').'<i class="fa-angle-up float-right"></i>
-                                </a>
-                            </div>
+                        echo '<div class="panel activity-list">' .
+//                            <div class="panel-heading" role="tab">
+//                                <a class="panel-title px-30 pt-0" data-toggle="collapse" href="#sectionwrapper-'.$section.'" aria-expanded="true" aria-controls="sectionwrapper-'.$section.'">
+//                                    '.get_string('sectionactivities', 'theme_remui').'<i class="fa-angle-up float-right"></i>
+//                                </a>
+//                            </div>
 
-                            <div class="panel-collapse collapse show" id="sectionwrapper-'.$section.'" aria-labelledby="sectionwrapper-'.$section.'" role="tabpanel" aria-expanded="true">
+                            '<div class="panel-collapse collapse show" id="sectionwrapper-'.$section.'" aria-labelledby="sectionwrapper-'.$section.'" role="tabpanel" aria-expanded="true">
                               <div class="panel-body p-0">';
 
                         echo $cm_list;
@@ -417,7 +417,14 @@ trait format_section_trait {
 
         $classes = ' card-title';
         //$sectionname = html_writer::tag('span', $this->section_title($section, $course));
+        $o .= '<div class="flexy">';
+        $o .= '<div class="flex1">';
         $o.= $this->output->heading($this->section_title($section, $course), 4, 'sectionname' . $classes);
+        $o .= '</div>';
+        $o .= '<div class="arrow">';
+        $o .= '<a class="panel-title px-30 pt-0" data-toggle="collapse" href="#sectionwrapper-'.$section->section.'" aria-expanded="true" aria-controls="sectionwrapper-'.$section->section.'"><i class="fa-angle-up float-right"></i></a>';
+        $o .= '</div>';
+        $o .= '</div>';
 
         $o .= $this->section_availability($section);
 
