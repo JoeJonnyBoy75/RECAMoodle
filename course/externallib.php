@@ -268,8 +268,9 @@ class core_course_external extends external_api {
 
                         if (!empty($cm->showdescription) or $cm->modname == 'label') {
                             // We want to use the external format. However from reading get_formatted_content(), $cm->content format is always FORMAT_HTML.
+                            $options = array('noclean' => true);
                             list($module['description'], $descriptionformat) = external_format_text($cm->content,
-                                FORMAT_HTML, $modcontext->id, $cm->modname, 'intro', $cm->id);
+                                FORMAT_HTML, $modcontext->id, $cm->modname, 'intro', $cm->id, $options);
                         }
 
                         //url of the module
@@ -2606,7 +2607,7 @@ class core_course_external extends external_api {
                         'completionexpected' => new external_value(PARAM_INT, 'Completion time expected', VALUE_OPTIONAL),
                         'showdescription' => new external_value(PARAM_INT, 'If the description is showed', VALUE_OPTIONAL),
                         'availability' => new external_value(PARAM_RAW, 'Availability settings', VALUE_OPTIONAL),
-                        'grade' => new external_value(PARAM_INT, 'Grade (max value or scale id)', VALUE_OPTIONAL),
+                        'grade' => new external_value(PARAM_FLOAT, 'Grade (max value or scale id)', VALUE_OPTIONAL),
                         'scale' => new external_value(PARAM_TEXT, 'Scale items (if used)', VALUE_OPTIONAL),
                         'gradepass' => new external_value(PARAM_RAW, 'Grade to pass (float)', VALUE_OPTIONAL),
                         'gradecat' => new external_value(PARAM_INT, 'Grade category', VALUE_OPTIONAL),
@@ -3135,6 +3136,7 @@ class core_course_external extends external_api {
      */
     public static function check_updates($courseid, $tocheck, $filter = array()) {
         global $CFG, $DB;
+        require_once($CFG->dirroot . "/course/lib.php");
 
         $params = self::validate_parameters(
             self::check_updates_parameters(),

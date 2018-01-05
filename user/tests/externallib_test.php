@@ -677,6 +677,31 @@ class core_user_externallib_testcase extends externallib_advanced_testcase {
     }
 
     /**
+     * Test update_users using duplicated email.
+     */
+    public function test_update_users_duplicated_email() {
+        global $DB, $CFG;
+
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user2toupdate = array(
+            'id' => $user2->id,
+            'email' => $user1->email,
+        );
+        // E-mail duplicated not allowed.
+        $CFG->allowaccountssameemail = 0;
+        core_user_external::update_users(array($user2toupdate));
+        $this->assertNotEquals($user1->email, $DB->get_field('user', 'email', array('id' => $user2->id)));
+        // E-mail duplicated allowed.
+        $CFG->allowaccountssameemail = 1;
+        core_user_external::update_users(array($user2toupdate));
+        $this->assertEquals($user1->email, $DB->get_field('user', 'email', array('id' => $user2->id)));
+    }
+
+    /**
      * Test add_user_private_files
      */
     public function test_add_user_private_files() {
@@ -1148,6 +1173,60 @@ class core_user_externallib_testcase extends externallib_advanced_testcase {
         } catch (Exception $e) {
             $this->fail('Expecting \'usernotfullysetup\' moodle_exception to be thrown.');
         }
+    }
 
+    /**
+     * Test get_private_files_info
+     */
+    public function test_get_private_files_info() {
+
+        $this->resetAfterTest(true);
+        $user = self::getDataGenerator()->create_user();
+        $this->setUser($user);
+        $usercontext = context_user::instance($user->id);
+
+        $filerecord = array(
+            'contextid' => $usercontext->id,
+            'component' => 'user',
+            'filearea'  => 'private',
+            'itemid'    => 0,
+            'filepath'  => '/',
+            'filename'  => 'thefile',
+        );
+
+        $fs = get_file_storage();
+        $file = $fs->create_file_from_string($filerecord, 'abc');
+
+        // Get my private files information.
+        $result = core_user_external::get_private_files_info();
+        $result = external_api::clean_returnvalue(core_user_external::get_private_files_info_returns(), $result);
+        $this->assertEquals(1, $result['filecount']);
+        $this->assertEquals($file->get_filesize(), $result['filesize']);
+        $this->assertEquals(0, $result['foldercount']);
+        $this->assertEquals($file->get_filesize(), $result['filesizewithoutreferences']);
+
+        // As admin, get user information.
+        $this->setAdminUser();
+        $result = core_user_external::get_private_files_info($user->id);
+        $result = external_api::clean_returnvalue(core_user_external::get_private_files_info_returns(), $result);
+        $this->assertEquals(1, $result['filecount']);
+        $this->assertEquals($file->get_filesize(), $result['filesize']);
+        $this->assertEquals(0, $result['foldercount']);
+        $this->assertEquals($file->get_filesize(), $result['filesizewithoutreferences']);
+    }
+
+    /**
+     * Test get_private_files_info missing permissions.
+     */
+    public function test_get_private_files_info_missing_permissions() {
+
+        $this->resetAfterTest(true);
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $this->setUser($user1);
+
+        $this->expectException('required_capability_exception');
+        // Try to retrieve other user private files info.
+        core_user_external::get_private_files_info($user2->id);
     }
 }

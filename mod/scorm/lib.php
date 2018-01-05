@@ -831,7 +831,10 @@ function scorm_reset_userdata($data) {
         $status[] = array('component' => $componentstr, 'item' => get_string('deleteallattempts', 'scorm'), 'error' => false);
     }
 
-    // No dates to shift here.
+    // Any changes to the list of dates that needs to be rolled should be same during course restore and course reset.
+    // See MDL-9367.
+    shift_course_mod_dates('scorm', array('timeopen', 'timeclose'), $data->timeshift, $data->courseid);
+    $status[] = array('component' => $componentstr, 'item' => get_string('datechanged'), 'error' => false);
 
     return $status;
 }
@@ -1446,12 +1449,30 @@ function scorm_check_mode($scorm, &$newattempt, &$attempt, $userid, &$mode) {
     }
     // Check if the scorm module is incomplete (used to validate user request to start a new attempt).
     $incomplete = true;
+
+    // Note - in SCORM_13 the cmi-core.lesson_status field was split into
+    // 'cmi.completion_status' and 'cmi.success_status'.
+    // 'cmi.completion_status' can only contain values 'completed', 'incomplete', 'not attempted' or 'unknown'.
+    // This means the values 'passed' or 'failed' will never be reported for a track in SCORM_13 and
+    // the only status that will be treated as complete is 'completed'.
+
+    $completionelements = array(
+        SCORM_12 => 'cmi.core.lesson_status',
+        SCORM_13 => 'cmi.completion_status',
+        SCORM_AICC => 'cmi.core.lesson_status'
+    );
+    $scormversion = scorm_version_check($scorm->version);
+    if($scormversion===false) {
+        $scormversion = SCORM_12;
+    }
+    $completionelement = $completionelements[$scormversion];
+
     $sql = "SELECT sc.id, t.value
               FROM {scorm_scoes} sc
          LEFT JOIN {scorm_scoes_track} t ON sc.scorm = t.scormid AND sc.id = t.scoid
-                   AND t.element = 'cmi.core.lesson_status' AND t.userid = ? AND t.attempt = ?
+                   AND t.element = ? AND t.userid = ? AND t.attempt = ?
              WHERE sc.scormtype = 'sco' AND sc.scorm = ?";
-    $tracks = $DB->get_recordset_sql($sql, array($userid, $attempt, $scorm->id));
+    $tracks = $DB->get_recordset_sql($sql, array($completionelement, $userid, $attempt, $scorm->id));
 
     foreach ($tracks as $track) {
         if (($track->value == 'completed') || ($track->value == 'passed') || ($track->value == 'failed')) {
