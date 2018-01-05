@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 
-if(isset($_POST['applysitewidecolor'])) {
+if (isset($_POST['applysitewidecolor'])) {
     remui_clear_cache();
 }
 
@@ -40,7 +40,8 @@ $l_controller->addData();
  * @param theme_config $theme
  * @return string
  */
-function theme_remui_process_css($css, $theme) {
+function theme_remui_process_css($css, $theme)
+{
     global $PAGE, $OUTPUT;
     $outputus = $PAGE->get_renderer('theme_remui', 'core');
     \theme_remui\toolbox::set_core_renderer($outputus);
@@ -48,8 +49,8 @@ function theme_remui_process_css($css, $theme) {
     // set login background
     $tag = '[[setting:login_bg]]';
     $loginbg = \theme_remui\toolbox::setting_file_url('loginsettingpic', 'loginsettingpic');
-    if(empty($loginbg)) {
-        $loginbg = \theme_remui\toolbox::image_url('login_bg', 'theme');  
+    if (empty($loginbg)) {
+        $loginbg = \theme_remui\toolbox::image_url('login_bg', 'theme');
     }
     $css = str_replace($tag, $loginbg, $css);
 
@@ -58,10 +59,10 @@ function theme_remui_process_css($css, $theme) {
     $css = \theme_remui\toolbox::set_color($css, $signuptextcolor, "'[[setting:signuptextcolor]]'", '#fff');
 
     // Get the theme font from setting and apply it in CSS
-    if (\theme_remui\toolbox::get_setting('fontselect') === "2" ) {
+    if (\theme_remui\toolbox::get_setting('fontselect') === "2") {
         $fontname = ucwords(\theme_remui\toolbox::get_setting('fontname'));
     }
-    if(empty($fontname)) {
+    if (empty($fontname)) {
         $fontname = 'Open Sans';
     }
 
@@ -80,7 +81,7 @@ function theme_remui_process_css($css, $theme) {
     }
 
     $colorobj = new \theme_remui\Color($colorhex);
-    if($colorhex !== '#62a8ea') {
+    if ($colorhex !== '#62a8ea') {
         $css = str_replace('#62a8ea', $colorhex, $css);
         $css = str_replace('#89bceb', '#'.$colorobj->darken(3), $css);
         $css = str_replace('#4397e6', '#'.$colorobj->darken(5), $css);
@@ -93,40 +94,76 @@ function theme_remui_process_css($css, $theme) {
 }
 
 // clear theme cache on click 'apply sitewide color'
-function remui_clear_cache(){
+function remui_clear_cache()
+{
     theme_reset_all_caches();
 }
 
-function flatnav_icon_support($flatnav) {
+function flatnav_icon_support($flatnav)
+{
     global $CFG, $USER;
     // Getting strings for privatefiles & competencies, because their keys are numeric in $PAGE-flatnav
     $pf = get_string('privatefiles');
     $cmpt = get_string('competencies', 'core_competency');
     $flatnav_new = array();
     $home_count = 0;
-    foreach ($flatnav as $key => $value)
-    {
+    foreach ($flatnav as $key => $value) {
         $flatnav_new[$key] = $value;
         switch ($value->key) {
-            case 'myhome' : $flatnav_new[$key]->remuiicon = 'fa-dashboard'; break;
-            case 'home': $flatnav_new[$key]->remuiicon = 'wb-home';
-                        if ($home_count == 1)
-                            $flatnav_new[$key]->remuiicon = 'fa-dashboard';
+            case 'myhome':
+                $flatnav_new[$key]->remuiicon = 'fa-dashboard';
+                break;
+            case 'home':
+                $flatnav_new[$key]->remuiicon = 'wb-home';
+                if ($home_count == 1) {
+                    $flatnav_new[$key]->remuiicon = 'fa-dashboard';
+                }
                         $home_count++;
-                        break;
-            case 'calendar' : $flatnav_new[$key]->remuiicon = 'wb-calendar'; break;
-            case 'mycourses' : $flatnav_new[$key]->remuiicon = 'wb-book';$flatnav_new[$key]->action = $CFG->wwwroot . "/course/index.php?mycourses=1"; break;
-            case 'sitesettings' : $flatnav_new[$key]->remuiicon = 'wb-settings'; break;
-            case 'addblock' : $flatnav_new[$key]->remuiicon = 'wb-plus-circle'; break;
-            case 'badgesview' : $flatnav_new[$key]->remuiicon = 'wb-bookmark'; break;
-            case 'participants' : $flatnav_new[$key]->remuiicon = 'wb-users'; break;
-            case 'grades' : $flatnav_new[$key]->remuiicon = 'wb-star'; break;
-            case 'coursehome' : $flatnav_new[$key]->remuiicon = 'wb-book'; break;
-            default : $flatnav_new[$key]->remuiicon = 'wb-folder'; break;
+                break;
+            case 'calendar':
+                $flatnav_new[$key]->remuiicon = 'wb-calendar';
+                break;
+            case 'mycourses':
+                $flatnav_new[$key]->remuiicon = 'wb-book';
+                $flatnav_new[$key]->action = $CFG->wwwroot . "/course/index.php?mycourses=1";
+                $flatnav_new[$key]->togglable = true;
+                $flatnav_new[$key]->toggleicon = 'fa fa-chevron-circle-right'; if (get_user_preferences('menubar_state') == 'fold') {
+                    $flatnav_new[$key]->folded = true;
+                } else {
+                    $flatnav_new[$key]->folded  = false;
+                }
+                break;
+            case 'sitesettings':
+                $flatnav_new[$key]->remuiicon = 'wb-settings';
+                break;
+            case 'addblock':
+                $flatnav_new[$key]->remuiicon = 'wb-plus-circle';
+                break;
+            case 'badgesview':
+                $flatnav_new[$key]->remuiicon = 'wb-bookmark';
+                break;
+            case 'participants':
+                $flatnav_new[$key]->remuiicon = 'wb-users';
+                break;
+            case 'grades':
+                $flatnav_new[$key]->remuiicon = 'wb-star';
+                break;
+            case 'coursehome':
+                $flatnav_new[$key]->remuiicon = 'wb-book';
+                break;
+            default:
+                $flatnav_new[$key]->remuiicon = 'wb-folder'; if (!strpos($flatnav_new[$key]->action, 'section')) {
+                    $flatnav_new[$key]->hidable = true;
+                }
+                break;
         }
-        switch($value->text) {
-            case $pf : $flatnav_new[$key]->remuiicon = 'wb-copy'; break;
-            case $cmpt : $flatnav_new[$key]->remuiicon = 'wb-check-circle'; break;
+        switch ($value->text) {
+            case $pf:
+                $flatnav_new[$key]->remuiicon = 'wb-copy';
+                break;
+            case $cmpt:
+                $flatnav_new[$key]->remuiicon = 'wb-check-circle';
+                break;
         }
     }
     return $flatnav_new;
@@ -144,7 +181,8 @@ function flatnav_icon_support($flatnav) {
  * @param array $options
  * @return bool
  */
-function theme_remui_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = array()) {
+function theme_remui_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = array())
+{
     static $theme;
     $course = $course;
     $cm = $cm;
@@ -154,19 +192,19 @@ function theme_remui_pluginfile($course, $cm, $context, $filearea, $args, $force
     if ($context->contextlevel == CONTEXT_SYSTEM) {
         if ($filearea === 'frontpageaboutusimage') {
             return $theme->setting_file_serve('frontpageaboutusimage', $args, $forcedownload, $options);
-        } else if ($filearea === 'loginsettingpic') {
+        } elseif ($filearea === 'loginsettingpic') {
             return $theme->setting_file_serve('loginsettingpic', $args, $forcedownload, $options);
-        } else if ($filearea === 'logo') {
+        } elseif ($filearea === 'logo') {
             return $theme->setting_file_serve('logo', $args, $forcedownload, $options);
-        } else if ($filearea === 'logomini') {
+        } elseif ($filearea === 'logomini') {
             return $theme->setting_file_serve('logomini', $args, $forcedownload, $options);
-        } else if (preg_match("/^(slideimage|testimonialimage|frontpageblockimage)[1-5]/", $filearea)) {
+        } elseif (preg_match("/^(slideimage|testimonialimage|frontpageblockimage)[1-5]/", $filearea)) {
             return $theme->setting_file_serve($filearea, $args, $forcedownload, $options);
-        } else if ($filearea === 'faviconurl') {
+        } elseif ($filearea === 'faviconurl') {
             return $theme->setting_file_serve('faviconurl', $args, $forcedownload, $options);
-        } else if ($filearea === 'staticimage') {
+        } elseif ($filearea === 'staticimage') {
             return $theme->setting_file_serve('staticimage', $args, $forcedownload, $options);
-        } else if ($filearea === 'layoutimage') {
+        } elseif ($filearea === 'layoutimage') {
             return $theme->setting_file_serve('layoutimage', $args, $forcedownload, $options);
         } else {
             send_file_not_found();
@@ -174,4 +212,62 @@ function theme_remui_pluginfile($course, $cm, $context, $filearea, $args, $force
     } else {
         send_file_not_found();
     }
+}
+
+// Activities Navigation Previous Next
+function activities_navigation_previous_next($pagelayout = null, $id = null, $course = null)
+{
+    global $USER, $CFG;
+    if ($pagelayout == 'incourse') {
+        $prev = $next = $count = 0;
+        $prevlink = $nextlink = '';
+        $first = '';
+        $last;
+        $visible;
+
+        $allActivities = get_array_of_activities($course->id);
+
+        foreach ($allActivities as $activity) {
+            if ($activity->visible == 1 || $USER->id == 2) {
+                $visible = 1;
+                $count++;
+            } else {
+                $visible = 0;
+            }
+            if ($visible == 1) {
+                if (!$first) {
+                    $first = $activity->cm;
+                }
+                if ($next == 1) {
+                    $nextlink = $CFG->wwwroot.'/mod/'.$activity->mod.'/view.php?id='.$activity->cm;
+                    $next = 0;
+                }
+                if ($id == $activity->cm) {
+                    $prev = $next = 1;
+                }
+                if ($prev == 0) {
+                    $prevlink = $CFG->wwwroot.'/mod/'.$activity->mod.'/view.php?id='.$activity->cm;
+                }
+                $last = $activity->cm;
+            }
+        }
+
+        if ($count > 1) {
+            $prev = get_string('activityprev', 'theme_remui');
+            $next = get_string('activitynext', 'theme_remui');
+
+            $anpn = "<div class='pad row' style='clear:both'><div class='col-lg-12 px-45'>";
+            if ($id == $first) {
+                $anpn .= "<div class='pull-right'><a href='".$nextlink."' class ='btn btn-primary'>".$next."</a></div>";
+            } elseif ($id == $last) {
+                $anpn .= "<div class='pull-left'><a href='".$prevlink."' class ='btn btn-primary'>".$prev."</a></div>";
+            } else {
+                $anpn .= "<div class='pull-left'><a href='".$prevlink."' class ='btn btn-primary'>".$prev."</a></div><div class='pull-right'><a href='".$nextlink."' class ='btn btn-primary'>".$next."</a></div>";
+            }
+            $anpn .= "</div></div>";
+        } else {
+            $anpn = "";
+        }
+    }
+    return $anpn;
 }

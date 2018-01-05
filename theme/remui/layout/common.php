@@ -27,11 +27,12 @@ require_once($CFG->libdir . '/behat/lib.php');
 
 user_preference_allow_ajax_update('menubar_state', PARAM_ALPHA);
 user_preference_allow_ajax_update('aside_right_state', PARAM_ALPHA);
+user_preference_allow_ajax_update('course_view_state', PARAM_ALPHA);
 $isfolded = 0;
 // check if sidebar is fold or unfold & aside right state
 if (isloggedin()) {
     $menubar_state = get_user_preferences('menubar_state', 'unfold');
-    if($menubar_state == 'fold') {
+    if ($menubar_state == 'fold') {
         $isfolded = 1;
     }
     $aside_right_state = get_user_preferences('aside_right_state', '');
@@ -47,12 +48,13 @@ $hasblocks  = strpos($blockshtml, 'data-block=') !== false;
 $extraclasses = [];
 $extraclasses [] = 'site-menubar-'.$menubar_state.' site-menubar-fold-alt site-menubar-keep '. $aside_right_state;
 
-if($hasblocks) {
+if ($hasblocks) {
     $extraclasses [] = 'page-aside-fixed page-aside-right';
 }
 
-if($PAGE->pagelayout == 'mypublic')
+if ($PAGE->pagelayout == 'mypublic') {
     $extraclasses [] = ' page-profile ';
+}
 
 $bodyattributes = $OUTPUT->body_attributes($extraclasses);
 $regionmainsettingsmenu = $OUTPUT->region_main_settings_menu();

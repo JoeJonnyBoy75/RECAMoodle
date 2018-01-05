@@ -25,6 +25,7 @@ use course_in_list;
 use context_course;
 use core_completion\progress;
 use stdClass;
+use html_writer;
 
 include_once($CFG->dirroot.'/mod/forum/lib.php');
 require_once($CFG->dirroot.'/calendar/lib.php');
@@ -33,6 +34,7 @@ require_once("$CFG->libdir/externallib.php");
 require_once($CFG->dirroot . "/message/lib.php");
 require_once($CFG->libdir. '/gradelib.php');
 require_once($CFG->dirroot. '/grade/querylib.php');
+require_once($CFG->dirroot.'/message/lib.php');
 
 
 /**
@@ -46,6 +48,7 @@ require_once($CFG->dirroot. '/grade/querylib.php');
  */
 class utility
 {
+    public static $childCategories = array();
 
     // get user profile pic link
     public static function get_user_picture($userobject = null, $imgsize = 100)
@@ -143,6 +146,24 @@ class utility
     }
 
     /**
+     * Set all the child categories of parent category
+     * @param $category parent category id
+     */
+    public static function getChildrenCategories($category)
+    {
+        global $DB;
+        $childCategories = $DB->get_records_sql('SELECT * FROM {course_categories} WHERE parent = ?', array($category));
+        if (!empty($childCategories)) {
+            foreach ($childCategories as $child) {
+                array_push(self::$childCategories, $child->id);
+                self::getChildrenCategories($child->id);
+            }
+        } else {
+            return $category;
+        }
+    }
+
+    /**
      * Return user's courses or all the courses
      *
      * Usually called to get usr's courese, or it could also be called to get all course.
@@ -164,7 +185,6 @@ class utility
         $limitto = 0,
         $mycourses = null
     ) {
-
         global $DB, $CFG, $USER, $OUTPUT;
         $count = 0;
         $coursesarray = array();
@@ -177,8 +197,16 @@ class utility
             $where .= " AND fullname like ?";
             $sql_params[] = "%$search%";
         }
+
         if (!empty($category)) {
+            self::getChildrenCategories($category);
+            array_push(self::$childCategories, $category);
+            if (!empty(self::$childCategories)) {
+                $str = implode(", ", self::$childCategories);
+                $where .= " AND category IN ($str)";
+            } else {
                 $where .= " AND category ='$category' ";
+            }
         }
 
         if ($mycourses) {
@@ -210,9 +238,9 @@ class utility
                 $where .= " AND visible = 1";
             }
 
-            return count($DB->get_records_sql("SELECT c.id FROM {course} c where id != ? $where ORDER BY timecreated desc", $sql_params));
+            return count($DB->get_records_sql("SELECT c.id FROM {course} c where id != ? $where ORDER BY sortorder", $sql_params));
         } else {
-            $courses = $DB->get_records_sql("SELECT ".implode($fields, ',')." FROM {course} c where id != ? $where ORDER BY timecreated desc", $sql_params, $limitfrom, $limitto);
+            $courses = $DB->get_records_sql("SELECT ".implode($fields, ',')." FROM {course} c where id != ? $where ORDER BY sortorder", $sql_params, $limitfrom, $limitto);
         }
 
         // prepare courses array
@@ -227,17 +255,33 @@ class utility
                     continue;
                 }
             }
+
+            if ($course->category == 0) {
+                continue;
+            }
+
             $coursesarray[$count]["courseid"] = $course->id;
-            $coursesarray[$count]["coursename"] = $course->fullname;
+            $coursesarray[$count]["coursename"] = strip_tags($chelper->get_course_formatted_name($course));
             $coursesarray[$count]["categoryname"] = $DB->get_record('course_categories', array('id'=>$course->category))->name;
             $coursesarray[$count]["visible"] = $course->visible;
             $coursesarray[$count]["courseurl"] = $CFG->wwwroot."/course/view.php?id=".$course->id;
-            $coursesarray[$count]["enrollusers"] = $CFG->wwwroot."/enrol/users.php?id=".$course->id;
+
+            // This is to handle the version change
+            // User enrollment link has been changed for moodle version 3.4
+            $version33 = "2017092100";
+            $cur_version = $DB->get_record_sql('SELECT * FROM {config_plugins} WHERE plugin = ? AND name = ?', array('theme_remui', 'version'));
+            $user_enrol_link = "/enrol/users.php?id=";
+            if ($cur_version > $version33) {
+                $user_enrol_link = "/user/index.php?id=";
+            }
+            $coursesarray[$count]["enrollusers"] = $CFG->wwwroot.$user_enrol_link.$course->id."&version=".$course->id;
             $coursesarray[$count]["editcourse"] = $CFG->wwwroot."/course/edit.php?id=".$course->id;
             $coursesarray[$count]["grader"] = $CFG->wwwroot."/grade/report/grader/index.php?id=".$course->id;
             $coursesarray[$count]["activity"] = $CFG->wwwroot."/report/outline/index.php?id=".$course->id;
-            $coursesummary = strip_tags($chelper->get_course_formatted_summary($course_in_list,
-                    array('overflowdiv' => false, 'noclean' => false, 'para' => false)));
+            $coursesummary = strip_tags($chelper->get_course_formatted_summary(
+                $course_in_list,
+                array('overflowdiv' => false, 'noclean' => false, 'para' => false)
+            ));
             $summarystring = strlen($coursesummary) > 100 ? substr($coursesummary, 0, 100)."..." : $coursesummary;
             $coursesarray[$count]["coursesummary"] = $summarystring;
             $coursesarray[$count]["coursestartdate"] = date('d M, Y', $course->startdate);
@@ -265,9 +309,12 @@ class utility
             // course image
             foreach ($course_in_list->get_course_overviewfiles() as $file) {
                 $isimage = $file->is_valid_image();
-                $courseimage = file_encode_url("$CFG->wwwroot/pluginfile.php",
-                                          '/'. $file->get_contextid(). '/'. $file->get_component(). '/'.
-                                          $file->get_filearea(). $file->get_filepath(). $file->get_filename(), !$isimage);
+                $courseimage = file_encode_url(
+                    "$CFG->wwwroot/pluginfile.php",
+                    '/'. $file->get_contextid(). '/'. $file->get_component(). '/'.
+                    $file->get_filearea(). $file->get_filepath(). $file->get_filename(),
+                    !$isimage
+                );
                 if ($isimage) {
                     break;
                 }
@@ -318,10 +365,21 @@ class utility
 
     // used in corusecategory layout
     // render category selector
-    public static function get_course_category_selector($category = '', $search = '', $mycourses = '', $pageurl)
+    public static function get_course_category_selector($category = '', $categorysort = '', $search = '', $mycourses = '', $pageurl)
     {
-        $categories = \coursecat::make_categories_list();
+        $default   = '';
+        $site_asc  = '';
+        $site_desc = '';
 
+        if ($categorysort == 'SORT_ASC') {
+            $site_asc  = 'selected';
+        } elseif ($categorysort == 'SORT_DESC') {
+            $site_desc = 'selected';
+        } else {
+            $default = 'selected';
+        }
+
+        $categories = \coursecat::make_categories_list();
         $categoryhtml = "<form method='get' action='{$pageurl}'>";
 
         if ($mycourses != '') {
@@ -331,8 +389,9 @@ class utility
         if ($search != '') {
             $categoryhtml .= "<input type='hidden' name='search' value='{$search}'>";
         }
-
-        $categoryhtml .= "<label for='categoryselect' class='d-none font-weight-400 blue-grey-600 font-size-14 pr-10'>".get_string('category', 'theme_remui')."</label> <select onchange='this.form.submit()' id='categoryselect' class='custom-select h-40 w-full' name='categoryid' id='category'>
+        $categoryhtml .= "<div class='row'>";
+        $categoryhtml .= "<div  class='form-group col-md-6'>";
+        $categoryhtml .= "<label for='categoryselect' class='d-none'>".get_string('category', 'theme_remui')."</label> <select onchange='this.form.submit()' class='custom-select' id='categoryselect' name='categoryid' id='category'>
                 <option value=''>".get_string('allcategories', 'theme_remui')."</option>";
 
         foreach ($categories as $key => $coursecategory) {
@@ -342,7 +401,14 @@ class utility
                 $categoryhtml .= "<option value='{$key}'>{$coursecategory}</option>";
             }
         }
-        $categoryhtml .= "</select></form>";
+        $categoryhtml .= "</select>";
+        $categoryhtml .= "</div>";
+        $categoryhtml .= "<div  class='form-group col-md-6'>";
+        $categoryhtml .= "<select onchange='this.form.submit()' id='categoryselect' class='h-40 custom-select' name='categorysort' id='categorysort'>";
+        $categoryhtml .= "<option ".$default." value='default'>".get_string('sortdefault', 'theme_remui')."</option>";
+        $categoryhtml .= "<option ".$site_asc." value='SORT_ASC'>".get_string('sortascending', 'theme_remui')."</option>";
+        $categoryhtml .= "<option ".$site_desc." value='SORT_DESC'>".get_string('sortdescending', 'theme_remui')."</option>";
+        $categoryhtml .= "</select></div></div></form>";
 
         return $categoryhtml;
     }
@@ -359,7 +425,7 @@ class utility
                 return $description;
             }
         }
-        
+
         return '';
     }
 
@@ -377,6 +443,7 @@ class utility
 
         $courses = enrol_get_users_courses($userobject->id, true, '*', 'visible DESC, fullname ASC, sortorder ASC');
         foreach ($courses as $course) {
+            $course->fullname = strip_tags($chelper->get_course_formatted_name($course));
             // get course list instance
             if ($course instanceof stdClass) {
                 require_once($CFG->libdir. '/coursecatlib.php');
@@ -405,15 +472,20 @@ class utility
             $course->link = $CFG->wwwroot."/course/view.php?id=".$course->id;
 
             // summary
-            $course->summary = strip_tags($chelper->get_course_formatted_summary($courseobj,
-                    array('overflowdiv' => false, 'noclean' => false, 'para' => false)));
+            $course->summary = strip_tags($chelper->get_course_formatted_summary(
+                $courseobj,
+                array('overflowdiv' => false, 'noclean' => false, 'para' => false)
+            ));
 
             // update course image in object
             foreach ($courseobj->get_course_overviewfiles() as $file) {
                 $isimage = $file->is_valid_image();
-                $courseimage = file_encode_url("$CFG->wwwroot/pluginfile.php",
-                                          '/'. $file->get_contextid(). '/'. $file->get_component(). '/'.
-                                          $file->get_filearea(). $file->get_filepath(). $file->get_filename(), !$isimage);
+                $courseimage = file_encode_url(
+                    "$CFG->wwwroot/pluginfile.php",
+                    '/'. $file->get_contextid(). '/'. $file->get_component(). '/'.
+                    $file->get_filearea(). $file->get_filepath(). $file->get_filename(),
+                    !$isimage
+                );
                 if ($isimage) {
                     break;
                 }
@@ -443,7 +515,7 @@ class utility
             foreach ($courselist as $course) {
                 $context = context_course::instance($course->id);
                 $query = "select count(u.id) as count from  {role_assignments} as a, {user} as u where contextid=" . $context->id . " and roleid=5 and a.userid=u.id;";
-                $count = $DB->get_records_sql( $query );
+                $count = $DB->get_records_sql($query);
                 $count = key($count);
                 $courselist[$course->id]->count = $count;
             }
@@ -502,9 +574,9 @@ class utility
         foreach ($users as $value) {
             $date = date('d/m/Y', $value->timecreated);
             if ($date == date('d/m/Y')) {
-                     $date = get_string('today', 'theme_remui');
+                $date = get_string('today', 'theme_remui');
             } elseif ($date == date('d/m/Y', time() - (24 * 60 * 60))) {
-                 $date = get_string('yesterday', 'theme_remui');
+                $date = get_string('yesterday', 'theme_remui');
             } else {
                 $date = date('jS F Y', $value->timecreated);
             }
@@ -566,7 +638,6 @@ class utility
      */
     public static function get_course_image($course_in_list, $islist = false)
     {
-
         global $CFG, $OUTPUT;
         if (!$islist) {
             $course_in_list = new course_in_list($course_in_list);
@@ -575,9 +646,12 @@ class utility
         // course image
         foreach ($course_in_list->get_course_overviewfiles() as $file) {
             $isimage = $file->is_valid_image();
-            $courseimage = file_encode_url("$CFG->wwwroot/pluginfile.php",
-                                        '/'. $file->get_contextid(). '/'. $file->get_component(). '/'.
-                                        $file->get_filearea(). $file->get_filepath(). $file->get_filename(), !$isimage);
+            $courseimage = file_encode_url(
+                "$CFG->wwwroot/pluginfile.php",
+                '/'. $file->get_contextid(). '/'. $file->get_component(). '/'.
+                $file->get_filearea(). $file->get_filepath(). $file->get_filename(),
+                !$isimage
+            );
             if ($isimage) {
                 break;
             }
@@ -606,6 +680,12 @@ class utility
         $user->city = $city;
         $user->country = $country;
         $result = $DB->update_record('user', $user);
+
+        // Update Global Variable
+        $USER->firstname = $fname;
+        $USER->lastname = $lname;
+        $USER->city = $city;
+        $USER->country = $country;
 
         return $result;
     }
@@ -790,7 +870,7 @@ class utility
                     'linkedin' => \theme_remui\toolbox::get_setting('linkedinsetting'),
                     'gplus'    => \theme_remui\toolbox::get_setting('gplussetting'),
                     'youtube'  => \theme_remui\toolbox::get_setting('youtubesetting'),
-                    'instagram'=> \theme_remui\toolbox::get_setting('isntagramsetting'),
+                    'instagram'=> \theme_remui\toolbox::get_setting('instagramsetting'),
                     'pinterest'=> \theme_remui\toolbox::get_setting('pinterestsetting')
                 );
                 $footer['social'] = array_filter($footer['social']); // remove empty elements
@@ -844,31 +924,15 @@ class utility
      */
     public static function get_events()
     {
-        global $CFG;
+        global $CFG,$PAGE;
 
         require_once($CFG->dirroot.'/calendar/lib.php');
+        $courseid = $PAGE->course->id;
+        $categoryid = ($PAGE->context->contextlevel === CONTEXT_COURSECAT) ? $PAGE->category->id : null;
+        $calendar = \calendar_information::create(time(), $courseid, $categoryid);
 
-        $filtercourse    = array();
-        // Being displayed at site level. This will cause the filter to fall back to auto-detecting
-        // the list of courses it will be grabbing events from.
-        $filtercourse = calendar_get_default_courses();
-
-        list($courses, $group, $user) = calendar_set_filters($filtercourse);
-
-        $defaultlookahead = CALENDAR_DEFAULT_UPCOMING_LOOKAHEAD;
-        if (isset($CFG->calendar_lookahead)) {
-            $defaultlookahead = intval($CFG->calendar_lookahead);
-        }
-        $lookahead = get_user_preferences('calendar_lookahead', $defaultlookahead);
-        // echo $lookahead;
-        $defaultmaxevents = CALENDAR_DEFAULT_UPCOMING_MAXEVENTS;
-        if (isset($CFG->calendar_maxevents)) {
-            $defaultmaxevents = intval($CFG->calendar_maxevents);
-        }
-        $maxevents = get_user_preferences('calendar_maxevents', $defaultmaxevents);
-        // echo $maxevents;
-        $events = calendar_get_upcoming($courses, $group, $user, $lookahead, $maxevents);
-        return $events;
+        list($data, $template) = calendar_get_view($calendar, 'upcoming_mini');
+        return $data->events;
     }
 
     /**
@@ -886,8 +950,12 @@ class utility
                 'limitfrom' => new external_value(PARAM_INT, 'Limit from', VALUE_DEFAULT, 0),
                 'limitnum' => new external_value(PARAM_INT, 'Limit number', VALUE_DEFAULT, 0),
                 'newest' => new external_value(PARAM_BOOL, 'Newest first?', VALUE_DEFAULT, false),
-                'timefrom' => new external_value(PARAM_INT,
-                    'The timestamp from which the messages were created', VALUE_DEFAULT, 0),
+                'timefrom' => new external_value(
+                    PARAM_INT,
+                    'The timestamp from which the messages were created',
+                    VALUE_DEFAULT,
+                    0
+                ),
             )
         );
     }
@@ -956,8 +1024,15 @@ class utility
         if ($timefrom == time()) {
             $messages = [];
         } else {
-            $messages = \core_message\api::get_messages($currentuserid, $otheruserid, $limitfrom,
-                                                        $limitnum, $sort, $timefrom, $timeto);
+            $messages = \core_message\api::get_messages(
+                $currentuserid,
+                $otheruserid,
+                $limitfrom,
+                $limitnum,
+                $sort,
+                $timefrom,
+                $timeto
+            );
         }
 
         $messages = new \core_message\output\messagearea\messages($currentuserid, $otheruserid, $messages);
@@ -1035,7 +1110,7 @@ class utility
                         }
                     }
 
-                      $sections[$count]['activity_list'][] = array(
+                    $sections[$count]['activity_list'][] = array(
                       'active' => $active,
                       'title'  => $courserenderer->course_section_cm_name_title($activity, array()),
                       'classes' => $classes
@@ -1050,7 +1125,6 @@ class utility
 
     public static function quickmessage($contactid, $message)
     {
-
         global $USER, $DB;
 
         $otheruserid = $contactid;
@@ -1194,12 +1268,12 @@ class utility
             $params = array_merge(
                 $params,
                 [
-                                     'sepgps1a' => SEPARATEGROUPS,
-                                     'sepgps2a' => SEPARATEGROUPS,
-                                     'user1a'   => $user->id,
-                                     'user2a'   => $user->id
+                     'sepgps1a' => SEPARATEGROUPS,
+                     'sepgps2a' => SEPARATEGROUPS,
+                     'user1a'   => $user->id,
+                     'user2a'   => $user->id
 
-                                 ]
+                 ]
             );
 
             $fgpsql = '';
@@ -1323,7 +1397,7 @@ class utility
 
                 // Update the user object with user profile photo
                 $postuser->profilepicture = self::get_user_picture($postuser, 15);
-        
+
                 if ($post->type === 'hsuforum') {
                     $postuser = hsuforum_anonymize_user($postuser, (object)array(
                         'id' => $post->forum,
@@ -1374,7 +1448,6 @@ class utility
      */
     public static function graded()
     {
-
         $grades = self::events_graded();
         return $grades;
     }
@@ -1403,7 +1476,7 @@ class utility
         $courses = enrol_get_my_courses();
         $courseids = array_keys($courses);
         $courseids[] = SITEID;
-        list ($coursesql, $params) = $DB->get_in_or_equal($courseids);
+        list($coursesql, $params) = $DB->get_in_or_equal($courseids);
         $coursesql = 'AND gi.courseid '.$coursesql;
 
         $onemonthago = time() - (DAYSECS * 31);
@@ -1533,7 +1606,7 @@ class utility
         } elseif (function_exists('file_get_contents')) {
             $url_get_contents_data = file_get_contents($url);
         } elseif (function_exists('fopen') && function_exists('stream_get_contents')) {
-            $handle = fopen ($url, "r");
+            $handle = fopen($url, "r");
             $url_get_contents_data = stream_get_contents($handle);
         } else {
             $url_get_contents_data = false;
@@ -1600,7 +1673,6 @@ class utility
         } else {
             $trans_expired = true;
         }
-
         if ($trans_expired) {
             // delete previous data and insert new data
             try {
@@ -1649,13 +1721,11 @@ class utility
     // Function to get the data of analytics graph
     public static function get_analytics_for_courses($courseid)
     {
-
         global $USER;
-    
         // Get the list of users which are enrolled in the course
         $context = CONTEXT_COURSE::instance($courseid);
         $enrolledUsers = get_enrolled_users($context, 'mod/assignment:submit');
-        
+
         // Get all the activities of the course which can be graded
         $gradeActivities = grade_get_gradable_activities($courseid);
         $qactivity = [];
@@ -1666,7 +1736,7 @@ class utility
                 // Get all the grade items for the activity
                 $gradeItemList = grade_get_grade_items_for_activity($gradeActivity, true);
                 $gradeItem = reset($gradeItemList);
-                
+
                 // Get the last attempt grade value of logged in users
                 $grade = new \grade_grade(array('itemid' => $gradeItem->id, 'userid' => $USER->id));
                 if (isset($grade->rawgrade)) {
@@ -1723,10 +1793,10 @@ class utility
         } else {
             $average = 0;
         }
-        
+
         $maxs = array_keys(array_column($qactivity, 'lastAttempt'), $highest);
         $mins = array_keys(array_column($qactivity, 'lastAttempt'), $lowest);
-        
+
         $maxactivityname = "";
         $minactivityname = "";
 
@@ -1741,8 +1811,8 @@ class utility
                 $minactivityname .= $qactivity[$min]['name'] .", ";
             }
         }
-       
-       
+
+
         $chartdata['highest'] = $highest;
         $chartdata['lowest'] = $lowest;
         $chartdata['average'] = $average;
@@ -1763,5 +1833,238 @@ class utility
             $createcourselink = $CFG->wwwroot. '/course/edit.php?category='.$firstCategory->id;
         }
         return $createcourselink;
+    }
+
+    public static function get_courses_view_toggler()
+    {
+        global $CFG;
+
+        $view = get_user_preferences('course_view_state');
+        if (empty($view)) {
+            $view = set_user_preference('course_view_state', 'grid');
+            $view = 'grid';
+        }
+
+        if ($view == 'grid') {
+            $grid = html_writer::start_tag('a', array('class' => 'grid_btn btn btn-outline btn-primary active', 'title' => 'Grid view'));
+            $list = html_writer::start_tag('a', array( 'class' => 'list_btn btn btn-outline btn-primary', 'title' => 'List view'));
+        } else {
+            $grid = html_writer::start_tag('a', array('class' => 'grid_btn btn btn-outline btn-primary ', 'title' => 'Grid view'));
+            $list = html_writer::start_tag('a', array( 'class' => 'list_btn btn btn-outline btn-primary active', 'title' => 'List view'));
+        }
+        $content = '<div class="d-flex float-right">';
+        $content .= $grid;
+        $content .= '<i class="fa fa-th" aria-hidden="true"></i>';
+        $content .= html_writer::end_tag('a');
+
+        $content .= $list;
+        $content .= '<i class="fa fa-list" aria-hidden="true"></i>';
+        $content .= html_writer::end_tag('a');
+        $content .= '</div>';
+        return $content;
+    }
+
+    public static function array_msort($array, $cols)
+    {
+        $colarr = array();
+        foreach ($cols as $col => $order) {
+            $colarr[$col] = array();
+            foreach ($array as $k => $row) {
+                $colarr[$col]['_'.$k] = strtolower($row[$col]);
+            }
+        }
+        $eval = 'array_multisort(';
+        foreach ($cols as $col => $order) {
+            $eval .= '$colarr[\''.$col.'\'],'.$order.',';
+        }
+        $eval = substr($eval, 0, -1).');';
+        eval($eval);
+        $ret = array();
+        foreach ($colarr as $col => $arr) {
+            foreach ($arr as $k => $v) {
+                $k = substr($k, 1);
+                if (!isset($ret[$k])) {
+                    $ret[$k] = $array[$k];
+                }
+                $ret[$k][$col] = $array[$k][$col];
+            }
+        }
+
+        $final_array = array();
+        foreach ($ret as $key => $value) {
+            $final_array[] = $value;
+        }
+
+        return $final_array;
+    }
+
+    // This will return the course object with progress percentages
+    // $courseid = is the course id
+    // returns stdClass object which consists of id, fullname, shortname, category, format,
+    // startdata, enddate, timecreated, percentage, number of enrolled students.
+    public static function get_course_progress($courseid)
+    {
+        global $DB, $USER;
+        $percentage = 0;
+        $course_progress = new stdClass();
+        $course = get_course($courseid);
+
+        $coursecontext = context_course::instance($courseid);
+        $students = get_role_users(5, $coursecontext);
+
+        foreach ($students as $studentid => $student) {
+            $percentage += progress::get_course_progress_percentage($course, $student->id);
+        }
+
+        $course_progress->id = $course->id;
+        $course_progress->fullname  = $course->fullname;
+        $course_progress->shortname = $course->shortname;
+        $course_progress->category  = $course->category;
+        $course_progress->format    = $course->format;
+        $course_progress->startdate = date("Y M, d", substr($course->startdate, 0, 10));
+        $course_progress->enddate   = date("Y M, d", substr($course->enddate, 0, 10));
+        $course_progress->timecreated = $course->timecreated;
+
+        $course_progress->percentage = 0;
+
+        if (0 != count($students)) {
+            $course_progress->percentage  =  ceil(round($percentage / count($students), 2));
+        } else {
+            $course_progress->NoEnrollment = 'NoEnrollment';
+        }
+
+        $course_progress->enrolledStudents = count($students);
+
+        return  $course_progress;
+    }
+
+    // Send message to user
+    public static function send_message_to_user($studentid, $student_message)
+    {
+        global $USER, $DB, $SITE;
+
+        $admin_user = $DB->get_record('user', array('id' => $USER->id), '*', MUST_EXIST);
+        $user_object = $DB->get_record('user', array('id' => $studentid), '*', MUST_EXIST);
+
+        $message = new \core\message\message();
+        $message->courseid = $SITE->id;
+        $message->component = 'moodle';
+        $message->name = 'instantmessage';
+        $message->userfrom = $admin_user;
+        $message->userto = $user_object;
+        $message->subject = 'message subject 1';
+        $message->fullmessage = 'message body';
+        $message->fullmessageformat = FORMAT_MARKDOWN;
+        $message->fullmessagehtml = '<p>message body</p>';
+        $message->smallmessage = $student_message;
+        $message->notification = '0';
+        $message->contexturl = '';
+        $message->contexturlname = 'Context name';
+        $message->replyto = "random@example.com";
+        $content = array('*' => array('header' => ' test ', 'footer' => ' test ')); // Extra content for specific processor
+        $message->set_additional_content('email', $content);
+        $messageid = message_send($message);
+        return $messageid;
+    }
+
+    // This will return the course progress table in html form
+    public static function get_student_progress_view($courseid)
+    {
+        $out    = '';
+        $course = get_course($courseid);
+        $out .= '
+            <div class="modal fade modal-success " id="exampleModalSuccess" aria-hidden="true" aria-labelledby="exampleModalSuccess" role="dialog" tabindex="-1">
+                <div class="modal-dialog modal-center h-p100">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                            <h4 class="modal-title">Message</h4>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="studentid" id="messageidhidden">
+                            <textarea class="form-control" rows="5" id="messagearea"></textarea>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default close-message" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary send-message" >Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>';
+        $out .= '<div class="text-left">';
+        $out .= '<div class="row px-15">';
+        $out .= '<span class="font-weight-800 font-size-20">'.$course->fullname.'</span>';
+        $out .= '<a class="float-right" id="courserevertbtn" style="cursor:pointer;position: absolute;right: 61px;"><i class="icon wb-reply"></i>'.get_string('back', 'theme_remui').'</a>';
+        $out .= '</div>';
+        $out .= trim($course->summary);
+        $out .= '</div>';
+        $out .= '<table class="table table-hover dataTable table-striped w-full dtr-inline responsive nowrap" id="wdmCourseProgressTable" role="grid" aria-describedby="exampleTableTools_info" cellspacing="0" width="100%">';
+
+        $out .= '<thead >
+                    <tr>
+                    <th class="pl-10">#</th>
+                    <th class="pl-10">'.get_string('name', 'theme_remui').'</th>
+
+                    <th class="pl-10">'.get_string('status', 'theme_remui').'</th>
+                    <th class="pl-10">'.get_string('progress', 'theme_remui').'</th>
+                    </tr>
+                </thead>';
+        $out .= '<tbody>';
+
+        $coursecontext = context_course::instance($courseid);
+        $students      = get_role_users(5, $coursecontext);
+        $student_cnt   = 0;
+
+        foreach ($students as $studentid => $student) {
+            $out .= '<tr>';
+            $out .= '<td>'.++$student_cnt.'</td>';
+            $out .= '<td>'.$student->firstname.' '.$student->lastname;
+            $out .= '<i class="icon wb-envelope text-success custom-message float-right" name="colorChosen" data-target="#exampleModalSuccess" data-toggle="modal" data-studentid="'.$student->id.'" style="cursor:pointer;"></i></td>';
+
+            $lastAccess = utility::get_last_course_access_time($courseid, $studentid);
+            $out .= '<td>'.$lastAccess->time.'</td>';
+
+            $progress = (int)progress::get_course_progress_percentage($course, $student->id);
+
+            if (empty($progress)) {
+                $progress = 0;
+            }
+            $progress_class = $progress > 70? 'progress-bar-success': ($progress >30? 'progress-bar-warning':'progress-bar-danger');
+
+            $out .= '<td>';
+            $out .= '<div class="pie-progress pie-progress-xs" data-plugin="pieProgress" data-valuemax="100" data-barcolor="#57c7d4" data-size="100" data-barsize="10" data-goal="86" aria-valuenow="'.$progress.'" role="progressbar" style="max-width: 35px!important;">';
+            $out .= '<div class="pie-progress-content ml-50" style="z-index:2;">';
+            $out .= '<div class="pie-progress-number">'.$progress.'%</div>';
+            $out .= '</div>';
+            $out .= '</div>';
+            $out .= '</td>';
+
+            $out .= '</tr>';
+        }
+
+        $out .= '</tbody>';
+        $out .= '</table>';
+        return $out;
+    }
+
+    public static function get_last_course_access_time($courseid, $studentid)
+    {
+        global $DB;
+        $lastaccess =  new stdClass();
+
+        $lastaccess->time = 'Never Accessed';
+        $lastaccess->class = 'text-danger';
+
+        $curr_time = time();
+
+        $record = $DB->get_field('user_lastaccess', 'timeaccess', array('userid' => $studentid, 'courseid' => $courseid), IGNORE_MISSING);
+
+        if (!empty($record)) {
+            $lastaccess->time ='Last Active on '.date("d M, Y", substr($record, 0, 10));
+            $lastaccess->class = ($curr_time - $record)>259200? 'text-danger':(($curr_time - $record)>129600? 'text-warning':'text-success');
+        }
+        return $lastaccess;
     }
 }

@@ -147,6 +147,15 @@ $string['enroluser'] = 'Enrol Users';
 $string['graderreport'] = 'Grader Report';
 $string['activityeport'] = 'Activity Report';
 $string['editcourse'] = 'Edit Course';
+// course sorting strings
+$string['categorysort'] = 'Sort Categories';
+$string['sortdefault'] = 'Sort (none)';
+$string['sortascending'] = 'Sort A to Z';
+$string['sortdescending'] = 'Sort Z to A';
+
+// Next Previous Activity
+$string['activityprev'] = 'Previous Activity';
+$string['activitynext'] = 'Next Activity';
 
 // dashboard element -> overview
 $string['enabledashboardelements'] = 'Enable Dashboard Elements';
@@ -391,7 +400,7 @@ $string['gplussettingdesc'] = 'Enter your site\'s Google Plus page link. For eg.
 $string['youtubesetting'] = 'YouTube Settings';
 $string['youtubesettingdesc'] = 'Enter your site\'s YouTube page link. For eg. https://www.youtube.com/channel/UCU1u6QtAAPJrV0v0_c2EISA';
 $string['instagramsetting'] = 'Instagram Settings';
-$string['instagramsettingdesc'] = 'Enter your site\'s Instagram page link. For eg. https://www.linkedin.com/company/name';
+$string['instagramsettingdesc'] = 'Enter your site\'s Instagram page link. For eg. https://www.instagram.com/name';
 $string['pinterestsetting'] = 'Pinterest Settings';
 $string['pinterestsettingdesc'] = 'Enter your site\'s Pinterest page link. For eg. https://www.pinterest.com/name';
 
@@ -715,6 +724,7 @@ $string['courseactivities'] = 'COURSE ACTIVITIES';
 $string['noevents'] = "No events due";
 $string['overdue'] = "Overdue";
 $string['upcoming'] = "Upcoming";
+$string['expired'] = 'Expired';
 $string['selectcourse'] = "Select Course";
 $string['courseanlytics']="Course Analytics";
 $string['highestgrade']="HIGHEST GRADE";
@@ -724,6 +734,7 @@ $string['viewcourse'] = "VIEW COURSE";
 $string['mycourses'] = "My Courses";
 $string['tasks'] = "Tasks to complete";
 $string['coursestats'] = "Course Stats";
+$string['allActivities'] = "All Activities";
 $string['enabledashboard'] = "Enable New Dashboard";
 $string['enabledashboarddesc'] = "Enable New Dashboard layout for all users";
 
@@ -737,3 +748,21 @@ $string['typeinfo'] = "Information announcement";
 $string['typedanger'] = "Urgent announcement";
 $string['typewarning'] = "Warning announcement";
 $string['typesuccess'] = "Success announcement";
+
+// Teacher Dashboard Strings
+$string['courseprogress'] = "Course Progress";
+$string['course'] = "Course";
+$string['startdate'] = "Start Date";
+$string['enrolledstudents'] = "Students";
+$string['progress'] = "Progress";
+$string['name'] = "Name";
+$string['status'] = "Status";
+$string['back'] = "Back";
+
+
+/*Front Page Setting for About Us Block*/
+$string['frontpageblockdisplay'] = 'About Us Section';
+$string['frontpageblockdisplaydesc'] = 'You can show or hide the "About Us" section, also you can show "About Us" section in grid format';
+$string['donotshowaboutus'] = 'Do Not Show';
+$string['showaboutusinrow'] = 'Show Section in a Row';
+$string['showaboutusingridblock'] = 'Show Section in Grid Block';

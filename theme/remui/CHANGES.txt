@@ -1,55 +1,12 @@
 Change Log:
 ===========
-Version 3.3.3
-Feature - New Student friendly Dashboard for User with course stats and tasks to be completed 
-Feature - Course Analytics Block which displays the user performance in various courses.
-Feature - Notification ticker displaying the latest announcement and notifications.  
-Feature - Ability to swtich between different dashboard layout.
-Tweak - Recent forum section now displays the replies count, latest replied and users recently active in the forum. 
-Tweak - Quiz layout is improved with new styled radio buttons and checkboxes.
-Tweak - Improved the participation page layout.
-Tweak - Courses on Course Archive Page is now displayed with latest-oldest format.
-Tweak - Category description and enrollment icons is now displayed on course archive.
-Tweak - Revert sidebar open/close icons to old version of RemUI.
-Tweak - Display content related to sub category when parent category is selected .
-Fix - Quiz layout responsiveness issue in mobile view.
-Fix - Auto scrolling of Frontpage slider not working in the mobile view.
-Fix - Database Error with postgresql and other databases.
-Fix - Course creation link not working when miscellaneous category is deleted.
-Fix - Search in Course archive page with special characters
-Fix - IE issues - right sidebar content not displaying properly.
-Fix - Scorm Package sidebar not displaying properly.
-Fix - Moodle User Tour issue on Edwiser RemUI - Z-Index Issue
-Fix - Missing translation strings are included.
 
-Change Log:
-===========
-Version 3.3.2
-Feature - My courses page with course status & progress.
-Feature - Course resume button on my courses page.
-Feature - Ability to add image as background in marketing spots(frontpage).
-Feature - News & updates section having RemUI update notifier and RemUI feedback form integrated.
-Tweak   - Activity navigation & flat navigation sidebar minor improvements.
-Tweak - Forum activity layout imporvement.
-Tweak - Course title text wrap on archive page.
-Tweak - Revert sidebar open/close icons to old version of RemUI.
-Tweak - Overall CSS size reduced by around 200 KB.
-Fix - Table styling in various pages.
-Fix - Edit profile tab issues in profile page.
-Fix - Frontpage slider read more button not clickable.
-Fix - Atto editor issues while selecting text color, styles.
-Fix - Site navbar icons and logo placement.
-Fix - Dropdowns width while editing on in block sidebar.
+Version 3.4.0
+Edwiser RemUI now compatible with Moodle version 3.4
+Initial Release of Edwiser RemUI 3.4
+Feature - New Teacher Centered Dashboard with Course and Student Progress
+Feature - Contact your students who are not attending lectures
+Feature - Sorting Functionality on Course Archieve Page
+Feature - List and Grid view for Course Tiles on Course Archieve Page
+Feature - Create New course button on Course Archieve Page
 
-Version 3.3.1
-Tweak   - Optimized custom dashboard blocks and available course block on frontpage.
-Feature - Sidebar open/close state save based on user preferences.
-Fix - Fixed moodle forms in multiple pages.
-Fix - Fixed Moodle modals.
-Fix - Minor issues on course page while user editing is on.
-Fix - Class not found issues on profile and frontpage.
-Fix - JS & CSS fixes and optimization in whole codebase.
-Fix - License auto deactivate issue.
-
-Version 3.3.0
-Inital Release for Moodle 3.3

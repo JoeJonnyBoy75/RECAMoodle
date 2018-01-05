@@ -43,4 +43,20 @@ foreach ($flatnavigation as $navs) {
     }
 }
 
+// Activities Navigation Previous Next
+if (!preg_match('#/course/view.php#', $PAGE->url)) {
+    if ($COURSE->format != 'singleactivity') {
+        if (isset($PAGE->cm->id)) {
+            $activityid = $PAGE->cm->id;
+        } else {
+            $activityid = optional_param('id', -1, PARAM_INT);
+        }
+        if ($activityid != -1) {
+            $templatecontext['prevnextnav'] = activities_navigation_previous_next($PAGE->pagelayout, $activityid, $COURSE);
+        }
+    }
+}
+// Activities Navigation Previous Next
+
+
 echo $OUTPUT->render_from_template('theme_remui/incourse', $templatecontext);

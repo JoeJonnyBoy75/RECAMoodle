@@ -55,35 +55,39 @@
             {{{ output.full_header }}}
 
             <div class="page-content">
-                
+
                 <div class="row search-filters pb-5">
-                    <!-- <div class="col-12"> -->
-                        
-                        <div class="col-12 col-md-4 col-lg-3 d-inline-block pb-15">
+                    <!-- <div class="col-12 col-md-3 col-lg-3 col-sm-12 d-inline-block pb-15" > -->
+                        <div class="col-12 col-md-12 col-lg-6 col-sm-12 d-inline-block pb-15">
                             {{{ categoryfilter }}}
                         </div>
 
-                        <div class="col-12 col-md-8 col-lg-9 d-inline-block pb-15">
+                        <div class="col-12 col-md-9 col-lg-4 col-sm-12 d-inline-block pb-15">
                             {{{ searchfilter }}}
                         </div>
-                    <!-- </div> -->
-                    {{# categorydescription }}
-                    <div class="col-12 pb-15">
-                        {{{ categorydescription }}}
-                    </div>
-                    {{/ categorydescription }}
+
+                        <div class="col-12 col-md-3 col-lg-2 col-sm-12 d-inline-block pb-15 text-right hidden-sm-down">
+                            {{{ viewtoggler }}}
+                        </div>
+
+                        {{# categorydescription }}
+                        <div class="col-12 pb-15">
+                            {{{ categorydescription }}}
+                        </div>
+                        {{/ categorydescription }}
                 </div>
 
-                <div class="row">
-                {{# hascourses }}
-                    {{# courses }}
-                        {{> theme_remui/course_card }}
-                    {{/ courses }}
-                {{/ hascourses }}
 
-                {{^ hascourses }}
-                    <div class="col-12">{{#str}} nocoursesavail, theme_remui {{/str}}</div>
-                {{/ hascourses }}
+                <div id="categoryCourses" class="row">
+                    {{# hascourses }}
+                        {{# courses }}
+                            {{> theme_remui/course_card }}
+                        {{/ courses }}
+                    {{/ hascourses }}
+
+                    {{^ hascourses }}
+                        <div class="col-12">{{#str}} nocoursesavail, theme_remui {{/str}}</div>
+                    {{/ hascourses }}
                 </div>
 
                 <div class="row">
@@ -113,7 +117,7 @@
     {{> theme_remui/common_end }}
 
 {{#js}}
-require(['theme_remui/loader', 'theme_remui/jquery-toolbar'], function (l, t) {
+require(['theme_remui/loader', 'theme_remui/jquery-toolbar', 'theme_remui/coursecategory'], function (l, t, c) {
     Breakpoints();
     {{# usercanmanage }}
     // initiate course options toolbar

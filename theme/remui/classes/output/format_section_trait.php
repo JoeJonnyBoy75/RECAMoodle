@@ -25,6 +25,7 @@
  */
 
 namespace theme_remui\output;
+
 use html_writer;
 use moodle_page;
 use context_course;
@@ -32,9 +33,11 @@ use completion_info;
 use moodle_url;
 use stdClass;
 use course_in_list;
+
 require_once($CFG->libdir. '/coursecatlib.php');
 
-trait format_section_trait {
+trait format_section_trait
+{
     /**
      * Generate the section title, wraps it in a link to the section page if page is to be displayed on a separate page
      *
@@ -42,7 +45,8 @@ trait format_section_trait {
      * @param stdClass $course The course entry from DB
      * @return string HTML to output.
      */
-    public function section_title($section, $course) {
+    public function section_title($section, $course)
+    {
         return $this->render(course_get_format($course)->inplace_editable_render_section_name($section));
     }
 
@@ -53,7 +57,8 @@ trait format_section_trait {
      * @param stdClass $course The course entry from DB
      * @return string HTML to output.
      */
-    public function section_title_without_link($section, $course) {
+    public function section_title_without_link($section, $course)
+    {
         return $this->render(course_get_format($course)->inplace_editable_render_section_name($section, false));
     }
 
@@ -66,14 +71,15 @@ trait format_section_trait {
      * @param array $modnames (argument not used)
      * @param array $modnamesused (argument not used)
      */
-    public function print_multiple_section_page($course, $sections, $mods, $modnames, $modnamesused) {
+    public function print_multiple_section_page($course, $sections, $mods, $modnames, $modnamesused)
+    {
         global $PAGE, $OUTPUT;
 
         $modinfo = get_fast_modinfo($course);
         $course = course_get_format($course)->get_course();
 
         $context = context_course::instance($course->id);
-        
+
         echo $this->output->heading($this->page_title(), 2, 'accesshide');
 
         // Copy activity clipboard..
@@ -81,7 +87,7 @@ trait format_section_trait {
 
         // Now the list of sections..
         echo $this->start_section_list();
-        
+
         $numsections = course_get_format($course)->get_last_section_number();
 
         foreach ($modinfo->get_section_info_all() as $section => $thissection) {
@@ -122,17 +128,21 @@ trait format_section_trait {
                 echo $this->section_header($thissection, $course, false, 0);
                 if ($thissection->uservisible) {
                     $cm_list = $this->courserenderer->course_section_cm_list($course, $thissection, 0);
-                    
-                    // show activity list panel only if there are activities
-                    if(!empty($cm_list)) {
-                        echo '<div class="panel activity-list">' .
-//                            <div class="panel-heading" role="tab">
-//                                <a class="panel-title px-30 pt-0" data-toggle="collapse" href="#sectionwrapper-'.$section.'" aria-expanded="true" aria-controls="sectionwrapper-'.$section.'">
-//                                    '.get_string('sectionactivities', 'theme_remui').'<i class="fa-angle-up float-right"></i>
-//                                </a>
-//                            </div>
 
-                            '<div class="panel-collapse collapse show" id="sectionwrapper-'.$section.'" aria-labelledby="sectionwrapper-'.$section.'" role="tabpanel" aria-expanded="true">
+                    // show activity list panel only if there are activities
+                    if (!empty($cm_list)) {
+                        // echo '<div class="panel activity-list">
+                        //     <div class="panel-heading" role="tab">
+                        //         <a class="panel-title px-30 pt-0" data-toggle="collapse" href="#sectionwrapper-'.$section.'" aria-expanded="true" aria-controls="sectionwrapper-'.$section.'">
+                        //             '.get_string('sectionactivities', 'theme_remui').'<i class="fa-angle-up float-right"></i>
+                        //         </a>
+                        //     </div>
+
+                        //     <div class="panel-collapse collapse show" id="sectionwrapper-'.$section.'" aria-labelledby="sectionwrapper-'.$section.'" role="tabpanel" aria-expanded="true">
+                        //       <div class="panel-body p-0">';
+
+                        echo '<div class="panel activity-list">
+                                  <div class="panel-collapse collapse show" id="sectionwrapper-'.$section.'" aria-labelledby="sectionwrapper-'.$section.'" role="tabpanel" aria-expanded="true">
                               <div class="panel-body p-0">';
 
                         echo $cm_list;
@@ -166,7 +176,6 @@ trait format_section_trait {
         } else {
             echo $this->end_section_list();
         }
-
     }
 
     /**
@@ -179,7 +188,8 @@ trait format_section_trait {
      * @param array $modnamesused (argument not used)
      * @param int $displaysection The section number in the course which is being displayed
      */
-    public function print_single_section_page($course, $sections, $mods, $modnames, $modnamesused, $displaysection) {
+    public function print_single_section_page($course, $sections, $mods, $modnames, $modnamesused, $displaysection)
+    {
         global $PAGE, $OUTPUT;
 
         $modinfo = get_fast_modinfo($course);
@@ -239,16 +249,16 @@ trait format_section_trait {
         echo $sectiontitle;
 
         // Now the list of sections..
-        echo $this->start_section_list(); 
+        echo $this->start_section_list();
 
         echo $this->section_header($thissection, $course, true, $displaysection);
         // Show completion help icon.
         $completioninfo = new completion_info($course);
         echo $completioninfo->display_help_icon();
 
-        $cm_list = $this->courserenderer->course_section_cm_list($course, $thissection, 0);   
+        $cm_list = $this->courserenderer->course_section_cm_list($course, $thissection, 0);
         // show activity list panel only if there are activities
-        if(!empty($cm_list)) {
+        if (!empty($cm_list)) {
             echo '<div class="panel activity-list">
                 <div class="panel-heading" role="tab">
                     <a class="panel-title px-30 pt-0" data-toggle="collapse" href="#sectionwrapper-'.$displaysection.'" aria-expanded="true" aria-controls="sectionwrapper-'.$displaysection.'">
@@ -277,8 +287,11 @@ trait format_section_trait {
         $sectionbottomnav .= html_writer::tag('span', $sectionnavlinks['previous'], array('class' => 'mdl-left'));
         $sectionbottomnav .= html_writer::tag('span', $sectionnavlinks['next'], array('class' => 'mdl-right'));
         $sectionbottomnav .= '<div class="clearfix"></div>';
-        $sectionbottomnav .= html_writer::tag('div', $this->section_nav_selection($course, $sections, $displaysection),
-            array('class' => 'mdl-align'));
+        $sectionbottomnav .= html_writer::tag(
+            'div',
+            $this->section_nav_selection($course, $sections, $displaysection),
+            array('class' => 'mdl-align')
+        );
         $sectionbottomnav .= html_writer::end_tag('div');
         echo $sectionbottomnav;
 
@@ -296,19 +309,21 @@ trait format_section_trait {
      * @param int $sectionreturn The section to return to after an action
      * @return string HTML to output.
      */
-    protected function section_header($section, $course, $onsectionpage, $sectionreturn=null) {
-        if($section->section == 0) {
-            $o = $this->first_section_header($section, $course, $onsectionpage, $sectionreturn=null);
+    protected function section_header($section, $course, $onsectionpage, $sectionreturn = null)
+    {
+        if ($section->section == 0) {
+            $o = $this->first_section_header($section, $course, $onsectionpage, $sectionreturn = null);
         } else {
-            $o = $this->regular_section_header($section, $course, $onsectionpage, $sectionreturn=null);
+            $o = $this->regular_section_header($section, $course, $onsectionpage, $sectionreturn = null);
         }
 
         return $o;
     }
 
-    protected function first_section_header($section, $course, $onsectionpage, $sectionreturn=null) {
+    protected function first_section_header($section, $course, $onsectionpage, $sectionreturn = null)
+    {
         global $PAGE;
-        
+
         $o = '';
         $currenttext = '';
         $sectionstyle = ' mb-25';
@@ -324,7 +339,7 @@ trait format_section_trait {
 
         $rightcontent = $this->section_right_content($section, $course, $onsectionpage);
         $rightside = html_writer::tag('div', $rightcontent, array('class' => 'right side'));
-        
+
         echo $completioninfo->display_help_icon();
         $o .= html_writer::start_tag('li', array('id' => 'section-'.$section->section,
             'class' => 'first-section-li section main clearfix'.$sectionstyle, 'role'=>'region',
@@ -332,11 +347,8 @@ trait format_section_trait {
 
         // course cover image
         $coursesummary = strip_tags($this->format_summary_text($section));
-        if(strlen($coursesummary) > 300) {
-            $coursesummary = substr($coursesummary, 0, 300)."...";
-        }
-        
-        $o .= "<div class='p-10 course-cover-image' style='background-image: linear-gradient(to right, rgba(14, 35, 53, 0.68), rgba(14, 35, 53, 0.68)), url(".$coverimage.");'>
+
+        $o .= "<div class='p-10 course-cover-image pb-30' style='background-image: linear-gradient(to right, rgba(14, 35, 53, 0.68), rgba(14, 35, 53, 0.68)), url(".$coverimage.");'>
         $leftside
         $rightside
         <div class='text-white'>
@@ -360,13 +372,14 @@ trait format_section_trait {
         if ($hasnamenotsecpg || $hasnamesecpg) {
             $classes = '';
         }
-        
+
         $o .= $this->section_availability($section);
 
         return $o;
     }
 
-    protected function regular_section_header($section, $course, $onsectionpage, $sectionreturn=null) {
+    protected function regular_section_header($section, $course, $onsectionpage, $sectionreturn = null)
+    {
         global $PAGE;
 
         $o = '';
@@ -398,7 +411,7 @@ trait format_section_trait {
         $rightside = html_writer::tag('div', $rightcontent, array('class' => 'right side float-right'));
 
         $o .= html_writer::start_tag('div', array('class' => 'content card-block p-30', 'style' => 'clear:both;'));
-        
+
         $o .= '<div class="row d-block">';
         $o .= $rightside;
         $o .= $leftside;
@@ -417,14 +430,15 @@ trait format_section_trait {
 
         $classes = ' card-title';
         //$sectionname = html_writer::tag('span', $this->section_title($section, $course));
-        $o .= '<div class="flexy">';
-        $o .= '<div class="flex1">';
-        $o.= $this->output->heading($this->section_title($section, $course), 4, 'sectionname' . $classes);
-        $o .= '</div>';
-        $o .= '<div class="arrow">';
-        $o .= '<a class="panel-title px-30 pt-0" data-toggle="collapse" href="#sectionwrapper-'.$section->section.'" aria-expanded="true" aria-controls="sectionwrapper-'.$section->section.'"><i class="fa-angle-up float-right"></i></a>';
-        $o .= '</div>';
-        $o .= '</div>';
+        // $o.= $this->output->heading($this->section_title($section, $course), 4, 'sectionname' . $classes);
+        $cm_list = $this->courserenderer->course_section_cm_list($course, $section, 0);
+        $temp  = '<a class="p-0" data-toggle="collapse" href="#sectionwrapper-'.$section->section.'" aria-expanded="true" aria-controls="sectionwrapper-'.$section->section.'">'.get_section_name($section->course, $section).'</a>';
+        if (!empty($cm_list)) {
+            $temp  = '<a class="panel-title p-0" data-toggle="collapse" href="#sectionwrapper-'.$section->section.'" aria-expanded="true" aria-controls="sectionwrapper-'.$section->section.'">'.get_section_name($section->course, $section).'<i class="fa-angle-up float-right"></i></a>';
+        }
+
+
+        $o .= $this->output->heading($temp, 4, 'sectionname' . $classes);
 
         $o .= $this->section_availability($section);
 
@@ -445,7 +459,8 @@ trait format_section_trait {
      * @param section_info $section
      * @return string
      */
-    public function section_availability($section) {
+    public function section_availability($section)
+    {
         $context = context_course::instance($section->course);
         $canviewhidden = has_capability('moodle/course:viewhiddensections', $context);
         return html_writer::div($this->section_availability_message($section, $canviewhidden), 'section_availability badge badge-pill badge-info mb-10');
@@ -459,7 +474,8 @@ trait format_section_trait {
      * @param array    $mods (argument not used)
      * @return string HTML to output.
      */
-    protected function section_summary($section, $course, $mods) {
+    protected function section_summary($section, $course, $mods)
+    {
         $classattr = 'card section main section-summary clearfix';
         $linkclasses = '';
 
@@ -467,7 +483,7 @@ trait format_section_trait {
         if (!$section->visible) {
             $classattr .= ' hidden';
             $linkclasses .= ' dimmed_text';
-        } else if (course_get_format($course)->is_section_current($section)) {
+        } elseif (course_get_format($course)->is_section_current($section)) {
             $classattr .= ' current';
         }
 
@@ -482,19 +498,22 @@ trait format_section_trait {
         $o .= html_writer::start_tag('div', array('class' => 'content card-block p-30', 'style' => 'clear:both;'));
 
         if ($section->uservisible) {
-            $title = html_writer::tag('a', $title,
-                    array('href' => course_get_url($course, $section->section), 'class' => $linkclasses));
+            $title = html_writer::tag(
+                'a',
+                $title,
+                array('href' => course_get_url($course, $section->section), 'class' => $linkclasses)
+            );
         }
         $o .= $this->output->heading($title, 4, 'card-title section-title');
 
         $o.= html_writer::start_tag('div', array('class' => 'summarytext card-text'));
         $o.= $this->format_summary_text($section);
         $o.= html_writer::end_tag('div');
-        
+
         $o .= html_writer::end_tag('div'); // close content div
 
         $activity_summary = $this->section_activity_summary($section, $course, null);
-        if($activity_summary) {
+        if ($activity_summary) {
             $o .= '<div class="card-footer card-footer-transparent card-footer-bordered text-muted">';
             $o .= $activity_summary;
             $o .= html_writer::end_tag('div');
@@ -512,7 +531,8 @@ trait format_section_trait {
      *
      * @return string HTML to output.
      */
-    protected function section_footer() {
+    protected function section_footer()
+    {
         $o = html_writer::end_tag('div');
         $o.= html_writer::end_tag('li');
 

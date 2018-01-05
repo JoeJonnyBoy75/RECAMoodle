@@ -24,8 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2017092100;
-$plugin->requires  = 2017051500;
+$plugin->version   = 2017120600;
+$plugin->requires  = 2017111300;
 $plugin->maturity  = MATURITY_STABLE; // This version's maturity level.
-$plugin->release   = '3.3.3';
+$plugin->release   = '3.4.0';
 $plugin->component = 'theme_remui';

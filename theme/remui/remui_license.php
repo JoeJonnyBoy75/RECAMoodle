@@ -1,8 +1,8 @@
 <?php
 
 // include Moodle config
-if(!@include_once(__DIR__.'/../../config.php')) {
-  include_once('/var/www/remui.local/html/v33/config.php');
+if (!@include_once(__DIR__.'/../../config.php')) {
+    include_once('/var/www/remui.local/html/v34/config.php');
 }
 
 global $DB;
@@ -32,9 +32,7 @@ if ($licensekey == 'empty') {
        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
        <h4><i class="icon fa fa-ban"></i> Error</h4>'.get_string("enterlicensekey", "theme_remui").'
     </div>';
-
 } elseif (!empty($licensekey) && $licensekey != 'empty') {
-
     if ($status !== false && $status == 'valid' && !empty($licensekeyactivate)) {
 
         //Valid license key
@@ -42,43 +40,37 @@ if ($licensekey == 'empty') {
            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
            <h4><i class="icon fa fa-check"></i> Success</h4>'.get_string("licensekeyactivated", "theme_remui").'
         </div>';
-
     } elseif ($status !== false && $status == 'expired') { //Expired license key
 
-    echo '<div class="alert alert-danger">
+        echo '<div class="alert alert-danger">
        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-       <h4><i class="icon fa fa-ban"></i> Alert!</h4>'.get_string("licensekeyhasexpired","theme_remui").'
+       <h4><i class="icon fa fa-ban"></i> Alert!</h4>'.get_string("licensekeyhasexpired", "theme_remui").'
     </div>';
-
     } elseif ($status !== false && $status == 'disabled') { //Disabled license key
             echo '<div class="alert alert-danger">
                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
                <h4><i class="icon fa fa-ban"></i> Alert!</h4>'.get_string("licensekeyisdisabled", "theme_remui").'
             </div>';
-
     } elseif ($status == 'invalid') { //Invalid license key
         echo '<div class="alert alert-danger">
        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
        <h4><i class="icon fa fa-ban"></i> Alert!</h4>'.get_string("entervalidlicensekey", "theme_remui").'
     </div>';
-
     } elseif ($status == 'site_inactive') { //Site is inactive
         echo '<div class="alert alert-danger">
               <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
               <h4><i class="icon fa fa-ban"></i> Alert!</h4>'.get_string("siteinactive", "theme_remui").'
             </div>';
-
     } elseif ($status == 'deactivated') { //Site is inactive
             echo '<div class="alert alert-danger">
        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
        <h4><i class="icon fa fa-ban"></i> Alert!</h4>'.get_string("licensekeydeactivated", "theme_remui").'
        </div>';
-
     } elseif ($status == 'no_response' || (!empty($licensekeydeactivate) && $status == 'valid')) { //Site is inactive
 
         echo '<div class="alert alert-danger">
             <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-            <h4><i class="icon fa fa-ban"></i> Alert!</h4>'.get_string("noresponsereceived","theme_remui").'
+            <h4><i class="icon fa fa-ban"></i> Alert!</h4>'.get_string("noresponsereceived", "theme_remui").'
             </div>';
     }
 }
@@ -98,20 +90,24 @@ unset_config('licensekeydeactivate', 'theme_remui');
 
               <input type="hidden" name="activetab" value="remuilicensestatus">
 
-              <?php
+                <?php
 
-                if ($status=="valid") { ?>
+                if ($status=="valid") {
+                    ?>
 
                     <div class="form-group has-success">
 
                       <label class="control-label text-black col-sm-3"><?php echo get_string('licensekey', 'theme_remui') ?>:</label>
 
                       <div class="col-sm-9">
-                      <?php echo "<input id='edd_{$plugin_slug}_license_key' class='form-control' name='edd_{$plugin_slug}_license_key' type='text' class='regular-text' value='{$license_key}' placeholder='Enter license key...' readonly/>"; ?>
+                        <?php echo "<input id='edd_{$plugin_slug}_license_key' class='form-control' name='edd_{$plugin_slug}_license_key' type='text' class='regular-text' value='{$license_key}' placeholder='Enter license key...' readonly/>"; ?>
                       </div>
                     </div>
 
-                <?php } else if ($status=="expired") { ?>
+                <?php
+
+                } elseif ($status=="expired") {
+                    ?>
 
                     <div class="form-group has-error">
 
@@ -122,7 +118,10 @@ unset_config('licensekeydeactivate', 'theme_remui');
                         </div>
                     </div>
 
-                <?php } else { ?>
+                <?php
+
+                } else {
+                    ?>
 
                     <div class="form-group has-error">
 
@@ -133,7 +132,9 @@ unset_config('licensekeydeactivate', 'theme_remui');
                         </div>
                     </div>
 
-                <?php } ?>
+                <?php
+
+                } ?>
 
                 <div class="form-group">
                     <?php
@@ -148,17 +149,17 @@ unset_config('licensekeydeactivate', 'theme_remui');
                         $status_text_expired = get_string('expired', 'theme_remui');
                         $status_text_expired_text = "<p style='color:red;'>{$status_text_expired}</p>";
 
-                        if ($status !== false && $status == 'valid') {
-                            echo $status_text_active_text;
-                        } elseif ($status == 'site_inactive') {
-                            echo $status_text_inactive_text;
-                        } elseif ($status == 'expired') {
-                            echo $status_text_expired_text;
-                        } elseif ($status == 'invalid') {
-                            echo $status_text_inactive_text;
-                        } else {
-                            echo $status_text_inactive_text;
-                        }
+                    if ($status !== false && $status == 'valid') {
+                        echo $status_text_active_text;
+                    } elseif ($status == 'site_inactive') {
+                        echo $status_text_inactive_text;
+                    } elseif ($status == 'expired') {
+                        echo $status_text_expired_text;
+                    } elseif ($status == 'invalid') {
+                        echo $status_text_inactive_text;
+                    } else {
+                        echo $status_text_inactive_text;
+                    }
 
                         echo '</div>';
                     ?>
@@ -176,15 +177,15 @@ unset_config('licensekeydeactivate', 'theme_remui');
                         // hidden field to cehck if on license tab
                         echo "<input type='hidden' id='onLicensePage' name='onLicensePage' value='0'/>";
 
-                        if ($status !== false && $status == 'valid') {
-                            echo "<input type='submit' class='btn btn-primary text-white'  style='color:white;' name='edd_{$plugin_slug}_license_deactivate' value='{$deactivate_license_text}'/>";
-                        } elseif ($status == 'expired') {
-                            echo "<input type='submit' class='btn btn-primary' style='color:white;' name='edd_{$plugin_slug}_license_deactivate' value='{$deactivate_license_text}'/>&nbsp&nbsp";
+                    if ($status !== false && $status == 'valid') {
+                        echo "<input type='submit' class='btn btn-primary text-white'  style='color:white;' name='edd_{$plugin_slug}_license_deactivate' value='{$deactivate_license_text}'/>";
+                    } elseif ($status == 'expired') {
+                        echo "<input type='submit' class='btn btn-primary' style='color:white;' name='edd_{$plugin_slug}_license_deactivate' value='{$deactivate_license_text}'/>&nbsp&nbsp";
 
-                            echo '<input type="button" class="btn btn-primary" style="color:white;" name="edd_'.$plugin_slug.'_license_renew" value="'.$renew_license_text.'" onclick="window.open(\''.$renew_link.'\');">';
-                        } else {
-                            echo "<input type='submit' class='btn btn-primary' style='color:white;' name='edd_{$plugin_slug}_license_activate' value='{$activate_license_text}'/>";
-                        }
+                        echo '<input type="button" class="btn btn-primary" style="color:white;" name="edd_'.$plugin_slug.'_license_renew" value="'.$renew_license_text.'" onclick="window.open(\''.$renew_link.'\');">';
+                    } else {
+                        echo "<input type='submit' class='btn btn-primary' style='color:white;' name='edd_{$plugin_slug}_license_activate' value='{$activate_license_text}'/>";
+                    }
 
                         echo '</div>';
                     ?>

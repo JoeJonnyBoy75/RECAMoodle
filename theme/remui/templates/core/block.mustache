@@ -33,12 +33,12 @@
      {{/arialabel}}>
 
     {{! Block header }}
+    {{#hascontrols}}
+        <div class="block-controls float-right header pr-25">
+            {{{controls}}}
+        </div>
+    {{/hascontrols}}
     {{#title}}
-        {{#hascontrols}}
-            <div class="block-controls float-right header pr-25">
-                {{{controls}}}
-            </div>
-        {{/hascontrols}}
         <h5 id="instance-{{blockinstanceid}}-header" class="page-aside-title px-20 m-0">{{{title}}}</h5>
     {{/title}}
 

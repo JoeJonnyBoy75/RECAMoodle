@@ -211,7 +211,7 @@
                                                 </div>
                                                 
                                                 <div class="media-body pr-10 pb-10">
-                                                    <a href="{{ link }}"><h5 class="mt-0 mb-5">{{ fullname }}</h5></a>
+                                                    <a href="{{ link }}"><h5 class="mt-0 mb-5">{{{ fullname }}}</h5></a>
                                                     {{# startdate }}<small>{{# str }} start_date, theme_remui {{/ str }} {{#userdate}} {{startdate}}, %A, %d %B %Y {{/userdate}}</small>{{/ startdate }}
 
                                                     <div class="profile-brief mt-10 hidden-sm-down">
@@ -273,13 +273,13 @@
                                                 <div class="form-group row">
                                                     <label class="col-md-3 form-control-label">{{# str }} firstname, theme_remui {{/ str }}</label>
                                                     <div class="col-md-9">
-                                                        <input disabled type="text" class="form-control" id='first_name' name="first_name" data-fv-field="first_name" value="{{ firstname }}">
+                                                        <input type="text" class="form-control" id='first_name' name="first_name" data-fv-field="first_name" value="{{ firstname }}">
                                                     </div>
                                                 </div>
                                                 <div class="form-group row">
                                                     <label class="col-md-3 form-control-label">{{# str }} surname, theme_remui {{/ str }}</label>
                                                     <div class="col-md-9">
-                                                        <input disabled type="text" class="form-control" id='surname' name="surname" data-fv-field="surname" value="{{ lastname }}">
+                                                        <input type="text" class="form-control" id='surname' name="surname" data-fv-field="surname" value="{{ lastname }}">
                                                     </div>
                                                 </div>
                                                 <div class="form-group row">
@@ -291,13 +291,13 @@
                                                 <div class="form-group row">
                                                     <label class="col-md-3 form-control-label">{{# str }} citytown, theme_remui {{/ str }}</label>
                                                     <div class="col-md-9">
-                                                        <input disabled type="text" class="form-control" id='city' name="city" data-fv-field="city" value="{{#location}}{{city}} {{/location}}">
+                                                        <input type="text" class="form-control" id='city' name="city" data-fv-field="city" value="{{#location}}{{city}} {{/location}}">
                                                     </div>
                                                 </div>
                                                 <div class="form-group row">
                                                       <label class="col-md-3 form-control-label">{{# str }} country, theme_remui {{/ str }}</label>
                                                       <div class="col-md-9">
-                                                        <select disabled class="form-control" id="country" name="country" required="" data-fv-field="country">
+                                                        <select class="form-control" id="country" name="country" required="" data-fv-field="country">
                                                           {{# countries }}
                                                           <option value="{{ keyName }}">{{ valName }}</option>
                                                           {{/ countries }}
@@ -307,11 +307,11 @@
                                                 <div class="form-group row">
                                                   <label class="col-md-3 form-control-label">{{# str }} description, theme_remui {{/ str }}</label>
                                                   <div class="col-md-9">
-                                                    <textarea disabled class="form-control" id='description' name="description" rows="3" data-fv-field="description"> {{{description}}} </textarea>
+                                                    <textarea class="form-control" id='description' name="description" rows="3" data-fv-field="description"> {{{description}}} </textarea>
                                                   </div>
                                                 </div>
                                             <div class="text-right">
-                                                <!--<button type="button" class="btn btn-primary" id="btn-save-changes">{{# str }} submit, theme_remui {{/ str }}</button>-->
+                                                <button type="button" class="btn btn-primary" id="btn-save-changes">{{# str }} submit, theme_remui {{/ str }}</button>
                                             </div>
                                         </form>
                                             <!--<div class="alert alert-danger" id="error-message" style="display:none;margin-top:10px"></div>-->

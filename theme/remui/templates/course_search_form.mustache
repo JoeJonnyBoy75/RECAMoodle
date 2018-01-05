@@ -15,17 +15,18 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 <form action="{{searchurl}}" id="{{id}}" method="get" class="form-inline">
-    <div class="form-group coursesearchbox invisiblefieldset">
+    <div class="form-group coursesearchbox invisiblefieldset w-p100">
         {{#mycourses}}
-            <input type="hidden" name="mycourses" value="{{mycourses}}">  
+            <input type="hidden" name="mycourses" value="{{mycourses}}">
         {{/mycourses}}
         {{#category}}
             <input type="hidden" name="categoryid" value="{{category}}">
         {{/category}}
-        <div class="input-search w-full w-md-auto">
+        <div class="input-search w-p100 d-flex  ">
             <i class="input-search-icon wb-search" aria-hidden="true"></i>
-            <input id="{{inputid}}" name="search" type="text" placeholder="{{#str}}searchcourses{{/str}}" size="{{inputsize}}" value="{{value}}" class="form-control h-40 w-full w-md-auto">
-            
+
+            <input id="{{inputid}}" name="search" type="text" placeholder="{{#str}}searchcourses{{/str}}"   value="{{value}}" class="form-control h-40 w-p100">
+
             <div class="input-group-btn d-inline-block hidden-sm-down">
                 <button class="btn btn-primary btn-lg px-25 font-weight-500 font-size-14 h-40" type="submit">{{#str}}go{{/str}}</button>
             </div>

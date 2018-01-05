@@ -33,8 +33,8 @@ $string['choosereadme'] = '
 <div class="about-remui-wrapper text-center">
     <div class="about-remui m-auto" style="max-width: 1000px;">
         <h1 class="text-center">Bienvenu dans le thème Edwiser RemUI</h1><br>
-        <h4 class="text-muted">Le thème Edwiser RemUI est la nouvelle révolution dans l\'expérience utilisateur de Moodle. 
-		Il a été spécialement conçu pour enrichir le e-learning avec une présentation personnalisée, une navigation simplifiée 
+        <h4 class="text-muted">Le thème Edwiser RemUI est la nouvelle révolution dans l\'expérience utilisateur de Moodle.
+		Il a été spécialement conçu pour enrichir le e-learning avec une présentation personnalisée, une navigation simplifiée
 		et des options personnalisables de création de contenu.<br><br>
         Nous sommes certain que vous apprécierez la possibilité de remodelé le design de votre site Moodle.!
         </h4>
@@ -630,28 +630,29 @@ $string['testimonialdesignation'] = 'Person Designation';
 $string['testimonialdesignationdesc'] = 'Person\'s designation.';
 $string['testimonialtext'] = 'Person\'s Testimonial';
 $string['testimonialtextdesc'] = 'What person says';
-$string['sectionactivities'] = 'Activities';
+$string['sectionactivities'] = 'Activités';
 $string['showless'] = 'Show Less';
 $string['showmore'] = 'Show More';
-$string['allcategories'] = 'All categories';
+$string['allcategories'] = 'Toutes les catégories';
 $string['category'] = 'Category';
 $string['administrator'] = 'Administrator';
 $string['badges'] = 'Badges';
 $string['webpage'] = 'Web Page';
 $string['contacts'] = 'Contacts';
-$string['courses'] = 'Courses';
+$string['courses'] = 'Cours';
 $string['preferences'] = 'Preferences';
-$string['complete'] = 'Complete';
-$string['start_date'] = 'Start date';
+$string['complete'] = 'Complété';
+$string['start_date'] = 'Début du cours';
 $string['submit'] = 'Submit';
 $string['fontname'] = 'Site Font';
 $string['fontnamedesc'] = 'Enter the exact name of the font to use for Moodle.';
 $string['followus'] = 'Follow Us';
 $string['poweredby'] = 'Powered by Edwiser RemUI';
-$string['signin'] = 'Sign In';
-$string['forgotpassword'] = 'Forgot Password?';
+$string['signin'] = 'Connexion';
+$string['forgotpassword'] = 'Mot de passe oublié?';
 $string['noaccount'] = 'No Account?';
 $string['applysitewide'] = 'Apply Sitewide';
+
 
 // User profile page js
 $string['actioncouldnotbeperformed'] = 'Action could not be performed!';
@@ -670,10 +671,10 @@ $string['signup'] = 'Sign Up';
 $string['togglesearch'] = 'Toggle Search';
 $string['togglefullscreen'] = 'Toggle fullscreen';
 $string['navbartype'] = 'Navbar Type';
-$string['sidebarcolor'] = 'Sidebar Color';
+$string['sidebarcolor'] = 'barre cote Color';
 $string['sitecolor'] = 'Site Color';
 $string['others'] = 'Others';
-$string['today'] = 'Today';
+$string['today'] = 'Aujourd’hui';
 $string['yesterday'] = 'Yesterday';
 $string['you_do_not_have_permission_to_perform_this_action'] = 'You do not have permission to perform this action';
 $string['viewallcourses'] = 'View All Courses';
@@ -682,11 +683,11 @@ $string['aboutremui'] = 'About Edwiser RemUI';
 
 $string['remuisettings'] = 'RemUI Settings';
 $string['createanewcourse'] = 'Create A New Course';
-$string['createarchivepage'] = 'Course Archive Page';
+$string['createarchivepage'] = 'Liste des cours';
 $string['siteblog'] = 'Site Blog';
 $string['selectcategory'] = 'Select Category';
 $string['nocoursesavail'] = 'Sorry! No courses available at the moment.';
-$string['norecentfeedback'] = 'No Recent Feedback !';
+$string['norecentfeedback'] = 'Aucun commentaire récent';
 
 // news and updates tab
 $string['newsandupdates'] = 'News & Updates';
@@ -701,28 +702,30 @@ $string['sendfeedback'] = 'Send Feedback';
 $string['recentnews'] = 'Recent News';
 
 /* My Course Page */
-$string['resume'] = 'Resume';
-$string['start'] = 'Start';
-$string['completed'] = 'Completed';
+$string['resume'] = 'Continuer';
+$string['start'] = 'Commencer';
+$string['completed'] = 'Terminé';
 
 /* Dashboard Page */
 $string['welcome-msg'] = 'Welcome to your Dashboard';
-$string['coursecompleted'] = 'COURSES COMPLETED';
-$string['activitycompleted'] = 'ACTIVITIES COMPLETED';
-$string['enrolledcourses'] = 'ENROLLED COURSES';
-$string['courseactivities'] = 'COURSE ACTIVITIES';
-$string['noevents'] = "No events due";
-$string['overdue'] = "Overdue";
-$string['upcoming'] = "Upcoming";
+$string['coursecompleted'] = 'COURS COMPLÉTÉS';
+$string['activitycompleted'] = 'ACTIVITÉS COMPLÉTÉES';
+$string['enrolledcourses'] = 'COURS INSCRITS';
+$string['courseactivities'] = 'ACTIVITÉS DE COURS';
+$string['noevents'] = "Aucune instance";
+$string['overdue'] = "En retard";
+$string['upcoming'] = "À venir";
+$string['expired'] = "Expiré";
 $string['selectcourse'] = "Select Course";
-$string['courseanlytics']="Course Analytics";
-$string['highestgrade']="HIGHEST GRADE";
-$string['lowestgrade']="LOWEST GRADE";
-$string['averagegrade']="AVERAGE GRADE";
-$string['viewcourse'] = "VIEW COURSE";
+$string['courseanlytics']="Analyse de cours";
+$string['highestgrade']="NOTE LA PLUS HAUTE";
+$string['lowestgrade']="NOTE LA PLUS BASSE";
+$string['averagegrade']="NOTE MOYENNE";
+$string['viewcourse'] = "ACCÉDER AU COURS";
 $string['mycourses'] = "My Courses";
-$string['tasks'] = "Tasks to complete";
-$string['coursestats'] = "Course Stats";
+$string['tasks'] = "Tâches à compléter";
+$string['coursestats'] = "Statistiques de cours";
+$string['allActivities'] = "Toutes les activités";
 $string['enabledashboard'] = "Enable New Dashboard";
 $string['enabledashboarddesc'] = "Enable New Dashboard layout for all users";
 
@@ -741,3 +744,21 @@ $string['typeinfo'] = "Information announcement";
 $string['typedanger'] = "Urgent announcement";
 $string['typewarning'] = "Warning announcement";
 $string['typesuccess'] = "Success announcement";
+
+// Teacher Dashboard Strings
+$string['courseprogress'] = "Cours Le progrès";
+$string['course'] = "Cours";
+$string['startdate'] = "Date de début";
+$string['enrolledstudents'] = "Élèves";
+$string['progress'] = "Progrès";
+$string['name'] = "Nom";
+$string['status'] = "Statut";
+$string['back'] = "Arrière";
+
+
+/*Front Page Setting for About Us Block*/
+$string['frontpageblockdisplay'] = 'À propos de nous section';
+$string['frontpageblockdisplaydesc'] = "Vous pouvez afficher ou masquer la section 'A propos de nous', vous pouvez également l'afficher en format de grille";
+$string['donotshowaboutus'] = 'Ne pas montrer';
+$string['showaboutusinrow'] = 'Afficher la section dans une rangée';
+$string['showaboutusingridblock'] = 'Afficher la section dans le bloc de grille';

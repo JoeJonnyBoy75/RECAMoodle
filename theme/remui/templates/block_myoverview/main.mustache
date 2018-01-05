@@ -24,6 +24,7 @@
 }}
 
 <div id="block-myoverview-{{uniqid}}" class="block-myoverview row" data-region="myoverview">
+    {{#coursesview.hascourses}}
     {{! Courses Completion Status and Overview }}
     <div class = "col-sm-12 col-md-12 align-items-center mb-15">
         <div class = "bg-white py-15">
@@ -32,6 +33,7 @@
             {{/coursesview}}
         </div>
     </div>
+    {{/coursesview.hascourses}}
     <!-- Notifications Section -->
     {{# latestdashboard }}
         <!-- Welcome Message and Achivements -->

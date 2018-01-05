@@ -33,15 +33,15 @@ $uid = optional_param('id', $USER->id, PARAM_INT);
 $userobject = $DB->get_record('user', array('id' => $uid));
 
 $countries = get_string_manager()->get_list_of_countries();// get the list of all country
-if(!empty($userobject->country)) { // country field in user object is empty
-    $tempArray[] = Array("keyName" => $userobject->country, "valName" => $countries[$userobject->country]);
-    $tempArray[] = Array("keyName" => '', "valName" => 'Select a country...');
+if (!empty($userobject->country)) { // country field in user object is empty
+    $tempArray[] = array("keyName" => $userobject->country, "valName" => $countries[$userobject->country]);
+    $tempArray[] = array("keyName" => '', "valName" => 'Select a country...');
 } else {
-    $tempArray[] = Array("keyName" => '', "valName" => 'Select a country...');
+    $tempArray[] = array("keyName" => '', "valName" => 'Select a country...');
 }
 
 foreach ($countries as $key => $value) {
-     $tempArray[] = Array("keyName" => $key, "valName" => $value);
+    $tempArray[] = array("keyName" => $key, "valName" => $value);
 }
 
 $templatecontext['usercanmanage'] = \theme_remui\utility::check_user_admin_cap($userobject);
@@ -73,8 +73,8 @@ foreach ($interests as $interest) {
 $templatecontext['user']->hasinterests    = $hasinterests;
 
 // badges
-if($CFG->enablebadges) {
-    if($templatecontext['usercanmanage'] || ($userobject->id == $USER->id) ) {
+if ($CFG->enablebadges) {
+    if ($templatecontext['usercanmanage'] || ($userobject->id == $USER->id)) {
         $onlypublic = false;
     }
     $badges = badges_get_user_badges($userobject->id, 0, null, null, null, $onlypublic);
@@ -94,12 +94,12 @@ if($CFG->enablebadges) {
 $templatecontext['user']->hasbadges = $hasbadges;
 
 
-if(!empty($userobject->country)) {
+if (!empty($userobject->country)) {
     $country = get_string($userobject->country, 'countries');
 }
 $templatecontext['user']->location  = $userobject->address.$userobject->city.$country;
 $templatecontext['user']->instidept = $userobject->department.$userobject->institution;
-if(!empty($templatecontext['user']->location) || !empty($templatecontext['user']->instidept)) {
+if (!empty($templatecontext['user']->location) || !empty($templatecontext['user']->instidept)) {
     $aboutme = true;
 }
 $templatecontext['user']->aboutme = $aboutme;

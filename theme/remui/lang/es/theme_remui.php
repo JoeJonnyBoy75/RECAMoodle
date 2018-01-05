@@ -34,7 +34,7 @@ $string['choosereadme'] = '
     <div class="about-remui m-auto" style="max-width: 1000px;">
         <h1 class="text-center">Bienvenido a Edwiser RemUI</h1><br>
         <h4 class="text-muted">
-        Edwiser RemUI es la nueva revolucion en experiencia de Moodle. Ha sido disenado para mejorar el aprendizaje con 
+        Edwiser RemUI es la nueva revolucion en experiencia de Moodle. Ha sido disenado para mejorar el aprendizaje con
 		disenos personalizados y navegacion simplificada.<br><br>
         Estamos seguros que te gustara el look remodelado!
         </h4>
@@ -385,7 +385,7 @@ $string['gplussettingdesc'] = 'Ingrese la dirección de Google Plus. https://plu
 $string['youtubesetting'] = 'YouTube Configuración';
 $string['youtubesettingdesc'] = 'Ingrese la dirección de su sitio YouTube. https://www.youtube.com/channel/UCU1u6QtAAPJrV0v0_c2EISA';
 $string['instagramsetting'] = 'Instagram Configuración';
-$string['instagramsettingdesc'] = 'Ingrese la dirección de su página de Instagram. https://www.linkedin.com/company/name';
+$string['instagramsettingdesc'] = 'Ingrese la dirección de su página de Instagram. https://www.instagram.com/name';
 $string['pinterestsetting'] = 'Pinterest Configuración';
 $string['pinterestsettingdesc'] = 'Ingrese la dirección de su página de Pinterest. https://www.pinterest.com/name';
 
@@ -670,9 +670,9 @@ $string['createaccount'] = 'Here you can create a new account.';
 $string['signup'] = 'Sign Up';
 $string['togglesearch'] = 'Toggle Search';
 $string['togglefullscreen'] = 'Toggle fullscreen';
-$string['navbartype'] = 'Navbar Type';
-$string['sidebarcolor'] = 'Sidebar Color';
-$string['sitecolor'] = 'Site Color';
+$string['navbartype'] = 'Navbar tipo';
+$string['sidebarcolor'] = 'barra lateral color';
+$string['sitecolor'] = 'sitio Color';
 $string['others'] = 'Others';
 $string['today'] = 'Today';
 $string['yesterday'] = 'Yesterday';
@@ -715,6 +715,7 @@ $string['courseactivities'] = 'COURSE ACTIVITIES';
 $string['noevents'] = "No events due";
 $string['overdue'] = "Overdue";
 $string['upcoming'] = "Upcoming";
+$string['expired'] = "Muerto";
 $string['selectcourse'] = "Select Course";
 $string['courseanlytics']="Course Analytics";
 $string['highestgrade']="HIGHEST GRADE";
@@ -724,6 +725,7 @@ $string['viewcourse'] = "VIEW COURSE";
 $string['mycourses'] = "My Courses";
 $string['tasks'] = "Tasks to complete";
 $string['coursestats'] = "Course Stats";
+$string['allActivities'] = "All Activities";
 $string['enabledashboard'] = "Enable New Dashboard";
 $string['enabledashboarddesc'] = "Enable New Dashboard layout for all users";
 
@@ -740,3 +742,21 @@ $string['typeinfo'] = "Information announcement";
 $string['typedanger'] = "Urgent announcement";
 $string['typewarning'] = "Warning announcement";
 $string['typesuccess'] = "Success announcement";
+
+// Teacher Dashboard Strings
+$string['courseprogress'] = "Curso Progreso";
+$string['course'] = "Curso";
+$string['startdate'] = "Fecha de inicio";
+$string['enrolledstudents'] = "Estudiantes";
+$string['progress'] = "Progreso";
+$string['name'] = "Nombre";
+$string['status'] = "Estatus";
+$string['back'] = "Espalda";
+
+
+/*Front Page Setting for About Us Block*/
+$string['frontpageblockdisplay'] = 'Sobre nosotros Sección';
+$string['frontpageblockdisplaydesc'] = 'Puede mostrar u ocultar la sección "Acerca de nosotros", también puede mostrarla en formato de cuadrícula';
+$string['donotshowaboutus'] = 'No mostrar';
+$string['showaboutusinrow'] = 'Mostrar sección en una fila';
+$string['showaboutusingridblock'] = 'Mostrar sección en bloque de cuadrícula';

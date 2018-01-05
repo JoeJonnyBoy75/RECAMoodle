@@ -53,7 +53,7 @@
         <div class="page-main bg-white">
 
             {{# slider }}
-            
+
             {{# isslider }}
             <!-- slider -->
             <div class="carousel slide mb-50" id="CarouselCaptions" data-interval="{{ slideinterval }}" data-ride="carousel">
@@ -66,8 +66,8 @@
                 <div class="carousel-inner" role="listbox">
                     {{# slides }}
                       <div class="carousel-item align-items-center {{#active}}active{{/active}}">
-                        <div id="banner-img-slider" class="col-12" style="background-image:url({{ img }}); background-position: center; background-size: cover; min-height:500px;"></div>
-                        <!-- <img class="d-block img-fluid" alt="Image {{count}}" src="{{ img }}" data-holder-rendered="true"> -->
+                        <!-- <div id="banner-img-slider" class="col-12" style="background-image:url({{ img }}); background-position: center; background-size: cover; background-repeat:no-repeat; min-height:500px;"></div> -->
+                         <img id="banner-img-slider" class="d-block img-fluid" alt="Image {{count}}" src="{{ img }}" data-holder-rendered="true">
                         <div class="carousel-caption">
                           {{{ img_txt }}}
                           {{# btn_txt }}
@@ -76,7 +76,7 @@
                         </div>
                       </div>
                     {{/ slides }}
-                  
+
                     <a class="carousel-control-prev" href="#CarouselCaptions" role="button" data-slide="prev">
                       <span class="carousel-control-prev-icon wb-chevron-left" aria-hidden="true"></span>
                       <span class="sr-only">Previous</span>
@@ -106,19 +106,19 @@
 
             <div class="page-content py-0">
                 <!-- marketing spots -->
-                <div class="container mb-40">
+                <div class="container mb-40 {{#aboutus_hide}} {{aboutus_hide}} {{/aboutus_hide}}">
                     {{{! output.full_header }}}
-                    
+
                     <div class="row">
-                        <div class="col-12 col-md-4 mt-md-50">
+                        <div class="{{#dispAboutUsDiv}} {{dispAboutUsDiv}} {{/dispAboutUsDiv}}">
                             {{# marketing_heading }}<h4>{{ marketing_heading }}</h4>{{/ marketing_heading }}
                             {{# marketing_desc }} {{{ marketing_desc }}} {{/ marketing_desc }}
                         </div>
 
-                        <div class="col-12 col-md-7 offset-md-1">
+                        <div class="{{#dispmarketingspots}} {{dispmarketingspots}} {{/dispmarketingspots}}">
                             <div class="marketing-spots row no-gutters">
                             {{# marketing_spots }}
-                                <div class="col-12 col-sm-6 spot">
+                                <div class="{{#dispmarketingspotsin}} {{dispmarketingspotsin}} {{/dispmarketingspotsin}}">
                                   <!-- Example Overlay Fade -->
                                       <figure class="overlay overlay-hover">
                                        <div class="overlay-figure text-center {{^ image }} bg-grey-200 {{/ image }}"  {{# image }} style="background: url({{ image }}) center/cover;" {{/ image }}>
@@ -126,28 +126,28 @@
                                                 <div class="iconsquare">
                                                     <i class="fa fa-{{ icon }}"></i>
                                                 </div>
-                                                                      
+
                                                 <div class="iconbox-content font-size-18 p-20">
                                                     {{# heading }} {{ heading }} {{/ heading }}
                                                 </div>
                                             </div>
                                         </div>
-                                        <figcaption class="overlay-panel overlay-fade bg-white grey-700 text-center">
+                                        <figcaption class="overlay-panel overlay-fade bg-white grey-700 text-center d-flex flex-column justify-content-center align-items-center">
                                           {{# description }} {{{ description }}} {{/ description }}
                                           {{# button }}
-                                            <a href="{{ link }}" target="_blank" class="btn btn-primary">{{ button }}</a>
+                                            <a href="{{ link }}" target="_blank" class="btn btn-primary w-p50 mt-10">{{ button }}</a>
                                           {{/ button }}
                                         </figcaption>
                                       </figure>
-                                    
-                                  
+
+
                                   <!-- End Example Overlay Fade -->
                                 </div>
                             {{/ marketing_spots }}
                             </div>
                         </div>
                     </div>
-                    
+
                 </div>
                 <!-- marketing spots ends -->
 
@@ -348,6 +348,7 @@ require(['theme_remui/loader', 'theme_remui/slick'], function () {
       arrows: false,
       infinite: true,
       speed: 500,
+      rtl: (jQuery("html").attr("dir") == "rtl") ? true : false,
       slidesToShow: 4,
       slidesToScroll: 4,
       responsive: [{

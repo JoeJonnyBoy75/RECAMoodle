@@ -24,14 +24,17 @@
 
 defined('MOODLE_INTERNAL') || die();
 require_once('common.php');
+require_once($CFG->dirroot. '/course/renderer.php');
 require_once($CFG->libdir. '/gradelib.php');
 require_once($CFG->dirroot. '/grade/querylib.php');
 
-global $DB;
+global $DB, $USER;
 
 // add_notes
 $courses = get_courses();
 unset($courses[1]);
+
+$chelper = new \coursecat_helper();
 
 foreach ($courses as $courseid => $course) {
     $coursecontext = context_course::instance($course->id);
@@ -107,6 +110,7 @@ if (!empty($templatecontext['recentforums'])) {
 $courses = enrol_get_all_users_courses($USER->id);
 $qcourse = [];
 foreach ($courses as $course) {
+    $course->fullname = strip_tags($chelper->get_course_formatted_name($course));
     $gradeActivities = grade_get_gradable_activities($course->id);
     if (!empty($gradeActivities)) {
         $qcourse[] = ['id' => $course->id, 'name' => $course->fullname];
@@ -134,7 +138,7 @@ if ($recentassignments) {
         $array[0] = new stdClass;
         $array[0]->cm_url = $cm->url;
         $array[0]->cm_name = $cm->name;
-        $array[0]->course_fullname = $course->fullname;
+        $array[0]->course_fullname = strip_tags($chelper->get_course_formatted_name($course));
 
         if (++$i == 5) {
             break;
@@ -178,6 +182,32 @@ if ($recentassignments) {
     }
 }
 // end_recent_assignments
+
+// Teacher View Dashboard
+$mycourses = enrol_get_users_courses($USER->id);
+
+$course_progress = array();
+$course_count = 0;
+$isTeacher = false;
+foreach ($mycourses as $courseid => $course) {
+    $coursecontext = context_course::instance($course->id);
+    $roles = get_user_roles($coursecontext, $USER->id, true);
+    foreach ($roles as $roleid => $role) {
+        if ($role->roleid == 1 || $role->roleid == 2 || $role->roleid == 3 || $role->roleid == 4) {
+            $isTeacher = true;
+            $temp = \theme_remui\utility::get_course_progress($course->id);
+            $temp->backColor = 'alternate-row';
+            $temp->index = ++$course_count;
+            $course_progress[] = $temp;
+            break;
+        }
+    }
+}
+// exit;
+if ($isTeacher) {
+    $templatecontext['isTeacher'] = $isTeacher;
+}
+$templatecontext['course_progress'] = $course_progress;
 
 echo $OUTPUT->render_from_template('theme_remui/mydashboard', $templatecontext);
 

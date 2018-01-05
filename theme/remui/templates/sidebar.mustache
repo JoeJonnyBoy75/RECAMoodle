@@ -5,21 +5,21 @@
     Example context (json): {}
 }}
 
-   <div class="site-menubar {{ sidebarcolor }} moodle-has-zindex"> 
+   <div class="site-menubar {{ sidebarcolor }} moodle-has-zindex">
     <div class="site-menubar-body">
       <div>
         <ul class="site-menu mt-15" data-plugin="menu">
-          {{# isactivitypage }}
-            {{> theme_remui/activity_navigation }}
-          {{/ isactivitypage }}
-          
+            {{# isactivitypage }}
+              {{> theme_remui/activity_navigation }}
+            {{/ isactivitypage }}
+
           {{^ isactivitypage }}
             {{> theme_remui/flat_navigation }}
           {{/ isactivitypage }}
         </ul>
       </div>
     </div>
-    
+
     <div class="site-menubar-footer">
       {{# output.check_user_site_admin }}
         {{# output.check_blog_enable }}

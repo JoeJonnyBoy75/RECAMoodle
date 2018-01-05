@@ -5,7 +5,7 @@
       <div class="widget-content tab-content bg-white p-20">
         <select id="quiz-course-list" class="form-control mb-30">
           {{# courses_for_quiz}}
-            <option data-id="{{ courseid }}">{{ shortname }}</option>
+            <option data-id="{{ courseid }}">{{{ shortname }}}</option>
           {{/ courses_for_quiz}}
         </select>
         <div id="quiz-chart-area">

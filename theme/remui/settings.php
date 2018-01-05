@@ -24,13 +24,16 @@ defined('MOODLE_INTERNAL') || die();
 
 if ($ADMIN->fulltree) {
     $settings = new theme_remui_admin_settingspage_tabs('themesettingremui', get_string('configtitle', 'theme_remui'));
-    
+
     // General settings
     $page = new admin_settingpage('theme_remui_general', get_string('generalsettings', 'theme_remui'));
 
     //$page->add(new admin_setting_heading('theme_remui_general', get_string('generalsettings', 'theme_remui'));
-    $page->add(new admin_setting_heading('theme_remui_general', get_string('generalsettings', 'theme_remui'),
-        format_text('', FORMAT_MARKDOWN)));
+    $page->add(new admin_setting_heading(
+        'theme_remui_general',
+        get_string('generalsettings', 'theme_remui'),
+        format_text('', FORMAT_MARKDOWN)
+    ));
 
     $name = 'theme_remui/enableannouncement';
     $title = get_string('enableannouncement', 'theme_remui');
@@ -53,8 +56,12 @@ if ($ADMIN->fulltree) {
         $name = 'theme_remui/announcementtype';
         $title = get_string('announcementtype', 'theme_remui');
         $description = get_string('announcementtypedesc', 'theme_remui');
-        $setting = new admin_setting_configselect($name, $title, $description, 1,
-        array(
+        $setting = new admin_setting_configselect(
+            $name,
+            $title,
+            $description,
+            1,
+            array(
             'info'    => get_string('typeinfo', 'theme_remui'),
             'success' => get_string('typesuccess', 'theme_remui'),
             'warning' => get_string('typewarning', 'theme_remui'),
@@ -76,12 +83,17 @@ if ($ADMIN->fulltree) {
     $name = 'theme_remui/courseperpage';
     $title = get_string('courseperpage', 'theme_remui');
     $description = get_string('courseperpagedesc', 'theme_remui');
-    $setting = new admin_setting_configselect($name, $title, $description, 1,
-    array(
+    $setting = new admin_setting_configselect(
+        $name,
+        $title,
+        $description,
+        1,
+        array(
             12 => get_string('twelve', 'theme_remui'),
             8 => get_string('eight', 'theme_remui'),
             4 => get_string('four', 'theme_remui')
-        ));
+        )
+    );
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
 
@@ -129,7 +141,7 @@ if ($ADMIN->fulltree) {
     $setting = new admin_setting_configstoredfile($name, $title, $description, 'faviconurl');
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
-    
+
     // Font Selector.
     $name = 'theme_remui/fontselect';
     $title = get_string('fontselect', 'theme_remui');
@@ -178,27 +190,40 @@ if ($ADMIN->fulltree) {
     // Homepage settings
     $page = new admin_settingpage('theme_remui_frontpage', get_string('homepagesettings', 'theme_remui'));
 
-    $page->add(new admin_setting_heading('theme_remui_upsection', get_string('frontpageimagecontent', 'theme_remui'),
-        format_text(get_string('frontpageimagecontentdesc', 'theme_remui'), FORMAT_MARKDOWN)));
+    $page->add(new admin_setting_heading(
+        'theme_remui_upsection',
+        get_string('frontpageimagecontent', 'theme_remui'),
+        format_text(get_string('frontpageimagecontentdesc', 'theme_remui'), FORMAT_MARKDOWN)
+    ));
     $name = 'theme_remui/frontpageimagecontent';
     $title = get_string('frontpageimagecontentstyle', 'theme_remui');
     $description = get_string('frontpageimagecontentstyledesc', 'theme_remui');
-    $setting = new admin_setting_configselect($name, $title, $description, 1,
-    array(
+    $setting = new admin_setting_configselect(
+        $name,
+        $title,
+        $description,
+        1,
+        array(
             0 => get_string('staticcontent', 'theme_remui'),
             1 => get_string('slidercontent', 'theme_remui'),
-        ));
+        )
+    );
     $page->add($setting);
 
     if (!\theme_remui\toolbox::get_setting('frontpageimagecontent')) {
         $name = 'theme_remui/contenttype';
         $title = get_string('contenttype', 'theme_remui');
         $description = get_string('contentdesc', 'theme_remui');
-        $setting = new admin_setting_configselect($name, $title, $description, 0,
-        array(
+        $setting = new admin_setting_configselect(
+            $name,
+            $title,
+            $description,
+            0,
+            array(
             0 => get_string('videourl', 'theme_remui'),
             1 => get_string('image', 'theme_remui'),
-        ));
+            )
+        );
         $page->add($setting);
         if (!\theme_remui\toolbox::get_setting('contenttype')) {
             $name = 'theme_remui/video';
@@ -237,24 +262,34 @@ if ($ADMIN->fulltree) {
         $name = 'theme_remui/sliderautoplay';
         $title = get_string('sliderautoplay', 'theme_remui');
         $description = get_string('sliderautoplaydesc', 'theme_remui');
-        $setting = new admin_setting_configselect($name, $title, $description, 1,
-        array(
+        $setting = new admin_setting_configselect(
+            $name,
+            $title,
+            $description,
+            1,
+            array(
                 1 => get_string('true', 'theme_remui'),
                 2 => get_string('false', 'theme_remui'),
-            ));
+            )
+        );
         $page->add($setting);
 
         $name = 'theme_remui/slidercount';
         $title = get_string('slidercount', 'theme_remui');
         $description = get_string('slidercountdesc', 'theme_remui');
-        $setting = new admin_setting_configselect($name, $title, $description, 1,
-        array(
+        $setting = new admin_setting_configselect(
+            $name,
+            $title,
+            $description,
+            1,
+            array(
                 1 => get_string('one', 'theme_remui'),
                 2 => get_string('two', 'theme_remui'),
                 3 => get_string('three', 'theme_remui'),
                 4 => get_string('four', 'theme_remui'),
                 5 => get_string('five', 'theme_remui'),
-            ));
+            )
+        );
         $page->add($setting);
 
         for ($slidecounts = 1; $slidecounts <= \theme_remui\toolbox::get_setting('slidercount'); $slidecounts = $slidecounts + 1) {
@@ -295,8 +330,29 @@ if ($ADMIN->fulltree) {
     $page->add($setting);
 
     // Marketing blocks
-    $page->add(new admin_setting_heading('theme_remui_blocksection', get_string('frontpageblocks', 'theme_remui'),
-        format_text(get_string('frontpageblocksdesc', 'theme_remui'), FORMAT_MARKDOWN)));
+    $page->add(new admin_setting_heading(
+        'theme_remui_blocksection',
+        get_string('frontpageblocks', 'theme_remui'),
+        format_text(get_string('frontpageblocksdesc', 'theme_remui'), FORMAT_MARKDOWN)
+    ));
+
+    // Show the About Us on Home Page Setting
+    $name = 'theme_remui/frontpageblockdisplay';
+    $title = get_string('frontpageblockdisplay', 'theme_remui');
+    $description = get_string('frontpageblockdisplaydesc', 'theme_remui');
+    $setting = new admin_setting_configselect(
+        $name,
+        $title,
+        $description,
+        1,
+        array(
+                1 => get_string('donotshowaboutus', 'theme_remui'),
+                2 => get_string('showaboutusinrow', 'theme_remui'),
+                3 => get_string('showaboutusingridblock', 'theme_remui'),
+        )
+    );
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
 
     // marketing spot section heading
     $name = 'theme_remui/frontpageblockheading';
@@ -519,7 +575,8 @@ if ($ADMIN->fulltree) {
     $page->add(new admin_setting_heading(
         'theme_remui_frontpage_aboutus',
         get_string('frontpageaboutus', 'theme_remui'),
-        format_text(get_string('frontpageaboutusdesc', 'theme_remui'), FORMAT_MARKDOWN)));
+        format_text(get_string('frontpageaboutusdesc', 'theme_remui'), FORMAT_MARKDOWN)
+    ));
 
 
     $name = 'theme_remui/enablefrontpageaboutus';
@@ -531,7 +588,7 @@ if ($ADMIN->fulltree) {
     $page->add($setting);
     if (\theme_remui\toolbox::get_setting('enablefrontpageaboutus')) {
         // Heading text for about us
-        $name = 'theme_remui/frontpageaboutusheading';
+            $name = 'theme_remui/frontpageaboutusheading';
         $title = get_string('frontpageaboutusheading', 'theme_remui');
         $description = get_string('frontpageaboutusheadingdesc', 'theme_remui');
         $default = "About us";
@@ -539,8 +596,8 @@ if ($ADMIN->fulltree) {
         $setting->set_updatedcallback('theme_reset_all_caches');
         $page->add($setting);
 
-        // Text for about us
-        $name = 'theme_remui/frontpageaboutustext';
+            // Text for about us
+            $name = 'theme_remui/frontpageaboutustext';
         $title = get_string('frontpageaboutustext', 'theme_remui');
         $description = get_string('frontpageaboutustextdesc', 'theme_remui');
         $default = get_string('frontpageaboutusdefault', 'theme_remui');
@@ -549,30 +606,35 @@ if ($ADMIN->fulltree) {
         $setting->set_updatedcallback('theme_reset_all_caches');
         $page->add($setting);
 
-        // testimonials data for about us section
-        $name = 'theme_remui/testimonialcount';
+            // testimonials data for about us section
+            $name = 'theme_remui/testimonialcount';
         $title = get_string('testimonialcount', 'theme_remui');
         $description = get_string('testimonialcountdesc', 'theme_remui');
-        $setting = new admin_setting_configselect($name, $title, $description, 1,
-        array(
+        $setting = new admin_setting_configselect(
+            $name,
+            $title,
+            $description,
+            1,
+            array(
                 0 => '0',
                 1 => get_string('one', 'theme_remui'),
                 2 => get_string('two', 'theme_remui'),
                 3 => get_string('three', 'theme_remui')
-            ));
+                )
+        );
         $page->add($setting);
 
         for ($testimonialcount = 1; $testimonialcount <= \theme_remui\toolbox::get_setting('testimonialcount'); $testimonialcount = $testimonialcount + 1) {
             // image
-            $name = 'theme_remui/testimonialimage'.$testimonialcount;
+                $name = 'theme_remui/testimonialimage'.$testimonialcount;
             $title = get_string('testimonialimage', 'theme_remui');
             $description = get_string('testimonialimagedesc', 'theme_remui');
             $setting = new admin_setting_configstoredfile($name, $title, $description, 'testimonialimage'.$testimonialcount);
             $setting->set_updatedcallback('theme_reset_all_caches');
             $page->add($setting);
 
-            // name
-            $name = 'theme_remui/testimonialname'.$testimonialcount;
+                // name
+                $name = 'theme_remui/testimonialname'.$testimonialcount;
             $title = get_string('testimonialname', 'theme_remui');
             $description = get_string('testimonialnamedesc', 'theme_remui');
             $default = '';
@@ -580,8 +642,8 @@ if ($ADMIN->fulltree) {
             $setting->set_updatedcallback('theme_reset_all_caches');
             $page->add($setting);
 
-            // post
-            $name = 'theme_remui/testimonialdesignation'.$testimonialcount;
+                // post
+                $name = 'theme_remui/testimonialdesignation'.$testimonialcount;
             $title = get_string('testimonialdesignation', 'theme_remui');
             $description = get_string('testimonialdesignationdesc', 'theme_remui');
             $default = '';
@@ -589,8 +651,8 @@ if ($ADMIN->fulltree) {
             $setting->set_updatedcallback('theme_reset_all_caches');
             $page->add($setting);
 
-            // description
-            $name = 'theme_remui/testimonialtext'.$testimonialcount;
+                // description
+                $name = 'theme_remui/testimonialtext'.$testimonialcount;
             $title = get_string('testimonialtext', 'theme_remui');
             $description = get_string('testimonialtextdesc', 'theme_remui');
             $default = '';
@@ -601,199 +663,215 @@ if ($ADMIN->fulltree) {
     }
 
     // Must add the page after definiting all the settings!
-    $settings->add($page);
+        $settings->add($page);
 
     // Footer settings
-    $page = new admin_settingpage('theme_remui_footersetting', get_string('footersetting', 'theme_remui'));
-    
+        $page = new admin_settingpage('theme_remui_footersetting', get_string('footersetting', 'theme_remui'));
+
     // Social media settings
-    $page->add(new admin_setting_heading(
-        'theme_remui_socialmedia',
-        get_string('socialmedia', 'theme_remui'),
-        format_text(get_string('socialmediadesc', 'theme_remui'), FORMAT_MARKDOWN)));
+        $page->add(new admin_setting_heading(
+            'theme_remui_socialmedia',
+            get_string('socialmedia', 'theme_remui'),
+            format_text(get_string('socialmediadesc', 'theme_remui'), FORMAT_MARKDOWN)
+        ));
 
     // Facebook
-    $name = 'theme_remui/facebooksetting';
-    $title = get_string('facebooksetting', 'theme_remui');
-    $description = get_string('facebooksettingdesc', 'theme_remui');
-    $default = '';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $page->add($setting);
+        $name = 'theme_remui/facebooksetting';
+        $title = get_string('facebooksetting', 'theme_remui');
+        $description = get_string('facebooksettingdesc', 'theme_remui');
+        $default = '';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $page->add($setting);
 
     // Twitter
-    $name = 'theme_remui/twittersetting';
-    $title = get_string('twittersetting', 'theme_remui');
-    $description = get_string('twittersettingdesc', 'theme_remui');
-    $default = '';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $page->add($setting);
+        $name = 'theme_remui/twittersetting';
+        $title = get_string('twittersetting', 'theme_remui');
+        $description = get_string('twittersettingdesc', 'theme_remui');
+        $default = '';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $page->add($setting);
 
     // Linkedin
-    $name = 'theme_remui/linkedinsetting';
-    $title = get_string('linkedinsetting', 'theme_remui');
-    $description = get_string('linkedinsettingdesc', 'theme_remui');
-    $default = '';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $page->add($setting);
+        $name = 'theme_remui/linkedinsetting';
+        $title = get_string('linkedinsetting', 'theme_remui');
+        $description = get_string('linkedinsettingdesc', 'theme_remui');
+        $default = '';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $page->add($setting);
 
     // Gplus
-    $name = 'theme_remui/gplussetting';
-    $title = get_string('gplussetting', 'theme_remui');
-    $description = get_string('gplussettingdesc', 'theme_remui');
-    $default = '';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $page->add($setting);
+        $name = 'theme_remui/gplussetting';
+        $title = get_string('gplussetting', 'theme_remui');
+        $description = get_string('gplussettingdesc', 'theme_remui');
+        $default = '';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $page->add($setting);
 
     // youtube
-    $name = 'theme_remui/youtubesetting';
-    $title = get_string('youtubesetting', 'theme_remui');
-    $description = get_string('youtubesettingdesc', 'theme_remui');
-    $default = '';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $page->add($setting);
+        $name = 'theme_remui/youtubesetting';
+        $title = get_string('youtubesetting', 'theme_remui');
+        $description = get_string('youtubesettingdesc', 'theme_remui');
+        $default = '';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $page->add($setting);
 
     // Instagram
-    $name = 'theme_remui/instagramsetting';
-    $title = get_string('instagramsetting', 'theme_remui');
-    $description = get_string('instagramsettingdesc', 'theme_remui');
-    $default = '';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $page->add($setting);
+        $name = 'theme_remui/instagramsetting';
+        $title = get_string('instagramsetting', 'theme_remui');
+        $description = get_string('instagramsettingdesc', 'theme_remui');
+        $default = '';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $page->add($setting);
 
     // Pinterest
-    $name = 'theme_remui/pinterestsetting';
-    $title = get_string('pinterestsetting', 'theme_remui');
-    $description = get_string('pinterestsettingdesc', 'theme_remui');
-    $default = '';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $page->add($setting);
+        $name = 'theme_remui/pinterestsetting';
+        $title = get_string('pinterestsetting', 'theme_remui');
+        $description = get_string('pinterestsettingdesc', 'theme_remui');
+        $default = '';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $page->add($setting);
 
     // Footer Settings
 
     // Footer Column 1
-    $page->add(new admin_setting_heading('theme_remui_footercolumn1', get_string('footercolumn1heading', 'theme_remui'),
-        format_text(get_string('footercolumn1headingdesc', 'theme_remui'), FORMAT_MARKDOWN)));
+        $page->add(new admin_setting_heading(
+            'theme_remui_footercolumn1',
+            get_string('footercolumn1heading', 'theme_remui'),
+            format_text(get_string('footercolumn1headingdesc', 'theme_remui'), FORMAT_MARKDOWN)
+        ));
 
-    $name = 'theme_remui/footercolumn1title';
-    $title = get_string('footercolumn1title', 'theme_remui');
-    $description = get_string('footercolumn1titledesc', 'theme_remui');
-    $default = '';
-    $setting = new admin_setting_configtext($name, $title, $description, null);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
+        $name = 'theme_remui/footercolumn1title';
+        $title = get_string('footercolumn1title', 'theme_remui');
+        $description = get_string('footercolumn1titledesc', 'theme_remui');
+        $default = '';
+        $setting = new admin_setting_configtext($name, $title, $description, null);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
 
-    $name = 'theme_remui/footercolumn1customhtml';
-    $title = get_string('footercolumn1customhtml', 'theme_remui');
-    $description = get_string('footercolumn1customhtmldesc', 'theme_remui');
-    $default = '';
-    $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
+        $name = 'theme_remui/footercolumn1customhtml';
+        $title = get_string('footercolumn1customhtml', 'theme_remui');
+        $description = get_string('footercolumn1customhtmldesc', 'theme_remui');
+        $default = '';
+        $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
 
 
     // Footer Column 2
-    $page->add(new admin_setting_heading('theme_remui_footercolumn2', get_string('footercolumn2heading', 'theme_remui'),
-        format_text(get_string('footercolumn2headingdesc', 'theme_remui'), FORMAT_MARKDOWN)));
+        $page->add(new admin_setting_heading(
+            'theme_remui_footercolumn2',
+            get_string('footercolumn2heading', 'theme_remui'),
+            format_text(get_string('footercolumn2headingdesc', 'theme_remui'), FORMAT_MARKDOWN)
+        ));
 
-    $name = 'theme_remui/footercolumn2title';
-    $title = get_string('footercolumn2title', 'theme_remui');
-    $description = get_string('footercolumn2titledesc', 'theme_remui');
-    $default = '';
-    $setting = new admin_setting_configtext($name, $title, $description, null);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
+        $name = 'theme_remui/footercolumn2title';
+        $title = get_string('footercolumn2title', 'theme_remui');
+        $description = get_string('footercolumn2titledesc', 'theme_remui');
+        $default = '';
+        $setting = new admin_setting_configtext($name, $title, $description, null);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
 
-    $name = 'theme_remui/footercolumn2customhtml';
-    $title = get_string('footercolumn2customhtml', 'theme_remui');
-    $description = get_string('footercolumn2customhtmldesc', 'theme_remui');
-    $default = '';
-    $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
+        $name = 'theme_remui/footercolumn2customhtml';
+        $title = get_string('footercolumn2customhtml', 'theme_remui');
+        $description = get_string('footercolumn2customhtmldesc', 'theme_remui');
+        $default = '';
+        $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
 
     // Footer Column 3
-    $page->add(new admin_setting_heading('theme_remui_footercolumn3', get_string('footercolumn3heading', 'theme_remui'),
-        format_text(get_string('footercolumn3headingdesc', 'theme_remui'), FORMAT_MARKDOWN)));
+        $page->add(new admin_setting_heading(
+            'theme_remui_footercolumn3',
+            get_string('footercolumn3heading', 'theme_remui'),
+            format_text(get_string('footercolumn3headingdesc', 'theme_remui'), FORMAT_MARKDOWN)
+        ));
 
-    $name = 'theme_remui/footercolumn3title';
-    $title = get_string('footercolumn3title', 'theme_remui');
-    $description = get_string('footercolumn3titledesc', 'theme_remui');
-    $default = '';
-    $setting = new admin_setting_configtext($name, $title, $description, null);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
+        $name = 'theme_remui/footercolumn3title';
+        $title = get_string('footercolumn3title', 'theme_remui');
+        $description = get_string('footercolumn3titledesc', 'theme_remui');
+        $default = '';
+        $setting = new admin_setting_configtext($name, $title, $description, null);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
 
-    $name = 'theme_remui/footercolumn3customhtml';
-    $title = get_string('footercolumn3customhtml', 'theme_remui');
-    $description = get_string('footercolumn3customhtmldesc', 'theme_remui');
-    $default = '';
-    $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
+        $name = 'theme_remui/footercolumn3customhtml';
+        $title = get_string('footercolumn3customhtml', 'theme_remui');
+        $description = get_string('footercolumn3customhtmldesc', 'theme_remui');
+        $default = '';
+        $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
 
 
     // Footer Bottom-Right Section
-    $page->add(new admin_setting_heading('theme_remui_footerbottom', get_string('footerbottomheading', 'theme_remui'),
-        format_text(get_string('footerbottomdesc', 'theme_remui'), FORMAT_MARKDOWN)));
+        $page->add(new admin_setting_heading(
+            'theme_remui_footerbottom',
+            get_string('footerbottomheading', 'theme_remui'),
+            format_text(get_string('footerbottomdesc', 'theme_remui'), FORMAT_MARKDOWN)
+        ));
 
-    $name = 'theme_remui/footerbottomtext';
-    $title = get_string('footerbottomtext', 'theme_remui');
-    $description = get_string('footerbottomtextdesc', 'theme_remui');
-    $default = '';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
+        $name = 'theme_remui/footerbottomtext';
+        $title = get_string('footerbottomtext', 'theme_remui');
+        $description = get_string('footerbottomtextdesc', 'theme_remui');
+        $default = '';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
 
-    $name = 'theme_remui/footerbottomlink';
-    $title = get_string('footerbottomlink', 'theme_remui');
-    $description = get_string('footerbottomlinkdesc', 'theme_remui');
-    $default = '';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
+        $name = 'theme_remui/footerbottomlink';
+        $title = get_string('footerbottomlink', 'theme_remui');
+        $description = get_string('footerbottomlinkdesc', 'theme_remui');
+        $default = '';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
 
-    $name = 'theme_remui/poweredbyedwiser';
-    $title = get_string('poweredbyedwiser', 'theme_remui');
-    $description = get_string('poweredbyedwiserdesc', 'theme_remui');
-    $default = true;
-    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
+        $name = 'theme_remui/poweredbyedwiser';
+        $title = get_string('poweredbyedwiser', 'theme_remui');
+        $description = get_string('poweredbyedwiserdesc', 'theme_remui');
+        $default = true;
+        $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
 
     // Must add the page after definiting all the settings!
-    $settings->add($page);
+        $settings->add($page);
 
     // Login settings page code begin
-    $page = new admin_settingpage('theme_remui_login', get_string('loginsettings', 'theme_remui'));
-    $page->add(new admin_setting_heading('theme_remui_login', get_string('loginsettings', 'theme_remui'),
-        format_text('', FORMAT_MARKDOWN)));
+        $page = new admin_settingpage('theme_remui_login', get_string('loginsettings', 'theme_remui'));
+        $page->add(new admin_setting_heading(
+            'theme_remui_login',
+            get_string('loginsettings', 'theme_remui'),
+            format_text('', FORMAT_MARKDOWN)
+        ));
 
-    $name = 'theme_remui/navlogin_popup';
-    $title = get_string('navlogin_popup', 'theme_remui');
-    $description = get_string('navlogin_popupdesc', 'theme_remui');
-    $default = true;
-    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-    
-    $name = 'theme_remui/loginsettingpic';
-    $title = get_string('loginsettingpic', 'theme_remui');
-    $description = get_string('loginsettingpicdesc', 'theme_remui');
-    $setting = new admin_setting_configstoredfile($name, $title, $description, 'loginsettingpic');
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
+        $name = 'theme_remui/navlogin_popup';
+        $title = get_string('navlogin_popup', 'theme_remui');
+        $description = get_string('navlogin_popupdesc', 'theme_remui');
+        $default = true;
+        $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
 
-    $name = 'theme_remui/signuptextcolor';
-    $title = get_string('signuptextcolor', 'theme_remui');
-    $description = get_string('signuptextcolordesc', 'theme_remui');
-    $default = '#FFFFFF';
-    $previewconfig = null;
-    $setting = new admin_setting_configcolourpicker($name, $title, $description, $default, $previewconfig);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
+        $name = 'theme_remui/loginsettingpic';
+        $title = get_string('loginsettingpic', 'theme_remui');
+        $description = get_string('loginsettingpicdesc', 'theme_remui');
+        $setting = new admin_setting_configstoredfile($name, $title, $description, 'loginsettingpic');
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+
+        $name = 'theme_remui/signuptextcolor';
+        $title = get_string('signuptextcolor', 'theme_remui');
+        $description = get_string('signuptextcolordesc', 'theme_remui');
+        $default = '#FFFFFF';
+        $previewconfig = null;
+        $setting = new admin_setting_configcolourpicker($name, $title, $description, $default, $previewconfig);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
 
     // Must add the page after definiting all the settings!
-    $settings->add($page);
+        $settings->add($page);
 }
 // if (is_siteadmin()) {
 //     $pagename = new moodle_url('/theme/remui/remui_license.php');

@@ -52,7 +52,7 @@ class block_myoverview_renderer extends \block_myoverview\output\renderer
         $incoursecount = 0;
         $futurecoursecount = 0;
         $duecoursecount = 0;
-        
+
         $data = $main->export_for_template($this);
         if (isset($data['coursesview']['inprogress'])) {
             $coursesInProgress = $data['coursesview']['inprogress'];
@@ -60,6 +60,7 @@ class block_myoverview_renderer extends \block_myoverview\output\renderer
             $coursepages = $coursesInProgress['pages'];
             $totalcourses = self::setCourseImage($coursepages);
             $incoursecount = count($totalcourses);
+            $totalcourses = self::setExtraCourseProperties($totalcourses);
             $data['coursesview']['inprogress']['pages'][0]['courses'] = $totalcourses;
         }
 
@@ -69,6 +70,7 @@ class block_myoverview_renderer extends \block_myoverview\output\renderer
             $coursepages = $coursesInFuture['pages'];
             $totalcourses = self::setCourseImage($coursepages);
             $futurecoursecount = count($totalcourses);
+            $totalcourses = self::setExtraCourseProperties($totalcourses);
             $data['coursesview']['future']['pages'][0]['courses'] = $totalcourses;
         }
 
@@ -78,6 +80,7 @@ class block_myoverview_renderer extends \block_myoverview\output\renderer
             $coursepages = $coursesInPast['pages'];
             $totalcourses = self::setCourseImage($coursepages);
             $duecoursecount = count($totalcourses);
+            $totalcourses = self::setExtraCourseProperties($totalcourses);
             $data['coursesview']['past']['pages'][0]['courses'] = $totalcourses;
         }
 
@@ -132,6 +135,7 @@ class block_myoverview_renderer extends \block_myoverview\output\renderer
         if ($latestdashboard) {
             $data['latestdashboard'] = 1;
         }
+
         return $this->render_from_template('block_myoverview/main', $data);
     }
 
@@ -151,6 +155,32 @@ class block_myoverview_renderer extends \block_myoverview\output\renderer
                                             $file->get_filearea(). $file->get_filepath(). $file->get_filename(), !$isimage);
                     $course->imageurl = $courseimage;
                 }
+            }
+        }
+        return $totalcourses;
+    }
+
+    // This function will set the properties important for slick slider display
+    // This function changes the following properties
+    // 1) Color of each tile
+    // 2) Name to be displayed will be less than 35 characters only
+    // 3) Water level for percentage
+
+    public static function setExtraCourseProperties($totalcourses)
+    {
+        $color = array('#f2a654','#fe6768','#57c7d4','#56c19a','#526069  ','#46657d');
+
+        foreach ($totalcourses as $key => $value) {
+            // set the color for each card
+            $array_index = $key % count($color);
+            $totalcourses[$key]->color = $color[$array_index];
+
+            // set the text limit to course name value
+            $totalcourses[$key]->fullnamedisplay = (strlen($totalcourses[$key]->fullnamedisplay) > 35) ? substr($totalcourses[$key]->fullnamedisplay, 0, 35).'...' : $totalcourses[$key]->fullnamedisplay;
+
+            // set the water level in percentage
+            if (!empty($value->progress)) {
+                $totalcourses[$key]->waterPercentage = 100-$value->progress;
             }
         }
         return $totalcourses;

@@ -36,4 +36,3 @@ $templatecontext = [
 ];
 
 echo $OUTPUT->render_from_template('theme_remui/login', $templatecontext);
-

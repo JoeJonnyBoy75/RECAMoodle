@@ -26,18 +26,20 @@
         "summary": "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout."
     }
 }}
-<div class = "col-md-4 col-lg-4 px-0 mx-15 bg-white hidden">
+<div class = "col-md-4 col-lg-4 px-0 mx-10 bg-white hidden h-150">
     <div class="card mb-0">
         <figure class="overlay overlay-hover rounded">
-        <div  class="courses-slides overlay-figure overlay-scale" style="background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.4)), url('{{ imageurl }}');background-size: cover;background-position: center;">
-            <h4 class="card-title p-20">
-                <a href="{{ viewurl }}" class="font-weight-500 text-white py-5 font-size-18">{{{ fullnamedisplay }}}</a>
-            </h4>
+        <div  class="courses-slides overlay-figure overlay-scale" style="background: url('{{ imageurl }}');background-size: cover;background-position: center;height: 110px;">
+        </div>
+
+        <div class=" overlay-figure overlay-scale w-full row ml-0 mr-0 d-flex align-items-center text-white font-weight-bold" style="background-color:{{color}};height: 55px; ">
+            <div class="col-9 col-lg-9 font-size-12 float-left" ><a href = "{{ viewurl }}"  class="text-white">{{{ fullnamedisplay }}}</a></div>
             {{#hasprogress}}
-            <div class="progress progress-xs progress-square mb-0 po-relbottom">
-                <div class="progress-bar" style="width: {{progress}}&#37;;;" role="progressbar">
-                </div>
+            <!-- Fillable bubble -->
+            <div class="circle fill d-flex align-items-center" data-fill="44" style="background:linear-gradient(#a9c199 {{waterPercentage}}%,#4d7f24 1%); height: 40px;width: 40px;">
+                <p class="circle-text font-size-12">{{progress}}%</p>
             </div>
+            <!-- / Fillable bubble -->
             {{/hasprogress}}
         </div>
         <figcaption onclick="location.href='{{ viewurl }}';" class="overlay-panel overlay-background overlay-fade text-center vertical-align" style="cursor: pointer;">

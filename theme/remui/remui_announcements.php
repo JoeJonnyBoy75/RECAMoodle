@@ -1,8 +1,8 @@
 <?php
 
 // include Moodle config
-if(!@include_once(__DIR__.'/../../config.php')) {
-  include_once('/var/www/remui.local/html/v33/config.php');
+if (!@include_once(__DIR__.'/../../config.php')) {
+    include_once('/var/www/remui.local/html/v34/config.php');
 }
 
 global $DB, $OUTPUT, $CFG, $USER;
@@ -11,8 +11,8 @@ $response = \theme_remui\utility::get_remui_announcemnets();
 
 // get update info
 $updateinfo = array();
-if(isset($response['updateinfo']) && !empty($response['updateinfo'])) {
-  $updateinfo = $response['updateinfo'];
+if (isset($response['updateinfo']) && !empty($response['updateinfo'])) {
+    $updateinfo = $response['updateinfo'];
 }
 
 // get remui installed status
@@ -51,22 +51,21 @@ $currentmoodle = substr($CFG->release, 0, 3);
     <?php
         $lcontroller = new \theme_remui\controller\license_controller();
         $getlidatafromdb = $lcontroller->getDataFromDb();
-        if ('available' == $getlidatafromdb) {
-
-          if (!empty($updateinfo) && isset($updateinfo[$currentmoodle])) {
+    if ('available' == $getlidatafromdb) {
+        if (!empty($updateinfo) && isset($updateinfo[$currentmoodle])) {
             if ($updateinfo[$currentmoodle]['version'] > $currentremui) {
-              echo "<p class='lead text-center alert alert-info'>".get_string('newupdatemessage', 'theme_remui')."</p>
+                echo "<p class='lead text-center alert alert-info'>".get_string('newupdatemessage', 'theme_remui')."</p>
                 <h2 class='font-size-48 text-center'>v{$updateinfo[$currentmoodle]['version']}</h2>
                 <p class='text-center font-size-14'>".get_string('currentversionmessage', 'theme_remui')."<cite title='Source Title' class='h5 font-weight-700'>v{$currentremui}</cite>&nbsp;&nbsp; <a href='{$updateinfo[$currentmoodle]['downloadlink']}' class='badge badge-info badge-pill'>".get_string('downloadupdate', 'theme_remui')."</a></p>";
             } else {
-              echo "<p class='lead text-center alert alert-success'>".get_string('latestversionmessage', 'theme_remui')."</p>
+                echo "<p class='lead text-center alert alert-success'>".get_string('latestversionmessage', 'theme_remui')."</p>
                 <h2 class='font-size-48 text-center'>v{$currentremui}</h2>";
             }
-          }
-        } else {
-          echo "<p class='lead text-center'>".get_string('licensenotactive', 'theme_remui')."</p>";
         }
-     ?>
+    } else {
+        echo "<p class='lead text-center'>".get_string('licensenotactive', 'theme_remui')."</p>";
+    }
+        ?>
  	</div>
 	<div class="col-12 col-md-6 my-35">
 	  <!-- <form class='form-horizontal' id="remuifeedbackform"> -->
@@ -92,7 +91,7 @@ $currentmoodle = substr($CFG->release, 0, 3);
         <div class='form-group'>
           <input type='email' class='form-control remail' placeholder="<?php echo get_string('email', 'theme_remui'); ?>" value="<?php echo $USER->email; ?>">
         </div>
-        
+
         <div class='form-group'>
           <textarea class='form-control rfeedback' placeholder="<?php echo get_string('providefeedback', 'theme_remui'); ?>"></textarea>
         </div>
@@ -110,47 +109,46 @@ $currentmoodle = substr($CFG->release, 0, 3);
 echo "<div class='row mx-35 mt-60 announcements'>";
 echo "<div class='col-12'>";
 
-  if(isset($response['announcements']) && !empty($response['announcements'])) {
-
+if (isset($response['announcements']) && !empty($response['announcements'])) {
     echo "<h2 class='h3 mb-25'>".get_string('recentnews', 'theme_remui')."</h2>";
 
-  	echo '<div class="card-columns">';
-  		foreach($response['announcements'] as $anc) {
-  			if (!empty($anc['image'])) {
-  				echo "<div class='card' style='background: #f1f4f5;'>
+    echo '<div class="card-columns">';
+    foreach ($response['announcements'] as $anc) {
+        if (!empty($anc['image'])) {
+            echo "<div class='card' style='background: #f1f4f5;'>
                 <img class='card-img-top w-full' src='{$anc['image']}'>
   	                <div class='card-block'>";
-  	            if (!empty($anc['link'])) {
-  	            	echo "<h4 class='card-title'><a href='{$anc['link']}' target='_blank' class='grey-800'>{$anc['title']}</a></h4>";
-  	            } else {
-  	            	echo "<h4 class='card-title grey-800'>{$anc['title']}</h4>";
-  	            }
-                if(!empty($anc['excerpt'])) {
-  	               echo "<p class='card-text'>{$anc['excerpt']}</p>";
-                }
-  	           echo "</div>
-  	              </div>";
+            if (!empty($anc['link'])) {
+                echo "<h4 class='card-title'><a href='{$anc['link']}' target='_blank' class='grey-800'>{$anc['title']}</a></h4>";
             } else {
-            		echo "<div class='card card-block card-inverse card-{$anc['type']} text-center p-15'>
+                echo "<h4 class='card-title grey-800'>{$anc['title']}</h4>";
+            }
+            if (!empty($anc['excerpt'])) {
+                echo "<p class='card-text'>{$anc['excerpt']}</p>";
+            }
+            echo "</div>
+  	              </div>";
+        } else {
+            echo "<div class='card card-block card-inverse card-{$anc['type']} text-center p-15'>
                   <blockquote class='blockquote cover-quote card-blockquote'>";
-                  if(!empty($anc['excerpt'])) {
-                    echo "<p>{$anc['excerpt']}</p>";
-                  }
+            if (!empty($anc['excerpt'])) {
+                echo "<p>{$anc['excerpt']}</p>";
+            }
 
-                  if (!empty($anc['link'])) {
-                    echo "<footer>
+            if (!empty($anc['link'])) {
+                echo "<footer>
   	                    <small>
   	                      Read more
   	                      <cite title='Here'><a href='{$anc['link']}' target='_blank' class='text-white font-size-16 font-weight-600'>Here</a></cite>
   	                    </small>
   	                  </footer>";
-            		}
-            		echo "</blockquote>
-  	              </div>";
             }
-  		}
-  	echo '</div>';
-  }
+            echo "</blockquote>
+  	              </div>";
+        }
+    }
+    echo '</div>';
+}
 
 echo "</div>
 </div>";

@@ -26,7 +26,7 @@ use theme_remui\controller\remui_router;
 
 // define ajax script based on action value
 $action    = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_STRIPPED);
-if(!isset($action) || empty($action)) {
+if (!isset($action) || empty($action)) {
     return;
 }
 
@@ -38,11 +38,14 @@ if (preg_match($actionpattern, $action)) {
 }
 
 // include Moodle config
-if(!@include_once(__DIR__.'/../../config.php')) {
-  include_once('/var/www/remui.local/html/v33/config.php');
+// This code is to run or include file at developer end
+// It is because we use symlink for theme from local_gitrepo
+if (!@include_once(__DIR__.'/../../config.php')) {
+    include_once('/var/www/remui.local/html/v34/config.php');
 }
 
 $systemcontext = context_system::instance();
+
 $contextid = optional_param('contextid', $systemcontext->id, PARAM_INT);
 
 list($context, $course, $cm) = get_context_info_array($contextid);
@@ -74,7 +77,7 @@ $router = new remui_router();
 $controllerdir = __DIR__.'/classes/controller';
 $contfiles = scandir($controllerdir);
 foreach ($contfiles as $contfile) {
-    // include controllers 
+    // include controllers
     $pattern = '/_controller.php$/i';
     if (preg_match($pattern, $contfile)) {
         $classname = '\\theme_remui\\controller\\'.str_ireplace('.php', '', $contfile);

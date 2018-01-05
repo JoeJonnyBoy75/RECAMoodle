@@ -48,7 +48,7 @@ class remui_controller extends controller_abstract
     public function get_remui_sidebar_action()
     {
         global $PAGE;
-        
+
         $remui_sidebar = new remui_sidebar();
         echo $PAGE->get_renderer('core')->render_remui_sidebar($remui_sidebar);
     }
@@ -79,12 +79,12 @@ class remui_controller extends controller_abstract
 
         return json_encode($userlist);
     }
-    
+
     public function save_user_profile_settings_ajax_action()
     {
         global $USER, $DB;
-        $fname = required_param('fname', PARAM_ALPHAEXT);
-        $lname = required_param('lname', PARAM_ALPHAEXT);
+        $fname = required_param('fname', PARAM_TEXT);
+        $lname = required_param('lname', PARAM_TEXT);
         //$emailid = required_param('emailid', PARAM_EMAIL);
         $description = required_param('description', PARAM_TEXT);
         $city = required_param('city', PARAM_TEXT);
@@ -144,5 +144,32 @@ class remui_controller extends controller_abstract
     {
         $courseid = required_param('courseid', PARAM_INT);
         return(json_encode(\theme_remui\utility::get_analytics_for_courses($courseid)));
+    }
+
+    //handle view toggle
+    public function toggle_view_action()
+    {
+        $view = get_user_preferences('viewCourseCategory');
+        if ($view == 'list') {
+            set_user_preference('viewCourseCategory', 'grid');
+        } else {
+            set_user_preference('viewCourseCategory', 'list');
+        }
+    }
+
+
+    // handle the course progress table on dashboard
+    public function get_course_progress_ajax_action()
+    {
+        $courseid = optional_param('courseid', 0, PARAM_INT);
+        return(json_encode(\theme_remui\utility::get_student_progress_view($courseid)));
+    }
+
+    // handle the course progress table on dashboard
+    public function send_message_user_ajax_action()
+    {
+        $studentid = optional_param('studentid', 0, PARAM_INT);
+        $message = optional_param('message', 0, PARAM_TEXT);
+        return(json_encode(\theme_remui\utility::send_message_to_user($studentid, $message)));
     }
 }

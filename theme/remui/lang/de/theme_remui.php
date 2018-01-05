@@ -385,7 +385,7 @@ $string['gplussettingdesc'] = 'Geben Sie Ihren Google Plus Page Link ein. Zum Be
 $string['youtubesetting'] = 'YouTube Einstellungen';
 $string['youtubesettingdesc'] = 'Geben Sie Ihren YouTube Link ein.Zum Beispiel. https://www.youtube.com/channel/UCU1u6QtAAPJrV0v0_c2EISA';
 $string['instagramsetting'] = 'Instagram Einstellungen';
-$string['instagramsettingdesc'] = 'Geben Sie Ihren Instagram Link ein. Zum Beispiel. https://www.linkedin.com/company/name';
+$string['instagramsettingdesc'] = 'Geben Sie Ihren Instagram Link ein. Zum Beispiel. https://www.instagram.com/name';
 $string['pinterestsetting'] = 'Pinterest Einstellungen';
 $string['pinterestsettingdesc'] = 'Geben Sie Ihren Pinterest Link ein. Zum Beispiel. https://www.pinterest.com/name';
 
@@ -717,6 +717,7 @@ $string['courseactivities'] = 'COURSE ACTIVITIES';
 $string['noevents'] = "No events due";
 $string['overdue'] = "Overdue";
 $string['upcoming'] = "Bevorstehende";
+$string['expired'] = 'Abgelaufen';
 $string['selectcourse'] = "Kurs auswählen";
 $string['courseanlytics']="Kurs Analytik";
 $string['highestgrade']="Höchste Note";
@@ -726,6 +727,7 @@ $string['viewcourse'] = "Kurs ansehen";
 $string['mycourses'] = "Meine Kursen";
 $string['tasks'] = "Tasks to complete";
 $string['coursestats'] = "Course Stats";
+$string['allActivities'] = "All Activities";
 $string['enabledashboard'] = "Enable New Dashboard";
 $string['enabledashboarddesc'] = "Enable New Dashboard layout for all users";
 
@@ -744,3 +746,21 @@ $string['typeinfo'] = "Ankündigung von Information";
 $string['typedanger'] = "Dringende Ankündigung";
 $string['typewarning'] = "Ankündigung von Warnung";
 $string['typesuccess'] = "Ankündigung von Erfolg";
+
+// Teacher Dashboard Strings
+$string['courseprogress'] = "Kurs Fortschritt";
+$string['course'] = "Kurs";
+$string['startdate'] = "Anfangsdatum";
+$string['enrolledstudents'] = "Studenten";
+$string['progress'] = "Fortschritt";
+$string['name'] = "Name";
+$string['status'] = "Status";
+$string['back'] = "Zurück";
+
+
+/*Front Page Setting for About Us Block*/
+$string['frontpageblockdisplay'] = 'Über uns Abschnitt';
+$string['frontpageblockdisplaydesc'] = 'Sie können den Bereich "Über uns" ein- oder ausblenden, Sie können ihn auch im gitterformat anzeigen';
+$string['donotshowaboutus'] = 'Nicht zeigen';
+$string['showaboutusinrow'] = 'Abschnitt in einer Reihe anzeigen';
+$string['showaboutusingridblock'] = 'Abschnitt im Grid-Block anzeigen';

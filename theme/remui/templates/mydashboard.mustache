@@ -49,7 +49,7 @@
     }
 }}
 {{> theme_remui/common_start }}
-        
+
         <div class="page-main">
         <div class="container">
             {{{ output.full_header }}}
@@ -69,6 +69,12 @@
                         {{{ output.main_content }}}
                         {{{ output.course_content_footer }}}
                     </section>
+                    <div class="clearfix"></div>
+                    {{#isTeacher}}
+                        <div class="w-full bg-white my-15 p-15">
+                        {{> theme_remui/dashboard_teacher_view_courses}}
+                        </div>
+                    {{/isTeacher}}
                     {{# usercanmanage }}
                         {{> theme_remui/stats }}
                     {{/ usercanmanage }}
@@ -77,7 +83,7 @@
                     {{/ hasanalytics}}
                     <ul class="blocks-sm-100 blocks-lg-2 blocks-sm-1">
                         {{# usercanmanage }}
-                        <li class="col-sm-12 mb-0">
+                        <li class="col-sm-12 mb-0 float-left">
                             {{> theme_remui/latest_members }}
                         </li>
                         <li class="col-sm-12 mb-0">
@@ -97,7 +103,7 @@
     {{> theme_remui/common_end }}
 
 {{#js}}
-require(['theme_remui/loader', 'theme_remui/dashboard', 'theme_remui/slick'], function () {
+require(['theme_remui/loader', 'theme_remui/dashboard', 'theme_remui/slick', 'theme_remui/jquery.dataTables', 'theme_remui/dataTables.bootstrap4'], function () {
     Breakpoints();
     /**
     * Timeline - Course Overview Block
@@ -127,22 +133,22 @@ require(['theme_remui/loader', 'theme_remui/dashboard', 'theme_remui/slick'], fu
                 jQuery(this).find('#myoverview_today_view .carousel-item:first').addClass('active');
                 jQuery(this).find('#myoverview_future_view .carousel-item:first').addClass('active');
                 jQuery(this).find('#myoverview_overdue_view .carousel-item:first').addClass('active');
-                
+
                 var today = jQuery(this).find('#myoverview_today_view .carousel-item');
                 jQuery(this).find('.today .badge.badge-pill').html(today.length);
-                
+
                 var future = jQuery(this).find('#myoverview_future_view .carousel-item');
                 jQuery(this).find('.future .badge.badge-pill').html(future.length);
-                
+
                 var overdue = jQuery(this).find('#myoverview_overdue_view .carousel-item');
                 jQuery(this).find('.overdue .badge.badge-pill').html(overdue.length);
-                
+
                 jQuery(".carousel-inner > li.list-group-item.event-list-item").css("display", "none");
-                alreadyDone = true;            
+                alreadyDone = true;
             }
         });
     });
-    
+
     jQuery('#course-overview-section a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         jQuery('.wdm-overview-slider').slick('unslick');
         jQuery('.wdm-overview-slider').slick({
@@ -150,8 +156,9 @@ require(['theme_remui/loader', 'theme_remui/dashboard', 'theme_remui/slick'], fu
         arrows: true,
         prevArrow:"<button type='button' class='slick-prev pull-left'><i class='fa fa-chevron-left' aria-hidden='true'></i></button>",
         nextArrow:"<button type='button' class='slick-next pull-right'><i class='fa-arrow-circle-right' aria-hidden='true'></i></button>",
-        infinite: true,    
+        infinite: true,
         opacity: 0,
+        rtl: (jQuery("html").attr("dir") == "rtl") ? true : false,
         speed: 500,
         slidesToShow: 4,
         slidesToScroll: 4,
@@ -183,7 +190,8 @@ require(['theme_remui/loader', 'theme_remui/dashboard', 'theme_remui/slick'], fu
         arrows: true,
         prevArrow:"<button type='button' class='slick-prev pull-left'><i class='fa fa-chevron-left' aria-hidden='true'></i></button>",
         nextArrow:"<button type='button' class='slick-next pull-right'><i class='fa-arrow-circle-right' aria-hidden='true'></i></button>",
-        infinite: true,    
+        infinite: true,
+        rtl: (jQuery("html").attr("dir") == "rtl") ? true : false,
         opacity: 0,
         speed: 500,
         slidesToShow: 4,
@@ -216,5 +224,163 @@ require(['theme_remui/loader', 'theme_remui/dashboard', 'theme_remui/slick'], fu
             jQuery(this).asScrollable('enable');
         });
     });
+
+    //*****************
+    // This is code is for table creation on dashboard
+    // this code also toggles between course progress and student progress table
+    // Function createDatatable() creates course progress table
+
+
+    function createDatatable()
+    {
+        var data;
+
+        if ( $.fn.dataTable.isDataTable( '#DataTables_Teacher' ) ) {
+            data = $('#DataTables_Teacher').DataTable();
+        }
+        else {
+            data = $('#DataTables_Teacher').DataTable({
+                        "paging":   true,
+                        "retrieve": true,
+                        "pagingType": "simple_numbers",
+                        "lengthchange":false,
+                        "autoWidth": true,
+                        "scrollX": true,
+                        "search": "Fred",
+                        "lengthChange": false,
+                        "info":false,
+                        language: {
+                            searchPlaceholder: "Search"
+                        },
+                        responsive: true,
+                    });
+        }
+        {{! $('div.dataTables_filter input').addClass('form-control'); }}
+        {{! $('div.dataTables_length select').addClass('form-control'); }}
+        return data;
+    }
+    // call to the createDatatable for course progress
+    var teacherViewTable = createDatatable();
+
+
+
+    // Destroy the table and send ajax request
+    $('.wdm_course_name').on( 'click', function () {
+
+        var courseid = $(this).data('courseid');
+        teacherViewTable.destroy();
+        $('#DataTables_Teacher').hide();
+        getCourseProgressData(courseid);
+
+    });
+
+
+    // Restore the previous table
+    // $('#courserevertbtn').on( 'click', function () {
+    jQuery('body').on('click', '#courserevertbtn',function(){
+        courseProgressTable.destroy();
+        $('.student_progress_ele').empty();
+        $('#DataTables_Teacher').show();
+        teacherViewTable = createDatatable();
+
+    });
+
+    // This function will retrieve the student progress
+    var courseProgressTable;
+    function getCourseProgressData(courseid){
+
+        jQuery.ajax({
+            type: "GET",
+            async: true,
+            url: M.cfg.wwwroot + '/theme/remui/request_handler.php?action=get_course_progress_ajax&courseid=' + courseid,
+            success: function (response) {
+                $('div.student_progress_ele').empty();
+                $('div.student_progress_ele').append(response);
+
+                jQuery('.pie-progress').asPieProgress({
+                    namespace: 'pie-progress',
+                    speed: 30,
+                    classes: {
+                        svg: 'pie-progress-svg',
+                        element: 'pie-progress',
+                        number: 'pie-progress-number',
+                        content: 'pie-progress-content'
+                    }
+                });
+
+                courseProgressTable = $('#wdmCourseProgressTable').DataTable({
+                    "scrollY":        "300px",
+                    "scrollCollapse": true,
+                    "paging":false,
+                    "retrieve": true,
+                    "lengthchange":false,
+                    "autoWidth": true,
+                    "scrollX": true,
+                    "search": "Fred",
+                    "info":false,
+                    language: {
+                        searchPlaceholder: "Search"
+                    },
+                    responsive: true,
+                });
+
+                $('div.dataTables_filter input').addClass('form-control');
+                $('div.dataTables_length select').addClass('form-control');
+            },
+            error: function (xhr, status, error) {
+                console.log("we are not here ");
+                jQuery('div#analysis-chart-area').hide();
+            }
+        });
+
+    }
+
+
+    //******************
+    // This block opens modal and sends message to user
+
+    jQuery('body').on('click', '.custom-message',function(){
+        var studentid = jQuery(this).data('studentid');
+        console.log(studentid);
+        jQuery('#messageidhidden').val(studentid);
+    });
+
+    jQuery('body').on('click', '.send-message',function(){
+        var studentid = jQuery('#messageidhidden').val();
+        var message   = jQuery('#messagearea').val();
+
+        if(message != '') {
+            sendMessageToUser(studentid, message);
+        } else {
+            jQuery('#messagearea').focus();
+        }
+    });
+
+
+
+    function sendMessageToUser(studentid, message){
+
+        jQuery.ajax({
+            type: "GET",
+            async: true,
+            url: M.cfg.wwwroot + '/theme/remui/request_handler.php?action=send_message_user_ajax&studentid=' + studentid +'&message='+message,
+            success: function (response) {
+                clearModalFields();
+                jQuery('.close-message').click();
+            },
+            error: function (xhr, status, error) {
+                jQuery('div#analysis-chart-area').hide();
+            }
+        });
+
+    }
+
+
+    function clearModalFields()
+    {
+        jQuery('#messageidhidden').val('');
+        jQuery('#messagearea').val('');
+    }
+    //***********************************
 });
 {{/js}}
