@@ -399,6 +399,8 @@ class course_renderer extends \core_course_renderer
             $output .= html_writer::tag('div', html_writer::tag('button', get_string('showmore', 'theme_remui'), array('class' => 'showactivity btn btn-primary px-25 show', 'style' => 'visibility: 	hidden;')), array('class' => 'text-center showactivitywrapper'));
         }
 
+        $output .= html_writer::tag('div', html_writer::tag('button', '<i class="fa fa-folder-open" aria-hidden="true"></i> Open All Sections', array('class' => 'course-open-all btn btn-primary px-25 show')) . ' ' . html_writer::tag('button', '<i class="fa fa-folder" aria-hidden="true"></i> Close All Sections', array('class' => 'course-close-all btn btn-primary px-25 show')), array('class' => 'text-center opencloseallwrapper'));
+
         return $output;
     }
 

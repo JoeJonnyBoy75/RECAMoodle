@@ -257,12 +257,15 @@ function activities_navigation_previous_next($pagelayout = null, $id = null, $co
             $next = get_string('activitynext', 'theme_remui');
 
             $anpn = "<div class='pad row' style='clear:both'><div class='col-lg-12 px-45'>";
+            $exit_button = "<div class='pull-left exitbutton'><a href='/course/view.php?id=" . $course->id . "' class='btn btn-primary'>Return to Course Home</a></div>";
+            $anpn .= $exit_button;
+
             if ($id == $first) {
                 $anpn .= "<div class='pull-right'><a href='".$nextlink."' class ='btn btn-primary'>".$next."</a></div>";
             } elseif ($id == $last) {
-                $anpn .= "<div class='pull-left'><a href='".$prevlink."' class ='btn btn-primary'>".$prev."</a></div>";
+                $anpn .= "<div class='pull-left prevbutton'><a href='".$prevlink."' class ='btn btn-primary'>".$prev."</a></div>";
             } else {
-                $anpn .= "<div class='pull-left'><a href='".$prevlink."' class ='btn btn-primary'>".$prev."</a></div><div class='pull-right'><a href='".$nextlink."' class ='btn btn-primary'>".$next."</a></div>";
+                $anpn .= "<div class='pull-left prevbutton'><a href='".$prevlink."' class ='btn btn-primary'>".$prev."</a></div><div class='pull-right'><a href='".$nextlink."' class ='btn btn-primary'>".$next."</a></div>";
             }
             $anpn .= "</div></div>";
         } else {
