@@ -201,10 +201,13 @@ function theme_build_css_for_themes($themeconfigs = [], $directions = ['rtl', 'l
 
         // First generate all the new css.
         foreach ($directions as $direction) {
+            // Lock it on. Technically we should build all themes for SVG and no SVG - but ie9 is out of support.
+            $themeconfig->force_svg_use(true);
             $themeconfig->set_rtl_mode(($direction === 'rtl'));
 
             $themecss[$direction] = $themeconfig->get_css_content();
             if ($cache) {
+                $themeconfig->set_css_content_cache($themecss[$direction]);
                 $filename = theme_get_css_filename($themeconfig->name, $themerev, $newrevision, $direction);
                 css_store_css($themeconfig, $filename, $themecss[$direction]);
             }
@@ -242,6 +245,7 @@ function theme_build_css_for_themes($themeconfigs = [], $directions = ['rtl', 'l
  */
 function theme_reset_all_caches() {
     global $CFG, $PAGE;
+    require_once("{$CFG->libdir}/filelib.php");
 
     $next = theme_get_next_revision();
     theme_set_revision($next);
@@ -253,6 +257,12 @@ function theme_reset_all_caches() {
 
     // Purge compiled post processed css.
     cache::make('core', 'postprocessedcss')->purge();
+
+    // Delete all old theme localcaches.
+    $themecachedirs = glob("{$CFG->localcachedir}/theme/*", GLOB_ONLYDIR);
+    foreach ($themecachedirs as $localcachedir) {
+        fulldelete($localcachedir);
+    }
 
     if ($PAGE) {
         $PAGE->reload_theme();
@@ -660,6 +670,12 @@ class theme_config {
     public $remapiconcache = [];
 
     /**
+     * The name of the function to call to get precompiled CSS.
+     * @var string
+     */
+    public $precompiledcsscallback = null;
+
+    /**
      * Load the config.php file for a particular theme, and return an instance
      * of this class. (That is, this is a factory method.)
      *
@@ -736,7 +752,8 @@ class theme_config {
             'rendererfactory', 'csspostprocess', 'editor_sheets', 'rarrow', 'larrow', 'uarrow', 'darrow',
             'hidefromselector', 'doctype', 'yuicssmodules', 'blockrtlmanipulations',
             'lessfile', 'extralesscallback', 'lessvariablescallback', 'blockrendermethod',
-            'scss', 'extrascsscallback', 'prescsscallback', 'csstreepostprocessor', 'addblockposition', 'iconsystem');
+            'scss', 'extrascsscallback', 'prescsscallback', 'csstreepostprocessor', 'addblockposition',
+            'iconsystem', 'precompiledcsscallback');
 
         foreach ($config as $key=>$value) {
             if (in_array($key, $configurable)) {
@@ -894,6 +911,14 @@ class theme_config {
         global $CFG;
         $rev = theme_get_revision();
         if ($rev > -1) {
+            $themesubrevision = theme_get_sub_revision_for_theme($this->name);
+
+            // Provide the sub revision to allow us to invalidate cached theme CSS
+            // on a per theme basis, rather than globally.
+            if ($themesubrevision && $themesubrevision > 0) {
+                $rev .= "_{$themesubrevision}";
+            }
+
             $url = new moodle_url("/theme/styles.php");
             if (!empty($CFG->slasharguments)) {
                 $url->set_slashargument('/'.$this->name.'/'.$rev.'/editor', 'noparam', true);
@@ -1079,7 +1104,13 @@ class theme_config {
                 } else {
                     if ($type === 'theme' && $identifier === self::SCSS_KEY) {
                         // We need the content from SCSS because this is the SCSS file from the theme.
-                        $csscontent .= $this->get_css_content_from_scss(false);
+                        if ($compiled = $this->get_css_content_from_scss(false)) {
+                            $csscontent .= $compiled;
+                        } else {
+                            // The compiler failed so default back to any precompiled css that might
+                            // exist.
+                            $csscontent .= $this->get_precompiled_css_content();
+                        }
                     } else if ($type === 'theme' && $identifier === $this->lessfile) {
                         // We need the content from LESS because this is the LESS file from the theme.
                         $csscontent .= $this->get_css_content_from_less(false);
@@ -1464,7 +1495,7 @@ class theme_config {
             // Compile!
             $compiled = $compiler->to_css();
 
-        } catch (\Leafo\ScssPhp\Exception $e) {
+        } catch (\Exception $e) {
             $compiled = false;
             debugging('Error while compiling SCSS: ' . $e->getMessage(), DEBUG_DEVELOPER);
         }
@@ -1474,6 +1505,26 @@ class theme_config {
         unset($compiler);
 
         return $compiled;
+    }
+
+    /**
+     * Return the precompiled CSS if the precompiledcsscallback exists.
+     *
+     * @return string Return compiled css.
+     */
+    public function get_precompiled_css_content() {
+        $configs = [$this] + $this->parent_configs;
+        $css = '';
+
+        foreach ($configs as $config) {
+            if (isset($config->precompiledcsscallback)) {
+                $function = $config->precompiledcsscallback;
+                if (function_exists($function)) {
+                    $css .= $function($this);
+                }
+            }
+        }
+        return $css;
     }
 
     /**

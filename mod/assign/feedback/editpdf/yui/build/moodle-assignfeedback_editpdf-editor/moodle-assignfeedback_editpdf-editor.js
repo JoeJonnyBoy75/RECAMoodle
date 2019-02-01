@@ -2592,11 +2592,7 @@ var COMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext) {
             'height': scrollheight + 'px',
             'overflow': 'hidden'
         });
-        marker.setStyles({
-            'position': 'absolute',
-            'bottom': 0 - scrollheight + 'px',
-            'color': COMMENTCOLOUR[this.colour]
-        });
+        marker.setStyle('color', COMMENTCOLOUR[this.colour]);
         this.attach_events(node, menu);
         if (focus) {
             node.focus();
@@ -2630,35 +2626,37 @@ var COMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext) {
      */
     this.attach_events = function(node, menu) {
         var container = node.ancestor('div'),
-            label = node.ancestor('label');
+            label = node.ancestor('label'),
+            marker = label.next('svg');
 
         // Function to collapse a comment to a marker icon.
         node.collapse = function(delay) {
             node.collapse.delay = Y.later(delay, node, function() {
-                container.addClass('commentcollapsed');
+                if (editor.collapsecomments) {
+                    container.addClass('commentcollapsed');
+                }
             });
         };
 
         // Function to expand a comment.
         node.expand = function() {
-            container.removeClass('commentcollapsed');
+            if (node.getData('dragging') !== true) {
+                if (node.collapse.delay) {
+                    node.collapse.delay.cancel();
+                }
+                container.removeClass('commentcollapsed');
+            }
         };
 
         // Expand comment on mouse over (under certain conditions) or click/tap.
         container.on('mouseenter', function() {
             if (editor.currentedit.tool === 'comment' || editor.currentedit.tool === 'select' || this.editor.get('readonly')) {
                 node.expand();
-                if (node.collapse.delay) {
-                    node.collapse.delay.cancel();
-                }
             }
         }, this);
-        container.on('click', function() {
+        container.on('click|tap', function() {
             node.expand();
             node.focus();
-            if (node.collapse.delay) {
-                node.collapse.delay.cancel();
-            }
         }, this);
 
         // Functions to capture reverse tabbing events.
@@ -2718,9 +2716,7 @@ var COMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext) {
         // Collapse comment on blur.
         container.on('blur', function() {
             node.active = false;
-            if (editor.collapsecomments) {
-                node.collapse(800);
-            }
+            node.collapse(800);
         }, this);
 
         if (!this.editor.get('readonly')) {
@@ -2758,38 +2754,37 @@ var COMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext) {
             node.on('gesturemovestart', function(e) {
                 if (editor.currentedit.tool === 'select') {
                     e.preventDefault();
-                    node.setData('dragging', true);
-                    node.setData('offsetx', e.clientX - node.getX());
-                    node.setData('offsety', e.clientY - node.getY());
+                    if (editor.collapsecomments) {
+                        node.setData('offsetx', 8);
+                        node.setData('offsety', 8);
+                    } else {
+                        node.setData('offsetx', e.clientX - container.getX());
+                        node.setData('offsety', e.clientY - container.getY());
+                    }
                 }
             });
-            node.on('gesturemoveend', function() {
-                if (editor.currentedit.tool === 'select') {
-                    node.setData('dragging', false);
-                    this.editor.save_current_page();
-                }
-            }, null, this);
             node.on('gesturemove', function(e) {
                 if (editor.currentedit.tool === 'select') {
                     var x = e.clientX - node.getData('offsetx'),
                         y = e.clientY - node.getData('offsety'),
-                        nodewidth,
-                        nodeheight,
                         newlocation,
                         windowlocation,
                         bounds;
 
-                    nodewidth = parseInt(node.getStyle('width'), 10);
-                    nodeheight = parseInt(node.getStyle('height'), 10);
+                    if (node.getData('dragging') !== true) {
+                        // Collapse comment during move.
+                        node.collapse(0);
+                        node.setData('dragging', true);
+                    }
 
                     newlocation = this.editor.get_canvas_coordinates(new M.assignfeedback_editpdf.point(x, y));
                     bounds = this.editor.get_canvas_bounds(true);
                     bounds.x = 0;
                     bounds.y = 0;
 
-                    bounds.width -= nodewidth + 42;
-                    bounds.height -= nodeheight + 8;
-                    // Clip to the window size - the comment size.
+                    bounds.width -= 24;
+                    bounds.height -= 24;
+                    // Clip to the window size - the comment icon size.
                     newlocation.clip(bounds);
 
                     this.x = newlocation.x;
@@ -2799,6 +2794,63 @@ var COMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext) {
                     container.setX(windowlocation.x);
                     container.setY(windowlocation.y);
                     this.drawable.store_position(container, windowlocation.x, windowlocation.y);
+                }
+            }, null, this);
+            node.on('gesturemoveend', function() {
+                if (editor.currentedit.tool === 'select') {
+                    if (node.getData('dragging') === true) {
+                        node.setData('dragging', false);
+                    }
+                    this.editor.save_current_page();
+                }
+            }, null, this);
+            marker.on('gesturemovestart', function(e) {
+                if (editor.currentedit.tool === 'select') {
+                    e.preventDefault();
+                    node.setData('offsetx', e.clientX - container.getX());
+                    node.setData('offsety', e.clientY - container.getY());
+                    node.expand();
+                }
+            });
+            marker.on('gesturemove', function(e) {
+                if (editor.currentedit.tool === 'select') {
+                    var x = e.clientX - node.getData('offsetx'),
+                        y = e.clientY - node.getData('offsety'),
+                        newlocation,
+                        windowlocation,
+                        bounds;
+
+                    if (node.getData('dragging') !== true) {
+                        // Collapse comment during move.
+                        node.collapse(100);
+                        node.setData('dragging', true);
+                    }
+
+                    newlocation = this.editor.get_canvas_coordinates(new M.assignfeedback_editpdf.point(x, y));
+                    bounds = this.editor.get_canvas_bounds(true);
+                    bounds.x = 0;
+                    bounds.y = 0;
+
+                    bounds.width -= 24;
+                    bounds.height -= 24;
+                    // Clip to the window size - the comment icon size.
+                    newlocation.clip(bounds);
+
+                    this.x = newlocation.x;
+                    this.y = newlocation.y;
+
+                    windowlocation = this.editor.get_window_coordinates(newlocation);
+                    container.setX(windowlocation.x);
+                    container.setY(windowlocation.y);
+                    this.drawable.store_position(container, windowlocation.x, windowlocation.y);
+                }
+            }, null, this);
+            marker.on('gesturemoveend', function() {
+                if (editor.currentedit.tool === 'select') {
+                    if (node.getData('dragging') === true) {
+                        node.setData('dragging', false);
+                    }
+                    this.editor.save_current_page();
                 }
             }, null, this);
 
@@ -3099,6 +3151,9 @@ var QUICKCOMMENTLIST = function(editor) {
                                                                                      jsondata.width,
                                                                                      jsondata.colour);
                             this.comments.push(quickcomment);
+                            this.comments.sort(function(a, b) {
+                                return a.rawtext.localeCompare(b.rawtext);
+                            });
                         }
                     } catch (e) {
                         return new M.core.exception(e);
@@ -3195,6 +3250,10 @@ var QUICKCOMMENTLIST = function(editor) {
                                                                                              comment.colour);
                                 this.comments.push(quickcomment);
                             }, this);
+
+                            this.comments.sort(function(a, b) {
+                                return a.rawtext.localeCompare(b.rawtext);
+                            });
                         }
                     } catch (e) {
                         return new M.core.exception(e);
@@ -3968,6 +4027,8 @@ EDITOR.prototype = {
         if (this.get('readonly')) {
             return;
         }
+        this.disable_touch_scroll();
+
         // Setup the tool buttons.
         Y.each(TOOLSELECTOR, function(selector, tool) {
             toolnode = this.get_dialogue_element(selector);
@@ -4061,6 +4122,7 @@ EDITOR.prototype = {
         if (tool !== "comment" && tool !== "select" && tool !== "drag" && tool !== "stamp") {
             this.lastannotationtool = tool;
         }
+
         this.refresh_button_state();
     },
 
@@ -4448,13 +4510,15 @@ EDITOR.prototype = {
      * @method expandCollapseComments
      */
     expandCollapseComments: function() {
+        var comments = Y.all('.commentdrawable');
+
         if (this.collapsecomments) {
             this.collapsecomments = false;
+            comments.removeClass('commentcollapsed');
         } else {
             this.collapsecomments = true;
+            comments.addClass('commentcollapsed');
         }
-
-        this.redraw();
     },
 
     /**
@@ -4603,6 +4667,54 @@ EDITOR.prototype = {
         for (i = 0; i < this.drawables.length; i++) {
             this.drawables[i].scroll_update(x, y);
         }
+    },
+
+    /**
+     * Test the browser support for options objects on event listeners.
+     * @return Boolean
+     */
+    event_listener_options_supported: function() {
+        var passivesupported = false,
+            options,
+            testeventname = "testpassiveeventoptions";
+
+        // Options support testing example from:
+        // https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
+
+        try {
+            options = Object.defineProperty({}, "passive", {
+                get: function() {
+                    passivesupported = true;
+                }
+            });
+
+            // We use an event name that is not likely to conflict with any real event.
+            document.addEventListener(testeventname, options, options);
+            // We remove the event listener as we have tested the options already.
+            document.removeEventListener(testeventname, options, options);
+        } catch(err) {
+            // It's already false.
+            passivesupported = false;
+        }
+        return passivesupported;
+    },
+
+    /**
+     * Disable Touch Move scrolling
+     */
+    disable_touch_scroll: function() {
+        if (this.event_listener_options_supported()) {
+            document.addEventListener('touchmove', this.stop_touch_scroll, {passive: false});
+        }
+    },
+
+    /**
+     * Stop Touch Scrolling
+     * @param {Object} e
+     */
+    stop_touch_scroll: function(e) {
+        e.stopPropagation();
+        e.preventDefault();
     }
 
 };

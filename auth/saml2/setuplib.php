@@ -22,9 +22,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
-require_once(dirname(__FILE__).'/_autoload.php');
-require_once("$CFG->dirroot/auth/saml2/auth.php");
+use auth_saml2\ssl_algorithms;
+
+require_once(__DIR__ . '/../../config.php');
+require_once(__DIR__ . '/_autoload.php');
+
+global $CFG;
+require_once("{$CFG->dirroot}/auth/saml2/auth.php");
 
 /**
  * Ensure that valid certificates exist.
@@ -37,9 +41,15 @@ require_once("$CFG->dirroot/auth/saml2/auth.php");
  * @param integer $numberofdays Certificate expirey period
  */
 function create_certificates($saml2auth, $dn = false, $numberofdays = 3650) {
-    global $CFG, $SITE;
+    global $SITE;
 
-    $opensslargs = array();
+    $signaturealgorithm = ssl_algorithms::get_default_saml_signature_algorithm();
+    if (!empty($saml2auth->config->signaturealgorithm)) {
+        $signaturealgorithm = $saml2auth->config->signaturealgorithm;
+    }
+    $opensslargs = array(
+      'digest_alg' => ssl_algorithms::convert_signature_algorithm_to_digest_alg_format($signaturealgorithm),
+    );
     if (array_key_exists('OPENSSL_CONF', $_SERVER)) {
         $opensslargs['config'] = $_SERVER['OPENSSL_CONF'];
     }
@@ -58,7 +68,7 @@ function create_certificates($saml2auth, $dn = false, $numberofdays = 3650) {
         );
     }
 
-    certificate_openssl_error_strings(); // Ensure existing messages are dropped
+    certificate_openssl_error_strings(); // Ensure existing messages are dropped.
     $privkeypass = get_site_identifier();
     $privkey = openssl_pkey_new($opensslargs);
     $csr     = openssl_csr_new($dn, $privkey, $opensslargs);
@@ -153,3 +163,18 @@ function get_dn_email() {
     return $email;
 }
 
+/**
+ * General saml exception
+ */
+class saml2_exception extends moodle_exception {
+
+    /**
+     * Constructor
+     *
+     * @param object $a extra words and phrases that might be required in the error string
+     * @param string $debuginfo optional debugging information
+     */
+    public function __construct($a = null, $debuginfo = null) {
+        parent::__construct('exception', 'auth_saml2', '', htmlspecialchars($a), $debuginfo);
+    }
+}

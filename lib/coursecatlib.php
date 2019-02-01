@@ -212,7 +212,7 @@ class coursecat implements renderable, cacheable_object, IteratorAggregate {
     /**
      * Returns coursecat object for requested category
      *
-     * If category is not visible to user it is treated as non existing
+     * If category is not visible to the given user, it is treated as non existing
      * unless $alwaysreturnhidden is set to true
      *
      * If id is 0, the pseudo object for root category is returned (convenient
@@ -226,10 +226,11 @@ class coursecat implements renderable, cacheable_object, IteratorAggregate {
      *     returned even if this category is not visible to the current user
      *     (category is hidden and user does not have
      *     'moodle/category:viewhiddencategories' capability). Use with care!
+     * @param int|stdClass $user The user id or object. By default (null) checks the visibility to the current user.
      * @return null|coursecat
      * @throws moodle_exception
      */
-    public static function get($id, $strictness = MUST_EXIST, $alwaysreturnhidden = false) {
+    public static function get($id, $strictness = MUST_EXIST, $alwaysreturnhidden = false, $user = null) {
         if (!$id) {
             if (!isset(self::$coursecat0)) {
                 $record = new stdClass();
@@ -251,7 +252,7 @@ class coursecat implements renderable, cacheable_object, IteratorAggregate {
                 $coursecatrecordcache->set($id, $coursecat);
             }
         }
-        if ($coursecat && ($alwaysreturnhidden || $coursecat->is_uservisible())) {
+        if ($coursecat && ($alwaysreturnhidden || $coursecat->is_uservisible($user))) {
             return $coursecat;
         } else {
             if ($strictness == MUST_EXIST) {
@@ -580,17 +581,18 @@ class coursecat implements renderable, cacheable_object, IteratorAggregate {
     }
 
     /**
-     * Checks if this course category is visible to current user
+     * Checks if this course category is visible to a user.
      *
      * Please note that methods coursecat::get (without 3rd argumet),
      * coursecat::get_children(), etc. return only visible categories so it is
      * usually not needed to call this function outside of this class
      *
+     * @param int|stdClass $user The user id or object. By default (null) checks the visibility to the current user.
      * @return bool
      */
-    public function is_uservisible() {
+    public function is_uservisible($user = null) {
         return !$this->id || $this->visible ||
-                has_capability('moodle/category:viewhiddencategories', $this->get_context());
+                has_capability('moodle/category:viewhiddencategories', $this->get_context(), $user);
     }
 
     /**
@@ -721,6 +723,9 @@ class coursecat implements renderable, cacheable_object, IteratorAggregate {
             // No changes to course contacts if role was assigned on the module/block level.
             return;
         }
+
+        // Trigger a purge for all caches listening for changes to category enrolment.
+        cache_helper::purge_by_event('changesincategoryenrolment');
 
         if (!$CFG->coursecontact || !in_array($roleid, explode(',', $CFG->coursecontact))) {
             // The role is not one of course contact roles.
@@ -1169,6 +1174,27 @@ class coursecat implements renderable, cacheable_object, IteratorAggregate {
             }
         }
         return $rv;
+    }
+
+    /**
+     * Returns an array of ids of categories that are (direct and indirect) children
+     * of this category.
+     *
+     * @return int[]
+     */
+    public function get_all_children_ids() {
+        $children = [];
+        $walk = [$this->id];
+        while (count($walk) > 0) {
+            $catid = array_pop($walk);
+            $directchildren = self::get_tree($catid);
+            if ($directchildren !== false && count($directchildren) > 0) {
+                $walk = array_merge($walk, $directchildren);
+                $children = array_merge($children, $directchildren);
+            }
+        }
+
+        return $children;
     }
 
     /**

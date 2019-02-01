@@ -430,6 +430,10 @@ function upgrade_stale_php_files_present() {
     global $CFG;
 
     $someexamplesofremovedfiles = array(
+        // Removed in 3.5.
+        '/lib/dml/mssql_native_moodle_database.php',
+        '/lib/dml/mssql_native_moodle_recordset.php',
+        '/lib/dml/mssql_native_moodle_temptables.php',
         // Removed in 3.4.
         '/auth/README.txt',
         '/calendar/set.php',
@@ -1713,6 +1717,9 @@ function install_core($version, $verbose) {
     remove_dir($CFG->tempdir.'', true);
     make_temp_directory('', true);
 
+    remove_dir($CFG->backuptempdir.'', true);
+    make_backup_temp_directory('', true);
+
     remove_dir($CFG->dataroot.'/muc', true);
     make_writable_directory($CFG->dataroot.'/muc', true);
 
@@ -2335,6 +2342,22 @@ function check_is_https(environment_results $result) {
         $result->setInfo('site not https');
         $result->setStatus(false);
         return $result;
+    }
+    return null;
+}
+
+/**
+ * Check if the site is using 64 bits PHP.
+ *
+ * @param  environment_results $result
+ * @return environment_results|null updated results object, or null if the site is using 64 bits PHP.
+ */
+function check_sixtyfour_bits(environment_results $result) {
+
+    if (PHP_INT_SIZE === 4) {
+         $result->setInfo('php not 64 bits');
+         $result->setStatus(false);
+         return $result;
     }
     return null;
 }

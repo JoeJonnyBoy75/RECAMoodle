@@ -60,6 +60,7 @@ Features
 * SAML attributes to Moodle user field mapping
 * Automatic certificate creation
 * Optionally auto create users
+* Support for multiple identity providers
 
 Features not yet implemented:
 
@@ -70,15 +71,7 @@ Features not yet implemented:
 Installation
 ------------
 
-1. Install and enable php-mcrypt. On debian / ubuntu this may look like
-
-   ```sh
-   sudo apt-get install php5-mcrypt
-   sudo php5enmod mcrypt 
-   sudo service apache2 restart
-   ```
-   
-2. Install the plugin the same as any standard moodle plugin either via the
+1. Install the plugin the same as any standard moodle plugin either via the
 Moodle plugin directory, or you can use git to clone it into your source:
 
    ```sh
@@ -89,13 +82,13 @@ Moodle plugin directory, or you can use git to clone it into your source:
     
    https://moodle.org/plugins/auth_saml2
 
-3. Then run the Moodle upgrade
+2. Then run the Moodle upgrade
 
-4. If your IdP has a publicly available XML descriptor, copy it's url into
+3. If your IdP has a publicly available XML descriptor, copy it's url into
    the SAML2 auth config settings page. Otherwise copy the XML verbatum into
    the settings textarea instead.
    
-5. If your IdP requires whitelisting each SP then in the settings page is
+4. If your IdP requires whitelisting each SP then in the settings page is
    links to download the XML, or you can provide that url to your IdP
    administrator.
 
@@ -191,6 +184,23 @@ issues lies. Some common issues are:
 
 Gotchas
 -------
+
+**Multiple IdPs**
+When using multiple IdPs the system will force enable the dual login setting. This is so
+that a list of possible identity providers will be presented to the user when logging in.
+
+To enable multiple IdPs you can use the 'IdP metadata xml OR public xml URL' configuration
+field.  An example might look like this,
+
+```
+Identity Provider Name http://ssp1.local/simplesaml/saml2/idp/metadata.php
+http://ssp2.local/simplesaml/saml2/idp/metadata.php
+```
+
+If there is any text before the http scheme then it will be used as the override name.
+
+It is not be recommended to use the 'IdP label override' configuration option with
+multiple IdPs.
 
 **OpenAM**
 

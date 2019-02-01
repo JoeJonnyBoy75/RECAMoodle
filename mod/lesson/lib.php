@@ -25,6 +25,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+// Event types.
+define('LESSON_EVENT_TYPE_OPEN', 'open');
+define('LESSON_EVENT_TYPE_CLOSE', 'close');
+
 /* Do not include any libraries here! */
 
 /**
@@ -213,7 +217,7 @@ function lesson_update_events($lesson, $override = null) {
                 }
                 $event->name = get_string('lessoneventopens', 'lesson', $eventname);
                 // The method calendar_event::create will reuse a db record if the id field is set.
-                calendar_event::create($event);
+                calendar_event::create($event, false);
             }
             if ($deadline && $addclose) {
                 if ($oldevent = array_shift($oldevents)) {
@@ -232,7 +236,7 @@ function lesson_update_events($lesson, $override = null) {
                         $event->priority = $closepriorities[$deadline];
                     }
                 }
-                calendar_event::create($event);
+                calendar_event::create($event, false);
             }
         }
     }
@@ -1649,23 +1653,35 @@ function lesson_check_updates_since(cm_info $cm, $from, $filter = array()) {
  *
  * @param calendar_event $event
  * @param \core_calendar\action_factory $factory
+ * @param int $userid User id to use for all capability checks, etc. Set to 0 for current user (default).
  * @return \core_calendar\local\event\entities\action_interface|null
  */
 function mod_lesson_core_calendar_provide_event_action(calendar_event $event,
-                                                       \core_calendar\action_factory $factory) {
+                                                       \core_calendar\action_factory $factory,
+                                                       int $userid = 0) {
     global $DB, $CFG, $USER;
     require_once($CFG->dirroot . '/mod/lesson/locallib.php');
 
-    $cm = get_fast_modinfo($event->courseid)->instances['lesson'][$event->instance];
+    if (!$userid) {
+        $userid = $USER->id;
+    }
+
+    $cm = get_fast_modinfo($event->courseid, $userid)->instances['lesson'][$event->instance];
+
+    if (!$cm->uservisible) {
+        // The module is not visible to the user for any reason.
+        return null;
+    }
+
     $lesson = new lesson($DB->get_record('lesson', array('id' => $cm->instance), '*', MUST_EXIST));
 
-    if ($lesson->count_user_retries($USER->id)) {
+    if ($lesson->count_user_retries($userid)) {
         // If the user has attempted the lesson then there is no further action for the user.
         return null;
     }
 
     // Apply overrides.
-    $lesson->update_effective_access($USER->id);
+    $lesson->update_effective_access($userid);
 
     return $factory->create_instance(
         get_string('startlesson', 'lesson'),
@@ -1745,4 +1761,118 @@ function mod_lesson_get_completion_active_rule_descriptions($cm) {
         }
     }
     return $descriptions;
+}
+
+/**
+ * This function calculates the minimum and maximum cutoff values for the timestart of
+ * the given event.
+ *
+ * It will return an array with two values, the first being the minimum cutoff value and
+ * the second being the maximum cutoff value. Either or both values can be null, which
+ * indicates there is no minimum or maximum, respectively.
+ *
+ * If a cutoff is required then the function must return an array containing the cutoff
+ * timestamp and error string to display to the user if the cutoff value is violated.
+ *
+ * A minimum and maximum cutoff return value will look like:
+ * [
+ *     [1505704373, 'The due date must be after the start date'],
+ *     [1506741172, 'The due date must be before the cutoff date']
+ * ]
+ *
+ * @param calendar_event $event The calendar event to get the time range for
+ * @param stdClass $instance The module instance to get the range from
+ * @return array
+ */
+function mod_lesson_core_calendar_get_valid_event_timestart_range(\calendar_event $event, \stdClass $instance) {
+    $mindate = null;
+    $maxdate = null;
+
+    if ($event->eventtype == LESSON_EVENT_TYPE_OPEN) {
+        // The start time of the open event can't be equal to or after the
+        // close time of the lesson activity.
+        if (!empty($instance->deadline)) {
+            $maxdate = [
+                $instance->deadline,
+                get_string('openafterclose', 'lesson')
+            ];
+        }
+    } else if ($event->eventtype == LESSON_EVENT_TYPE_CLOSE) {
+        // The start time of the close event can't be equal to or earlier than the
+        // open time of the lesson activity.
+        if (!empty($instance->available)) {
+            $mindate = [
+                $instance->available,
+                get_string('closebeforeopen', 'lesson')
+            ];
+        }
+    }
+
+    return [$mindate, $maxdate];
+}
+
+/**
+ * This function will update the lesson module according to the
+ * event that has been modified.
+ *
+ * It will set the available or deadline value of the lesson instance
+ * according to the type of event provided.
+ *
+ * @throws \moodle_exception
+ * @param \calendar_event $event
+ * @param stdClass $lesson The module instance to get the range from
+ */
+function mod_lesson_core_calendar_event_timestart_updated(\calendar_event $event, \stdClass $lesson) {
+    global $DB;
+
+    if (empty($event->instance) || $event->modulename != 'lesson') {
+        return;
+    }
+
+    if ($event->instance != $lesson->id) {
+        return;
+    }
+
+    if (!in_array($event->eventtype, [LESSON_EVENT_TYPE_OPEN, LESSON_EVENT_TYPE_CLOSE])) {
+        return;
+    }
+
+    $courseid = $event->courseid;
+    $modulename = $event->modulename;
+    $instanceid = $event->instance;
+    $modified = false;
+
+    $coursemodule = get_fast_modinfo($courseid)->instances[$modulename][$instanceid];
+    $context = context_module::instance($coursemodule->id);
+
+    // The user does not have the capability to modify this activity.
+    if (!has_capability('moodle/course:manageactivities', $context)) {
+        return;
+    }
+
+    if ($event->eventtype == LESSON_EVENT_TYPE_OPEN) {
+        // If the event is for the lesson activity opening then we should
+        // set the start time of the lesson activity to be the new start
+        // time of the event.
+        if ($lesson->available != $event->timestart) {
+            $lesson->available = $event->timestart;
+            $lesson->timemodified = time();
+            $modified = true;
+        }
+    } else if ($event->eventtype == LESSON_EVENT_TYPE_CLOSE) {
+        // If the event is for the lesson activity closing then we should
+        // set the end time of the lesson activity to be the new start
+        // time of the event.
+        if ($lesson->deadline != $event->timestart) {
+            $lesson->deadline = $event->timestart;
+            $modified = true;
+        }
+    }
+
+    if ($modified) {
+        $lesson->timemodified = time();
+        $DB->update_record('lesson', $lesson);
+        $event = \core\event\course_module_updated::create_from_cm($coursemodule, $context);
+        $event->trigger();
+    }
 }

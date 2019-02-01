@@ -117,6 +117,8 @@ class restore_assign_activity_structure_step extends restore_activity_structure_
         }
         if (!isset($data->gradingduedate)) {
             $data->gradingduedate = 0;
+        } else {
+            $data->gradingduedate = $this->apply_date_offset($data->gradingduedate);
         }
         if (!isset($data->markingworkflow)) {
             $data->markingworkflow = 0;
@@ -382,6 +384,12 @@ class restore_assign_activity_structure_step extends restore_activity_structure_
 
         // Skip user overrides if we are not restoring userinfo.
         if (!$userinfo && !is_null($data->userid)) {
+            return;
+        }
+
+        // Skip group overrides if we are not restoring groupinfo.
+        $groupinfo = $this->get_setting_value('groups');
+        if (!$groupinfo && !is_null($data->groupid)) {
             return;
         }
 

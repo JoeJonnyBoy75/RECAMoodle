@@ -103,7 +103,7 @@ class core_user_external extends external_api {
                             'preferences' => new external_multiple_structure(
                                 new external_single_structure(
                                     array(
-                                        'type'  => new external_value(PARAM_ALPHANUMEXT, 'The name of the preference'),
+                                        'type'  => new external_value(PARAM_RAW, 'The name of the preference'),
                                         'value' => new external_value(PARAM_RAW, 'The value of the preference')
                                     )
                                 ), 'User preferences', VALUE_OPTIONAL),
@@ -133,6 +133,7 @@ class core_user_external extends external_api {
         global $CFG, $DB;
         require_once($CFG->dirroot."/lib/weblib.php");
         require_once($CFG->dirroot."/user/lib.php");
+        require_once($CFG->dirroot."/user/editlib.php");
         require_once($CFG->dirroot."/user/profile/lib.php"); // Required for customfields related function.
 
         // Ensure the current user is allowed to run this function.
@@ -156,6 +157,13 @@ class core_user_external extends external_api {
         $userids = array();
         $createpassword = false;
         foreach ($params['users'] as $user) {
+            // Make sure that the username, firstname and lastname are not blank.
+            foreach (array('username', 'firstname', 'lastname') as $fieldname) {
+                if (trim($user[$fieldname]) === '') {
+                    throw new invalid_parameter_exception('The field '.$fieldname.' cannot be blank');
+                }
+            }
+
             // Make sure that the username doesn't already exist.
             if ($DB->record_exists('user', array('username' => $user['username'], 'mnethostid' => $CFG->mnet_localhost_id))) {
                 throw new invalid_parameter_exception('Username already exists: '.$user['username']);
@@ -341,7 +349,7 @@ class core_user_external extends external_api {
                 'preferences' => new external_multiple_structure(
                     new external_single_structure(
                         array(
-                            'type'  => new external_value(PARAM_ALPHANUMEXT, 'The name of the preference'),
+                            'type'  => new external_value(PARAM_RAW, 'The name of the preference'),
                             'value' => new external_value(PARAM_RAW, 'The value of the preference')
                         )
                     ), 'User preferences', VALUE_DEFAULT, array()
@@ -496,7 +504,7 @@ class core_user_external extends external_api {
                             'preferences' => new external_multiple_structure(
                                 new external_single_structure(
                                     array(
-                                        'type'  => new external_value(PARAM_ALPHANUMEXT, 'The name of the preference'),
+                                        'type'  => new external_value(PARAM_RAW, 'The name of the preference'),
                                         'value' => new external_value(PARAM_RAW, 'The value of the preference')
                                     )
                                 ), 'User preferences', VALUE_OPTIONAL),
@@ -1069,8 +1077,8 @@ class core_user_external extends external_api {
             'preferences' => new external_multiple_structure(
                 new external_single_structure(
                     array(
-                        'name'  => new external_value(PARAM_ALPHANUMEXT, 'The name of the preferences'),
-                        'value' => new external_value(PARAM_RAW, 'The value of the custom field'),
+                        'name'  => new external_value(PARAM_RAW, 'The name of the preferences'),
+                        'value' => new external_value(PARAM_RAW, 'The value of the preference'),
                     )
             ), 'Users preferences', VALUE_OPTIONAL)
         );
@@ -1827,15 +1835,8 @@ class core_user_external extends external_api {
             }
         }
 
-        if (empty($CFG->sitepolicy)) {
-            $status = false;
-            $warnings[] = array(
-                'item' => 'user',
-                'itemid' => $USER->id,
-                'warningcode' => 'nositepolicy',
-                'message' => 'The site does not have a site policy configured.'
-            );
-        } else if (!empty($USER->policyagreed)) {
+        $manager = new \core_privacy\local\sitepolicy\manager();
+        if (!empty($USER->policyagreed)) {
             $status = false;
             $warnings[] = array(
                 'item' => 'user',
@@ -1843,10 +1844,16 @@ class core_user_external extends external_api {
                 'warningcode' => 'alreadyagreed',
                 'message' => 'The user already agreed the site policy.'
             );
+        } else if (!$manager->is_defined()) {
+            $status = false;
+            $warnings[] = array(
+                'item' => 'user',
+                'itemid' => $USER->id,
+                'warningcode' => 'nositepolicy',
+                'message' => 'The site does not have a site policy configured.'
+            );
         } else {
-            $DB->set_field('user', 'policyagreed', 1, array('id' => $USER->id));
-            $USER->policyagreed = 1;
-            $status = true;
+            $status = $manager->accept();
         }
 
         $result = array();

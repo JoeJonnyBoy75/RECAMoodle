@@ -63,7 +63,7 @@ $string['metadata'] = 'Metadata';
 $string['metadata_help'] = 'Metadata tracks, for use from a script, may be used only if the player supports metadata.';
 $string['metadatasourcelabel'] = 'Metadata track URL';
 $string['mute'] = 'Muted';
-$string['pluginname'] = 'Media';
+$string['pluginname'] = 'Insert or edit an audio/video file';
 $string['poster'] = 'Thumbnail URL';
 $string['remove'] = 'Remove';
 $string['size'] = 'Size';
@@ -80,3 +80,4 @@ $string['videosourcelabel'] = 'Video source URL';
 $string['videowidth'] = 'Video width';
 $string['width'] = 'Width';
 
+$string['privacy:metadata'] = 'The atto_media plugin does not store any personal data.';

@@ -758,6 +758,34 @@ function file_get_drafarea_files($draftitemid, $filepath = '/') {
 }
 
 /**
+ * Returns all of the files in the draftarea.
+ *
+ * @param  int $draftitemid The draft item ID
+ * @param  string $filepath path for the uploaded files.
+ * @return array An array of files associated with this draft item id.
+ */
+function file_get_all_files_in_draftarea(int $draftitemid, string $filepath = '/') : array {
+    $files = [];
+    $draftfiles = file_get_drafarea_files($draftitemid, $filepath);
+    file_get_drafarea_folders($draftitemid, $filepath, $draftfiles);
+
+    if (!empty($draftfiles)) {
+        foreach ($draftfiles->list as $draftfile) {
+            if ($draftfile->type == 'file') {
+                $files[] = $draftfile;
+            }
+        }
+
+        if (isset($draftfiles->children)) {
+            foreach ($draftfiles->children as $draftfile) {
+                $files = array_merge($files, file_get_all_files_in_draftarea($draftitemid, $draftfile->filepath));
+            }
+        }
+    }
+    return $files;
+}
+
+/**
  * Returns draft area itemid for a given element.
  *
  * @category files
@@ -904,6 +932,7 @@ function file_save_draft_area_files($draftitemid, $contextid, $component, $filea
 
         $newhashes = array();
         $filecount = 0;
+        $context = context::instance_by_id($contextid, MUST_EXIST);
         foreach ($draftfiles as $file) {
             if (!$options['subdirs'] && $file->get_filepath() !== '/') {
                 continue;
@@ -912,8 +941,11 @@ function file_save_draft_area_files($draftitemid, $contextid, $component, $filea
                 continue;
             }
             if (!$file->is_directory()) {
-                if ($options['maxbytes'] and $options['maxbytes'] < $file->get_filesize()) {
-                    // oversized file - should not get here at all
+                // Check to see if this file was uploaded by someone who can ignore the file size limits.
+                $fileusermaxbytes = get_user_max_upload_file_size($context, $options['maxbytes'], 0, 0, $file->get_userid());
+                if ($fileusermaxbytes != USER_CAN_IGNORE_FILE_SIZE_LIMITS
+                        && ($options['maxbytes'] and $options['maxbytes'] < $file->get_filesize())) {
+                    // Oversized file.
                     continue;
                 }
                 if ($options['maxfiles'] != -1 and $options['maxfiles'] <= $filecount) {
@@ -2111,7 +2143,7 @@ function send_temp_file($path, $filename, $pathisstring=false) {
     }
 
     // if user is using IE, urlencode the filename so that multibyte file name will show up correctly on popup
-    if (core_useragent::is_ie()) {
+    if (core_useragent::is_ie() || core_useragent::is_edge()) {
         $filename = urlencode($filename);
     }
 
@@ -2260,7 +2292,7 @@ function send_file($path, $filename, $lifetime = null , $filter=0, $pathisstring
     }
 
     // if user is using IE, urlencode the filename so that multibyte file name will show up correctly on popup
-    if (core_useragent::is_ie()) {
+    if (core_useragent::is_ie() || core_useragent::is_edge()) {
         $filename = rawurlencode($filename);
     }
 
@@ -3027,7 +3059,6 @@ class curl {
      * Set HTTP Request Header
      *
      * @param array $header
-     * @param bool $replace If true, will remove any existing headers before appending the new one.
      */
     public function setHeader($header) {
         if (is_array($header)) {
@@ -3036,7 +3067,10 @@ class curl {
             }
         } else {
             // Remove newlines, they are not allowed in headers.
-            $this->header[] = preg_replace('/[\r\n]/', '', $header);
+            $newvalue = preg_replace('/[\r\n]/', '', $header);
+            if (!in_array($newvalue, $this->header)) {
+                $this->header[] = $newvalue;
+            }
         }
     }
 
@@ -4088,7 +4122,7 @@ function file_pluginfile($relativepath, $forcedownload, $preview = null, $offlin
         $filename = array_pop($args);
 
         if ($filearea === 'badgeimage') {
-            if ($filename !== 'f1' && $filename !== 'f2') {
+            if ($filename !== 'f1' && $filename !== 'f2' && $filename !== 'f3') {
                 send_file_not_found();
             }
             if (!$file = $fs->get_file($context->id, 'badges', 'badgeimage', $badge->id, '/', $filename.'.png')) {

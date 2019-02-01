@@ -222,8 +222,10 @@ class core_user_externallib_testcase extends externallib_advanced_testcase {
             'descriptionformat' => FORMAT_MOODLE,
             'city' => 'Perth',
             'url' => 'http://moodle.org',
-            'country' => 'AU'
-            );
+            'country' => 'AU',
+            'lang' => 'kkl',
+            'theme' => 'kkt',
+        );
         $user1 = self::getDataGenerator()->create_user($user1);
         if (!empty($CFG->usetags)) {
             require_once($CFG->dirroot . '/user/editlib.php');
@@ -327,6 +329,11 @@ class core_user_externallib_testcase extends externallib_advanced_testcase {
                 }
                 if (!empty($CFG->usetags) and !empty($generateduser->interests)) {
                     $this->assertEquals(implode(', ', $generateduser->interests), $returneduser['interests']);
+                }
+                // Check empty since incorrect values were used when creating the user.
+                if ($returneduser['id'] == $user1->id) {
+                    $this->assertEmpty($returneduser['lang']);
+                    $this->assertEmpty($returneduser['theme']);
                 }
             }
         }
@@ -535,6 +542,84 @@ class core_user_externallib_testcase extends externallib_advanced_testcase {
         $this->unassignUserCapability('moodle/user:create', $context->id, $roleid);
         $this->expectException('required_capability_exception');
         $createdusers = core_user_external::create_users(array($user1));
+    }
+
+    /**
+     * Test create_users with invalid parameters
+     *
+     * @dataProvider data_create_users_invalid_parameter
+     * @param array $data User data to attempt to register.
+     * @param string $expectmessage Expected exception message.
+     */
+    public function test_create_users_invalid_parameter(array $data, $expectmessage) {
+        global $USER, $CFG, $DB;
+
+        $this->resetAfterTest(true);
+        $this->assignUserCapability('moodle/user:create', SYSCONTEXTID);
+
+        $this->expectException('invalid_parameter_exception');
+        $this->expectExceptionMessage($expectmessage);
+
+        core_user_external::create_users(array($data));
+    }
+
+    /**
+     * Data provider for {@link self::test_create_users_invalid_parameter()}.
+     *
+     * @return array
+     */
+    public function data_create_users_invalid_parameter() {
+        return [
+            'blank_username' => [
+                'data' => [
+                    'username' => '',
+                    'firstname' => 'Foo',
+                    'lastname' => 'Bar',
+                    'email' => 'foobar@example.com',
+                    'createpassword' => 1,
+                ],
+                'expectmessage' => 'The field username cannot be blank',
+            ],
+            'blank_firtname' => [
+                'data' => [
+                    'username' => 'foobar',
+                    'firstname' => "\t \n",
+                    'lastname' => 'Bar',
+                    'email' => 'foobar@example.com',
+                    'createpassword' => 1,
+                ],
+                'expectmessage' => 'The field firstname cannot be blank',
+            ],
+            'blank_lastname' => [
+                'data' => [
+                    'username' => 'foobar',
+                    'firstname' => '0',
+                    'lastname' => '   ',
+                    'email' => 'foobar@example.com',
+                    'createpassword' => 1,
+                ],
+                'expectmessage' => 'The field lastname cannot be blank',
+            ],
+            'invalid_email' => [
+                'data' => [
+                    'username' => 'foobar',
+                    'firstname' => 'Foo',
+                    'lastname' => 'Bar',
+                    'email' => '@foobar',
+                    'createpassword' => 1,
+                ],
+                'expectmessage' => 'Email address is invalid',
+            ],
+            'missing_password' => [
+                'data' => [
+                    'username' => 'foobar',
+                    'firstname' => 'Foo',
+                    'lastname' => 'Bar',
+                    'email' => 'foobar@example.com',
+                ],
+                'expectmessage' => 'Invalid password: you must provide a password, or set createpassword',
+            ],
+        ];
     }
 
     /**

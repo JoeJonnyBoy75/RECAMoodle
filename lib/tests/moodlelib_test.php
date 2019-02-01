@@ -1007,6 +1007,240 @@ class core_moodlelib_testcase extends advanced_testcase {
                 shorten_text($text, 1));
     }
 
+    /**
+     * Provider for long filenames and its expected result, with and without hash.
+     *
+     * @return array of ($filename, $length, $expected, $includehash)
+     */
+    public function shorten_filename_provider() {
+        $filename = 'sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem';
+        $shortfilename = 'sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque';
+
+        return [
+            'More than 100 characters' => [
+                $filename,
+                null,
+                'sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium tot',
+                false,
+            ],
+            'More than 100 characters with hash' => [
+                $filename,
+                null,
+                'sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque l - 3bec1da8b8',
+                true,
+            ],
+            'More than 100 characters with extension' => [
+                "{$filename}.zip",
+                null,
+                'sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium tot.zip',
+                false,
+            ],
+            'More than 100 characters with extension and hash' => [
+                "{$filename}.zip",
+                null,
+                'sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque l - 3bec1da8b8.zip',
+                true,
+            ],
+            'Limit filename to 50 chars' => [
+                $filename,
+                50,
+                'sed ut perspiciatis unde omnis iste natus error si',
+                false,
+            ],
+            'Limit filename to 50 chars with hash' => [
+                $filename,
+                50,
+                'sed ut perspiciatis unde omnis iste n - 3bec1da8b8',
+                true,
+            ],
+            'Limit filename to 50 chars with extension' => [
+                "{$filename}.zip",
+                50,
+                'sed ut perspiciatis unde omnis iste natus error si.zip',
+                false,
+            ],
+            'Limit filename to 50 chars with extension and hash' => [
+                "{$filename}.zip",
+                50,
+                'sed ut perspiciatis unde omnis iste n - 3bec1da8b8.zip',
+                true,
+            ],
+            'Test filename that contains less than 100 characters' => [
+                $shortfilename,
+                null,
+                $shortfilename,
+                false,
+            ],
+            'Test filename that contains less than 100 characters and hash' => [
+                $shortfilename,
+                null,
+                $shortfilename,
+                true,
+            ],
+            'Test filename that contains less than 100 characters with extension' => [
+                "{$shortfilename}.zip",
+                null,
+                "{$shortfilename}.zip",
+                false,
+            ],
+            'Test filename that contains less than 100 characters with extension and hash' => [
+                "{$shortfilename}.zip",
+                null,
+                "{$shortfilename}.zip",
+                true,
+            ],
+        ];
+    }
+
+    /**
+     * Test the {@link shorten_filename()} method.
+     *
+     * @dataProvider shorten_filename_provider
+     *
+     * @param string $filename
+     * @param int $length
+     * @param string $expected
+     * @param boolean $includehash
+     */
+    public function test_shorten_filename($filename, $length, $expected, $includehash) {
+        if (null === $length) {
+            $length = MAX_FILENAME_SIZE;
+        }
+
+        $this->assertSame($expected, shorten_filename($filename, $length, $includehash));
+    }
+
+    /**
+     * Provider for long filenames and its expected result, with and without hash.
+     *
+     * @return array of ($filename, $length, $expected, $includehash)
+     */
+    public function shorten_filenames_provider() {
+        $shortfilename = 'sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque';
+        $longfilename = 'sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem';
+        $extfilename = $longfilename.'.zip';
+        $expected = 'sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium tot';
+        $expectedwithhash = 'sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque l - 3bec1da8b8';
+        $expectedext = 'sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium tot.zip';
+        $expectedextwithhash = 'sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque l - 3bec1da8b8.zip';
+        $expected50 = 'sed ut perspiciatis unde omnis iste natus error si';
+        $expected50withhash = 'sed ut perspiciatis unde omnis iste n - 3bec1da8b8';
+        $expected50ext = 'sed ut perspiciatis unde omnis iste natus error si.zip';
+        $expected50extwithhash = 'sed ut perspiciatis unde omnis iste n - 3bec1da8b8.zip';
+        $expected50short = 'sed ut perspiciatis unde omnis iste n - 5fb6543490';
+
+        return [
+            'Empty array without hash' => [
+                [],
+                null,
+                [],
+                false,
+            ],
+            'Empty array with hash' => [
+                [],
+                null,
+                [],
+                true,
+            ],
+            'Array with less than 100 characters' => [
+                [$shortfilename, $shortfilename, $shortfilename],
+                null,
+                [$shortfilename, $shortfilename, $shortfilename],
+                false,
+            ],
+            'Array with more than 100 characters without hash' => [
+                [$longfilename, $longfilename, $longfilename],
+                null,
+                [$expected, $expected, $expected],
+                false,
+            ],
+            'Array with more than 100 characters with hash' => [
+                [$longfilename, $longfilename, $longfilename],
+                null,
+                [$expectedwithhash, $expectedwithhash, $expectedwithhash],
+                true,
+            ],
+            'Array with more than 100 characters with extension' => [
+                [$extfilename, $extfilename, $extfilename],
+                null,
+                [$expectedext, $expectedext, $expectedext],
+                false,
+            ],
+            'Array with more than 100 characters with extension and hash' => [
+                [$extfilename, $extfilename, $extfilename],
+                null,
+                [$expectedextwithhash, $expectedextwithhash, $expectedextwithhash],
+                true,
+            ],
+            'Array with more than 100 characters mix (short, long, with extension) without hash' => [
+                [$shortfilename, $longfilename, $extfilename],
+                null,
+                [$shortfilename, $expected, $expectedext],
+                false,
+            ],
+            'Array with more than 100 characters mix (short, long, with extension) with hash' => [
+                [$shortfilename, $longfilename, $extfilename],
+                null,
+                [$shortfilename, $expectedwithhash, $expectedextwithhash],
+                true,
+            ],
+            'Array with less than 50 characters without hash' => [
+                [$longfilename, $longfilename, $longfilename],
+                50,
+                [$expected50, $expected50, $expected50],
+                false,
+            ],
+            'Array with less than 50 characters with hash' => [
+                [$longfilename, $longfilename, $longfilename],
+                50,
+                [$expected50withhash, $expected50withhash, $expected50withhash],
+                true,
+            ],
+            'Array with less than 50 characters with extension' => [
+                [$extfilename, $extfilename, $extfilename],
+                50,
+                [$expected50ext, $expected50ext, $expected50ext],
+                false,
+            ],
+            'Array with less than 50 characters with extension and hash' => [
+                [$extfilename, $extfilename, $extfilename],
+                50,
+                [$expected50extwithhash, $expected50extwithhash, $expected50extwithhash],
+                true,
+            ],
+            'Array with less than 50 characters mix (short, long, with extension) without hash' => [
+                [$shortfilename, $longfilename, $extfilename],
+                50,
+                [$expected50, $expected50, $expected50ext],
+                false,
+            ],
+            'Array with less than 50 characters mix (short, long, with extension) with hash' => [
+                [$shortfilename, $longfilename, $extfilename],
+                50,
+                [$expected50short, $expected50withhash, $expected50extwithhash],
+                true,
+            ],
+        ];
+    }
+
+    /**
+     * Test the {@link shorten_filenames()} method.
+     *
+     * @dataProvider shorten_filenames_provider
+     *
+     * @param string $filenames
+     * @param int $length
+     * @param string $expected
+     * @param boolean $includehash
+     */
+    public function test_shorten_filenames($filenames, $length, $expected, $includehash) {
+        if (null === $length) {
+            $length = MAX_FILENAME_SIZE;
+        }
+
+        $this->assertSame($expected, shorten_filenames($filenames, $length, $includehash));
+    }
+
     public function test_usergetdate() {
         global $USER, $CFG, $DB;
         $this->resetAfterTest();
@@ -1231,16 +1465,14 @@ class core_moodlelib_testcase extends advanced_testcase {
         $this->assertNull(get_user_preferences('test_pref'));
     }
 
-    public function test_get_extra_user_fields() {
+    /**
+     * Test essential features implementation of {@link get_extra_user_fields()} as the admin user with all capabilities.
+     */
+    public function test_get_extra_user_fields_essentials() {
         global $CFG, $USER, $DB;
         $this->resetAfterTest();
 
         $this->setAdminUser();
-
-        // It would be really nice if there were a way to 'mock' has_capability
-        // checks (either to return true or false) but as there is not, this
-        // test doesn't test the capability check. Presumably, anyone running
-        // unit tests will have the capability.
         $context = context_system::instance();
 
         // No fields.
@@ -1266,6 +1498,121 @@ class core_moodlelib_testcase extends advanced_testcase {
         // Two fields.
         $CFG->showuseridentity = 'frog,zombie';
         $this->assertEquals(array('zombie'), get_extra_user_fields($context, array('frog')));
+    }
+
+    /**
+     * Prepare environment for couple of tests related to permission checks in {@link get_extra_user_fields()}.
+     *
+     * @return stdClass
+     */
+    protected function environment_for_get_extra_user_fields_tests() {
+        global $CFG, $DB;
+
+        $CFG->showuseridentity = 'idnumber,country,city';
+        $CFG->hiddenuserfields = 'country,city';
+
+        $env = new stdClass();
+
+        $env->course = $this->getDataGenerator()->create_course();
+        $env->coursecontext = context_course::instance($env->course->id);
+
+        $env->teacherrole = $DB->get_record('role', array('shortname' => 'teacher'));
+        $env->studentrole = $DB->get_record('role', array('shortname' => 'student'));
+        $env->managerrole = $DB->get_record('role', array('shortname' => 'manager'));
+
+        $env->student = $this->getDataGenerator()->create_user();
+        $env->teacher = $this->getDataGenerator()->create_user();
+        $env->manager = $this->getDataGenerator()->create_user();
+
+        role_assign($env->studentrole->id, $env->student->id, $env->coursecontext->id);
+        role_assign($env->teacherrole->id, $env->teacher->id, $env->coursecontext->id);
+        role_assign($env->managerrole->id, $env->manager->id, SYSCONTEXTID);
+
+        return $env;
+    }
+
+    /**
+     * No identity fields shown to student user (no permission to view identity fields).
+     */
+    public function test_get_extra_user_fields_no_access() {
+
+        $this->resetAfterTest();
+        $env = $this->environment_for_get_extra_user_fields_tests();
+        $this->setUser($env->student);
+
+        $this->assertEquals(array(), get_extra_user_fields($env->coursecontext));
+        $this->assertEquals(array(), get_extra_user_fields(context_system::instance()));
+    }
+
+    /**
+     * Teacher can see students' identity fields only within the course.
+     */
+    public function test_get_extra_user_fields_course_only_access() {
+
+        $this->resetAfterTest();
+        $env = $this->environment_for_get_extra_user_fields_tests();
+        $this->setUser($env->teacher);
+
+        $this->assertEquals(array('idnumber', 'country', 'city'), get_extra_user_fields($env->coursecontext));
+        $this->assertEquals(array(), get_extra_user_fields(context_system::instance()));
+    }
+
+    /**
+     * Teacher can be prevented from seeing students' identity fields even within the course.
+     */
+    public function test_get_extra_user_fields_course_prevented_access() {
+
+        $this->resetAfterTest();
+        $env = $this->environment_for_get_extra_user_fields_tests();
+        $this->setUser($env->teacher);
+
+        assign_capability('moodle/course:viewhiddenuserfields', CAP_PREVENT, $env->teacherrole->id, $env->coursecontext->id);
+        $this->assertEquals(array('idnumber'), get_extra_user_fields($env->coursecontext));
+    }
+
+    /**
+     * Manager can see students' identity fields anywhere.
+     */
+    public function test_get_extra_user_fields_anywhere_access() {
+
+        $this->resetAfterTest();
+        $env = $this->environment_for_get_extra_user_fields_tests();
+        $this->setUser($env->manager);
+
+        $this->assertEquals(array('idnumber', 'country', 'city'), get_extra_user_fields($env->coursecontext));
+        $this->assertEquals(array('idnumber', 'country', 'city'), get_extra_user_fields(context_system::instance()));
+    }
+
+    /**
+     * Manager can be prevented from seeing hidden fields outside the course.
+     */
+    public function test_get_extra_user_fields_schismatic_access() {
+
+        $this->resetAfterTest();
+        $env = $this->environment_for_get_extra_user_fields_tests();
+        $this->setUser($env->manager);
+
+        assign_capability('moodle/user:viewhiddendetails', CAP_PREVENT, $env->managerrole->id, SYSCONTEXTID, true);
+        $this->assertEquals(array('idnumber'), get_extra_user_fields(context_system::instance()));
+        // Note that inside the course, the manager can still see the hidden identifiers as this is currently
+        // controlled by a separate capability for legacy reasons.
+        $this->assertEquals(array('idnumber', 'country', 'city'), get_extra_user_fields($env->coursecontext));
+    }
+
+    /**
+     * Two capabilities must be currently set to prevent manager from seeing hidden fields.
+     */
+    public function test_get_extra_user_fields_hard_to_prevent_access() {
+
+        $this->resetAfterTest();
+        $env = $this->environment_for_get_extra_user_fields_tests();
+        $this->setUser($env->manager);
+
+        assign_capability('moodle/user:viewhiddendetails', CAP_PREVENT, $env->managerrole->id, SYSCONTEXTID, true);
+        assign_capability('moodle/course:viewhiddenuserfields', CAP_PREVENT, $env->managerrole->id, SYSCONTEXTID, true);
+
+        $this->assertEquals(array('idnumber'), get_extra_user_fields(context_system::instance()));
+        $this->assertEquals(array('idnumber'), get_extra_user_fields($env->coursecontext));
     }
 
     public function test_get_extra_user_fields_sql() {
@@ -3591,5 +3938,184 @@ class core_moodlelib_testcase extends advanced_testcase {
         // Array used in the grader report.
         $a = array('aggregatesonly' => [51, 34], 'gradesonly' => [21, 45, 78]);
         $this->assertEquals($a, unserialize_array(serialize($a)));
+    }
+
+    /**
+     * Test that the component_class_callback returns the correct default value when the class was not found.
+     *
+     * @dataProvider component_class_callback_default_provider
+     * @param $default
+     */
+    public function test_component_class_callback_not_found($default) {
+        $this->assertSame($default, component_class_callback('thisIsNotTheClassYouWereLookingFor', 'anymethod', [], $default));
+    }
+
+    /**
+     * Test that the component_class_callback returns the correct default value when the class was not found.
+     *
+     * @dataProvider component_class_callback_default_provider
+     * @param $default
+     */
+    public function test_component_class_callback_method_not_found($default) {
+        require_once(__DIR__ . '/fixtures/component_class_callback_example.php');
+
+        $this->assertSame($default, component_class_callback(test_component_class_callback_example::class, 'this_is_not_the_method_you_were_looking_for', ['abc'], $default));
+    }
+
+    /**
+     * Test that the component_class_callback returns the default when the method returned null.
+     *
+     * @dataProvider component_class_callback_default_provider
+     * @param $default
+     */
+    public function test_component_class_callback_found_returns_null($default) {
+        require_once(__DIR__ . '/fixtures/component_class_callback_example.php');
+
+        $this->assertSame($default, component_class_callback(test_component_class_callback_example::class, 'method_returns_value', [null], $default));
+        $this->assertSame($default, component_class_callback(test_component_class_callback_child_example::class, 'method_returns_value', [null], $default));
+    }
+
+    /**
+     * Test that the component_class_callback returns the expected value and not the default when there was a value.
+     *
+     * @dataProvider component_class_callback_data_provider
+     * @param $default
+     */
+    public function test_component_class_callback_found_returns_value($value) {
+        require_once(__DIR__ . '/fixtures/component_class_callback_example.php');
+
+        $this->assertSame($value, component_class_callback(test_component_class_callback_example::class, 'method_returns_value', [$value], 'This is not the value you were looking for'));
+        $this->assertSame($value, component_class_callback(test_component_class_callback_child_example::class, 'method_returns_value', [$value], 'This is not the value you were looking for'));
+    }
+
+    /**
+     * Test that the component_class_callback handles multiple params correctly.
+     *
+     * @dataProvider component_class_callback_multiple_params_provider
+     * @param $default
+     */
+    public function test_component_class_callback_found_accepts_multiple($params, $count) {
+        require_once(__DIR__ . '/fixtures/component_class_callback_example.php');
+
+        $this->assertSame($count, component_class_callback(test_component_class_callback_example::class, 'method_returns_all_params', $params, 'This is not the value you were looking for'));
+        $this->assertSame($count, component_class_callback(test_component_class_callback_child_example::class, 'method_returns_all_params', $params, 'This is not the value you were looking for'));
+    }
+
+    /**
+     * Data provider with list of default values for user in component_class_callback tests.
+     *
+     * @return array
+     */
+    public function component_class_callback_default_provider() {
+        return [
+            'null' => [null],
+            'empty string' => [''],
+            'string' => ['This is a string'],
+            'int' => [12345],
+            'stdClass' => [(object) ['this is my content']],
+            'array' => [['a' => 'b',]],
+        ];
+    }
+
+    /**
+     * Data provider with list of default values for user in component_class_callback tests.
+     *
+     * @return array
+     */
+    public function component_class_callback_data_provider() {
+        return [
+            'empty string' => [''],
+            'string' => ['This is a string'],
+            'int' => [12345],
+            'stdClass' => [(object) ['this is my content']],
+            'array' => [['a' => 'b',]],
+        ];
+    }
+
+    /**
+     * Data provider with list of default values for user in component_class_callback tests.
+     *
+     * @return array
+     */
+    public function component_class_callback_multiple_params_provider() {
+        return [
+            'empty array' => [
+                [],
+                0,
+            ],
+            'string value' => [
+                ['one'],
+                1,
+            ],
+            'string values' => [
+                ['one', 'two'],
+                2,
+            ],
+            'arrays' => [
+                [[], []],
+                2,
+            ],
+            'nulls' => [
+                [null, null, null, null],
+                4,
+            ],
+            'mixed' => [
+                ['a', 1, null, (object) [], []],
+                5,
+            ],
+        ];
+    }
+
+    /**
+     * Test that {@link get_callable_name()} describes the callable as expected.
+     *
+     * @dataProvider callable_names_provider
+     * @param callable $callable
+     * @param string $expectedname
+     */
+    public function test_get_callable_name($callable, $expectedname) {
+        $this->assertSame($expectedname, get_callable_name($callable));
+    }
+
+    /**
+     * Provides a set of callables and their human readable names.
+     *
+     * @return array of (string)case => [(mixed)callable, (string|bool)expected description]
+     */
+    public function callable_names_provider() {
+        return [
+            'integer' => [
+                386,
+                false,
+            ],
+            'boolean' => [
+                true,
+                false,
+            ],
+            'static_method_as_literal' => [
+                'my_foobar_class::my_foobar_method',
+                'my_foobar_class::my_foobar_method',
+            ],
+            'static_method_of_literal_class' => [
+                ['my_foobar_class', 'my_foobar_method'],
+                'my_foobar_class::my_foobar_method',
+            ],
+            'static_method_of_object' => [
+                [$this, 'my_foobar_method'],
+                'core_moodlelib_testcase::my_foobar_method',
+            ],
+            'method_of_object' => [
+                [new lang_string('parentlanguage', 'core_langconfig'), 'my_foobar_method'],
+                'lang_string::my_foobar_method',
+            ],
+            'function_as_literal' => [
+                'my_foobar_callback',
+                'my_foobar_callback',
+            ],
+            'function_as_closure' => [
+                function($a) { return $a; },
+                'Closure::__invoke',
+            ],
+        ];
     }
 }

@@ -24,9 +24,12 @@
  */
 namespace auth_saml2\task;
 
+use auth_saml2\admin\setting_idpmetadata;
+use auth_saml2\idp_parser;
 use auth_saml2\metadata_fetcher;
 use auth_saml2\metadata_parser;
 use auth_saml2\metadata_writer;
+use moodle_exception;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -38,7 +41,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class metadata_refresh extends \core\task\scheduled_task {
-
     /**
      * @var metadata_fetcher
      */
@@ -54,57 +56,51 @@ class metadata_refresh extends \core\task\scheduled_task {
      */
     private $writer;
 
+    /**
+     * @var idp_parser
+     */
+    private $idpparser;
+
+    /**
+     * @var setting_idpmetadata
+     */
+    private $idpmetadata;
+
     public function get_name() {
         return get_string('taskmetadatarefresh', 'auth_saml2');
     }
 
-    public function execute() {
+    public function execute($force = false) {
         $config = get_config('auth_saml2');
-        if (empty($config->idpmetadatarefresh)) {
+
+        if (empty($config->idpmetadata)) {
+            mtrace('IdP metadata not configured.');
+            return false;
+        }
+
+        if (!$force && empty($config->idpmetadatarefresh)) {
             $str = 'IdP metadata refresh is not configured. Enable it in the auth settings or disable this scheduled task';
             mtrace($str);
-            return;
+            return false;
         }
-        if (substr($config->idpmetadata, 0, 8) != 'https://'
-                && substr($config->idpmetadata, 0, 7) != 'http://') {
-            // Not a link so nothing to refresh.
+
+        if (!$this->idpparser instanceof idp_parser) {
+            $this->idpparser = new idp_parser();
+        }
+
+        if ($this->idpparser->check_xml($config->idpmetadata) == true) {
             mtrace('IdP metadata config not a URL, nothing to refresh.');
-            return;
-        }
-        // Fetch the metadata.
-        if (!$this->fetcher instanceof metadata_fetcher) {
-            $this->fetcher = new metadata_fetcher();
-        }
-        $rawxml = $this->fetcher->fetch($config->idpmetadata);
-
-        // Parse the metadata.
-        if (!$this->parser instanceof metadata_parser) {
-            $this->parser = new metadata_parser();
-        }
-        $this->parser->parse($rawxml);
-
-        $entityid = $this->parser->get_entityid();
-        if (empty($entityid)) {
-            mtrace(get_string('idpmetadata_noentityid', 'auth_saml2'));
-            return;
+            return false;
         }
 
-        $idpdefaultname = $this->parser->get_idpdefaultname();
-        if (empty($idpdefaultname)) {
-            $idpdefaultname = get_string('idpnamedefault', 'auth_saml2');
+        if (!$this->idpmetadata instanceof setting_idpmetadata) {
+            $this->idpmetadata = new setting_idpmetadata();
         }
 
-        // Write the metadata to the correct location.
-        if (!$this->writer instanceof metadata_writer) {
-            $this->writer = new metadata_writer();
-        }
-        $this->writer->write('idp.xml', $rawxml);
-
-        // Everything was successful. Update configs that may have changed.
-        set_config('entityid', $entityid, 'auth_saml2');
-        set_config('idpdefaultname', $idpdefaultname, 'auth_saml2');
+        $this->idpmetadata->validate($config->idpmetadata);
 
         mtrace('IdP metadata refresh completed successfully.');
+        return true;
     }
 
     /**
@@ -126,5 +122,12 @@ class metadata_refresh extends \core\task\scheduled_task {
      */
     public function set_writer(metadata_writer $writer) {
         $this->writer = $writer;
+    }
+
+    /**
+     * @param setting_idpmetadata $idpmetadata
+     */
+    public function set_idpmetadata(setting_idpmetadata $idpmetadata) {
+        $this->idpmetadata = $idpmetadata;
     }
 }

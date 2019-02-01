@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+require_once(__DIR__ . '/../../config.php');
 require('setup.php');
 
 // Generally this page is not used as the normla moodle logout_hook
@@ -30,6 +31,6 @@ require('setup.php');
 // order to properly re-log into Moodle. It's a rare edge case
 // probably only used when configuring or testing but nice to have.
 
-$auth = new SimpleSAML_Auth_Simple($saml2auth->spname);
+$auth = new SimpleSAML\Auth\Simple($saml2auth->spname);
 $auth->logout('/');
 

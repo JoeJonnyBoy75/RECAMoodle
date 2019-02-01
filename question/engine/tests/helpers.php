@@ -119,6 +119,7 @@ abstract class question_test_helper {
         $catcontext = context::instance_by_id($cat->contextid, MUST_EXIST);
         $contexts = new question_edit_contexts($catcontext);
         $dataforformconstructor = new stdClass();
+        $dataforformconstructor->createdby = $questiondata->createdby;
         $dataforformconstructor->qtype = $questiondata->qtype;
         $dataforformconstructor->contextid = $questiondata->contextid = $catcontext->id;
         $dataforformconstructor->category = $questiondata->category = $cat->id;
@@ -1240,5 +1241,24 @@ class question_test_recordset extends moodle_recordset {
 
     public function close() {
         $this->records = null;
+    }
+}
+
+/**
+ * Helper class for tests that help to test core_question_renderer.
+ *
+ * @copyright  2018 Huong Nguyen <huongnv13@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class testable_core_question_renderer extends core_question_renderer {
+
+    /**
+     * Test the private number function.
+     *
+     * @param null|string $number
+     * @return HTML
+     */
+    public function number($number) {
+        return parent::number($number);
     }
 }

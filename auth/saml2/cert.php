@@ -22,11 +22,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+require_once(__DIR__ . '/../../config.php');
 require('setup.php');
 require_login();
 require_capability('moodle/site:config', context_system::instance());
 
-$path = $saml2auth->certdir . $saml2auth->spname . '.crt';
+$path = $saml2auth->certcrt;
 $data = openssl_x509_parse(file_get_contents($path));
 
 $PAGE->set_url("$CFG->httpswwwroot/auth/saml2/debug.php");

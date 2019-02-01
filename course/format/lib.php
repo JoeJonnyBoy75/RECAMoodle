@@ -288,6 +288,18 @@ abstract class format_base {
     }
 
     /**
+     * Method used to get the maximum number of sections for this course format.
+     * @return int
+     */
+    public function get_max_sections() {
+        $maxsections = get_config('moodlecourse', 'maxsections');
+        if (!isset($maxsections) || !is_numeric($maxsections)) {
+            $maxsections = 52;
+        }
+        return $maxsections;
+    }
+
+    /**
      * Returns true if the course has a front page.
      *
      * This function is called to determine if the course has a view page, whether or not
@@ -1260,6 +1272,17 @@ abstract class format_base {
         }
 
         return ['modules' => $modules];
+    }
+
+    /**
+     * Return the plugin config settings for external functions,
+     * in some cases the configs will need formatting or be returned only if the current user has some capabilities enabled.
+     *
+     * @return array the list of configs
+     * @since Moodle 3.5
+     */
+    public function get_config_for_external() {
+        return array();
     }
 }
 

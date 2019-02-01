@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+require_once(__DIR__ . '/../../config.php');
 require('setup.php');
 
 require_login();
@@ -35,7 +36,7 @@ if ($mform->is_cancelled()) {
     redirect("$CFG->wwwroot/admin/settings.php?section=authsettingsaml2");
 }
 
-$path = $saml2auth->certdir . $saml2auth->spname . '.crt';
+$path = $saml2auth->certcrt;
 $error = '';
 
 if ($fromform = $mform->get_data()) {
@@ -54,7 +55,7 @@ if ($fromform = $mform->get_data()) {
     $error = create_certificates($saml2auth, $dn, $numberofdays);
 
     // Also refresh the SP metadata as well.
-    $file = $saml2auth->certdir . $saml2auth->spname . '.xml';
+    $file = $saml2auth->get_file_sp_metadata_file();
     @unlink($file);
 
     if (empty($error)) {

@@ -48,12 +48,16 @@ function user_create_user($user, $updatepassword = true, $triggerevent = true) {
     }
 
     // Check username.
+    if (trim($user->username) === '') {
+        throw new moodle_exception('invalidusernameblank');
+    }
+
     if ($user->username !== core_text::strtolower($user->username)) {
         throw new moodle_exception('usernamelowercase');
-    } else {
-        if ($user->username !== core_user::clean_field($user->username, 'username')) {
-            throw new moodle_exception('invalidusername');
-        }
+    }
+
+    if ($user->username !== core_user::clean_field($user->username, 'username')) {
+        throw new moodle_exception('invalidusername');
     }
 
     // Save the password in a temp value for later.
@@ -121,6 +125,9 @@ function user_create_user($user, $updatepassword = true, $triggerevent = true) {
     if ($triggerevent) {
         \core\event\user_created::create_from_userid($newuserid)->trigger();
     }
+
+    // Purge the associated caches.
+    cache_helper::purge_by_event('createduser');
 
     return $newuserid;
 }
@@ -335,7 +342,7 @@ function user_get_user_details($user, $course = null, array $userfields = array(
             $userdetails['lastname'] = $user->lastname;
         }
     }
-    $userdetails['fullname'] = fullname($user);
+    $userdetails['fullname'] = fullname($user, $canviewfullnames);
 
     if (in_array('customfields', $userfields)) {
         $categories = profile_get_user_fields_with_data_by_category($user->id);
@@ -463,12 +470,15 @@ function user_get_user_details($user, $course = null, array $userfields = array(
         }
     }
 
-    if (in_array('email', $userfields) && ($isadmin // The admin is allowed the users email.
-      or $currentuser // Of course the current user is as well.
-      or $canviewuseremail  // This is a capability in course context, it will be false in usercontext.
-      or in_array('email', $showuseridentityfields)
-      or $user->maildisplay == 1
-      or ($user->maildisplay == 2 and enrol_sharing_course($user, $USER)))) {
+    if (in_array('email', $userfields) && (
+            $currentuser
+            or (!isset($hiddenfields['email']) and (
+                $user->maildisplay == core_user::MAILDISPLAY_EVERYONE
+                or ($user->maildisplay == core_user::MAILDISPLAY_COURSE_MEMBERS_ONLY and enrol_sharing_course($user, $USER))
+                or $canviewuseremail  // TODO: Deprecate/remove for MDL-37479.
+            ))
+            or in_array('email', $showuseridentityfields)
+       )) {
         $userdetails['email'] = $user->email;
     }
 
@@ -562,6 +572,14 @@ function user_get_user_details($user, $course = null, array $userfields = array(
                 $userdetails[$extrafield] = $user->$extrafield;
             }
         }
+    }
+
+    // Clean lang and auth fields for external functions (it may content uninstalled themes or language packs).
+    if (isset($userdetails['lang'])) {
+        $userdetails['lang'] = clean_param($userdetails['lang'], PARAM_LANG);
+    }
+    if (isset($userdetails['theme'])) {
+        $userdetails['theme'] = clean_param($userdetails['theme'], PARAM_THEME);
     }
 
     return $userdetails;
@@ -1270,7 +1288,7 @@ function user_get_participants_sql($courseid, $groupid = 0, $accesssince = 0, $r
     $joins = array('FROM {user} u');
     $wheres = array();
 
-    $userfields = get_extra_user_fields($context, array('username', 'lang', 'timezone', 'maildisplay'));
+    $userfields = get_extra_user_fields($context);
     $userfieldssql = user_picture::fields('u', $userfields);
 
     if ($isfrontpage) {
@@ -1315,6 +1333,10 @@ function user_get_participants_sql($courseid, $groupid = 0, $accesssince = 0, $r
             $searchkey1 = 'search' . $index . '1';
             $searchkey2 = 'search' . $index . '2';
             $searchkey3 = 'search' . $index . '3';
+            $searchkey4 = 'search' . $index . '4';
+            $searchkey5 = 'search' . $index . '5';
+            $searchkey6 = 'search' . $index . '6';
+            $searchkey7 = 'search' . $index . '7';
 
             $conditions = array();
             // Search by fullname.
@@ -1348,10 +1370,30 @@ function user_get_participants_sql($courseid, $groupid = 0, $accesssince = 0, $r
             }
             $conditions[] = $idnumber;
 
+            // Search by middlename.
+            $middlename = $DB->sql_like('middlename', ':' . $searchkey4, false, false);
+            $conditions[] = $middlename;
+
+            // Search by alternatename.
+            $alternatename = $DB->sql_like('alternatename', ':' . $searchkey5, false, false);
+            $conditions[] = $alternatename;
+
+            // Search by firstnamephonetic.
+            $firstnamephonetic = $DB->sql_like('firstnamephonetic', ':' . $searchkey6, false, false);
+            $conditions[] = $firstnamephonetic;
+
+            // Search by lastnamephonetic.
+            $lastnamephonetic = $DB->sql_like('lastnamephonetic', ':' . $searchkey7, false, false);
+            $conditions[] = $lastnamephonetic;
+
             $wheres[] = "(". implode(" OR ", $conditions) .") ";
             $params[$searchkey1] = "%$keyword%";
             $params[$searchkey2] = "%$keyword%";
             $params[$searchkey3] = "%$keyword%";
+            $params[$searchkey4] = "%$keyword%";
+            $params[$searchkey5] = "%$keyword%";
+            $params[$searchkey6] = "%$keyword%";
+            $params[$searchkey7] = "%$keyword%";
         }
     }
 
@@ -1436,7 +1478,7 @@ function user_get_course_lastaccess_sql($accesssince = null, $tableprefix = 'ul'
     if ($accesssince == -1) { // Never.
         return $tableprefix . '.timeaccess = 0';
     } else {
-        return $tableprefix . '.timeaccess != 0 AND ul.timeaccess < ' . $accesssince;
+        return $tableprefix . '.timeaccess != 0 AND ' . $tableprefix . '.timeaccess < ' . $accesssince;
     }
 }
 
@@ -1455,7 +1497,7 @@ function user_get_user_lastaccess_sql($accesssince = null, $tableprefix = 'u') {
     if ($accesssince == -1) { // Never.
         return $tableprefix . '.lastaccess = 0';
     } else {
-        return $tableprefix . '.lastaccess != 0 AND u.lastaccess < ' . $accesssince;
+        return $tableprefix . '.lastaccess != 0 AND ' . $tableprefix . '.lastaccess < ' . $accesssince;
     }
 }
 

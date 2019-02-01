@@ -320,10 +320,14 @@ class MoodleQuickForm_filemanager extends HTML_QuickForm_element implements temp
     /**
      * Check that all files have the allowed type.
      *
-     * @param array $value Draft item id with the uploaded files.
+     * @param int $value Draft item id with the uploaded files.
      * @return string|null Validation error message or null.
      */
     public function validateSubmitValue($value) {
+
+        if (empty($value)) {
+            return;
+        }
 
         $filetypesutil = new \core_form\filetypes_util();
         $whitelist = $filetypesutil->normalize_file_types($this->_options['accepted_types']);
@@ -333,7 +337,7 @@ class MoodleQuickForm_filemanager extends HTML_QuickForm_element implements temp
             return;
         }
 
-        $draftfiles = file_get_drafarea_files($value);
+        $draftfiles = file_get_all_files_in_draftarea($value);
         $wrongfiles = array();
 
         if (empty($draftfiles)) {
@@ -341,7 +345,7 @@ class MoodleQuickForm_filemanager extends HTML_QuickForm_element implements temp
             return;
         }
 
-        foreach ($draftfiles->list as $file) {
+        foreach ($draftfiles as $file) {
             if (!$filetypesutil->is_allowed_file_type($file->filename, $whitelist)) {
                 $wrongfiles[] = $file->filename;
             }

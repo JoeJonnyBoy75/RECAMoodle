@@ -242,6 +242,55 @@ class core_userliblib_testcase extends advanced_testcase {
     }
 
     /**
+     * Test that {@link user_create_user()} throws exception when invalid username is provided.
+     *
+     * @dataProvider data_create_user_invalid_username
+     * @param string $username Invalid username
+     * @param string $expectmessage Expected exception message
+     */
+    public function test_create_user_invalid_username($username, $expectmessage) {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->extendedusernamechars = false;
+
+        $user = [
+            'username' => $username,
+        ];
+
+        $this->expectException('moodle_exception');
+        $this->expectExceptionMessage($expectmessage);
+
+        user_create_user($user);
+    }
+
+    /**
+     * Data provider for {@link self::test_create_user_invalid_username()}.
+     *
+     * @return array
+     */
+    public function data_create_user_invalid_username() {
+        return [
+            'empty_string' => [
+                '',
+                'The username cannot be blank',
+            ],
+            'only_whitespace' => [
+                "\t\t  \t\n ",
+                'The username cannot be blank',
+            ],
+            'lower_case' => [
+                'Mudrd8mz',
+                'The username must be in lower case',
+            ],
+            'extended_chars' => [
+                'dmudrák',
+                'The given username contains invalid characters',
+            ],
+        ];
+    }
+
+    /**
      * Test function user_count_login_failures().
      */
     public function test_user_count_login_failures() {
@@ -720,14 +769,16 @@ class core_userliblib_testcase extends advanced_testcase {
      * calling user_get_user_details() function.
      */
     public function test_user_get_user_details_missing_fields() {
+        global $CFG;
+
         $this->resetAfterTest(true);
         $this->setAdminUser(); // We need capabilities to view the data.
         $user = self::getDataGenerator()->create_user([
                                                           'auth'       => 'auth_something',
                                                           'confirmed'  => '0',
                                                           'idnumber'   => 'someidnumber',
-                                                          'lang'       => 'en_ar',
-                                                          'theme'      => 'mytheme',
+                                                          'lang'       => 'en',
+                                                          'theme'      => $CFG->theme,
                                                           'timezone'   => '50',
                                                           'mailformat' => '0',
                                                       ]);
@@ -737,8 +788,8 @@ class core_userliblib_testcase extends advanced_testcase {
         self::assertSame('auth_something', $got['auth']);
         self::assertSame('0', $got['confirmed']);
         self::assertSame('someidnumber', $got['idnumber']);
-        self::assertSame('en_ar', $got['lang']);
-        self::assertSame('mytheme', $got['theme']);
+        self::assertSame('en', $got['lang']);
+        self::assertSame($CFG->theme, $got['theme']);
         self::assertSame('50', $got['timezone']);
         self::assertSame('0', $got['mailformat']);
     }

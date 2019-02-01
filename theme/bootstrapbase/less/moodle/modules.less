@@ -104,7 +104,6 @@ body.path-mod-feedback #region-main .mform.feedback_form .feedback-item-pagebrea
             }
         }
         .discussion {
-            .author,
             .replies,
             .lastpost {
                 white-space: normal;
@@ -116,14 +115,9 @@ body.path-mod-feedback #region-main .mform.feedback_form .feedback-item-pagebrea
             .topic,
             .discussionsubscription,
             .topic.starter,
-            .author,
             .replies,
             .lastpost {
                 vertical-align: top;
-            }
-            .picture {
-                margin: 0 20px;
-                float: left;
             }
             .unread {
                 img {
@@ -400,12 +394,29 @@ div#dock {
 .path-mod-lesson .answeroptiongroup .felement label p:last-child {
     margin-bottom: 0;
 }
+.path-mod-lesson .answeroption .fradio label p,
+.path-mod-lesson .answeroption .fcheckbox label p {
+    display: inline;
+}
 
 /**
  * Style for view.php
  **/
 #page-mod-lesson-view .password-form .submitbutton {
     display: inline;
+}
+#page-mod-lesson-view .branchbuttoncontainer .singlebutton input[type="submit"] {
+    white-space: normal;
+}
+#page-mod-lesson-view .answeroption .fitemtitle {
+    width: 30%;
+    text-align: left;
+}
+#page-mod-lesson-view .answeroption .fitemtitle label {
+    padding-right: 15px;
+}
+#page-mod-lesson-view .fitem .felement {
+    margin-left: 30%;
 }
 .path-mod-lesson .reviewessay {
     width: 40%;
@@ -805,6 +816,15 @@ div#dock {
 }
 
 // Quiz module
+#page-mod-quiz-edit ul.slots li.section li.activity .instancemaxmarkcontainer form input {
+    margin: 0;
+    padding: 0.2em;
+    height: 1em;
+}
+#mod_quiz_preflight_form .femptylabel .felement {
+    margin: 0;
+    padding: 0;
+}
 
 // Question navigation block.
 .path-mod-quiz #mod_quiz_navblock {

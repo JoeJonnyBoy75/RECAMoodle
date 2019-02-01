@@ -24,10 +24,6 @@
 
 namespace auth_saml2;
 
-require_once(dirname(dirname(dirname(dirname(__FILE__)))).'/config.php');
-
-use core\base;
-
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -39,8 +35,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2016 Brendan Heywood <brendan@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class store extends \SimpleSAML_Store {
-
+class store extends \SimpleSAML\Store {
     /**
      * Retrieve a value from the datastore.
      *
@@ -60,7 +55,7 @@ class store extends \SimpleSAML_Store {
 
         $query = '
             SELECT id, value
-              FROM {auth_samltwo_kvstore}
+              FROM {auth_saml2_kvstore}
              WHERE type = :type
                AND k = :k
                AND (expire IS NULL
@@ -96,8 +91,7 @@ class store extends \SimpleSAML_Store {
      * @param int|null $expire The expiration time (unix timestamp), or NULL if it never expires.
      */
     public function set($type, $key, $value, $expire = null) {
-
-        global $DB, $CFG;
+        global $DB;
 
         assert('is_string($type)');
         assert('is_string($key)');
@@ -126,12 +120,12 @@ class store extends \SimpleSAML_Store {
             'k' => $key,
         );
 
-        $record = $DB->get_record('auth_samltwo_kvstore', $find);
+        $record = $DB->get_record('auth_saml2_kvstore', $find);
         if ($record) {
             $data['id'] = $record->id;
-            $DB->update_record('auth_samltwo_kvstore', $data);
+            $DB->update_record('auth_saml2_kvstore', $data);
         } else {
-            $DB->insert_record('auth_samltwo_kvstore', $data);
+            $DB->insert_record('auth_saml2_kvstore', $data);
         }
     }
 
@@ -142,6 +136,8 @@ class store extends \SimpleSAML_Store {
      * @param string $key  The key.
      */
     public function delete($type, $key) {
+        global $DB;
+
         assert('is_string($type)');
         assert('is_string($key)');
 
@@ -154,7 +150,7 @@ class store extends \SimpleSAML_Store {
             'k' => $key,
         );
 
-        $DB->delete_records('auth_samltwo_kvstore', $data);
+        $DB->delete_records('auth_saml2_kvstore', $data);
     }
 
     /**
@@ -162,7 +158,7 @@ class store extends \SimpleSAML_Store {
      */
     public function delete_expired() {
         global $DB;
-        $sql = 'DELETE FROM {auth_samltwo_kvstore}
+        $sql = 'DELETE FROM {auth_saml2_kvstore}
                  WHERE expire < :now';
         $params = array('now' => time());
 

@@ -44,5 +44,12 @@ function xmldb_gradereport_overview_upgrade($oldversion) {
 
         upgrade_plugin_savepoint(true, 2017051501, 'gradereport', 'overview');
     }
+
+    // Automatically generated Moodle v3.4.0 release upgrade line.
+    // Put any upgrade step following this.
+
+    // Automatically generated Moodle v3.5.0 release upgrade line.
+    // Put any upgrade step following this.
+
     return true;
 }
