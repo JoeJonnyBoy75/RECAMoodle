@@ -10,7 +10,7 @@ if (!empty($_GET['short'])) {
     $short_form = true;
 }
 
-$epoch_from = 1548979200000;
+$epoch_from = 1556668800000;
 $epoch_to = $epoch_from + (86400000 * 60);
 
 $session_info = $DB->get_record_sql('SELECT te.id, te.occurred, te.event, te.user_id, te.course_id, te.coursemodule_id, u.username, u.firstname, u.lastname, u.email, c.fullname AS course_name, sc.name AS module_name

@@ -1,0 +1,51 @@
+@font-face {
+  font-family: 'Istok Web';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Istok Web Regular'), local('IstokWeb-Regular'), url(../fonts/EvPKapBawcLZ3hbihjhqAVtXRa8TVwTICgirnJhmVJw.woff2) format('woff2'), url(../fonts/EvPKapBawcLZ3hbihjhqAT8E0i7KZn-EPnyo3HZu7kw.woff) format('woff');
+}
+@font-face {
+  font-family: 'Istok Web';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Istok Web Bold'), local('IstokWeb-Bold'), url(../fonts/2koEo4AKFSvK4B52O_Mwaugdm0LZdjqr5-oayXSOefg.woff2) format('woff2'), url(../fonts/2koEo4AKFSvK4B52O_MwanhCUOGz7vYGh680lGh-uXM.woff) format('woff');
+}
+@font-face {
+  font-family: 'Istok Web';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Istok Web Italic'), local('IstokWeb-Italic'), url(../fonts/8-xqDtEk6sZ61magDpsV8Y4P5ICox8Kq3LLUNMylGO4.woff2) format('woff2'), url(../fonts/8-xqDtEk6sZ61magDpsV8YbN6UDyHWBl620a-IRfuBk.woff) format('woff');
+}
+@font-face {
+  font-family: 'Istok Web';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Istok Web Bold Italic'), local('IstokWeb-BoldItalic'), url(../fonts/ycQ3g52ELrh3o_HYCNNUw4lIZu-HDpmDIZMigmsroc4.woff2) format('woff2'), url(../fonts/ycQ3g52ELrh3o_HYCNNUwzqR_3kx9_hJXbbyU8S6IN0.woff) format('woff');
+}
+
+
+@font-face {
+  font-family: 'Roboto Condensed';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Roboto Condensed'), local('RobotoCondensed-Regular'), url(../fonts/Zd2E9abXLFGSr9G3YK2MsDAdhzWOYhqHvOZMRGaEyPo.woff2) format('woff2'), url(../fonts/Zd2E9abXLFGSr9G3YK2MsFzqCfRpIA3W6ypxnPISCPA.woff) format('woff');
+}
+@font-face {
+  font-family: 'Roboto Condensed';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Roboto Condensed Bold'), local('RobotoCondensed-Bold'), url(../fonts/b9QBgL0iMZfDSpmcXcE8nHm2hrkyco9jQ3NKMXpgOBg.woff2) format('woff2'), url(../fonts/b9QBgL0iMZfDSpmcXcE8nCSLrGe-fkSRw2DeVgOoWcQ.woff) format('woff');
+}
+
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Roboto'), local('Roboto-Regular'), url(../fonts/CWB0XYA8bzo0kSThX0UTuA.woff2) format('woff2'), url(../fonts/2UX7WLTfW3W8TclTUvlFyQ.woff) format('woff');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Roboto Bold'), local('Roboto-Bold'), url(../fonts/d-6IYplOFocCacKzxwXSOFtXRa8TVwTICgirnJhmVJw.woff2) format('woff2'), url(../fonts/d-6IYplOFocCacKzxwXSOD8E0i7KZn-EPnyo3HZu7kw.woff) format('woff');
+}
