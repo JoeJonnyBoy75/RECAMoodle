@@ -1,4 +1,23 @@
 {{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    Edwiser RemUI 
+    @package    theme_remui
+    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ 
+}}
+{{!
     @template core/signup_form_layout
 
     Example context (json):
@@ -9,21 +28,48 @@
     }
 }}
 
-    <div class="page-brand-info">
+<div class="page-brand-info">
+    {{^logopos}}
         <div class="brand">
-            <img class="brand-img" src="{{logourl}}" alt="...">
-            <h2 class="brand-text font-size-40">{{{ sitename }}}</h2>
+            {{# loginpage_context }}
+                {{# isiconsitename }}
+                    <h3 class="brand-text font-size-40">
+                        <i class="fa fa-{{siteicon}}"></i> {{{ sitename }}}
+                    </h3>
+                {{/ isiconsitename }}
+              
+                {{# islogo }}
+                    <img src="{{logourl}}" class="brand-img w-350" title="{{sitename}}" alt="{{sitename}}"/>
+                {{/ islogo }}
+            {{/ loginpage_context }}
         </div>
-        <p class="font-size-20">{{#str}}createaccount, theme_remui{{/str}}</p>
-    </div>
+    {{/logopos}}
+
+    {{#sitedesc}}
+        <p class="font-size-20 hidden-md-down">{{{sitedesc}}}</p>
+    {{/sitedesc}}
+
+    {{^logopos}}
+        {{#hasinstructions}}
+        <p class="font-size-20">{{{instructions}}}</p>
+        {{/hasinstructions}}
+    {{/logopos}}
+</div>
 
     
     <div class="page-login-main animation-slide-right animation-duration-1">
-        <div class="brand hidden-md-up">
-            {{#logourl}}
-                <img src="{{logourl}}" class="brand-img" title="{{sitename}}" alt="{{sitename}}"/>
-            {{/logourl}}
-            <h3 class="brand-text font-size-24">{{{ sitename }}}</h3>
+        <div class="brand {{^logopos}}hidden-md-up{{/logopos}} text-center">
+            {{# loginpage_context }}
+              {{# isiconsitename }}
+                  <h3 class="font-size-24">
+                      <i class="fa fa-{{siteicon}}"></i> {{{ sitename }}}
+                  </h3>
+              {{/ isiconsitename }}
+              
+              {{# islogo }}
+                  <img src="{{logourl}}" class="brand-img w-p100" title="{{sitename}}" alt="{{sitename}}"/>
+              {{/ islogo }}
+            {{/ loginpage_context }}
         </div>
 
         <!-- <h3 class="font-size-24">{{#str}}newaccount{{/str}}</h3> -->
@@ -76,4 +122,10 @@
             {{/ loginsocial_context }}
         </footer>
     </div>
-    
+{{#js}}
+require(['theme_remui/loader'], function () {
+    jQuery(document).ready(function(){
+        jQuery('#page-login-signup label[for="id_recaptcha_element"]').parent().css({"width": "100%", "margin": "0 20px"});
+    });
+});
+{{/js}}

@@ -15,10 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Admin renderer.
- *
- * @package    theme_noanme
- * @copyright  2016 Frédéric Massart - FMCorz.net
+ * Edwiser RemUI Admin Renderer Class
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

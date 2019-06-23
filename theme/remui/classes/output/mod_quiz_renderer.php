@@ -15,11 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Defines the renderer for the quiz module.
- *
- * @package   mod_quiz
- * @copyright 2011 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Edwiser RemUI 
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace theme_remui\output;

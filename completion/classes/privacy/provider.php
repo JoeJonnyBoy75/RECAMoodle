@@ -110,28 +110,27 @@ class provider implements
      * @param userlist $userlist The userlist to add to.
      */
     public static function add_course_completion_users_to_userlist(userlist $userlist) {
-        $params = [
-            'contextid' => $userlist->get_context()->id,
-            'contextcourse' => CONTEXT_COURSE,
-        ];
+        $context = $userlist->get_context();
+
+        if (!$context instanceof \context_course) {
+            return;
+        }
+
+        $params = ['courseid' => $context->instanceid];
 
         $sql = "SELECT cmc.userid
-                 FROM {context} ctx
-                 JOIN {course} c ON ctx.instanceid = c.id
+                 FROM {course} c
                  JOIN {course_completion_criteria} ccc ON ccc.course = c.id
                  JOIN {course_modules_completion} cmc ON cmc.coursemoduleid = ccc.moduleinstance
-                WHERE ctx.id = :contextid
-                  AND ctx.contextlevel = :contextcourse";
+                WHERE c.id = :courseid";
 
         $userlist->add_from_sql('userid', $sql, $params);
 
         $sql = "SELECT ccc_compl.userid
-                 FROM {context} ctx
-                 JOIN {course} c ON ctx.instanceid = c.id
+                 FROM {course} c
                  JOIN {course_completion_criteria} ccc ON ccc.course = c.id
                  JOIN {course_completion_crit_compl} ccc_compl ON ccc_compl.criteriaid = ccc.id
-                WHERE ctx.id = :contextid
-                  AND ctx.contextlevel = :contextcourse";
+                WHERE c.id = :courseid";
 
         $userlist->add_from_sql('userid', $sql, $params);
     }
@@ -161,47 +160,55 @@ class provider implements
         $completioninfo = new \completion_info($course);
         $completion = $completioninfo->is_enabled();
 
-        if ($completion == COMPLETION_ENABLED) {
+        if ($completion != COMPLETION_ENABLED) {
+            return [];
+        }
 
-            $coursecomplete = $completioninfo->is_course_complete($user->id);
+        $coursecomplete = $completioninfo->is_course_complete($user->id);
+
+        if ($coursecomplete) {
+            $status = get_string('complete');
+        } else {
             $criteriacomplete = $completioninfo->count_course_user_data($user->id);
             $ccompletion = new \completion_completion(['userid' => $user->id, 'course' => $course->id]);
 
-            $status = ($coursecomplete) ? get_string('complete') : '';
-            $status = (!$criteriacomplete && !$ccompletion->timestarted) ? get_string('notyetstarted', 'completion') :
-                    get_string('inprogress', 'completion');
-
-            $completions = $completioninfo->get_completions($user->id);
-            $overall = get_string('nocriteriaset', 'completion');
-            if (!empty($completions)) {
-                if ($completioninfo->get_aggregation_method() == COMPLETION_AGGREGATION_ALL) {
-                    $overall = get_string('criteriarequiredall', 'completion');
-                } else {
-                    $overall = get_string('criteriarequiredany', 'completion');
-                }
+            if (!$criteriacomplete && !$ccompletion->timestarted) {
+                $status = get_string('notyetstarted', 'completion');
+            } else {
+                $status = get_string('inprogress', 'completion');
             }
-
-            $coursecompletiondata = [
-                'status' => $status,
-                'required' => $overall,
-            ];
-
-            $coursecompletiondata['criteria'] = array_map(function($completion) use ($completioninfo) {
-                $criteria = $completion->get_criteria();
-                $aggregation = $completioninfo->get_aggregation_method($criteria->criteriatype);
-                $required = ($aggregation == COMPLETION_AGGREGATION_ALL) ? get_string('all', 'completion') :
-                        get_string('any', 'completion');
-                $data = [
-                    'required' => $required,
-                    'completed' => transform::yesno($completion->is_complete()),
-                    'timecompleted' => isset($completion->timecompleted) ? transform::datetime($completion->timecompleted) : ''
-                ];
-                $details = $criteria->get_details($completion);
-                $data = array_merge($data, $details);
-                return $data;
-            }, $completions);
-            return $coursecompletiondata;
         }
+
+        $completions = $completioninfo->get_completions($user->id);
+        $overall = get_string('nocriteriaset', 'completion');
+        if (!empty($completions)) {
+            if ($completioninfo->get_aggregation_method() == COMPLETION_AGGREGATION_ALL) {
+                $overall = get_string('criteriarequiredall', 'completion');
+            } else {
+                $overall = get_string('criteriarequiredany', 'completion');
+            }
+        }
+
+        $coursecompletiondata = [
+            'status' => $status,
+            'required' => $overall,
+        ];
+
+        $coursecompletiondata['criteria'] = array_map(function($completion) use ($completioninfo) {
+            $criteria = $completion->get_criteria();
+            $aggregation = $completioninfo->get_aggregation_method($criteria->criteriatype);
+            $required = ($aggregation == COMPLETION_AGGREGATION_ALL) ? get_string('all', 'completion') :
+                    get_string('any', 'completion');
+            $data = [
+                'required' => $required,
+                'completed' => transform::yesno($completion->is_complete()),
+                'timecompleted' => isset($completion->timecompleted) ? transform::datetime($completion->timecompleted) : ''
+            ];
+            $details = $criteria->get_details($completion);
+            $data = array_merge($data, $details);
+            return $data;
+        }, $completions);
+        return $coursecompletiondata;
     }
 
     /**

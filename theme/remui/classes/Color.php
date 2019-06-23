@@ -13,10 +13,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
- * Author: Arlo Carreon <http://arlocarreon.com>
- * Info: http://mexitek.github.io/phpColors/
- * License: http://arlo.mit-license.org/
+ * Edwiser RemUI 
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace theme_remui;

@@ -196,7 +196,7 @@ if (!empty($groupid)) {
     }
 }
 
-if ($groupid && ($course->groupmode != SEPARATEGROUPS || $canaccessallgroups)) {
+if ($groupid > 0 && ($course->groupmode != SEPARATEGROUPS || $canaccessallgroups)) {
     $grouprenderer = $PAGE->get_renderer('core_group');
     $groupdetailpage = new \core_group\output\group_details($groupid);
     echo $grouprenderer->group_details($groupdetailpage);
@@ -210,7 +210,7 @@ $enrolbuttonsout = '';
 foreach ($enrolbuttons as $enrolbutton) {
     $enrolbuttonsout .= $enrolrenderer->render($enrolbutton);
 }
-echo html_writer::div($enrolbuttonsout, 'pull-right');
+echo html_writer::div($enrolbuttonsout, 'float-right');
 
 // Should use this variable so that we don't break stuff every time a variable is added or changed.
 $baseurl = new moodle_url('/user/index.php', array(
@@ -262,7 +262,7 @@ if ($perpage == SHOW_ALL_PAGE_SIZE && $participanttable->totalrows > DEFAULT_PAG
 }
 
 if ($bulkoperations) {
-    echo '<br /><div class="buttons">';
+    echo '<br /><div class="buttons"><div class="form-inline">';
 
     if ($participanttable->get_page_size() < $participanttable->totalrows) {
         $perpageurl = clone($baseurl);
@@ -297,6 +297,22 @@ if ($bulkoperations) {
         $displaylist['#addgroupnote'] = get_string('addnewnote', 'notes');
     }
 
+    $params = ['operation' => 'download_participants'];
+
+    $downloadoptions = [];
+    $formats = core_plugin_manager::instance()->get_plugins_of_type('dataformat');
+    foreach ($formats as $format) {
+        if ($format->is_enabled()) {
+            $params = ['operation' => 'download_participants', 'dataformat' => $format->name];
+            $url = new moodle_url('bulkchange.php', $params);
+            $downloadoptions[$url->out(false)] = get_string('dataformat', $format->component);
+        }
+    }
+
+    if (!empty($downloadoptions)) {
+        $displaylist[] = [get_string('downloadas', 'table') => $downloadoptions];
+    }
+
     if ($context->id != $frontpagectx->id) {
         $instances = $manager->get_enrolment_instances();
         $plugins = $manager->get_enrolment_plugins(false);
@@ -321,15 +337,16 @@ if ($bulkoperations) {
         }
     }
 
-    echo $OUTPUT->help_icon('withselectedusers');
-    echo html_writer::tag('label', get_string("withselectedusers"), array('for' => 'formactionid'));
-    echo html_writer::select($displaylist, 'formaction', '', array('' => 'choosedots'), array('id' => 'formactionid'));
+    echo html_writer::tag('div', html_writer::tag('label', get_string("withselectedusers"),
+        array('for' => 'formactionid', 'class' => 'col-form-label d-inline')) .
+        html_writer::select($displaylist, 'formaction', '', array('' => 'choosedots'), array('id' => 'formactionid')),
+        array('class' => 'ml-2'));
 
     echo '<input type="hidden" name="id" value="'.$course->id.'" />';
     echo '<noscript style="display:inline">';
     echo '<div><input type="submit" value="'.get_string('ok').'" /></div>';
     echo '</noscript>';
-    echo '</div></div>';
+    echo '</div></div></div>';
     echo '</form>';
 
     $options = new stdClass();
@@ -342,7 +359,7 @@ if ($bulkoperations) {
 echo '</div>';  // Userlist.
 
 $enrolrenderer = $PAGE->get_renderer('core_enrol');
-echo '<div class="pull-right">';
+echo '<div class="float-right">';
 foreach ($enrolbuttons as $enrolbutton) {
     echo $enrolrenderer->render($enrolbutton);
 }
@@ -352,7 +369,7 @@ if ($newcourse == 1) {
     $str = get_string('proceedtocourse', 'enrol');
     // Floated left so it goes under the enrol users button on mobile.
     // The margin is to make it line up with the enrol users button when they are both on the same line.
-    $classes = 'm-y-1 pull-xs-left';
+    $classes = 'my-1 pull-xs-left';
     $url = course_get_url($course);
     echo $OUTPUT->single_button($url, $str, 'GET', array('class' => $classes));
 }

@@ -63,7 +63,7 @@ abstract class advanced_testcase extends base_testcase {
      * Runs the bare test sequence.
      * @return void
      */
-    final public function runBare() {
+    final public function runBare(): void {
         global $DB;
 
         if (phpunit_util::$lastdbwrites != $DB->perf_get_writes()) {
@@ -131,6 +131,9 @@ abstract class advanced_testcase extends base_testcase {
             }
             self::resetAllData(true);
         }
+
+        // Reset context cache.
+        context_helper::reset_caches();
 
         // make sure test did not forget to close transaction
         if ($DB->is_transaction_started()) {

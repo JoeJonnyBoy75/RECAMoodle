@@ -135,7 +135,7 @@ class forum_post implements \renderable, \templatable {
      *
      * @param \mod_forum_renderer $renderer The render to be used for formatting the message and attachments
      * @param bool $plaintext Whethe the target is a plaintext target
-     * @return stdClass Data ready for use in a mustache template
+     * @return array Data ready for use in a mustache template
      */
     public function export_for_template(\renderer_base $renderer, $plaintext = false) {
         if ($plaintext) {
@@ -149,10 +149,11 @@ class forum_post implements \renderable, \templatable {
      * Export this data so it can be used as the context for a mustache template.
      *
      * @param \mod_forum_renderer $renderer The render to be used for formatting the message and attachments
-     * @return stdClass Data ready for use in a mustache template
+     * @return array Data ready for use in a mustache template
      */
     protected function export_for_template_text(\mod_forum_renderer $renderer) {
-        return array(
+        $data = $this->export_for_template_shared($renderer);
+        return $data + array(
             'id'                            => html_entity_decode($this->post->id),
             'coursename'                    => html_entity_decode($this->get_coursename()),
             'courselink'                    => html_entity_decode($this->get_courselink()),
@@ -180,9 +181,9 @@ class forum_post implements \renderable, \templatable {
             'discussionlink'                => $this->get_discussionlink(),
 
             'authorlink'                    => $this->get_authorlink(),
-            'authorpicture'                 => $this->get_author_picture(),
+            'authorpicture'                 => $this->get_author_picture($renderer),
 
-            'grouppicture'                  => $this->get_group_picture(),
+            'grouppicture'                  => $this->get_group_picture($renderer),
         );
     }
 
@@ -190,10 +191,11 @@ class forum_post implements \renderable, \templatable {
      * Export this data so it can be used as the context for a mustache template.
      *
      * @param \mod_forum_renderer $renderer The render to be used for formatting the message and attachments
-     * @return stdClass Data ready for use in a mustache template
+     * @return array Data ready for use in a mustache template
      */
     protected function export_for_template_html(\mod_forum_renderer $renderer) {
-        return array(
+        $data = $this->export_for_template_shared($renderer);
+        return $data + array(
             'id'                            => $this->post->id,
             'coursename'                    => $this->get_coursename(),
             'courselink'                    => $this->get_courselink(),
@@ -207,7 +209,17 @@ class forum_post implements \renderable, \templatable {
             // Format some components according to the renderer.
             'message'                       => $renderer->format_message_text($this->cm, $this->post),
             'attachments'                   => $renderer->format_message_attachments($this->cm, $this->post),
+        );
+    }
 
+    /**
+     * Export this data so it can be used as the context for a mustache template.
+     *
+     * @param \mod_forum_renderer $renderer The render to be used for formatting the message and attachments
+     * @return stdClass Data ready for use in a mustache template
+     */
+    protected function export_for_template_shared(\mod_forum_renderer $renderer) {
+        return array(
             'canreply'                      => $this->canreply,
             'permalink'                     => $this->get_permalink(),
             'firstpost'                     => $this->get_is_firstpost(),
@@ -221,9 +233,11 @@ class forum_post implements \renderable, \templatable {
             'discussionlink'                => $this->get_discussionlink(),
 
             'authorlink'                    => $this->get_authorlink(),
-            'authorpicture'                 => $this->get_author_picture(),
+            'authorpicture'                 => $this->get_author_picture($renderer),
 
-            'grouppicture'                  => $this->get_group_picture(),
+            'grouppicture'                  => $this->get_group_picture($renderer),
+
+            'isprivatereply'                => !empty($this->post->privatereplyto),
         );
     }
 
@@ -543,20 +557,20 @@ class forum_post implements \renderable, \templatable {
     /**
      * The HTML for the author's user picture.
      *
+     * @param   \renderer_base $renderer
      * @return string
      */
-    public function get_author_picture() {
-        global $OUTPUT;
-
-        return $OUTPUT->user_picture($this->author, array('courseid' => $this->course->id));
+    public function get_author_picture(\renderer_base $renderer) {
+        return $renderer->user_picture($this->author, array('courseid' => $this->course->id));
     }
 
     /**
      * The HTML for a group picture.
      *
+     * @param   \renderer_base $renderer
      * @return string
      */
-    public function get_group_picture() {
+    public function get_group_picture(\renderer_base $renderer) {
         if (isset($this->userfrom->groups)) {
             $groups = $this->userfrom->groups[$this->forum->id];
         } else {
@@ -564,7 +578,7 @@ class forum_post implements \renderable, \templatable {
         }
 
         if ($this->get_is_firstpost()) {
-            return print_group_picture($groups, $this->course->id, false, true, true);
+            return print_group_picture($groups, $this->course->id, false, true, true, true);
         }
     }
 }

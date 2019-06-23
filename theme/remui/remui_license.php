@@ -1,8 +1,29 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Edwiser RemUI License
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+ 
 // include Moodle config
 if (!@include_once(__DIR__.'/../../config.php')) {
-    include_once('/var/www/remui.local/html/v34/config.php');
+    include_once('/var/www/remui.local/html/v37/config.php');
 }
 
 global $DB;
@@ -34,14 +55,12 @@ if ($licensekey == 'empty') {
     </div>';
 } elseif (!empty($licensekey) && $licensekey != 'empty') {
     if ($status !== false && $status == 'valid' && !empty($licensekeyactivate)) {
-
         //Valid license key
         echo '<div class="alert alert-success">
            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
            <h4><i class="icon fa fa-check"></i> Success</h4>'.get_string("licensekeyactivated", "theme_remui").'
         </div>';
     } elseif ($status !== false && $status == 'expired') { //Expired license key
-
         echo '<div class="alert alert-danger">
        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
        <h4><i class="icon fa fa-ban"></i> Alert!</h4>'.get_string("licensekeyhasexpired", "theme_remui").'
@@ -67,7 +86,6 @@ if ($licensekey == 'empty') {
        <h4><i class="icon fa fa-ban"></i> Alert!</h4>'.get_string("licensekeydeactivated", "theme_remui").'
        </div>';
     } elseif ($status == 'no_response' || (!empty($licensekeydeactivate) && $status == 'valid')) { //Site is inactive
-
         echo '<div class="alert alert-danger">
             <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
             <h4><i class="icon fa fa-ban"></i> Alert!</h4>'.get_string("noresponsereceived", "theme_remui").'
@@ -105,7 +123,6 @@ unset_config('licensekeydeactivate', 'theme_remui');
                     </div>
 
                 <?php
-
                 } elseif ($status=="expired") {
                     ?>
 
@@ -119,7 +136,6 @@ unset_config('licensekeydeactivate', 'theme_remui');
                     </div>
 
                 <?php
-
                 } else {
                     ?>
 
@@ -133,7 +149,6 @@ unset_config('licensekeydeactivate', 'theme_remui');
                     </div>
 
                 <?php
-
                 } ?>
 
                 <div class="form-group">

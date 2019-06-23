@@ -11,8 +11,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+    Edwiser RemUI 
+    @package    theme_remui
+    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ 
 }}
 {{!
     @template calendar/month_detailed
@@ -43,11 +46,11 @@
     {{> core_calendar/header }}
     {{> core_calendar/month_navigation }}
     {{> core/overlay_loading}}
-    <table id="month-detailed-{{uniqid}}" class="calendarmonth calendartable">
+    <table id="month-detailed-{{uniqid}}" class="calendarmonth calendartable mx-0 mt-20 w-full">
         <thead>
             <tr>
                 {{# daynames }}
-                <th class="header text-xs-center">
+                <th class="header text-xs-center bold">
                     {{shortname}}
                 </th>
                 {{/ daynames }}

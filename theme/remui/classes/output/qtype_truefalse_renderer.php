@@ -15,11 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * True-false question renderer class.
- *
- * @package    qtype
- * @subpackage truefalse
- * @copyright  2009 The Open University
+ * Edwiser RemUI 
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

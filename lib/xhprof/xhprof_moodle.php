@@ -141,7 +141,13 @@ function profiling_start() {
         $profileauto = (mt_rand(1, $CFG->profilingautofrec) === 1);
     }
 
-    // See if the $script matches any of the included patterns
+    // Profile potentially slow pages.
+    $profileslow = false;
+    if (!empty($CFG->profilingslow) && !CLI_SCRIPT) {
+        $profileslow = true;
+    }
+
+    // See if the $script matches any of the included patterns.
     $included = empty($CFG->profilingincluded) ? '' : $CFG->profilingincluded;
     $profileincluded = profiling_string_matches($script, $included);
 
@@ -155,9 +161,17 @@ function profiling_start() {
     // Decide if profile by match must happen (only if profileauto is disabled)
     $profilematch = $profileincluded && !$profileexcluded && empty($CFG->profilingautofrec);
 
-    // If not auto, me, all, match have been detected, nothing to do
-    if (!$profileauto && !$profileme && !$profileall && !$profilematch) {
+    // Decide if slow profile has been excluded.
+    $profileslow = $profileslow && !$profileexcluded;
+
+    // If not auto, me, all, match have been detected, nothing to do.
+    if (!$profileauto && !$profileme && !$profileall && !$profilematch && !$profileslow) {
         return false;
+    }
+
+    // If we have only been triggered by a *potentially* slow page then remember this for later.
+    if ((!$profileauto && !$profileme && !$profileall && !$profilematch) && $profileslow) {
+        $CFG->profilepotentialslowpage = microtime(true); // Neither $PAGE or $SESSION are guaranteed here.
     }
 
     // Arrived here, the script is going to be profiled, let's do it
@@ -215,6 +229,24 @@ function profiling_stop() {
     $tables = $DB->get_tables();
     if (!in_array('profiling', $tables)) {
         return false;
+    }
+
+    // If we only profiled because it was potentially slow then...
+    if (!empty($CFG->profilepotentialslowpage)) {
+        $duration = microtime(true) - $CFG->profilepotentialslowpage;
+        if ($duration < $CFG->profilingslow) {
+            // Wasn't slow enough.
+            return false;
+        }
+
+        $sql = "SELECT max(totalexecutiontime)
+                  FROM {profiling}
+                 WHERE url = ?";
+        $slowest = $DB->get_field_sql($sql, array($script));
+        if (!empty($slowest) && $duration * 1000000 < $slowest) {
+            // Already have a worse profile stored.
+            return false;
+        }
     }
 
     $run = new moodle_xhprofrun();
@@ -882,14 +914,29 @@ class moodle_xhprofrun implements iXHProfRuns {
         $rec = new stdClass();
         $rec->runid = $this->runid;
         $rec->url = $this->url;
-        $rec->data = base64_encode(gzcompress(serialize($xhprof_data), 9));
         $rec->totalexecutiontime = $this->totalexecutiontime;
         $rec->totalcputime = $this->totalcputime;
         $rec->totalcalls = $this->totalcalls;
         $rec->totalmemory = $this->totalmemory;
         $rec->timecreated = $this->timecreated;
 
-        $DB->insert_record('profiling', $rec);
+        // Send to database with compressed and endoded data.
+        if (empty($CFG->disableprofilingtodatabase)) {
+            $rec->data = base64_encode(gzcompress(serialize($xhprof_data), 9));
+            $DB->insert_record('profiling', $rec);
+        }
+
+        // Send raw data to plugins.
+        $rec->data = $xhprof_data;
+
+        // Allow a plugin to take the trace data and process it.
+        if ($pluginsfunction = get_plugins_with_function('store_profiling_data')) {
+            foreach ($pluginsfunction as $plugintype => $plugins) {
+                foreach ($plugins as $pluginfunction) {
+                    $pluginfunction($rec);
+                }
+            }
+        }
 
         if (PHPUNIT_TEST) {
             // Calculate export variables.

@@ -174,7 +174,7 @@ class behat_general extends behat_base {
                 return true;
             },
             $iframename,
-            self::EXTENDED_TIMEOUT
+            behat_base::get_extended_timeout()
         );
     }
 
@@ -271,7 +271,7 @@ class behat_general extends behat_base {
             return;
         }
 
-        $this->getSession()->wait(self::TIMEOUT * 1000, self::PAGE_READY_JS);
+        $this->getSession()->wait(self::get_timeout() * 1000, self::PAGE_READY_JS);
     }
 
     /**
@@ -604,10 +604,10 @@ class behat_general extends behat_base {
             "[count(descendant::*[contains(., $xpathliteral)]) = 0]";
 
         // We should wait a while to ensure that the page is not still loading elements.
-        // Waiting less than self::TIMEOUT as we already waited for the DOM to be ready and
+        // Waiting less than self::get_timeout() as we already waited for the DOM to be ready and
         // all JS to be executed.
         try {
-            $nodes = $this->find_all('xpath', $xpath, false, false, self::REDUCED_TIMEOUT);
+            $nodes = $this->find_all('xpath', $xpath, false, false, self::get_reduced_timeout());
         } catch (ElementNotFoundException $e) {
             // All ok.
             return;
@@ -644,7 +644,7 @@ class behat_general extends behat_base {
                 return true;
             },
             array('nodes' => $nodes, 'text' => $text),
-            self::REDUCED_TIMEOUT,
+            behat_base::get_reduced_timeout(),
             false,
             true
         );
@@ -728,7 +728,7 @@ class behat_general extends behat_base {
         // We should wait a while to ensure that the page is not still loading elements.
         // Giving preference to the reliability of the results rather than to the performance.
         try {
-            $nodes = $this->find_all('xpath', $xpath, false, $container, self::REDUCED_TIMEOUT);
+            $nodes = $this->find_all('xpath', $xpath, false, $container, self::get_reduced_timeout());
         } catch (ElementNotFoundException $e) {
             // All ok.
             return;
@@ -754,7 +754,7 @@ class behat_general extends behat_base {
                 return true;
             },
             array('nodes' => $nodes, 'text' => $text, 'element' => $element),
-            self::REDUCED_TIMEOUT,
+            behat_base::get_reduced_timeout(),
             false,
             true
         );
@@ -932,7 +932,7 @@ class behat_general extends behat_base {
                     return $context->getSession()->getPage()->findAll($args['selector'], $args['locator']);
                 },
                 $params,
-                self::REDUCED_TIMEOUT,
+                behat_base::get_reduced_timeout(),
                 $exception,
                 false
             );
@@ -1124,7 +1124,7 @@ class behat_general extends behat_base {
             // Would be better to use a 1 second sleep because the element should not be there,
             // but we would need to duplicate the whole find_all() logic to do it, the benefit of
             // changing to 1 second sleep is not significant.
-            $this->find($selector, $locator, false, $containernode, self::REDUCED_TIMEOUT);
+            $this->find($selector, $locator, false, $containernode, behat_base::get_reduced_timeout());
         } catch (ElementNotFoundException $e) {
             // It passes.
             return;
@@ -1280,7 +1280,6 @@ class behat_general extends behat_base {
 
     /**
      * Checks that the provided value exist in table.
-     * More info in http://docs.moodle.org/dev/Acceptance_testing#Providing_values_to_steps.
      *
      * First row may contain column headers or numeric indexes of the columns
      * (syntax -1- is also considered to be column index). Column indexes are
@@ -1309,8 +1308,7 @@ class behat_general extends behat_base {
     }
 
     /**
-     * Checks that the provided value exist in table.
-     * More info in http://docs.moodle.org/dev/Acceptance_testing#Providing_values_to_steps.
+     * Checks that the provided values do not exist in a table.
      *
      * @Then /^the following should not exist in the "(?P<table_string>[^"]*)" table:$/
      * @throws ExpectationException
@@ -1390,7 +1388,7 @@ class behat_general extends behat_base {
                 return $this->download_file_from_link($link);
             },
             array('link' => $link),
-            self::EXTENDED_TIMEOUT,
+            behat_base::get_extended_timeout(),
             $exception
         );
 
@@ -1433,7 +1431,7 @@ class behat_general extends behat_base {
                 return $this->download_file_from_link($link);
             },
             array('link' => $link),
-            self::EXTENDED_TIMEOUT,
+            behat_base::get_extended_timeout(),
             $exception
         );
 
@@ -1443,6 +1441,46 @@ class behat_general extends behat_base {
             throw new ExpectationException('Downloaded data was ' . $actualsize .
                     ' bytes, expecting between ' . $minexpectedsize . ' and ' .
                     $maxexpectedsize, $this->getSession());
+        }
+    }
+
+    /**
+     * Checks that the image on the page is the same as one of the fixture files
+     *
+     * @Then /^the image at "(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" should be identical to "(?P<filepath_string>(?:[^"]|\\")*)"$/
+     * @throws ExpectationException
+     * @param string $element The locator of the image
+     * @param string $selectortype The selector type
+     * @param string $filepath path to the fixture file
+     */
+    public function the_image_at_should_be_identical_to($element, $selectortype, $filepath) {
+        global $CFG;
+
+        // Get the container node (exception if it doesn't exist).
+        $containernode = $this->get_selected_node($selectortype, $element);
+        $url = $containernode->getAttribute('src');
+        if ($url == null) {
+            throw new ExpectationException('Element does not have src attribute',
+                $this->getSession());
+        }
+        $session = $this->getSession()->getCookie('MoodleSession');
+        $content = download_file_content($url, array('Cookie' => 'MoodleSession=' . $session));
+
+        // Get the content of the fixture file.
+        // Replace 'admin/' if it is in start of path with $CFG->admin .
+        if (substr($filepath, 0, 6) === 'admin/') {
+            $filepath = $CFG->admin . DIRECTORY_SEPARATOR . substr($filepath, 6);
+        }
+        $filepath = str_replace('/', DIRECTORY_SEPARATOR, $filepath);
+        $filepath = $CFG->dirroot . DIRECTORY_SEPARATOR . $filepath;
+        if (!is_readable($filepath)) {
+            throw new ExpectationException('The file to compare to does not exist.', $this->getSession());
+        }
+        $expectedcontent = file_get_contents($filepath);
+
+        if ($content !== $expectedcontent) {
+            throw new ExpectationException('Image is not identical to the fixture. Received ' .
+            strlen($content) . ' bytes and expected ' . strlen($expectedcontent) . ' bytes');
         }
     }
 
@@ -1745,5 +1783,20 @@ class behat_general extends behat_base {
 
         $value = ($shift == ' shift') ? [\WebDriver\Key::SHIFT . \WebDriver\Key::TAB] : [\WebDriver\Key::TAB];
         $this->getSession()->getDriver()->getWebDriverSession()->activeElement()->postValue(['value' => $value]);
+    }
+
+    /**
+     * Trigger click on node via javascript instead of actually clicking on it via pointer.
+     * This function resolves the issue of nested elements.
+     *
+     * @When /^I click on "(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" skipping visibility check$/
+     * @param string $element
+     * @param string $selectortype
+     */
+    public function i_click_on_skipping_visibility_check($element, $selectortype) {
+
+        // Gets the node based on the requested selector type and locator.
+        $node = $this->get_selected_node($selectortype, $element);
+        $this->js_trigger_click($node);
     }
 }

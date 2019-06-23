@@ -1,11 +1,17 @@
 This files describes API changes in /auth/* - plugins,
 information provided here is intended especially for developers.
 
-=== 3.5.3 ===
+=== 3.7 ===
+
+* get_password_change_info() method is added to the base class and returns an array containing the subject and body of the message
+  to the user that contains instructions on how to change their password. Authentication plugins can override this method if needed.
+
+=== 3.6 ===
 
 * Login forms generated from Moodle must include a login token to protect automated logins. See \core\session\manager::get_login_token().
 
 === 3.5 ===
+
 * The auth_db and auth_ldap plugins' implementations of update_user_record() have been removed and both now
   call the new implementation added in the base class.
 * Self registration plugins should use core_privacy\local\sitepolicy\manager instead of directly checking

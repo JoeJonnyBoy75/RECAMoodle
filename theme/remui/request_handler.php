@@ -16,11 +16,11 @@
 
 /**
  * Edwiser RemUI AJAX handler
- *
- * @package   theme_remui
- * @copyright WisdmLabs
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
+ 
 use theme_remui\controller\remui_kernel;
 use theme_remui\controller\remui_router;
 
@@ -41,7 +41,7 @@ if (preg_match($actionpattern, $action)) {
 // This code is to run or include file at developer end
 // It is because we use symlink for theme from local_gitrepo
 if (!@include_once(__DIR__.'/../../config.php')) {
-    include_once('/var/www/remui.local/html/v34/config.php');
+    include_once('/var/www/remui.local/html/v37/config.php');
 }
 
 $systemcontext = context_system::instance();
@@ -50,13 +50,20 @@ $contextid = optional_param('contextid', $systemcontext->id, PARAM_INT);
 
 list($context, $course, $cm) = get_context_info_array($contextid);
 
-$nologinactions = ['get_loginstatus', 'read_page']; // Actions which do not require login checks.
+$nologinactions = ['get_loginstatus', 'read_page', 'get_courses_ajax']; // Actions which do not require login checks.
 if (!in_array($action, $nologinactions)) {
     $courseactions = ['get_media', 'get_page'];
     if (in_array($action, $courseactions)) {
         require_login($course, false, $cm, false, true);
     } else {
         require_login();
+        // Check for the session key and validate using confirm_sesskey() function.
+        // Return true/1 if session key is validate successfully.
+        $sesskey = required_param('sesskey', PARAM_TEXT);
+        $confirmsesskey = confirm_sesskey($sesskey);
+        if (!isset($confirmsesskey) && $confirmsesskey != 1) {
+            die();
+        }
     }
 }
 

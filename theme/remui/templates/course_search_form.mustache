@@ -11,25 +11,24 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+    Edwiser RemUI 
+    @package    theme_remui
+    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ 
 }}
 <form action="{{searchurl}}" id="{{id}}" method="get" class="form-inline">
     <div class="form-group coursesearchbox invisiblefieldset w-p100">
-        {{#mycourses}}
-            <input type="hidden" name="mycourses" value="{{mycourses}}">
-        {{/mycourses}}
+    
+        <input type="hidden" name="mycourses">
         {{#category}}
             <input type="hidden" name="categoryid" value="{{category}}">
         {{/category}}
-        <div class="input-search w-p100 d-flex  ">
-            <i class="input-search-icon wb-search" aria-hidden="true"></i>
-
-            <input id="{{inputid}}" name="search" type="text" placeholder="{{#str}}searchcourses{{/str}}"   value="{{value}}" class="form-control h-40 w-p100">
-
-            <div class="input-group-btn d-inline-block hidden-sm-down">
-                <button class="btn btn-primary btn-lg px-25 font-weight-500 font-size-14 h-40" type="submit">{{#str}}go{{/str}}</button>
-            </div>
+        <div class="input-group w-p100 d-flex  ">
+            <input id="{{inputid}}" type="text" class="form-control" name="search" placeholder="{{#str}}searchcourses{{/str}}" value="{{value}}">
+            <span class="input-group-append">
+            <button type="submit" class="btn btn-primary"><i class="icon wb-search" style="margin:-5px 3px -2px;" aria-hidden="true"></i></button>
+            </span>
         </div>
     </div>
 </form>

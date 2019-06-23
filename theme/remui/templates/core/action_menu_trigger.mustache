@@ -11,16 +11,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+    Edwiser RemUI 
+    @package    theme_remui
+    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ 
 }}
 {{!
     Action menu trigger.
 }}
 <div class="dropdown d-inline">
     <!-- <a href="#" class="dropdown-toggle" id="dropdown-{{instance}}" title="{{title}}" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{{actiontext}}}{{{menutrigger}}}{{#icon}}{{#pix}}{{key}},{{component}},{{title}}{{/pix}}{{/icon}}{{#rawicon}}{{{.}}}{{/rawicon}}{{#menutrigger}}<b class="caret"></b>{{/menutrigger}}</a> -->
-    <button type="button" class="btn btn-icon btn-inverse dropdown-toggle" id="dropdown-{{instance}}" title="{{title}}" role="button" data-toggle="dropdown" data-original-title="Settings" aria-haspopup="true" aria-expanded="false">
-        <i class="icon wb-settings" aria-hidden="true"></i>
+    <button type="button" class="btn btn-inverse dropdown-toggle" id="dropdown-{{instance}}" title="{{title}}" role="button" data-toggle="dropdown" data-original-title="Settings" aria-haspopup="true" aria-expanded="false" data-flip="false">
+        <i class="icon fa fa-cog" aria-hidden="true"></i>
         {{{actiontext}}}{{{menutrigger}}}{{#menutrigger}}<b class="caret"></b>{{/menutrigger}}
     </button>
     {{#secondary}}
@@ -28,7 +31,7 @@
             {{#items}}
                 {{#actionmenulink}}<a href="{{url}}" class="dropdown-item {{classes}}" {{#attributes}}{{name}}={{#quote}}{{value}}{{/quote}}{{/attributes}} {{#showtext}}aria-labelledby="actionmenuaction-{{instance}}"{{/showtext}}>{{#icon}}{{#pix}}{{key}},{{component}},{{title}}{{/pix}}{{/icon}}{{#showtext}}<span class="menu-action-text" id="actionmenuaction-{{instance}}">{{{text}}}</span>{{/showtext}}</a>{{/actionmenulink}}
                 {{#actionmenufiller}}<div class="dropdown-divider"></div>{{/actionmenufiller}}
-                {{^actionmenulink}}{{^actionmenufiller}}<div class="dropdown-item">{{> core/action_menu_item }}</div>{{/actionmenufiller}}{{/actionmenulink}}
+                {{^actionmenulink}}{{^actionmenufiller}}<div class="dropdown-item d-flex">{{> core/action_menu_item }}</div>{{/actionmenufiller}}{{/actionmenulink}}
             {{/items}}
         </div>
     {{/secondary}}

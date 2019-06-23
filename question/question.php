@@ -178,6 +178,7 @@ if ($id) {
     if ($makecopy) {
         // If we are duplicating a question, add some indication to the question name.
         $question->name = get_string('questionnamecopy', 'question', $question->name);
+        $question->idnumber = null;
         $question->beingcopied = true;
     }
 
@@ -260,7 +261,7 @@ if ($mform->is_cancelled()) {
     // Ensure we redirect back to the category the question is being saved into.
     $returnurl->param('category', $fromform->category);
 
-    // We are acutally saving the question.
+    // We are actually saving the question.
     if (!empty($question->id)) {
         question_require_capability_on($question, 'edit');
     } else {

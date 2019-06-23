@@ -114,6 +114,7 @@ $string['eventsupdated'] = 'Events updated: {$a}';
 $string['eventsfor'] = '{$a} events';
 $string['eventskey'] = 'Events key';
 $string['eventspersonal'] = 'My personal events';
+$string['eventsrelatedtocategories'] = 'Events related to categories';
 $string['eventsrelatedtocourses'] = 'Events related to courses';
 $string['eventsrelatedtogroups'] = 'Events related to groups';
 $string['eventstarttime'] = 'Start time';
@@ -265,9 +266,6 @@ $string['weekthis'] = 'This week';
 $string['when'] = 'When';
 $string['yesterday'] = 'Yesterday';
 $string['youcandeleteallrepeats'] = 'This event is part of a repeating event series. You can delete this event only, or all {$a} events in the series at once.';
-
-// Deprecated since Moodle 3.2.
-$string['for'] = 'for';
 
 // Deprecated since Moodle 3.4.
 $string['quickdownloadcalendar'] = 'Quick download / subscribe to calendar';

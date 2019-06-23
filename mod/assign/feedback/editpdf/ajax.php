@@ -70,6 +70,7 @@ if ($action === 'pollconversions') {
             'filecount' => 0,
             'pagecount' => 0,
             'pageready' => 0,
+            'partial' => false,
             'pages' => [],
         ];
 
@@ -77,10 +78,13 @@ if ($action === 'pollconversions') {
     $response->status = $combineddocument->get_status();
     $response->filecount = $combineddocument->get_document_count();
 
-    if ($response->status === combined_document::STATUS_READY) {
+    $readystatuslist = [combined_document::STATUS_READY, combined_document::STATUS_READY_PARTIAL];
+    $completestatuslist = [combined_document::STATUS_COMPLETE, combined_document::STATUS_FAILED];
+
+    if (in_array($response->status, $readystatuslist)) {
         $combineddocument = document_services::get_combined_pdf_for_attempt($assignment, $userid, $attemptnumber);
         $response->pagecount = $combineddocument->get_page_count();
-    } else if ($response->status === combined_document::STATUS_COMPLETE || $response->status === combined_document::STATUS_FAILED) {
+    } else if (in_array($response->status, $completestatuslist)) {
         $pages = document_services::get_page_images_for_attempt($assignment,
                                                                 $userid,
                                                                 $attemptnumber,
@@ -95,6 +99,7 @@ if ($action === 'pollconversions') {
         if ($readonly) {
             $filearea = document_services::PAGE_IMAGE_READONLY_FILEAREA;
         }
+        $response->partial = $combineddocument->is_partial_conversion();
 
         foreach ($pages as $id => $pagefile) {
             $index = count($response->pages);
@@ -219,6 +224,27 @@ if ($action === 'pollconversions') {
 
     $result = $result && page_editor::unrelease_drafts($grade->id);
     echo json_encode($result);
+    die();
+} else if ($action == 'rotatepage') {
+    require_capability('mod/assign:grade', $context);
+    $response = new stdClass();
+    $index = required_param('index', PARAM_INT);
+    $grade = $assignment->get_user_grade($userid, true, $attemptnumber);
+    $rotateleft = required_param('rotateleft', PARAM_BOOL);
+    $filearea = document_services::PAGE_IMAGE_FILEAREA;
+    $pagefile = document_services::rotate_page($assignment, $userid, $attemptnumber, $index, $rotateleft);
+    $page = new stdClass();
+    $page->url = moodle_url::make_pluginfile_url($context->id, document_services::COMPONENT, $filearea,
+        $grade->id, '/', $pagefile->get_filename())->out();
+    if ($imageinfo = $pagefile->get_imageinfo()) {
+        $page->width = $imageinfo['width'];
+        $page->height = $imageinfo['height'];
+    } else {
+        $page->width = 0;
+        $page->height = 0;
+    }
+    $response = (object)['page' => $page];
+    echo json_encode($response);
     die();
 }
 

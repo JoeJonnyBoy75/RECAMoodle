@@ -1,5 +1,5 @@
 <?php
-// This file is part of The Bootstrap Moodle theme
+// This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,11 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Edwiser RemUI 
  * Format topics renderer
- *
- * @package   theme_remui
- * @copyright Copyright (c) 2016 WisdmLabs. (http://www.wisdmlabs.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace theme_remui\output;
@@ -32,112 +32,89 @@ defined('MOODLE_INTERNAL') || die();
 
 class format_topics_renderer extends \format_topics_renderer {
 
-    use format_section_trait;
-
     /**
-     * Constructor method, calls the parent constructor
+     * Generate the section title, wraps it in a link to the section page if page is to be displayed on a separate page
      *
-     * @param moodle_page $page
-     * @param string $target one of rendering target constants
-     */
-    public function __construct(moodle_page $page, $target) {
-        parent::__construct($page, $target);
-
-        // Since format_topics_renderer::section_edit_controls() only displays the 'Set current section' control when editing mode is on
-        // we need to be sure that the link 'Turn editing mode on' is available for a user who does not have any other managing capability.
-        $page->set_other_editing_capability('moodle/course:setcurrentsection');
-    }
-
-    /**
-     * Generate the starting container html for a list of sections
-     * @return string HTML to output.
-     */
-    protected function start_section_list() {
-        return html_writer::start_tag('ul', array('class' => 'topics'));
-    }
-
-    /**
-     * Generate the closing container html for a list of sections
-     * @return string HTML to output.
-     */
-    protected function end_section_list() {
-        return html_writer::end_tag('ul');
-    }
-
-    /**
-     * Generate the title for this section page
-     * @return string the page title
-     */
-    protected function page_title() {
-        return get_string('topicoutline');
-    }
-
-    /**
-     * Generate the edit control items of a section
-     *
-     * @param stdClass $course The course entry from DB
      * @param stdClass $section The course_section entry from DB
-     * @param bool $onsectionpage true if being printed on a section page
-     * @return array of edit control items
+     * @param stdClass $course The course entry from DB
+     * @return string HTML to output.
      */
-    protected function section_edit_control_items($course, $section, $onsectionpage = false) {
-        global $PAGE;
+    public function section_title($section, $course)
+    {
+        $output = $this->render(course_get_format($course)->inplace_editable_render_section_name($section));
+        return $output;
+    }
 
-        if (!$PAGE->user_is_editing()) {
-            return array();
-        }
+    /**
+     * Generate the display of the header part of a section before
+     * course modules are included
+     *
+     * @param stdClass $section The course_section entry from DB
+     * @param stdClass $course The course entry from DB
+     * @param bool $onsectionpage true if being printed on a single-section page
+     * @param int $sectionreturn The section to return to after an action
+     * @return string HTML to output.
+     */
+    protected function section_header($section, $course, $onsectionpage, $sectionreturn = null)
+    {
+         global $PAGE;
 
-        $coursecontext = context_course::instance($course->id);
+        $o = '';
+        $currenttext = '';
+        $sectionstyle = '';
 
-        if ($onsectionpage) {
-            $url = course_get_url($course, $section->section);
-        } else {
-            $url = course_get_url($course);
-        }
-        $url->param('sesskey', sesskey());
-
-        $controls = array();
-        if ($section->section && has_capability('moodle/course:setcurrentsection', $coursecontext)) {
-            if ($course->marker == $section->section) {  // Show the "light globe" on/off.
-                $url->param('marker', 0);
-                $markedthistopic = get_string('markedthistopic');
-                $highlightoff = get_string('highlightoff');
-                $controls['highlight'] = array('url' => $url, "icon" => 'i/marked',
-                                               'name' => $highlightoff,
-                                               'pixattr' => array('class' => '', 'alt' => $markedthistopic),
-                                               'attr' => array('class' => 'editing_highlight', 'title' => $markedthistopic,
-                                                   'data-action' => 'removemarker'));
-            } else {
-                $url->param('marker', $section->section);
-                $markthistopic = get_string('markthistopic');
-                $highlight = get_string('highlight');
-                $controls['highlight'] = array('url' => $url, "icon" => 'i/marker',
-                                               'name' => $highlight,
-                                               'pixattr' => array('class' => '', 'alt' => $markthistopic),
-                                               'attr' => array('class' => 'editing_highlight', 'title' => $markthistopic,
-                                                   'data-action' => 'setmarker'));
+        if ($section->section != 0) {
+            // Only in the non-general sections.
+            if (!$section->visible) {
+                $sectionstyle = ' hidden';
+            }
+            if (course_get_format($course)->is_section_current($section)) {
+                $sectionstyle = ' current';
             }
         }
 
-        $parentcontrols = parent::section_edit_control_items($course, $section, $onsectionpage);
+        $o.= html_writer::start_tag('li', array('id' => 'section-'.$section->section,
+            'class' => 'section main rounded clearfix'.$sectionstyle, 'role'=>'region',
+            'aria-label'=> get_section_name($course, $section)));
 
-        // If the edit key exists, we are going to insert our controls after it.
-        if (array_key_exists("edit", $parentcontrols)) {
-            $merged = array();
-            // We can't use splice because we are using associative arrays.
-            // Step through the array and merge the arrays.
-            foreach ($parentcontrols as $key => $action) {
-                $merged[$key] = $action;
-                if ($key == "edit") {
-                    // If we have come to the edit key, merge these controls here.
-                    $merged = array_merge($merged, $controls);
-                }
-            }
+        // Create a span that contains the section title to be used to create the keyboard section move menu.
+        $o .= html_writer::tag('span', get_section_name($course, $section), array('class' => 'hidden sectionname'));
 
-            return $merged;
-        } else {
-            return array_merge($controls, $parentcontrols);
+        $leftcontent = $this->section_left_content($section, $course, $onsectionpage);
+        $o.= html_writer::tag('div', $leftcontent, array('class' => 'left side'));
+
+        $rightcontent = $this->section_right_content($section, $course, $onsectionpage);
+        $o.= html_writer::tag('div', $rightcontent, array('class' => 'right side'));
+        $o.= html_writer::start_tag('div', array('class' => 'content'));
+
+        // When not on a section page, we display the section titles except the general section if null
+        $hasnamenotsecpg = (!$onsectionpage && ($section->section != 0 || !is_null($section->name)));
+
+        // When on a section page, we only display the general section title, if title is not the default one
+        $hasnamesecpg = ($onsectionpage && ($section->section == 0 && !is_null($section->name)));
+
+        $classes = ' accesshide';
+        if ($hasnamenotsecpg || $hasnamesecpg) {
+            $classes = '';
         }
+        $cm_list = $this->courserenderer->course_section_cm_list($course, $section, 0);
+        $temp  = '<span class="wdm-sectionname">'.$this->section_title($section, $section->course).'</span>';
+        if (!empty($cm_list)) {
+           $temp  = '<span class="wdm-sectionname row"><div class="col-11">'.$this->section_title($section, $section->course).'</div><i class="fa-angle-up toggle-section position-absolute"></i></span>';
+        }
+        $o .= $this->output->heading($temp, 4, 'sectionname' . $classes);
+        $o .= $this->section_availability($section);
+
+        $o .= html_writer::start_tag('div', array('class' => 'summary'));
+        if ($section->uservisible || $section->visible) {
+            // Show summary if section is available or has availability restriction information.
+            // Do not show summary if section is hidden but we still display it because of course setting
+            // "Hidden sections are shown in collapsed form".
+            $o .= $this->format_summary_text($section);
+        }
+        $o .= html_writer::end_tag('div');
+
+        return $o;
     }
 
 }

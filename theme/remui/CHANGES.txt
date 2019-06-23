@@ -1,12 +1,24 @@
 Change Log:
 ===========
 
-Version 3.4.0
-Edwiser RemUI now compatible with Moodle version 3.4
-Initial Release of Edwiser RemUI 3.4
-Feature - New Teacher Centered Dashboard with Course and Student Progress
-Feature - Contact your students who are not attending lectures
-Feature - Sorting Functionality on Course Archieve Page
-Feature - List and Grid view for Course Tiles on Course Archieve Page
-Feature - Create New course button on Course Archieve Page
+Version 3.7.1
 
+Fix - get_courses() function updated, exception handled when categories array is blank
+Fix - Activity Menu issue when folded, icons were not visible.
+Fix - Fixed course loading issue on course archive page for unicode course summary.
+Fix - Course archive page pagination problem when clicked above 10 number.
+Fix - Module Forum Width Issue.
+Fix - Module Assign page was not loading.
+
+Version 3.7.0
+
+Edwiser RemUI now compatible with Moodle version 3.7
+Initial Release of Edwiser RemUI 3.7
+
+Fix - Made compatible with new messaging page design and styling.
+Fix - Question review page background color issue.
+Fix - Hidden category and courses issue on course archieve page with all roles except admin.
+Tweak - Course archive page Load more removed and added pagination instead.
+Feature - New Cards design for Course archive page.
+Feature - Brand New Home Page Builder, to create your own frontpage.
+Feature - Share your newly created frontpage design with social media by capturing the screenshot.

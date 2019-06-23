@@ -11,8 +11,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+    Edwiser RemUI 
+    @package    theme_remui
+    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ 
 }}
 {{!
     @template theme_remui/maintenance
@@ -56,8 +59,8 @@
     <!-- Page -->
     <div class="page vertical-align text-center">
         <div class="page-content vertical-align-middle">
-            <i class="wb-settings icon-spin page-maintenance-icon font-size-60" aria-hidden="true"></i>
-            <section id="region-main">
+            <i class="fa fa-cog icon-spin page-maintenance-icon font-size-60" aria-hidden="true"></i>
+            <section id="region-main" aria-label="{{#str}}content{{/str}}">
                 {{{ output.main_content }}}
             </section>
 

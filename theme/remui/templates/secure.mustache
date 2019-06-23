@@ -11,8 +11,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+    Edwiser RemUI 
+    @package    theme_remui
+    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ 
 }}
 {{!
     @template theme_remui/secure
@@ -46,32 +49,40 @@
 </head>
 
 <body {{{ bodyattributes }}}>
-{{{ output.standard_top_of_body_html }}}
+
+    <div class="edwiser-notice position-fixed mt-10" style="display: none; z-index: 1500;left: 50%;transform: translateX(-50%);" role="alert">
+    </div>
+
+    {{{ output.standard_top_of_body_html }}}
 
     {{>theme_remui/header-secure}}
 
     <div class="page">
         <!-- blocks aside -->
         {{#hasblocks}}
-        <div class="page-aside-switch-lg hidden-sm-down">
-            <i class="wb-chevron-left" aria-hidden="true"></i>
-            <i class="wb-chevron-right" aria-hidden="true"></i>
-        </div>
-        <div class="page-aside d-0">
-            <div class="page-aside-switch">
+        <div class="page-aside {{#pin_aside}} opencustom {{/pin_aside}}">
+            <div class="page-aside-switch d-lg-none">
                 <i class="wb-chevron-left" aria-hidden="true"></i>
                 <i class="wb-chevron-right" aria-hidden="true"></i>
+            </div>
+            <div class="page-aside-switch-lg d-none d-lg-inline">
+                <i class="wb-chevron-left" aria-hidden="true"></i>
+                {{#hasblocks}}
+                    <div class="page-aside-pin">
+                        <i class="fa fa-thumb-tack"  title="{{#pin_aside}}{{#str}}unpinsidebar, theme_remui{{/str}}{{/pin_aside}}{{^pin_aside}}{{#str}}pinsidebar, theme_remui{{/str}}{{/pin_aside}}" aria-hidden="true"></i>
+                    </div>
+                {{/hasblocks}}
             </div>
             <div class="page-aside-inner page-aside-scroll">
                 <div data-role="container">
                     <div data-role="content">
-                        {{{ sidepreblocks }}}
+                    {{{ sidepreblocks }}}
                     </div>
                 </div>
             </div>
             <!---page-aside-inner-->
         </div>
-        {{/ hasblocks}}
+        {{/hasblocks}}
         <!-- end blocks aside -->
 
         <div class="page-main">
@@ -96,10 +107,44 @@
         </div>
         </div>
     </div>
-
+    {{{ output.standard_after_main_region_html }}}
     {{> theme_remui/footer }}
 </body>
 </html>
 {{#js}}
-require(['theme_remui/loader']);
+require(['theme_remui/loader', 'theme_remui/TimeCircles'], function (loader, TimeCircles) {
+    Breakpoints();
+
+    // quiz time circles for timed quizzes
+    jQuery("#quiztimer").TimeCircles({
+        time: {
+            Days: {
+                show: false
+            },
+            Hours: {
+                color: "#3c8dbc"
+            },
+            Minutes: {
+                color: "#00a65a"
+            },
+            Seconds: {
+                color: "#f56954"
+            }
+        },
+        bg_width: 0.9,
+        fg_width: 0.1,
+        circle_bg_color: "#797D82",
+        number_size: 0.24,
+        text_size: 0.11,
+        refresh_interval: 1,
+        animation_interval: "ticks"
+    }).addListener(quizTimeEllapsed);
+
+    // listner for quiz timer
+    function quizTimeEllapsed(unit, value, total) {
+        if (total <= 0) {
+            jQuery(this).fadeOut('medium').replaceWith('<div style="text-align: center; background: rgba(0, 0, 0, 0.13); border-radius: 5px; height: 80px; line-height: 80px; font-size: 18px; color: red;">' + M.util.get_string('timesup', 'quiz') + '</div>');
+        }
+    }
+});
 {{/js}}

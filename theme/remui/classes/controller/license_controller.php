@@ -1,5 +1,5 @@
 <?php
-// This file is part of remUI Moodle theme.
+// This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- *
- * @package     theme_remui
- * @copyright   2016 WisdmLabs
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Edwiser RemUI
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace theme_remui\controller;

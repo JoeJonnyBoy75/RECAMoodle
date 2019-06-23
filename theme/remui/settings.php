@@ -15,9 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package   theme_remui
- * @copyright WisdmLabs
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Edwiser RemUI
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
@@ -71,9 +72,28 @@ if ($ADMIN->fulltree) {
         $page->add($setting);
     }
 
-    $name = 'theme_remui/enabledashboard';
-    $title = get_string('enabledashboard', 'theme_remui');
-    $description = get_string('enabledashboarddesc', 'theme_remui');
+    // Setting to activate the Recent Courses Block
+    $name = 'theme_remui/enablerecentcourses';
+    $title = get_string('enablerecentcourses', 'theme_remui');
+    $description = get_string('enablerecentcoursesdesc', 'theme_remui');
+    $default = true;
+    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
+
+    // Setting to activate the header buttons in overlay minimal view
+    $name = 'theme_remui/enableheaderbuttons';
+    $title = get_string('enableheaderbuttons', 'theme_remui');
+    $description = get_string('enableheaderbuttonsdesc', 'theme_remui');
+    $default = false;
+    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
+
+    // Setting to merge messaging section in right sidebar
+    $name = 'theme_remui/mergemessagingsidebar';
+    $title = get_string('mergemessagingsidebar', 'theme_remui');
+    $description = get_string('mergemessagingsidebardesc', 'theme_remui');
     $default = true;
     $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
     $setting->set_updatedcallback('theme_reset_all_caches');
@@ -97,6 +117,39 @@ if ($ADMIN->fulltree) {
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
 
+
+    // Course animation to be shown on Archieve page
+    $name = 'theme_remui/courseanimation';
+    $title = get_string('courseanimation', 'theme_remui');
+    $description = get_string('courseanimationdesc', 'theme_remui');
+    $setting = new admin_setting_configselect(
+        $name,
+        $title,
+        $description,
+        'none',
+        array(
+            'none' => get_string('none', 'theme_remui'),
+            'fade' => get_string('fade', 'theme_remui'),
+            'slide-top'     => get_string('slide-top', 'theme_remui'),
+            'slide-bottom'  => get_string('slide-bottom', 'theme_remui'),
+            'slide-right'   => get_string('slide-right', 'theme_remui'),
+            'scale-up'      => get_string('scale-up', 'theme_remui'),
+            'scale-down'    => get_string('scale-down', 'theme_remui'),
+        )
+    );
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
+
+
+    // Setting to merge messaging section in right sidebar
+    $name = 'theme_remui/enablenewcoursecards';
+    $title = get_string('enablenewcoursecards', 'theme_remui');
+    $description = get_string('enablenewcoursecardsdesc', 'theme_remui');
+    $default = false;
+    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
+
     $name = 'theme_remui/logoorsitename';
     $title = get_string('logoorsitename', 'theme_remui');
     $description = get_string('logoorsitenamedesc', 'theme_remui');
@@ -108,12 +161,30 @@ if ($ADMIN->fulltree) {
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
 
+    $name = 'theme_remui/activitynextpreviousbutton';
+    $title = get_string('activitynextpreviousbutton', 'theme_remui');
+    $description = get_string('activitynextpreviousbuttondesc', 'theme_remui');
+    $setting = new admin_setting_configselect(
+        $name,
+        $title,
+        $description,
+        1,
+        array(
+            0 => get_string('disablenextprevious', 'theme_remui'),
+            1 => get_string('enablenextprevious', 'theme_remui'),
+            2 => get_string('enablenextpreviouswithname', 'theme_remui')
+        )
+    );
+    $page->add($setting);
+
     if (\theme_remui\toolbox::get_setting('logoorsitename') === "logo") {
         // Logo file setting.
         $name = 'theme_remui/logo';
         $title = get_string('logo', 'theme_remui');
         $description = get_string('logodesc', 'theme_remui');
-        $setting = new admin_setting_configstoredfile($name, $title, $description, 'logo');
+        $setting = new admin_setting_configstoredfile($name, $title, $description, 'logo', 0, array(
+            'subdirs' => 0, 'accepted_types' => 'web_image'
+        ));
         $setting->set_updatedcallback('theme_reset_all_caches');
         $page->add($setting);
 
@@ -121,10 +192,12 @@ if ($ADMIN->fulltree) {
         $name = 'theme_remui/logomini';
         $title = get_string('logomini', 'theme_remui');
         $description = get_string('logominidesc', 'theme_remui');
-        $setting = new admin_setting_configstoredfile($name, $title, $description, 'logomini');
+        $setting = new admin_setting_configstoredfile($name, $title, $description, 'logomini', 0, array(
+            'subdirs' => 0, 'accepted_types' => 'web_image'
+        ));
         $setting->set_updatedcallback('theme_reset_all_caches');
         $page->add($setting);
-    } elseif (\theme_remui\toolbox::get_setting('logoorsitename') === "iconsitename") {
+    } else if (\theme_remui\toolbox::get_setting('logoorsitename') === "iconsitename") {
         // Site icon setting.
         $name = 'theme_remui/siteicon';
         $title = get_string('siteicon', 'theme_remui');
@@ -138,7 +211,9 @@ if ($ADMIN->fulltree) {
     $name = 'theme_remui/faviconurl';
     $title = get_string('favicon', 'theme_remui');
     $description = get_string('favicondesc', 'theme_remui');
-    $setting = new admin_setting_configstoredfile($name, $title, $description, 'faviconurl');
+    $setting = new admin_setting_configstoredfile($name, $title, $description, 'faviconurl', 0, array(
+        'subdirs' => 0, 'accepted_types' => 'web_image'
+    ));
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
 
@@ -184,486 +259,559 @@ if ($ADMIN->fulltree) {
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
 
+    // google analytics block
+    $name = 'theme_remui/enabledictionary';
+    $title = get_string('enabledictionary', 'theme_remui');
+    $description = get_string('enabledictionarydesc', 'theme_remui');
+    $default = true;
+    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
+
+    $name = 'theme_remui/enablecoursestats';
+    $title = get_string('enablecoursestats', 'theme_remui');
+    $description = get_string('enablecoursestatsdesc', 'theme_remui');
+    $default = true;
+    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
+
     // Must add the page after defining all the settings!
     $settings->add($page);
+
+    global $CFG;
+
+    $pluginman = core_plugin_manager::instance();
+    if (array_key_exists("remuiblck", $pluginman->get_installed_plugins('block'))) {
+        if (class_exists('block_remuiblck_settings')) {
+            \block_remuiblck_settings::add_settings($settings);
+        } else {
+            // Dashboard settings
+            $page = new admin_settingpage('theme_remui_dashboard', get_string('dashboardsetting', 'theme_remui'));
+            $page->add(new admin_setting_description('theme_remui_olddashboard', '', get_string('olddashboard', 'theme_remui')));
+            $settings->add($page);
+        }
+    }
 
     // Homepage settings
     $page = new admin_settingpage('theme_remui_frontpage', get_string('homepagesettings', 'theme_remui'));
 
     $page->add(new admin_setting_heading(
-        'theme_remui_upsection',
-        get_string('frontpageimagecontent', 'theme_remui'),
-        format_text(get_string('frontpageimagecontentdesc', 'theme_remui'), FORMAT_MARKDOWN)
+        'theme_remui_frontpagedesign',
+        get_string('frontpagedesign', 'theme_remui'),
+        format_text(get_string('frontpagedesigndesc', 'theme_remui'), FORMAT_MARKDOWN)
     ));
-    $name = 'theme_remui/frontpageimagecontent';
-    $title = get_string('frontpageimagecontentstyle', 'theme_remui');
-    $description = get_string('frontpageimagecontentstyledesc', 'theme_remui');
+
+    $name = 'theme_remui/frontpagechooser';
+    $title = get_string('frontpagechooser', 'theme_remui');
+    $description = get_string('frontpagechooserdesc', 'theme_remui');
     $setting = new admin_setting_configselect(
         $name,
         $title,
         $description,
-        1,
+        0,
         array(
-            0 => get_string('staticcontent', 'theme_remui'),
-            1 => get_string('slidercontent', 'theme_remui'),
+            0 => get_string('frontpagedesignold', 'theme_remui'),
+            1 => get_string('frontpagedesignnew', 'theme_remui'),
         )
     );
+    $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
 
-    if (!\theme_remui\toolbox::get_setting('frontpageimagecontent')) {
-        $name = 'theme_remui/contenttype';
-        $title = get_string('contenttype', 'theme_remui');
-        $description = get_string('contentdesc', 'theme_remui');
-        $setting = new admin_setting_configselect(
-            $name,
-            $title,
-            $description,
-            0,
-            array(
-            0 => get_string('videourl', 'theme_remui'),
-            1 => get_string('image', 'theme_remui'),
-            )
-        );
-        $page->add($setting);
-        if (!\theme_remui\toolbox::get_setting('contenttype')) {
-            $name = 'theme_remui/video';
-            $title = get_string('video', 'theme_remui');
-            $description = get_string('videodesc', 'theme_remui');
-            $default = 'https://www.youtube.com/embed/wop3FMhoLGs';
-            $setting = new admin_setting_configtext($name, $title, $description, $default);
-            $setting->set_updatedcallback('theme_reset_all_caches');
-            $page->add($setting);
-        } elseif (\theme_remui\toolbox::get_setting('contenttype')) {
-            $name = 'theme_remui/addtext';
-            $title = get_string('addtext', 'theme_remui');
-            $description = get_string('addtextdesc', 'theme_remui');
-            $default = get_string('defaultaddtext', 'theme_remui');
-            $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
-            $setting->set_updatedcallback('theme_reset_all_caches');
-            $page->add($setting);
-
-
-            $name = 'theme_remui/staticimage';
-            $title = get_string('uploadimage', 'theme_remui');
-            $description = get_string('uploadimagedesc', 'theme_remui');
-            $setting = new admin_setting_configstoredfile($name, $title, $description, 'staticimage');
-            $setting->set_updatedcallback('theme_reset_all_caches');
-            $page->add($setting);
-        }
-    } elseif (\theme_remui\toolbox::get_setting('frontpageimagecontent')) {
-        $name = 'theme_remui/slideinterval';
-        $title = get_string('slideinterval', 'theme_remui');
-        $description = get_string('slideintervaldesc', 'theme_remui');
-        $default = 5000;
-        $setting = new admin_setting_configtext($name, $title, $description, $default);
-        $setting->set_updatedcallback('theme_reset_all_caches');
-        $page->add($setting);
-
-        $name = 'theme_remui/sliderautoplay';
-        $title = get_string('sliderautoplay', 'theme_remui');
-        $description = get_string('sliderautoplaydesc', 'theme_remui');
+    if (\theme_remui\toolbox::get_setting('frontpagechooser')) {
+        $page->add(new admin_setting_description('newhomepagedescription', '', get_string('newhomepagedescription', 'theme_remui')));
+        $page->add(new admin_setting_description('newhomepagedescription1', '', ''));
+    } else if (!\theme_remui\toolbox::get_setting('frontpagechooser')) {
+        $page->add(new admin_setting_heading(
+            'theme_remui_upsection',
+            get_string('frontpageimagecontent', 'theme_remui'),
+            format_text(get_string('frontpageimagecontentdesc', 'theme_remui'), FORMAT_MARKDOWN)
+        ));
+        $name = 'theme_remui/frontpageimagecontent';
+        $title = get_string('frontpageimagecontentstyle', 'theme_remui');
+        $description = get_string('frontpageimagecontentstyledesc', 'theme_remui');
         $setting = new admin_setting_configselect(
             $name,
             $title,
             $description,
             1,
             array(
-                1 => get_string('true', 'theme_remui'),
-                2 => get_string('false', 'theme_remui'),
+                0 => get_string('staticcontent', 'theme_remui'),
+                1 => get_string('slidercontent', 'theme_remui'),
             )
         );
         $page->add($setting);
 
-        $name = 'theme_remui/slidercount';
-        $title = get_string('slidercount', 'theme_remui');
-        $description = get_string('slidercountdesc', 'theme_remui');
+        if (!\theme_remui\toolbox::get_setting('frontpageimagecontent')) {
+            $name = 'theme_remui/contenttype';
+            $title = get_string('contenttype', 'theme_remui');
+            $description = get_string('contentdesc', 'theme_remui');
+            $setting = new admin_setting_configselect(
+                $name,
+                $title,
+                $description,
+                0,
+                array(
+                0 => get_string('videourl', 'theme_remui'),
+                1 => get_string('image', 'theme_remui'),
+                )
+            );
+            $page->add($setting);
+            if (!\theme_remui\toolbox::get_setting('contenttype')) {
+                $name = 'theme_remui/video';
+                $title = get_string('video', 'theme_remui');
+                $description = get_string('videodesc', 'theme_remui');
+                $default = 'https://www.youtube.com/embed/wop3FMhoLGs';
+                $setting = new admin_setting_configtext($name, $title, $description, $default);
+                $setting->set_updatedcallback('theme_reset_all_caches');
+                $page->add($setting);
+            } else if (\theme_remui\toolbox::get_setting('contenttype')) {
+                $name = 'theme_remui/addtext';
+                $title = get_string('addtext', 'theme_remui');
+                $description = get_string('addtextdesc', 'theme_remui');
+                $default = get_string('defaultaddtext', 'theme_remui');
+                $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
+                $setting->set_updatedcallback('theme_reset_all_caches');
+                $page->add($setting);
+
+
+                $name = 'theme_remui/staticimage';
+                $title = get_string('uploadimage', 'theme_remui');
+                $description = get_string('uploadimagedesc', 'theme_remui');
+                $setting = new admin_setting_configstoredfile($name, $title, $description, 'staticimage', 0, array(
+                    'subdirs' => 0, 'accepted_types' => 'web_image'
+                ));
+                $setting->set_updatedcallback('theme_reset_all_caches');
+                $page->add($setting);
+            }
+        } else if (\theme_remui\toolbox::get_setting('frontpageimagecontent')) {
+            $name = 'theme_remui/slideinterval';
+            $title = get_string('slideinterval', 'theme_remui');
+            $description = get_string('slideintervaldesc', 'theme_remui');
+            $default = 5000;
+            $setting = new admin_setting_configtext($name, $title, $description, $default);
+            $setting->set_updatedcallback('theme_reset_all_caches');
+            $page->add($setting);
+
+            $name = 'theme_remui/sliderautoplay';
+            $title = get_string('sliderautoplay', 'theme_remui');
+            $description = get_string('sliderautoplaydesc', 'theme_remui');
+            $setting = new admin_setting_configselect(
+                $name,
+                $title,
+                $description,
+                1,
+                array(
+                    1 => get_string('true', 'theme_remui'),
+                    2 => get_string('false', 'theme_remui'),
+                )
+            );
+            $page->add($setting);
+
+            $name = 'theme_remui/slidercount';
+            $title = get_string('slidercount', 'theme_remui');
+            $description = get_string('slidercountdesc', 'theme_remui');
+            $setting = new admin_setting_configselect(
+                $name,
+                $title,
+                $description,
+                1,
+                array(
+                    1 => get_string('one', 'theme_remui'),
+                    2 => get_string('two', 'theme_remui'),
+                    3 => get_string('three', 'theme_remui'),
+                    4 => get_string('four', 'theme_remui'),
+                    5 => get_string('five', 'theme_remui'),
+                )
+            );
+            $page->add($setting);
+
+            for ($slidecounts = 1; $slidecounts <= \theme_remui\toolbox::get_setting('slidercount'); $slidecounts = $slidecounts + 1) {
+                $name = 'theme_remui/slideimage'.$slidecounts;
+                $title = get_string('slideimage', 'theme_remui');
+
+                $description = get_string('slideimagedesc', 'theme_remui');
+                $setting = new admin_setting_configstoredfile($name, $title, $description, 'slideimage'.$slidecounts, 0, array(
+                    'subdirs' => 0, 'accepted_types' => 'web_image'
+                ));
+                $setting->set_updatedcallback('theme_reset_all_caches');
+                $page->add($setting);
+
+                $name = 'theme_remui/slidertext'.$slidecounts;
+                $title = get_string('slidertext', 'theme_remui');
+                $description = get_string('slidertextdesc', 'theme_remui');
+                $default = get_string('defaultslidertext', 'theme_remui');
+                $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
+                $setting->set_updatedcallback('theme_reset_all_caches');
+                $page->add($setting);
+
+                $name = 'theme_remui/sliderbuttontext'.$slidecounts;
+                $title = get_string('sliderbuttontext', 'theme_remui');
+                $description = get_string('sliderbuttontextdesc', 'theme_remui');
+                $default = '';
+                $setting = new admin_setting_configtext($name, $title, $description, $default);
+                $setting->set_updatedcallback('theme_reset_all_caches');
+                $page->add($setting);
+
+                $name = 'theme_remui/sliderurl'.$slidecounts;
+                $title = get_string('sliderurl', 'theme_remui');
+                $description = get_string('sliderurldesc', 'theme_remui');
+                $default = '';
+                $setting = new admin_setting_configtext($name, $title, $description, $default);
+                $setting->set_updatedcallback('theme_reset_all_caches');
+                $page->add($setting);
+            }
+        }
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+
+        // Marketing blocks
+        $page->add(new admin_setting_heading(
+            'theme_remui_blocksection',
+            get_string('frontpageblocks', 'theme_remui'),
+            format_text(get_string('frontpageblocksdesc', 'theme_remui'), FORMAT_MARKDOWN)
+        ));
+
+        // Show the About Us on Home Page Setting
+        $name = 'theme_remui/frontpageblockdisplay';
+        $title = get_string('frontpageblockdisplay', 'theme_remui');
+        $description = get_string('frontpageblockdisplaydesc', 'theme_remui');
         $setting = new admin_setting_configselect(
             $name,
             $title,
             $description,
             1,
             array(
-                1 => get_string('one', 'theme_remui'),
-                2 => get_string('two', 'theme_remui'),
-                3 => get_string('three', 'theme_remui'),
-                4 => get_string('four', 'theme_remui'),
-                5 => get_string('five', 'theme_remui'),
+                    1 => get_string('donotshowaboutus', 'theme_remui'),
+                    2 => get_string('showaboutusinrow', 'theme_remui'),
+                    3 => get_string('showaboutusingridblock', 'theme_remui'),
             )
         );
-        $page->add($setting);
-
-        for ($slidecounts = 1; $slidecounts <= \theme_remui\toolbox::get_setting('slidercount'); $slidecounts = $slidecounts + 1) {
-            $name = 'theme_remui/slideimage'.$slidecounts;
-            $title = get_string('slideimage', 'theme_remui');
-
-            $description = get_string('slideimagedesc', 'theme_remui');
-            $setting = new admin_setting_configstoredfile($name, $title, $description, 'slideimage'.$slidecounts);
-            $setting->set_updatedcallback('theme_reset_all_caches');
-            $page->add($setting);
-
-            $name = 'theme_remui/slidertext'.$slidecounts;
-            $title = get_string('slidertext', 'theme_remui');
-            $description = get_string('slidertextdesc', 'theme_remui');
-            $default = get_string('defaultslidertext', 'theme_remui');
-            $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
-            $setting->set_updatedcallback('theme_reset_all_caches');
-            $page->add($setting);
-
-            $name = 'theme_remui/sliderbuttontext'.$slidecounts;
-            $title = get_string('sliderbuttontext', 'theme_remui');
-            $description = get_string('sliderbuttontextdesc', 'theme_remui');
-            $default = '';
-            $setting = new admin_setting_configtext($name, $title, $description, $default);
-            $setting->set_updatedcallback('theme_reset_all_caches');
-            $page->add($setting);
-
-            $name = 'theme_remui/sliderurl'.$slidecounts;
-            $title = get_string('sliderurl', 'theme_remui');
-            $description = get_string('sliderurldesc', 'theme_remui');
-            $default = '';
-            $setting = new admin_setting_configtext($name, $title, $description, $default);
-            $setting->set_updatedcallback('theme_reset_all_caches');
-            $page->add($setting);
-        }
-    }
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    // Marketing blocks
-    $page->add(new admin_setting_heading(
-        'theme_remui_blocksection',
-        get_string('frontpageblocks', 'theme_remui'),
-        format_text(get_string('frontpageblocksdesc', 'theme_remui'), FORMAT_MARKDOWN)
-    ));
-
-    // Show the About Us on Home Page Setting
-    $name = 'theme_remui/frontpageblockdisplay';
-    $title = get_string('frontpageblockdisplay', 'theme_remui');
-    $description = get_string('frontpageblockdisplaydesc', 'theme_remui');
-    $setting = new admin_setting_configselect(
-        $name,
-        $title,
-        $description,
-        1,
-        array(
-                1 => get_string('donotshowaboutus', 'theme_remui'),
-                2 => get_string('showaboutusinrow', 'theme_remui'),
-                3 => get_string('showaboutusingridblock', 'theme_remui'),
-        )
-    );
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    // marketing spot section heading
-    $name = 'theme_remui/frontpageblockheading';
-    $title = get_string('frontpageblocksection1', 'theme_remui');
-    $description = get_string('frontpageblocksectiondesc', 'theme_remui');
-    $default = 'About Us';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-    // description for above
-    $name = 'theme_remui/frontpageblockdesc';
-    $title = get_string('frontpageblocksection1', 'theme_remui');
-    $description = get_string('frontpageblocksectiondesc', 'theme_remui');
-    $default = 'Holisticly harness just in time technologies via corporate scenarios.';
-    $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    $name = 'theme_remui/enablesectionbutton';
-    $title = get_string('enablesectionbutton', 'theme_remui');
-    $description = get_string('enablesectionbuttondesc', 'theme_remui');
-    $default = false;
-    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    /*block section 1*/
-    $name = 'theme_remui/frontpageblocksection1';
-    $title = get_string('frontpageblocksection1', 'theme_remui');
-    $description = get_string('frontpageblocksectiondesc', 'theme_remui');
-    $default = 'LOREM IPSUM';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    $name = 'theme_remui/frontpageblockdescriptionsection1';
-    $title = get_string('frontpageblockdescriptionsection1', 'theme_remui');
-    $description = get_string('frontpageblockdescriptionsectiondesc', 'theme_remui');
-    $default = get_string('defaultdescriptionsection', 'theme_remui');
-    $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    $name = 'theme_remui/frontpageblockiconsection1';
-    $title = get_string('frontpageblockiconsection1', 'theme_remui');
-    $description = get_string('frontpageblockiconsectiondesc', 'theme_remui');
-    $default = 'flag';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-    if (\theme_remui\toolbox::get_setting('enablesectionbutton')) {
-        $name = 'theme_remui/sectionbuttontext1';
-        $title = get_string('sectionbuttontext1', 'theme_remui');
-        $description = get_string('sectionbuttontextdesc', 'theme_remui');
-        $default = 'Read More';
-        $setting = new admin_setting_configtext($name, $title, $description, $default);
         $setting->set_updatedcallback('theme_reset_all_caches');
         $page->add($setting);
 
-        $name = 'theme_remui/sectionbuttonlink1';
-        $title = get_string('sectionbuttonlink1', 'theme_remui');
-        $description = get_string('sectionbuttonlinkdesc', 'theme_remui');
-        $default = '#';
+        // marketing spot section heading
+        $name = 'theme_remui/frontpageblockheading';
+        $title = get_string('frontpageaboutus', 'theme_remui');
+        $description = get_string('frontpageaboutustitledesc', 'theme_remui');
+        $default = 'About Us';
         $setting = new admin_setting_configtext($name, $title, $description, $default);
         $setting->set_updatedcallback('theme_reset_all_caches');
         $page->add($setting);
-    }
-    $name = 'theme_remui/frontpageblockimage1';
-    $title = get_string('frontpageblockimage', 'theme_remui');
-    $description = get_string('frontpageblockimagedesc', 'theme_remui');
-    $setting = new admin_setting_configstoredfile($name, $title, $description, 'frontpageblockimage1');
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    /*block section 2*/
-    $name = 'theme_remui/frontpageblocksection2';
-    $title = get_string('frontpageblocksection2', 'theme_remui');
-    $description = get_string('frontpageblocksectiondesc', 'theme_remui');
-    $default = 'LOREM IPSUM';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    $name = 'theme_remui/frontpageblockdescriptionsection2';
-    $title = get_string('frontpageblockdescriptionsection2', 'theme_remui');
-    $description = get_string('frontpageblockdescriptionsectiondesc', 'theme_remui');
-    $default = get_string('defaultdescriptionsection', 'theme_remui');
-    $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    $name = 'theme_remui/frontpageblockiconsection2';
-    $title = get_string('frontpageblockiconsection2', 'theme_remui');
-    $description = get_string('frontpageblockiconsectiondesc', 'theme_remui');
-    $default = 'globe';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-    if (\theme_remui\toolbox::get_setting('enablesectionbutton')) {
-        $name = 'theme_remui/sectionbuttontext2';
-        $title = get_string('sectionbuttontext2', 'theme_remui');
-        $description = get_string('sectionbuttontextdesc', 'theme_remui');
-        $default = 'Read More';
-        $setting = new admin_setting_configtext($name, $title, $description, $default);
-        $setting->set_updatedcallback('theme_reset_all_caches');
-        $page->add($setting);
-
-        $name = 'theme_remui/sectionbuttonlink2';
-        $title = get_string('sectionbuttonlink2', 'theme_remui');
-        $description = get_string('sectionbuttonlinkdesc', 'theme_remui');
-        $default = '#';
-        $setting = new admin_setting_configtext($name, $title, $description, $default);
-        $setting->set_updatedcallback('theme_reset_all_caches');
-        $page->add($setting);
-    }
-    $name = 'theme_remui/frontpageblockimage2';
-    $title = get_string('frontpageblockimage', 'theme_remui');
-    $description = get_string('frontpageblockimagedesc', 'theme_remui');
-    $setting = new admin_setting_configstoredfile($name, $title, $description, 'frontpageblockimage2');
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    /* block section 3 */
-    $name = 'theme_remui/frontpageblocksection3';
-    $title = get_string('frontpageblocksection3', 'theme_remui');
-    $description = get_string('frontpageblocksectiondesc', 'theme_remui');
-    $default = 'LOREM IPSUM';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    $name = 'theme_remui/frontpageblockdescriptionsection3';
-    $title = get_string('frontpageblockdescriptionsection3', 'theme_remui');
-    $description = get_string('frontpageblockdescriptionsectiondesc', 'theme_remui');
-    $default = get_string('defaultdescriptionsection', 'theme_remui');
-    $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    $name = 'theme_remui/frontpageblockiconsection3';
-    $title = get_string('frontpageblockiconsection3', 'theme_remui');
-    $description = get_string('frontpageblockiconsectiondesc', 'theme_remui');
-    $default = 'cog';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-    if (\theme_remui\toolbox::get_setting('enablesectionbutton')) {
-        $name = 'theme_remui/sectionbuttontext3';
-        $title = get_string('sectionbuttontext3', 'theme_remui');
-        $description = get_string('sectionbuttontextdesc', 'theme_remui');
-        $default = 'Read More';
-        $setting = new admin_setting_configtext($name, $title, $description, $default);
-        $setting->set_updatedcallback('theme_reset_all_caches');
-        $page->add($setting);
-
-        $name = 'theme_remui/sectionbuttonlink3';
-        $title = get_string('sectionbuttonlink3', 'theme_remui');
-        $description = get_string('sectionbuttonlinkdesc', 'theme_remui');
-        $default = '#';
-        $setting = new admin_setting_configtext($name, $title, $description, $default);
-        $setting->set_updatedcallback('theme_reset_all_caches');
-        $page->add($setting);
-    }
-    $name = 'theme_remui/frontpageblockimage3';
-    $title = get_string('frontpageblockimage', 'theme_remui');
-    $description = get_string('frontpageblockimagedesc', 'theme_remui');
-    $setting = new admin_setting_configstoredfile($name, $title, $description, 'frontpageblockimage3');
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    /* block section 4 */
-    $name = 'theme_remui/frontpageblocksection4';
-    $title = get_string('frontpageblocksection4', 'theme_remui');
-    $description = get_string('frontpageblocksectiondesc', 'theme_remui');
-    $default = 'LOREM IPSUM';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    $name = 'theme_remui/frontpageblockdescriptionsection4';
-    $title = get_string('frontpageblockdescriptionsection4', 'theme_remui');
-    $description = get_string('frontpageblockdescriptionsectiondesc', 'theme_remui');
-    $default = get_string('defaultdescriptionsection', 'theme_remui');
-    $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    $name = 'theme_remui/frontpageblockiconsection4';
-    $title = get_string('frontpageblockiconsection4', 'theme_remui');
-    $description = get_string('frontpageblockiconsectiondesc', 'theme_remui');
-    $default = 'users';
-    $setting = new admin_setting_configtext($name, $title, $description, $default);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-    if (\theme_remui\toolbox::get_setting('enablesectionbutton')) {
-        $name = 'theme_remui/sectionbuttontext4';
-        $title = get_string('sectionbuttontext4', 'theme_remui');
-        $description = get_string('sectionbuttontextdesc', 'theme_remui');
-        $default = 'Read More';
-        $setting = new admin_setting_configtext($name, $title, $description, $default);
-        $setting->set_updatedcallback('theme_reset_all_caches');
-        $page->add($setting);
-
-        $name = 'theme_remui/sectionbuttonlink4';
-        $title = get_string('sectionbuttonlink4', 'theme_remui');
-        $description = get_string('sectionbuttonlinkdesc', 'theme_remui');
-        $default = '#';
-        $setting = new admin_setting_configtext($name, $title, $description, $default);
-        $setting->set_updatedcallback('theme_reset_all_caches');
-        $page->add($setting);
-    }
-    $name = 'theme_remui/frontpageblockimage4';
-    $title = get_string('frontpageblockimage', 'theme_remui');
-    $description = get_string('frontpageblockimagedesc', 'theme_remui');
-    $setting = new admin_setting_configstoredfile($name, $title, $description, 'frontpageblockimage4');
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    // Frontpage Aboutus settings
-    $page->add(new admin_setting_heading(
-        'theme_remui_frontpage_aboutus',
-        get_string('frontpageaboutus', 'theme_remui'),
-        format_text(get_string('frontpageaboutusdesc', 'theme_remui'), FORMAT_MARKDOWN)
-    ));
-
-
-    $name = 'theme_remui/enablefrontpageaboutus';
-    $title = get_string('enablefrontpageaboutus', 'theme_remui');
-    $description = get_string('enablefrontpageaboutusdesc', 'theme_remui');
-    $default = false;
-    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-    if (\theme_remui\toolbox::get_setting('enablefrontpageaboutus')) {
-        // Heading text for about us
-            $name = 'theme_remui/frontpageaboutusheading';
-        $title = get_string('frontpageaboutusheading', 'theme_remui');
-        $description = get_string('frontpageaboutusheadingdesc', 'theme_remui');
-        $default = "About us";
-        $setting = new admin_setting_configtext($name, $title, $description, $default);
-        $setting->set_updatedcallback('theme_reset_all_caches');
-        $page->add($setting);
-
-            // Text for about us
-            $name = 'theme_remui/frontpageaboutustext';
-        $title = get_string('frontpageaboutustext', 'theme_remui');
-        $description = get_string('frontpageaboutustextdesc', 'theme_remui');
-        $default = get_string('frontpageaboutusdefault', 'theme_remui');
-        ;
+        // description for above
+        $name = 'theme_remui/frontpageblockdesc';
+        $title = get_string('frontpageaboutusbody', 'theme_remui');
+        $description = get_string('frontpageaboutusbodydesc', 'theme_remui');
+        $default = 'Holisticly harness just in time technologies via corporate scenarios.';
         $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
         $setting->set_updatedcallback('theme_reset_all_caches');
         $page->add($setting);
 
-            // testimonials data for about us section
-            $name = 'theme_remui/testimonialcount';
-        $title = get_string('testimonialcount', 'theme_remui');
-        $description = get_string('testimonialcountdesc', 'theme_remui');
-        $setting = new admin_setting_configselect(
-            $name,
-            $title,
-            $description,
-            1,
-            array(
-                0 => '0',
-                1 => get_string('one', 'theme_remui'),
-                2 => get_string('two', 'theme_remui'),
-                3 => get_string('three', 'theme_remui')
-                )
-        );
+        $name = 'theme_remui/enablesectionbutton';
+        $title = get_string('enablesectionbutton', 'theme_remui');
+        $description = get_string('enablesectionbuttondesc', 'theme_remui');
+        $default = false;
+        $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
+        $setting->set_updatedcallback('theme_reset_all_caches');
         $page->add($setting);
 
-        for ($testimonialcount = 1; $testimonialcount <= \theme_remui\toolbox::get_setting('testimonialcount'); $testimonialcount = $testimonialcount + 1) {
-            // image
-                $name = 'theme_remui/testimonialimage'.$testimonialcount;
-            $title = get_string('testimonialimage', 'theme_remui');
-            $description = get_string('testimonialimagedesc', 'theme_remui');
-            $setting = new admin_setting_configstoredfile($name, $title, $description, 'testimonialimage'.$testimonialcount);
-            $setting->set_updatedcallback('theme_reset_all_caches');
-            $page->add($setting);
+        /*block section 1*/
+        $name = 'theme_remui/frontpageblocksection1';
+        $title = get_string('frontpageblocksection1', 'theme_remui');
+        $description = get_string('frontpageblocksectiondesc', 'theme_remui');
+        $default = 'LOREM IPSUM';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
 
-                // name
-                $name = 'theme_remui/testimonialname'.$testimonialcount;
-            $title = get_string('testimonialname', 'theme_remui');
-            $description = get_string('testimonialnamedesc', 'theme_remui');
-            $default = '';
+        $name = 'theme_remui/frontpageblockdescriptionsection1';
+        $title = get_string('frontpageblockdescriptionsection1', 'theme_remui');
+        $description = get_string('frontpageblockdescriptionsectiondesc', 'theme_remui');
+        $default = get_string('defaultdescriptionsection', 'theme_remui');
+        $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+
+        $name = 'theme_remui/frontpageblockiconsection1';
+        $title = get_string('frontpageblockiconsection1', 'theme_remui');
+        $description = get_string('frontpageblockiconsectiondesc', 'theme_remui');
+        $default = 'flag';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+        if (\theme_remui\toolbox::get_setting('enablesectionbutton')) {
+            $name = 'theme_remui/sectionbuttontext1';
+            $title = get_string('sectionbuttontext1', 'theme_remui');
+            $description = get_string('sectionbuttontextdesc', 'theme_remui');
+            $default = 'Read More';
             $setting = new admin_setting_configtext($name, $title, $description, $default);
             $setting->set_updatedcallback('theme_reset_all_caches');
             $page->add($setting);
 
-                // post
-                $name = 'theme_remui/testimonialdesignation'.$testimonialcount;
-            $title = get_string('testimonialdesignation', 'theme_remui');
-            $description = get_string('testimonialdesignationdesc', 'theme_remui');
-            $default = '';
+            $name = 'theme_remui/sectionbuttonlink1';
+            $title = get_string('sectionbuttonlink1', 'theme_remui');
+            $description = get_string('sectionbuttonlinkdesc', 'theme_remui');
+            $default = '#';
             $setting = new admin_setting_configtext($name, $title, $description, $default);
-            $setting->set_updatedcallback('theme_reset_all_caches');
-            $page->add($setting);
-
-                // description
-                $name = 'theme_remui/testimonialtext'.$testimonialcount;
-            $title = get_string('testimonialtext', 'theme_remui');
-            $description = get_string('testimonialtextdesc', 'theme_remui');
-            $default = '';
-            $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
             $setting->set_updatedcallback('theme_reset_all_caches');
             $page->add($setting);
         }
-    }
+        $name = 'theme_remui/frontpageblockimage1';
+        $title = get_string('frontpageblockimage', 'theme_remui');
+        $description = get_string('frontpageblockimagedesc', 'theme_remui');
+        $setting = new admin_setting_configstoredfile($name, $title, $description, 'frontpageblockimage1', 0, array(
+            'subdirs' => 0, 'accepted_types' => 'web_image'
+        ));
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
 
-    // Must add the page after definiting all the settings!
-        $settings->add($page);
+        /*block section 2*/
+        $name = 'theme_remui/frontpageblocksection2';
+        $title = get_string('frontpageblocksection2', 'theme_remui');
+        $description = get_string('frontpageblocksectiondesc', 'theme_remui');
+        $default = 'LOREM IPSUM';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+
+        $name = 'theme_remui/frontpageblockdescriptionsection2';
+        $title = get_string('frontpageblockdescriptionsection2', 'theme_remui');
+        $description = get_string('frontpageblockdescriptionsectiondesc', 'theme_remui');
+        $default = get_string('defaultdescriptionsection', 'theme_remui');
+        $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+
+        $name = 'theme_remui/frontpageblockiconsection2';
+        $title = get_string('frontpageblockiconsection2', 'theme_remui');
+        $description = get_string('frontpageblockiconsectiondesc', 'theme_remui');
+        $default = 'globe';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+        if (\theme_remui\toolbox::get_setting('enablesectionbutton')) {
+            $name = 'theme_remui/sectionbuttontext2';
+            $title = get_string('sectionbuttontext2', 'theme_remui');
+            $description = get_string('sectionbuttontextdesc', 'theme_remui');
+            $default = 'Read More';
+            $setting = new admin_setting_configtext($name, $title, $description, $default);
+            $setting->set_updatedcallback('theme_reset_all_caches');
+            $page->add($setting);
+
+            $name = 'theme_remui/sectionbuttonlink2';
+            $title = get_string('sectionbuttonlink2', 'theme_remui');
+            $description = get_string('sectionbuttonlinkdesc', 'theme_remui');
+            $default = '#';
+            $setting = new admin_setting_configtext($name, $title, $description, $default);
+            $setting->set_updatedcallback('theme_reset_all_caches');
+            $page->add($setting);
+        }
+        $name = 'theme_remui/frontpageblockimage2';
+        $title = get_string('frontpageblockimage', 'theme_remui');
+        $description = get_string('frontpageblockimagedesc', 'theme_remui');
+        $setting = new admin_setting_configstoredfile($name, $title, $description, 'frontpageblockimage2', 0, array(
+            'subdirs' => 0, 'accepted_types' => 'web_image'
+        ));
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+
+        /* block section 3 */
+        $name = 'theme_remui/frontpageblocksection3';
+        $title = get_string('frontpageblocksection3', 'theme_remui');
+        $description = get_string('frontpageblocksectiondesc', 'theme_remui');
+        $default = 'LOREM IPSUM';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+
+        $name = 'theme_remui/frontpageblockdescriptionsection3';
+        $title = get_string('frontpageblockdescriptionsection3', 'theme_remui');
+        $description = get_string('frontpageblockdescriptionsectiondesc', 'theme_remui');
+        $default = get_string('defaultdescriptionsection', 'theme_remui');
+        $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+
+        $name = 'theme_remui/frontpageblockiconsection3';
+        $title = get_string('frontpageblockiconsection3', 'theme_remui');
+        $description = get_string('frontpageblockiconsectiondesc', 'theme_remui');
+        $default = 'cog';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+        if (\theme_remui\toolbox::get_setting('enablesectionbutton')) {
+            $name = 'theme_remui/sectionbuttontext3';
+            $title = get_string('sectionbuttontext3', 'theme_remui');
+            $description = get_string('sectionbuttontextdesc', 'theme_remui');
+            $default = 'Read More';
+            $setting = new admin_setting_configtext($name, $title, $description, $default);
+            $setting->set_updatedcallback('theme_reset_all_caches');
+            $page->add($setting);
+
+            $name = 'theme_remui/sectionbuttonlink3';
+            $title = get_string('sectionbuttonlink3', 'theme_remui');
+            $description = get_string('sectionbuttonlinkdesc', 'theme_remui');
+            $default = '#';
+            $setting = new admin_setting_configtext($name, $title, $description, $default);
+            $setting->set_updatedcallback('theme_reset_all_caches');
+            $page->add($setting);
+        }
+        $name = 'theme_remui/frontpageblockimage3';
+        $title = get_string('frontpageblockimage', 'theme_remui');
+        $description = get_string('frontpageblockimagedesc', 'theme_remui');
+        $setting = new admin_setting_configstoredfile($name, $title, $description, 'frontpageblockimage3', 0, array(
+            'subdirs' => 0, 'accepted_types' => 'web_image'
+        ));
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+
+        /* block section 4 */
+        $name = 'theme_remui/frontpageblocksection4';
+        $title = get_string('frontpageblocksection4', 'theme_remui');
+        $description = get_string('frontpageblocksectiondesc', 'theme_remui');
+        $default = 'LOREM IPSUM';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+
+        $name = 'theme_remui/frontpageblockdescriptionsection4';
+        $title = get_string('frontpageblockdescriptionsection4', 'theme_remui');
+        $description = get_string('frontpageblockdescriptionsectiondesc', 'theme_remui');
+        $default = get_string('defaultdescriptionsection', 'theme_remui');
+        $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+
+        $name = 'theme_remui/frontpageblockiconsection4';
+        $title = get_string('frontpageblockiconsection4', 'theme_remui');
+        $description = get_string('frontpageblockiconsectiondesc', 'theme_remui');
+        $default = 'users';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+        if (\theme_remui\toolbox::get_setting('enablesectionbutton')) {
+            $name = 'theme_remui/sectionbuttontext4';
+            $title = get_string('sectionbuttontext4', 'theme_remui');
+            $description = get_string('sectionbuttontextdesc', 'theme_remui');
+            $default = 'Read More';
+            $setting = new admin_setting_configtext($name, $title, $description, $default);
+            $setting->set_updatedcallback('theme_reset_all_caches');
+            $page->add($setting);
+
+            $name = 'theme_remui/sectionbuttonlink4';
+            $title = get_string('sectionbuttonlink4', 'theme_remui');
+            $description = get_string('sectionbuttonlinkdesc', 'theme_remui');
+            $default = '#';
+            $setting = new admin_setting_configtext($name, $title, $description, $default);
+            $setting->set_updatedcallback('theme_reset_all_caches');
+            $page->add($setting);
+        }
+        $name = 'theme_remui/frontpageblockimage4';
+        $title = get_string('frontpageblockimage', 'theme_remui');
+        $description = get_string('frontpageblockimagedesc', 'theme_remui');
+        $setting = new admin_setting_configstoredfile($name, $title, $description, 'frontpageblockimage4', 0, array(
+            'subdirs' => 0, 'accepted_types' => 'web_image'
+        ));
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+
+        // Frontpage Aboutus settings
+        $page->add(new admin_setting_heading(
+            'theme_remui_frontpage_aboutus',
+            get_string('frontpageaboutus', 'theme_remui'),
+            format_text(get_string('frontpageaboutusdesc', 'theme_remui'), FORMAT_MARKDOWN)
+        ));
+
+
+        $name = 'theme_remui/enablefrontpageaboutus';
+        $title = get_string('enablefrontpageaboutus', 'theme_remui');
+        $description = get_string('enablefrontpageaboutusdesc', 'theme_remui');
+        $default = false;
+        $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+        if (\theme_remui\toolbox::get_setting('enablefrontpageaboutus')) {
+            // Heading text for about us
+                $name = 'theme_remui/frontpageaboutusheading';
+            $title = get_string('frontpageaboutusheading', 'theme_remui');
+            $description = get_string('frontpageaboutusheadingdesc', 'theme_remui');
+            $default = "About us";
+            $setting = new admin_setting_configtext($name, $title, $description, $default);
+            $setting->set_updatedcallback('theme_reset_all_caches');
+            $page->add($setting);
+
+                // Text for about us
+                $name = 'theme_remui/frontpageaboutustext';
+            $title = get_string('frontpageaboutustext', 'theme_remui');
+            $description = get_string('frontpageaboutustextdesc', 'theme_remui');
+            $default = get_string('frontpageaboutusdefault', 'theme_remui');
+            ;
+            $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
+            $setting->set_updatedcallback('theme_reset_all_caches');
+            $page->add($setting);
+
+                // testimonials data for about us section
+                $name = 'theme_remui/testimonialcount';
+            $title = get_string('testimonialcount', 'theme_remui');
+            $description = get_string('testimonialcountdesc', 'theme_remui');
+            $setting = new admin_setting_configselect(
+                $name,
+                $title,
+                $description,
+                1,
+                array(
+                    0 => '0',
+                    1 => get_string('one', 'theme_remui'),
+                    2 => get_string('two', 'theme_remui'),
+                    3 => get_string('three', 'theme_remui')
+                    )
+            );
+            $page->add($setting);
+
+            for ($testimonialcount = 1; $testimonialcount <= \theme_remui\toolbox::get_setting('testimonialcount'); $testimonialcount = $testimonialcount + 1) {
+                // image
+                    $name = 'theme_remui/testimonialimage'.$testimonialcount;
+                $title = get_string('testimonialimage', 'theme_remui');
+                $description = get_string('testimonialimagedesc', 'theme_remui');
+                $setting = new admin_setting_configstoredfile($name, $title, $description, 'testimonialimage'.$testimonialcount, 0, array(
+                    'subdirs' => 0, 'accepted_types' => 'web_image'
+                ));
+                $setting->set_updatedcallback('theme_reset_all_caches');
+                $page->add($setting);
+
+                    // name
+                    $name = 'theme_remui/testimonialname'.$testimonialcount;
+                $title = get_string('testimonialname', 'theme_remui');
+                $description = get_string('testimonialnamedesc', 'theme_remui');
+                $default = '';
+                $setting = new admin_setting_configtext($name, $title, $description, $default);
+                $setting->set_updatedcallback('theme_reset_all_caches');
+                $page->add($setting);
+
+                    // post
+                    $name = 'theme_remui/testimonialdesignation'.$testimonialcount;
+                $title = get_string('testimonialdesignation', 'theme_remui');
+                $description = get_string('testimonialdesignationdesc', 'theme_remui');
+                $default = '';
+                $setting = new admin_setting_configtext($name, $title, $description, $default);
+                $setting->set_updatedcallback('theme_reset_all_caches');
+                $page->add($setting);
+
+                    // description
+                    $name = 'theme_remui/testimonialtext'.$testimonialcount;
+                $title = get_string('testimonialtext', 'theme_remui');
+                $description = get_string('testimonialtextdesc', 'theme_remui');
+                $default = '';
+                $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
+                $setting->set_updatedcallback('theme_reset_all_caches');
+                $page->add($setting);
+            }
+        }
+
+        // Must add the page after definiting all the settings!
+    }
+    $settings->add($page);
+
 
     // Footer settings
         $page = new admin_settingpage('theme_remui_footersetting', get_string('footersetting', 'theme_remui'));
@@ -727,6 +875,14 @@ if ($ADMIN->fulltree) {
         $name = 'theme_remui/pinterestsetting';
         $title = get_string('pinterestsetting', 'theme_remui');
         $description = get_string('pinterestsettingdesc', 'theme_remui');
+        $default = '';
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $page->add($setting);
+
+    // quora
+        $name = 'theme_remui/quorasetting';
+        $title = get_string('quorasetting', 'theme_remui');
+        $description = get_string('quorasettingdesc', 'theme_remui');
         $default = '';
         $setting = new admin_setting_configtext($name, $title, $description, $default);
         $page->add($setting);
@@ -857,7 +1013,9 @@ if ($ADMIN->fulltree) {
         $name = 'theme_remui/loginsettingpic';
         $title = get_string('loginsettingpic', 'theme_remui');
         $description = get_string('loginsettingpicdesc', 'theme_remui');
-        $setting = new admin_setting_configstoredfile($name, $title, $description, 'loginsettingpic');
+        $setting = new admin_setting_configstoredfile($name, $title, $description, 'loginsettingpic', 0, array(
+            'subdirs' => 0, 'accepted_types' => 'web_image'
+        ));
         $setting->set_updatedcallback('theme_reset_all_caches');
         $page->add($setting);
 
@@ -870,11 +1028,24 @@ if ($ADMIN->fulltree) {
         $setting->set_updatedcallback('theme_reset_all_caches');
         $page->add($setting);
 
+        // Brand Logo Position Setting
+        $name = 'theme_remui/brandlogopos';
+        $title = get_string('brandlogopos', 'theme_remui');
+        $description = get_string('brandlogoposdesc', 'theme_remui');
+        $default = true;
+        $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+
+        // Text with Brand Logo
+        $name = 'theme_remui/brandlogotext';
+        $title = get_string('brandlogotext', 'theme_remui');
+        $description = get_string('brandlogotextdesc', 'theme_remui');
+        $default = ""; // Default string will be blank
+        $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+
     // Must add the page after definiting all the settings!
         $settings->add($page);
 }
-// if (is_siteadmin()) {
-//     $pagename = new moodle_url('/theme/remui/remui_license.php');
-//     $temp = new admin_externalpage('theme_remui_remui_license', get_string('licensesettings', 'theme_remui'),  $pagename);
-//     $ADMIN->add('themes', $temp);
-// }

@@ -11,8 +11,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+    Edwiser RemUI 
+    @package    theme_remui
+    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ 
 }}
 {{!
     @template theme_remui/columns2
@@ -53,10 +56,9 @@
         <div class="page-main">
         <div class="container">
             {{{ output.full_header }}}
-            {{{ prevnextnav }}}
             <div class="page-content" id="page-content">
             <div class="panel">
-                <div class="panel-body">
+                <div class="panel-body p-20">
                 <div id="region-main-box">
                     {{#hasregionmainsettingsmenu}}
                         <div id="region-main-settings-menu" class="hidden-print {{#hasblocks}}has-blocks{{/hasblocks}}">
@@ -76,6 +78,9 @@
                 </div>
                 </div>
             </div>
+
+            {{{ output.activity_navigation }}}
+
             </div>
         </div>
         </div>

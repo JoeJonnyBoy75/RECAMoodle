@@ -11,8 +11,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+    Edwiser RemUI 
+    @package    theme_remui
+    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ 
 }}
 {{!
     @template theme_remui/columns2
@@ -54,8 +57,10 @@
         <div class="container">
             {{{ output.full_header }}}
             <div class="page-content">
+                {{^ issinglecoursepage}}
             <div class="panel">
                 <div class="panel-body p-0">
+                {{/ issinglecoursepage}}
                 <div id="region-main-box">
                     {{#hasregionmainsettingsmenu}}
                         <div id="region-main-settings-menu" class="hidden-print {{#hasblocks}}has-blocks{{/hasblocks}}">
@@ -78,8 +83,10 @@
                 </div>
             </div>
         </div>
+        {{^ issinglecoursepage}}
         </div>
         </div>
+        {{/ issinglecoursepage}}
         </div>
     {{> theme_remui/common_end }}
 
@@ -87,5 +94,27 @@
 require(['theme_remui/loader', 'theme_remui/jquery-floatingscroll'], function () {
   Breakpoints();
   jQuery(".path-grade-report-grader #region-main>.card").floatingScroll();
+  // Grade table scrolling problem issue
+    jQuery(document).ready(function () {
+        jQuery('#page-grade-report-grader-index div.card.card-block').scroll(function() {
+            var scrollPercentage = this.scrollLeft
+            if (scrollPercentage == 0) {
+                scrollPercentage = 1;
+            } else {
+                scrollPercentage = parseInt(scrollPercentage) - 25;
+            }
+
+            jQuery('#page-grade-report-grader-index div.floater.sideonly').each(function() {
+                if (!jQuery(this).hasClass('floating')) {
+                    jQuery(this).addClass('floating');
+                    jQuery(this).css('margin','0');
+                }
+                if (scrollPercentage == 1) {
+                    jQuery(this).removeClass('floating');
+                }
+                jQuery(this).css({left : scrollPercentage+"px",  position:'absolute'});
+            });
+        });
+    });
 });
 {{/js}}

@@ -14,6 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Edwiser RemUI 
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace theme_remui;
 
 require_once($CFG->dirroot.'/mod/assign/locallib.php');
@@ -105,7 +112,7 @@ class activity {
 
                        AND (a.duedate = 0 OR a.duedate > $sixmonthsago)
                  $gradetypelimit
-                 GROUP BY instanceid, a.course, opentime, closetime, coursemoduleid ORDER BY a.duedate ASC";
+                 GROUP BY a.id, a.course, a.allowsubmissionsfromdate, a.duedate, cm.id  ORDER BY a.duedate ASC";
             $rs = $DB->get_records_sql($sql, $params);
             $ungraded = array_merge($ungraded, $rs);
         }
@@ -151,7 +158,7 @@ class activity {
                      WHERE qa.userid NOT IN ($graderids)
                        AND qa.state = 'finished'
                        AND (q.timeclose = 0 OR q.timeclose > $sixmonthsago)
-                  GROUP BY instanceid, q.course, opentime, closetime, coursemoduleid
+                  GROUP BY q.id, q.course, q.timeopen, q.timeclose, cm.id
                   ORDER BY q.timeclose ASC";
 
             $rs = $DB->get_records_sql($sql, $params);

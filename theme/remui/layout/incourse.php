@@ -15,25 +15,24 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * A two column layout for the Edwiser RemUI theme.
- *
- * @package   theme_remui
- * @copyright WisdmLabs
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Edwiser RemUI
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 require_once('common.php');
 
 // prepare activity sidebar context
+global $COURSE;
 $isactivitypage = false;
-if(isset($PAGE->cm->id) && $COURSE->id != 1) {
+if (isset($PAGE->cm->id) && $COURSE->id != 1 && $COURSE->format != 'singleactivity') {
     $isactivitypage = true;
 }
 $templatecontext['isactivitypage'] = $isactivitypage;
 $templatecontext['courseurl'] = course_get_url($COURSE->id);
 $templatecontext['activitysections'] = \theme_remui\utility::get_activity_list();
-//print_r($templatecontext['activitysections']);
 
 $flatnavigation = flatnav_icon_support($PAGE->flatnav);
 foreach ($flatnavigation as $navs) {
@@ -42,21 +41,5 @@ foreach ($flatnavigation as $navs) {
         break;
     }
 }
-
-// Activities Navigation Previous Next
-if (!preg_match('#/course/view.php#', $PAGE->url)) {
-    if ($COURSE->format != 'singleactivity') {
-        if (isset($PAGE->cm->id)) {
-            $activityid = $PAGE->cm->id;
-        } else {
-            $activityid = optional_param('id', -1, PARAM_INT);
-        }
-        if ($activityid != -1) {
-            $templatecontext['prevnextnav'] = activities_navigation_previous_next($PAGE->pagelayout, $activityid, $COURSE);
-        }
-    }
-}
-// Activities Navigation Previous Next
-
 
 echo $OUTPUT->render_from_template('theme_remui/incourse', $templatecontext);

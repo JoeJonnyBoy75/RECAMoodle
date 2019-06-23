@@ -274,6 +274,16 @@ foreach ($technical as $info) {
 }
 print_collapsible_region_end();
 
+// Output a link to export this single question.
+if (question_has_capability_on($question, 'view')) {
+    echo html_writer::link(question_get_export_single_question_url($question),
+            get_string('exportonequestion', 'question'));
+}
+
+// Log the preview of this question.
+$event = \core\event\question_viewed::create_from_question_instance($question, $context);
+$event->trigger();
+
 // Display the settings form.
 $optionsform->display();
 

@@ -19,7 +19,7 @@ Feature: Using the activity grade form element
 
   Scenario: Being able to change the grade type, scale and maximum grade when there are no grades
     Given I log in as "admin"
-    And I navigate to "Scales" node in "Site administration > Grades"
+    And I navigate to "Grades > Scales" in site administration
     And I press "Add a new scale"
     And I set the following fields to these values:
       | Name  | ABCDEF |
@@ -66,7 +66,7 @@ Feature: Using the activity grade form element
   @javascript
   Scenario: Attempting to change the scale when grades already exist in rating activity
     Given I log in as "admin"
-    And I navigate to "Scales" node in "Site administration > Grades"
+    And I navigate to "Grades > Scales" in site administration
     And I press "Add a new scale"
     And I set the following fields to these values:
       | Name  | ABCDEF |
@@ -92,7 +92,7 @@ Feature: Using the activity grade form element
     And I log in as "student1"
     And I am on "Course 1" course homepage
     And I follow "Test forum name"
-    And I press "Add a new discussion topic"
+    And I click on "Add a new discussion topic" "link"
     And I set the following fields to these values:
       | Subject  | Discussion subject |
       | Message | Discussion message |
@@ -119,7 +119,7 @@ Feature: Using the activity grade form element
   @javascript
   Scenario: Attempting to change the scale when grades already exist in non-rating activity
     Given I log in as "admin"
-    And I navigate to "Scales" node in "Site administration > Grades"
+    And I navigate to "Grades > Scales" in site administration
     And I press "Add a new scale"
     And I set the following fields to these values:
       | Name  | ABCDEF |
@@ -170,7 +170,7 @@ Feature: Using the activity grade form element
     And I log in as "student1"
     And I am on "Course 1" course homepage
     And I follow "Test forum name"
-    And I press "Add a new discussion topic"
+    And I click on "Add a new discussion topic" "link"
     And I set the following fields to these values:
       | Subject  | Discussion subject |
       | Message | Discussion message |

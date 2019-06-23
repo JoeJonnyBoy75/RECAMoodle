@@ -11,8 +11,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+    Edwiser RemUI 
+    @package    theme_remui
+    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ 
 }}
 {{!
     @template mod_assign/grading_actions
@@ -31,7 +34,7 @@
     This template is initially hidden, and is only displayed after the current user info has been loaded.
 }}
 {{#showreview}}
-<div class="btn-toolbar collapse-buttons">
+<div class="collapse-buttons">
     <div class="btn-group">
         <button type="button" class="btn btn-secondary collapse-review-panel">{{#pix}} layout-expand-right, mod_assign, {{#str}} collapsereviewpanel, mod_assign {{/str}} {{/pix}}</button>
         <button type="button" class="btn btn-secondary collapse-none active">{{#pix}} layout-default, mod_assign, {{#str}} defaultlayout, mod_assign {{/str}} {{/pix}}</button>
@@ -44,6 +47,9 @@
            <input type="checkbox" name="sendstudentnotifications"
                   {{#defaultsendnotifications}}checked="checked"{{/defaultsendnotifications}} />
     </label>
+    {{#helpicon}}
+        {{>core/help_icon}}
+    {{/helpicon}}
     <button type="submit" class="btn btn-primary" name="savechanges">{{#str}}savechanges{{/str}}</button>
     <button type="submit" class="btn btn-primary" name="saveandshownext">{{#str}}saveandnext{{/str}}</button>
     <button type="submit" class="btn btn-secondary" name="resetbutton">{{#str}}reset{{/str}}</button>

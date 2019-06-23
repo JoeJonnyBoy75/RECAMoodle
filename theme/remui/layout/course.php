@@ -15,15 +15,29 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * A two column layout for the Edwiser RemUI theme.
- *
- * @package   theme_remui
- * @copyright WisdmLabs
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Edwiser RemUI
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 require_once('common.php');
 
+global $COURSE, $USER;
+$completion = new \completion_info($COURSE);
+
+$templatecontext['issinglecoursepage'] = true;
+$templatecontext['iscoursestatsshow'] = \theme_remui\toolbox::get_setting('enablecoursestats');
+
+$course = get_course($COURSE->id);
+if ($templatecontext['iscoursestatsshow'] && strpos($bodyattributes, 'path-course') !== false) {
+    $templatecontext['completion'] = $completion->is_enabled();
+    $coursecontext = context_course::instance($COURSE->id);
+
+    if (has_capability('moodle/course:ignoreavailabilityrestrictions', $coursecontext)) {
+        $templatecontext['notstudent'] = true;
+    }
+}
 echo $OUTPUT->render_from_template('theme_remui/course', $templatecontext);
 

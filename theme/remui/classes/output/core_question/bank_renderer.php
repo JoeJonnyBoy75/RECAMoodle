@@ -15,7 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Question renderer.
+ * Edwiser RemUI 
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+/**
+ * Question renderer class.
  *
  * @package    theme_remui
  * @copyright  2017 onwards Ankit Agarwal <ankit.agrr@gmail.com>
@@ -27,13 +34,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/' . $CFG->admin . '/renderer.php');
 
-/**
- * Question renderer class.
- *
- * @package    theme_remui
- * @copyright  2017 onwards Ankit Agarwal <ankit.agrr@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+
 class bank_renderer extends \core_question_bank_renderer {
 
     /**

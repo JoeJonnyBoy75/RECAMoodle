@@ -20,3 +20,11 @@
         transform: rotate(359deg)
     }
 }
+
+/* quick fix for myoverview block background */
+.block_myoverview .card-block {
+    background: transparent !important;
+}
+.block_myoverview .card-block > h5.page-aside-title {
+    display: none;
+}

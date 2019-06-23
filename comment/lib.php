@@ -220,7 +220,7 @@ class comment {
         // load template
         $this->template = html_writer::start_tag('div', array('class' => 'comment-message'));
 
-        $this->template .= html_writer::start_tag('div', array('class' => 'comment-message-meta m-r-3'));
+        $this->template .= html_writer::start_tag('div', array('class' => 'comment-message-meta mr-3'));
 
         $this->template .= html_writer::tag('span', '___picture___', array('class' => 'picture'));
         $this->template .= html_writer::tag('span', '___name___', array('class' => 'user')) . ' - ';
@@ -570,7 +570,7 @@ class comment {
         $params['itemid'] = $this->itemid;
 
         $comments = array();
-        $formatoptions = array('overflowdiv' => true);
+        $formatoptions = array('overflowdiv' => true, 'blanktarget' => true);
         $rs = $DB->get_recordset_sql($sql, $params, $start, $perpage);
         foreach ($rs as $u) {
             $c = new stdClass();
@@ -717,7 +717,8 @@ class comment {
             $newcmt->fullname = fullname($USER);
             $url = new moodle_url('/user/view.php', array('id' => $USER->id, 'course' => $this->courseid));
             $newcmt->profileurl = $url->out();
-            $newcmt->content = format_text($newcmt->content, $newcmt->format, array('overflowdiv'=>true));
+            $formatoptions = array('overflowdiv' => true, 'blanktarget' => true);
+            $newcmt->content = format_text($newcmt->content, $newcmt->format, $formatoptions);
             $newcmt->avatar = $OUTPUT->user_picture($USER, array('size'=>16));
 
             $commentlist = array($newcmt);

@@ -406,7 +406,11 @@ function lesson_user_outline($course, $user, $mod, $lesson) {
                 $return->info = get_string("nolessonattempts", "lesson");
             }
         } else {
-            $return->info = get_string("grade") . ': ' . $grade->str_long_grade;
+            if (!$grade->hidden || has_capability('moodle/grade:viewhidden', context_course::instance($course->id))) {
+                $return->info = get_string('grade') . ': ' . $grade->str_long_grade;
+            } else {
+                $return->info = get_string('grade') . ': ' . get_string('hidden', 'grades');
+            }
 
             // Datesubmitted == time created. dategraded == time modified or time overridden.
             // If grade was last modified by the user themselves use date graded. Otherwise use date submitted.
@@ -463,13 +467,18 @@ function lesson_user_complete($course, $user, $mod, $lesson) {
                 $status = get_string("nolessonattempts", "lesson");
             }
         } else {
-            $status = get_string("grade") . ': ' . $grade->str_long_grade;
+            if (!$grade->hidden || has_capability('moodle/grade:viewhidden', context_course::instance($course->id))) {
+                $status = get_string("grade") . ': ' . $grade->str_long_grade;
+            } else {
+                $status = get_string('grade') . ': ' . get_string('hidden', 'grades');
+            }
         }
 
         // Display the grade or lesson status if there isn't one.
         echo $OUTPUT->container($status);
 
-        if ($grade->str_feedback) {
+        if ($grade->str_feedback &&
+            (!$grade->hidden || has_capability('moodle/grade:viewhidden', context_course::instance($course->id)))) {
             echo $OUTPUT->container(get_string('feedback').': '.$grade->str_feedback);
         }
     }
@@ -1079,6 +1088,7 @@ function lesson_reset_userdata($data) {
                 }
                 $context = context_module::instance($cm->id);
                 $fs->delete_area_files($context->id, 'mod_lesson', 'essay_responses');
+                $fs->delete_area_files($context->id, 'mod_lesson', 'essay_answers');
             }
         }
 
@@ -1131,14 +1141,6 @@ function lesson_reset_userdata($data) {
     }
 
     return $status;
-}
-
-/**
- * Returns all other caps used in module
- * @return array
- */
-function lesson_get_extra_capabilities() {
-    return array('moodle/site:accessallgroups');
 }
 
 /**
@@ -1365,7 +1367,7 @@ function lesson_pluginfile($course, $cm, $context, $filearea, $args, $forcedownl
         }
         $fullpath = "/$context->id/mod_lesson/$filearea/$itemid/".implode('/', $args);
 
-    } else if ($filearea === 'essay_responses') {
+    } else if ($filearea === 'essay_responses' || $filearea === 'essay_answers') {
         $itemid = (int)array_shift($args);
         if (!$attempt = $DB->get_record('lesson_attempts', array('id' => $itemid))) {
             return false;
@@ -1407,6 +1409,7 @@ function lesson_get_file_areas() {
     $areas['page_answers'] = get_string('pageanswers', 'mod_lesson');
     $areas['page_responses'] = get_string('pageresponses', 'mod_lesson');
     $areas['essay_responses'] = get_string('essayresponses', 'mod_lesson');
+    $areas['essay_answers'] = get_string('essayresponses', 'mod_lesson');
     return $areas;
 }
 
@@ -1683,6 +1686,12 @@ function mod_lesson_core_calendar_provide_event_action(calendar_event $event,
     // Apply overrides.
     $lesson->update_effective_access($userid);
 
+    if (!$lesson->is_participant($userid)) {
+        // If the user is not a participant then they have
+        // no action to take. This will filter out the events for teachers.
+        return null;
+    }
+
     return $factory->create_instance(
         get_string('startlesson', 'lesson'),
         new \moodle_url('/mod/lesson/view.php', ['id' => $cm->id]),
@@ -1745,16 +1754,14 @@ function mod_lesson_get_completion_active_rule_descriptions($cm) {
     foreach ($cm->customdata['customcompletionrules'] as $key => $val) {
         switch ($key) {
             case 'completionendreached':
-                if (empty($val)) {
-                    continue;
+                if (!empty($val)) {
+                    $descriptions[] = get_string('completionendreached_desc', 'lesson', $val);
                 }
-                $descriptions[] = get_string('completionendreached_desc', 'lesson', $val);
                 break;
             case 'completiontimespent':
-                if (empty($val)) {
-                    continue;
+                if (!empty($val)) {
+                    $descriptions[] = get_string('completiontimespentdesc', 'lesson', format_time($val));
                 }
-                $descriptions[] = get_string('completiontimespentdesc', 'lesson', format_time($val));
                 break;
             default:
                 break;

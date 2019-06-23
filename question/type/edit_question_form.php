@@ -187,9 +187,8 @@ abstract class question_edit_form extends question_wizard_form {
         $mform->setType('questiontext', PARAM_RAW);
         $mform->addRule('questiontext', null, 'required', null, 'client');
 
-        $mform->addElement('text', 'defaultmark', get_string('defaultmark', 'question'),
+        $mform->addElement('float', 'defaultmark', get_string('defaultmark', 'question'),
                 array('size' => 7));
-        $mform->setType('defaultmark', PARAM_FLOAT);
         $mform->setDefault('defaultmark', 1);
         $mform->addRule('defaultmark', null, 'required', null, 'client');
 
@@ -197,6 +196,10 @@ abstract class question_edit_form extends question_wizard_form {
                 array('rows' => 10), $this->editoroptions);
         $mform->setType('generalfeedback', PARAM_RAW);
         $mform->addHelpButton('generalfeedback', 'generalfeedback', 'question');
+
+        $mform->addElement('text', 'idnumber', get_string('idnumber', 'question'), 'maxlength="100"  size="10"');
+        $mform->addHelpButton('idnumber', 'idnumber', 'question');
+        $mform->setType('idnumber', PARAM_RAW);
 
         // Any questiontype specific fields.
         $this->definition_inner($mform);
@@ -791,6 +794,8 @@ abstract class question_edit_form extends question_wizard_form {
     }
 
     public function validation($fromform, $files) {
+        global $DB;
+
         $errors = parent::validation($fromform, $files);
         if (empty($fromform['makecopy']) && isset($this->question->id)
                 && ($this->question->formoptions->canedit ||
@@ -808,6 +813,30 @@ abstract class question_edit_form extends question_wizard_form {
         // Default mark.
         if (array_key_exists('defaultmark', $fromform) && $fromform['defaultmark'] < 0) {
             $errors['defaultmark'] = get_string('defaultmarkmustbepositive', 'question');
+        }
+
+        // Can only have one idnumber per category.
+        if (strpos($fromform['category'], ',') !== false) {
+            list($category, $categorycontextid) = explode(',', $fromform['category']);
+        } else {
+            $category = $fromform['category'];
+        }
+        if (isset($fromform['idnumber']) && ((string) $fromform['idnumber'] !== '')) {
+            if (empty($fromform['usecurrentcat']) && !empty($fromform['categorymoveto'])) {
+                $categoryinfo = $fromform['categorymoveto'];
+            } else {
+                $categoryinfo = $fromform['category'];
+            }
+            list($categoryid, $notused) = explode(',', $categoryinfo);
+            $conditions = 'category = ? AND idnumber = ?';
+            $params = [$categoryid, $fromform['idnumber']];
+            if (!empty($this->question->id)) {
+                $conditions .= ' AND id <> ?';
+                $params[] = $this->question->id;
+            }
+            if ($DB->record_exists_select('question', $conditions, $params)) {
+                $errors['idnumber'] = get_string('idnumbertaken', 'error');
+            }
         }
 
         return $errors;

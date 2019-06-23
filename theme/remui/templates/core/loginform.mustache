@@ -11,8 +11,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+    Edwiser RemUI 
+    @package    theme_remui
+    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ 
 }}
 {{!
     @template core/login
@@ -92,23 +95,31 @@
 }}
 
 <div class="page-brand-info">
-    <div class="brand">
-        {{# loginpage_context }}
-          {{# isiconsitename }}
-              <h3 class="brand-text font-size-40">
-                  <i class="fa fa-{{siteicon}}"></i> {{{ sitename }}}
-              </h3>
-          {{/ isiconsitename }}
-          
-          {{# islogo }}
-              <img src="{{logourl}}" class="brand-img w-350" title="{{sitename}}" alt="{{sitename}}"/>
-          {{/ islogo }}
-        {{/ loginpage_context }}
-    </div>
+    {{^logopos}}
+        <div class="brand">
+            {{# loginpage_context }}
+                {{# isiconsitename }}
+                    <h3 class="brand-text font-size-40">
+                        <i class="fa fa-{{siteicon}}"></i> {{{ sitename }}}
+                    </h3>
+                {{/ isiconsitename }}
+              
+                {{# islogo }}
+                    <img src="{{logourl}}" class="brand-img w-350" title="{{sitename}}" alt="{{sitename}}"/>
+                {{/ islogo }}
+            {{/ loginpage_context }}
+        </div>
+    {{/logopos}}
 
-    {{#hasinstructions}}
-    <p class="font-size-20">{{{instructions}}}</p>
-    {{/hasinstructions}}
+    {{#sitedesc}}
+        <p class="font-size-20">{{{sitedesc}}}</p>
+    {{/sitedesc}}
+
+    {{^sitedesc}}
+        {{#hasinstructions}}
+        <p class="font-size-20">{{{instructions}}}</p>
+        {{/hasinstructions}}
+    {{/sitedesc}}
 </div>
 
 <div class="page-login-main animation-slide-right animation-duration-1">
@@ -123,12 +134,12 @@
         <div class="loginerrors mt-1">
             <div class="alert alert-icon alert-danger alert-dismissible" role="alert">
                 <a href="#" id="loginerrormessage" class="accesshide">{{error}}</a>
-                <i class="icon wb-close" aria-hidden="true"></i>{{error}}
+                <i class="icon fa fa-times" aria-hidden="true"></i>{{error}}
             </div>
         </div>
     {{/error}}
 
-    <div class="brand hidden-md-up text-center">
+    <div class="brand {{^logopos}}hidden-md-up{{/logopos}} text-center">
         {{# loginpage_context }}
           {{# isiconsitename }}
               <h3 class="font-size-24">
@@ -137,14 +148,14 @@
           {{/ isiconsitename }}
           
           {{# islogo }}
-              <img src="{{logourl}}" class="brand-img" title="{{sitename}}" alt="{{sitename}}"/>
+              <img src="{{logourl}}" class="brand-img w-p100" title="{{sitename}}" alt="{{sitename}}"/>
           {{/ islogo }}
         {{/ loginpage_context }}
     </div>
 
     <h3 class="font-size-24">{{# str }} signin, theme_remui {{/ str }}</h3>
 
-    <form class="" action="{{loginurl}}" method="post" id="login">
+    <form class="w-p100" action="{{loginurl}}" method="post" id="login">
         <input id="anchor" type="hidden" name="anchor" value="">
         <script>document.getElementById('anchor').value = location.hash;</script>
     
@@ -164,6 +175,9 @@
         <div class="form-group">
             <label for="password" class="sr-only">{{#str}} password {{/str}}</label>
             <input type="password" name="password" id="password" value="" class="form-control"placeholder={{#quote}}{{#str}}password{{/str}}{{/quote}}>
+        </div>
+        <div class="form-group">
+           <input type="hidden" name="logintoken" value="{{logintoken}}">
         </div>
         
         <div class="form-group clearfix">
@@ -188,9 +202,10 @@
     {{#canloginasguest}}
         <div class="form-group clearfix">
             <!-- {{#str}}someallowguest{{/str}} -->
-            <form action="{{loginurl}}" method="post" id="guestlogin" class="m-0">
+            <form action="{{loginurl}}" method="post" id="guestlogin" class="m-0 w-p100">
                 <input type="hidden" name="username" value="guest" />
                 <input type="hidden" name="password" value="guest" />
+                <input type="hidden" name="logintoken" value="{{logintoken}}">
                 <button class="btn btn-default btn-block" type="submit">{{#str}}loginguest{{/str}}</button>
             </form>
         </div>

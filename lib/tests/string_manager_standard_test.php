@@ -75,11 +75,11 @@ class core_string_manager_standard_testcase extends advanced_testcase {
         $this->assertFalse($stringman->string_deprecated('hidden', 'grades'));
 
         // Check deprecated string.
-        $this->assertTrue($stringman->string_deprecated('modchooserenable', 'core'));
-        $this->assertTrue($stringman->string_exists('modchooserenable', 'core'));
+        $this->assertTrue($stringman->string_deprecated('groupextendenrol', 'core'));
+        $this->assertTrue($stringman->string_exists('groupextendenrol', 'core'));
         $this->assertDebuggingNotCalled();
-        $this->assertEquals('Activity chooser on', get_string('modchooserenable', 'core'));
-        $this->assertDebuggingCalled('String [modchooserenable,core] is deprecated. '.
+        $this->assertEquals('Extend enrolment (common)', get_string('groupextendenrol', 'core'));
+        $this->assertDebuggingCalled('String [groupextendenrol,core] is deprecated. '.
             'Either you should no longer be using that string, or the string has been incorrectly deprecated, in which case you should report this as a bug. '.
             'Please refer to https://docs.moodle.org/dev/String_deprecation');
     }
@@ -123,6 +123,25 @@ class core_string_manager_standard_testcase extends advanced_testcase {
 
         $this->assertTrue($stringman->string_exists($matches[1], $matches[2]),
             "String {$string} appearing in one of the lang/en/deprecated.txt files does not exist");
+    }
+
+    /**
+     * Test for $CFG->langlist (without installation of additional languages)
+     */
+    public function test_get_list_of_translations() {
+        $this->resetAfterTest();
+        $stringman = get_string_manager();
+
+        $this->assertEquals(['en' => 'English ‎(en)‎'], $stringman->get_list_of_translations());
+
+        set_config('langlist', 'en|En');
+        get_string_manager(true);
+        $stringman = get_string_manager();
+
+        $this->assertEquals(['en' => 'En'], $stringman->get_list_of_translations());
+
+        set_config('langlist', '');
+        get_string_manager(true);
     }
 }
 

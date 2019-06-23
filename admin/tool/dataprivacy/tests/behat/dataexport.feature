@@ -6,21 +6,29 @@ Feature: Data export from the privacy API
 
   Background:
     Given the following "users" exist:
-      | username | firstname      | lastname |
-      | victim   | Victim User    | 1        |
-      | parent   | Long-suffering | Parent   |
+      | username  | firstname      | lastname  | institution |
+      | victim    | Victim User    | 1         | University1 |
+      | victim2   | Victim User    | 2         | University2 |
+      | requester | The            | Requester | University3 |
+      | parent    | Long-suffering | Parent    |             |
     And the following "roles" exist:
       | shortname | name  | archetype |
       | tired     | Tired |           |
     And the following "permission overrides" exist:
-      | capability                                   | permission | role  | contextlevel | reference |
-      | tool/dataprivacy:makedatarequestsforchildren | Allow      | tired | System       |           |
+      | capability                                   | permission | role    | contextlevel | reference |
+      | tool/dataprivacy:makedatarequestsforchildren | Allow      | tired   | System       |           |
+      | tool/dataprivacy:managedatarequests          | Allow      | manager | System       |           |
+      | moodle/site:viewuseridentity                 | Prevent    | manager | System       |           |
     And the following "role assigns" exist:
       | user   | role  | contextlevel | reference |
       | parent | tired | User         | victim    |
+    And the following "system role assigns" exist:
+      | user      | role    | contextlevel |
+      | requester | manager | User         |
     And the following config values are set as admin:
       | contactdataprotectionofficer | 1  | tool_dataprivacy |
       | privacyrequestexpiry         | 55 | tool_dataprivacy |
+      | dporoles                     | 1  | tool_dataprivacy |
     And the following data privacy "categories" exist:
       | name          |
       | Site category |
@@ -37,9 +45,6 @@ Feature: Data export from the privacy API
     And I set the field "User" to "Victim User 1"
     And I press "Save changes"
     Then I should see "Victim User 1"
-    And I should see "Pending" in the "Victim User 1" "table_row"
-    And I run all adhoc tasks
-    And I reload the page
     And I should see "Awaiting approval" in the "Victim User 1" "table_row"
     And I open the action menu in "Victim User 1" "table_row"
     And I follow "Approve request"
@@ -49,7 +54,7 @@ Feature: Data export from the privacy API
     And I reload the page
     And I should see "Download ready" in the "Victim User 1" "table_row"
     And I open the action menu in "Victim User 1" "table_row"
-    And following "Download" should download between "1" and "100000" bytes
+    And following "Download" should download between "1" and "135000" bytes
     And the following config values are set as admin:
       | privacyrequestexpiry | 1 | tool_dataprivacy |
     And I wait "1" seconds
@@ -66,9 +71,6 @@ Feature: Data export from the privacy API
     And I follow "New request"
     And I press "Save changes"
     Then I should see "Export all of my personal data"
-    And I should see "Pending" in the "Export all of my personal data" "table_row"
-    And I run all adhoc tasks
-    And I reload the page
     And I should see "Awaiting approval" in the "Export all of my personal data" "table_row"
 
     And I log out
@@ -87,7 +89,7 @@ Feature: Data export from the privacy API
     And I reload the page
     And I should see "Download ready" in the "Export all of my personal data" "table_row"
     And I open the action menu in "Victim User 1" "table_row"
-    And following "Download" should download between "1" and "100000" bytes
+    And following "Download" should download between "1" and "135000" bytes
 
     And the following config values are set as admin:
       | privacyrequestexpiry | 1 | tool_dataprivacy |
@@ -106,9 +108,6 @@ Feature: Data export from the privacy API
     And I set the field "User" to "Victim User 1"
     And I press "Save changes"
     Then I should see "Victim User 1"
-    And I should see "Pending" in the "Victim User 1" "table_row"
-    And I run all adhoc tasks
-    And I reload the page
     And I should see "Awaiting approval" in the "Victim User 1" "table_row"
 
     And I log out
@@ -127,7 +126,7 @@ Feature: Data export from the privacy API
     And I reload the page
     And I should see "Download ready" in the "Victim User 1" "table_row"
     And I open the action menu in "Victim User 1" "table_row"
-    And following "Download" should download between "1" and "100000" bytes
+    And following "Download" should download between "1" and "135000" bytes
 
     And the following config values are set as admin:
       | privacyrequestexpiry | 1 | tool_dataprivacy |
@@ -136,3 +135,19 @@ Feature: Data export from the privacy API
 
     And I should see "Expired" in the "Victim User 1" "table_row"
     And I should not see "Actions"
+
+  @javascript
+  Scenario: Test search for user using extra field.
+    Given the following "permission overrides" exist:
+      | capability                   | permission | role    | contextlevel | reference |
+      | moodle/site:viewuseridentity | Allow      | manager | System       |           |
+    And the following config values are set as admin:
+      | showuseridentity | institution |
+    And I log in as "requester"
+    And I navigate to "Users > Privacy and policies > Data requests" in site administration
+    And I follow "New request"
+    And I set the field "Search" to "University1"
+    Then I should see "Victim User 1"
+    When I reload the page
+    And I set the field "Search" to "University2"
+    Then I should see "Victim User 2"

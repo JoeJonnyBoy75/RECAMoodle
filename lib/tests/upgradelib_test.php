@@ -794,8 +794,7 @@ class core_upgradelib_testcase extends advanced_testcase {
         $CFG->themedir = $this->create_testthemes();
 
         $this->assertSame($CFG->dirroot . '/theme/boost', upgrade_find_theme_location('boost'));
-        $this->assertSame($CFG->dirroot . '/theme/clean', upgrade_find_theme_location('clean'));
-        $this->assertSame($CFG->dirroot . '/theme/bootstrapbase', upgrade_find_theme_location('bootstrapbase'));
+        $this->assertSame($CFG->dirroot . '/theme/classic', upgrade_find_theme_location('classic'));
 
         $this->assertSame($CFG->themedir . '/testtheme', upgrade_find_theme_location('testtheme'));
         $this->assertSame($CFG->themedir . '/childoftesttheme', upgrade_find_theme_location('childoftesttheme'));
@@ -812,8 +811,8 @@ class core_upgradelib_testcase extends advanced_testcase {
         $CFG->themedir = $this->create_testthemes();
 
         $this->assertTrue(upgrade_theme_is_from_family('boost', 'boost'), 'Boost is a boost theme');
-        $this->assertTrue(upgrade_theme_is_from_family('bootstrapbase', 'clean'), 'Clean is a bootstrap base theme');
-        $this->assertFalse(upgrade_theme_is_from_family('boost', 'clean'), 'Clean is not a boost theme');
+        $this->assertTrue(upgrade_theme_is_from_family('boost', 'classic'), 'Classic is a boost base theme');
+        $this->assertFalse(upgrade_theme_is_from_family('classic', 'boost'), 'Boost is not a classic theme');
 
         $this->assertTrue(upgrade_theme_is_from_family('testtheme', 'childoftesttheme'), 'childoftesttheme is a testtheme');
         $this->assertFalse(upgrade_theme_is_from_family('testtheme', 'orphantheme'), 'ofphantheme is not a testtheme');
@@ -919,5 +918,91 @@ class core_upgradelib_testcase extends advanced_testcase {
         upgrade_fix_block_instance_configuration();
         $record = $DB->get_record('block_instances', ['id' => $entryid]);
         $this->assertEquals($expected, $record->configdata);
+    }
+
+    /**
+     * Check that orphaned files are deleted.
+     */
+    public function test_upgrade_delete_orphaned_file_records() {
+        global $DB, $CFG;
+        require_once($CFG->dirroot . '/repository/lib.php');
+
+        $this->resetAfterTest();
+        // Create user.
+        $generator = $this->getDataGenerator();
+        $user = $generator->create_user();
+        $this->setUser($user);
+        $usercontext = context_user::instance($user->id);
+        $syscontext = context_system::instance();
+
+        $fs = get_file_storage();
+
+        $userrepository = array();
+        $newstoredfile = array();
+        $repositorypluginname = array('user', 'areafiles');
+
+        // Create two repositories with one file in each.
+        foreach ($repositorypluginname as $key => $value) {
+            // Override repository permission.
+            $capability = 'repository/' . $value . ':view';
+            $guestroleid = $DB->get_field('role', 'id', array('shortname' => 'guest'));
+            assign_capability($capability, CAP_ALLOW, $guestroleid, $syscontext->id, true);
+
+            $args = array();
+            $args['type'] = $value;
+            $repos = repository::get_instances($args);
+            $userrepository[$key] = reset($repos);
+
+            $this->assertInstanceOf('repository', $userrepository[$key]);
+
+            $component = 'user';
+            $filearea  = 'private';
+            $itemid    = $key;
+            $filepath  = '/';
+            $filename  = 'userfile.txt';
+
+            $filerecord = array(
+                'contextid' => $usercontext->id,
+                'component' => $component,
+                'filearea'  => $filearea,
+                'itemid'    => $itemid,
+                'filepath'  => $filepath,
+                'filename'  => $filename,
+            );
+
+            $content = 'Test content';
+            $originalfile = $fs->create_file_from_string($filerecord, $content);
+            $this->assertInstanceOf('stored_file', $originalfile);
+
+            $newfilerecord = array(
+                'contextid' => $syscontext->id,
+                'component' => 'core',
+                'filearea'  => 'phpunit',
+                'itemid'    => $key,
+                'filepath'  => $filepath,
+                'filename'  => $filename,
+            );
+            $ref = $fs->pack_reference($filerecord);
+            $newstoredfile[$key] = $fs->create_file_from_reference($newfilerecord, $userrepository[$key]->id, $ref);
+
+            // Look for references by repository ID.
+            $files = $fs->get_external_files($userrepository[$key]->id);
+            $file = reset($files);
+            $this->assertEquals($file, $newstoredfile[$key]);
+        }
+
+        // Make one file orphaned by deleting first repository.
+        $DB->delete_records('repository_instances', array('id' => $userrepository[0]->id));
+        $DB->delete_records('repository_instance_config', array('instanceid' => $userrepository[0]->id));
+
+        upgrade_delete_orphaned_file_records();
+
+        $files = $fs->get_external_files($userrepository[0]->id);
+        $file = reset($files);
+        $this->assertFalse($file);
+
+        $files = $fs->get_external_files($userrepository[1]->id);
+        $file = reset($files);
+        $this->assertEquals($file, $newstoredfile[1]);
     }
 }

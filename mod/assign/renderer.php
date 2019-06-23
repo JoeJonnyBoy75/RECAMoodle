@@ -220,13 +220,19 @@ class mod_assign_renderer extends plugin_renderer_base {
 
         if ($header->subpage) {
             $this->page->navbar->add($header->subpage);
+            $args = ['contextname' => $header->context->get_context_name(false, true), 'subpage' => $header->subpage];
+            $title = get_string('subpagetitle', 'assign', $args);
+        } else {
+            $title = $header->context->get_context_name(false, true);
         }
+        $courseshortname = $header->context->get_course_context()->get_context_name(false, true);
+        $title = $courseshortname . ': ' . $title;
+        $heading = format_string($header->assign->name, false, array('context' => $header->context));
 
-        $this->page->set_title(get_string('pluginname', 'assign'));
+        $this->page->set_title($title);
         $this->page->set_heading($this->page->course->fullname);
 
         $o .= $this->output->header();
-        $heading = format_string($header->assign->name, false, array('context' => $header->context));
         $o .= $this->output->heading($heading);
         if ($header->preface) {
             $o .= $header->preface;
@@ -266,6 +272,10 @@ class mod_assign_renderer extends plugin_renderer_base {
         $o .= $this->output->heading(get_string('gradingsummary', 'assign'), 3);
         $o .= $this->output->box_start('boxaligncenter gradingsummarytable');
         $t = new html_table();
+
+        // Visibility Status.
+        $this->add_table_row_tuple($t, get_string('hiddenfromstudents'),
+            (!$summary->isvisible) ? get_string('yes') : get_string('no'));
 
         // Status.
         if ($summary->teamsubmission) {
@@ -951,6 +961,9 @@ class mod_assign_renderer extends plugin_renderer_base {
                     $urlparams = array('id' => $status->coursemoduleid, 'action' => 'editsubmission');
                     $o .= $this->output->single_button(new moodle_url('/mod/assign/view.php', $urlparams),
                                                        get_string('editsubmission', 'assign'), 'get');
+                    $urlparams = array('id' => $status->coursemoduleid, 'action' => 'removesubmissionconfirm');
+                    $o .= $this->output->single_button(new moodle_url('/mod/assign/view.php', $urlparams),
+                                                       get_string('removesubmission', 'assign'), 'get');
                     $o .= $this->output->box_start('boxaligncenter submithelp');
                     $o .= get_string('editsubmission_help', 'assign');
                     $o .= $this->output->box_end();
@@ -1103,11 +1116,13 @@ class mod_assign_renderer extends plugin_renderer_base {
                 $cell2 = new html_table_cell(userdate($grade->timemodified));
                 $t->data[] = new html_table_row(array($cell1, $cell2));
 
-                // Graded by.
-                $cell1 = new html_table_cell($gradedbystr);
-                $cell2 = new html_table_cell($this->output->user_picture($grade->grader) .
-                                             $this->output->spacer(array('width'=>30)) . fullname($grade->grader));
-                $t->data[] = new html_table_row(array($cell1, $cell2));
+                // Graded by set to a real user. Not set can be empty or -1.
+                if (!empty($grade->grader) && is_object($grade->grader)) {
+                    $cell1 = new html_table_cell($gradedbystr);
+                    $cell2 = new html_table_cell($this->output->user_picture($grade->grader) .
+                                                 $this->output->spacer(array('width' => 30)) . fullname($grade->grader));
+                    $t->data[] = new html_table_row(array($cell1, $cell2));
+                }
 
                 // Feedback from plugins.
                 foreach ($history->feedbackplugins as $plugin) {
@@ -1227,6 +1242,7 @@ class mod_assign_renderer extends plugin_renderer_base {
         $this->page->requires->string_for_js('nousersselected', 'assign');
         $this->page->requires->string_for_js('batchoperationconfirmgrantextension', 'assign');
         $this->page->requires->string_for_js('batchoperationconfirmlock', 'assign');
+        $this->page->requires->string_for_js('batchoperationconfirmremovesubmission', 'assign');
         $this->page->requires->string_for_js('batchoperationconfirmreverttodraft', 'assign');
         $this->page->requires->string_for_js('batchoperationconfirmunlock', 'assign');
         $this->page->requires->string_for_js('batchoperationconfirmaddattempt', 'assign');
@@ -1419,11 +1435,15 @@ class mod_assign_renderer extends plugin_renderer_base {
                                              'moodle',
                                              array('class'=>'icon'));
             $result .= '<li yuiConfig=\'' . json_encode($yuiconfig) . '\'>' .
-                       '<div>' . $image . ' ' .
-                                 $file->fileurl . ' ' .
-                                 $plagiarismlinks . ' ' .
-                                 $file->portfoliobutton . '</div>' .
-                       '</li>';
+                '<div>' .
+                    '<div class="fileuploadsubmission">' . $image . ' ' .
+                    $file->fileurl . ' ' .
+                    $plagiarismlinks . ' ' .
+                    $file->portfoliobutton . ' ' .
+                    '</div>' .
+                    '<div class="fileuploadsubmissiontime">' . $file->timemodified . '</div>' .
+                '</div>' .
+            '</li>';
         }
 
         $result .= '</ul>';

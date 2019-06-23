@@ -37,7 +37,6 @@ require_once($CFG->dirroot . '/mod/quiz/accessmanager_form.php');
 require_once($CFG->dirroot . '/mod/quiz/renderer.php');
 require_once($CFG->dirroot . '/mod/quiz/attemptlib.php');
 require_once($CFG->libdir . '/completionlib.php');
-require_once($CFG->libdir . '/eventslib.php');
 require_once($CFG->libdir . '/filelib.php');
 require_once($CFG->libdir . '/questionlib.php');
 
@@ -1545,6 +1544,11 @@ function quiz_send_confirmation($recipient, $a) {
     $eventdata->smallmessage      = get_string('emailconfirmsmall', 'quiz', $a);
     $eventdata->contexturl        = $a->quizurl;
     $eventdata->contexturlname    = $a->quizname;
+    $eventdata->customdata        = [
+        'cmid' => $a->quizcmid,
+        'instance' => $a->quizid,
+        'attemptid' => $a->attemptid,
+    ];
 
     // ... and send it.
     return message_send($eventdata);
@@ -1559,6 +1563,7 @@ function quiz_send_confirmation($recipient, $a) {
  * @return int|false as for {@link message_send()}.
  */
 function quiz_send_notification($recipient, $submitter, $a) {
+    global $PAGE;
 
     // Recipient info for template.
     $a->useridnumber = $recipient->idnumber;
@@ -1582,6 +1587,14 @@ function quiz_send_notification($recipient, $submitter, $a) {
     $eventdata->smallmessage      = get_string('emailnotifysmall', 'quiz', $a);
     $eventdata->contexturl        = $a->quizreviewurl;
     $eventdata->contexturlname    = $a->quizname;
+    $userpicture = new user_picture($submitter);
+    $userpicture->includetoken = $recipient->id; // Generate an out-of-session token for the user receiving the message.
+    $eventdata->customdata        = [
+        'cmid' => $a->quizcmid,
+        'instance' => $a->quizid,
+        'attemptid' => $a->attemptid,
+        'notificationiconurl' => $userpicture->get_url($PAGE)->out(false),
+    ];
 
     // ... and send it.
     return message_send($eventdata);
@@ -1650,12 +1663,15 @@ function quiz_send_notification_messages($course, $quiz, $attempt, $context, $cm
             format_string($quiz->name) . ' report</a>';
     $a->quizurl         = $CFG->wwwroot . '/mod/quiz/view.php?id=' . $cm->id;
     $a->quizlink        = '<a href="' . $a->quizurl . '">' . format_string($quiz->name) . '</a>';
+    $a->quizid          = $quiz->id;
+    $a->quizcmid        = $cm->id;
     // Attempt info.
     $a->submissiontime  = userdate($attempt->timefinish);
     $a->timetaken       = format_time($attempt->timefinish - $attempt->timestart);
     $a->quizreviewurl   = $CFG->wwwroot . '/mod/quiz/review.php?attempt=' . $attempt->id;
     $a->quizreviewlink  = '<a href="' . $a->quizreviewurl . '">' .
             format_string($quiz->name) . ' review</a>';
+    $a->attemptid       = $attempt->id;
     // Student who sat the quiz info.
     $a->studentidnumber = $submitter->idnumber;
     $a->studentname     = fullname($submitter);
@@ -1749,6 +1765,11 @@ function quiz_send_overdue_message($attemptobj) {
     $eventdata->smallmessage      = get_string('emailoverduesmall', 'quiz', $a);
     $eventdata->contexturl        = $a->quizurl;
     $eventdata->contexturlname    = $a->quizname;
+    $eventdata->customdata        = [
+        'cmid' => $attemptobj->get_cmid(),
+        'instance' => $attemptobj->get_quizid(),
+        'attemptid' => $attemptobj->get_attemptid(),
+    ];
 
     // Send the message.
     return message_send($eventdata);
@@ -2314,8 +2335,8 @@ function quiz_validate_new_attempt(quiz $quizobj, quiz_access_manager $accessman
     // Check to see if a new preview was requested.
     if ($quizobj->is_preview_user() && $forcenew) {
         // To force the creation of a new preview, we mark the current attempt (if any)
-        // as finished. It will then automatically be deleted below.
-        $DB->set_field('quiz_attempts', 'state', quiz_attempt::FINISHED,
+        // as abandoned. It will then automatically be deleted below.
+        $DB->set_field('quiz_attempts', 'state', quiz_attempt::ABANDONED,
                 array('quiz' => $quizobj->get_quizid(), 'userid' => $USER->id));
     }
 
@@ -2374,14 +2395,19 @@ function quiz_validate_new_attempt(quiz $quizobj, quiz_access_manager $accessman
 /**
  * Prepare and start a new attempt deleting the previous preview attempts.
  *
- * @param  quiz $quizobj quiz object
- * @param  int $attemptnumber the attempt number
- * @param  object $lastattempt last attempt object
+ * @param quiz $quizobj quiz object
+ * @param int $attemptnumber the attempt number
+ * @param object $lastattempt last attempt object
  * @param bool $offlineattempt whether is an offline attempt or not
+ * @param array $forcedrandomquestions slot number => question id. Used for random questions,
+ *      to force the choice of a particular actual question. Intended for testing purposes only.
+ * @param array $forcedvariants slot number => variant. Used for questions with variants,
+ *      to force the choice of a particular variant. Intended for testing purposes only.
  * @return object the new attempt
  * @since  Moodle 3.1
  */
-function quiz_prepare_and_start_new_attempt(quiz $quizobj, $attemptnumber, $lastattempt, $offlineattempt = false) {
+function quiz_prepare_and_start_new_attempt(quiz $quizobj, $attemptnumber, $lastattempt,
+        $offlineattempt = false, $forcedrandomquestions = [], $forcedvariants = []) {
     global $DB, $USER;
 
     // Delete any previous preview attempts belonging to this user.
@@ -2395,7 +2421,8 @@ function quiz_prepare_and_start_new_attempt(quiz $quizobj, $attemptnumber, $last
     $attempt = quiz_create_attempt($quizobj, $attemptnumber, $lastattempt, $timenow, $quizobj->is_preview_user());
 
     if (!($quizobj->get_quiz()->attemptonlast && $lastattempt)) {
-        $attempt = quiz_start_new_attempt($quizobj, $quba, $attempt, $attemptnumber, $timenow);
+        $attempt = quiz_start_new_attempt($quizobj, $quba, $attempt, $attemptnumber, $timenow,
+                $forcedrandomquestions, $forcedvariants);
     } else {
         $attempt = quiz_start_attempt_built_on_last($quba, $attempt, $lastattempt);
     }

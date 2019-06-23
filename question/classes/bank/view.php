@@ -462,7 +462,7 @@ class view {
      */
     public function display($tabname, $page, $perpage, $cat,
             $recurse, $showhidden, $showquestiontext, $tagids = []) {
-        global $PAGE;
+        global $PAGE, $CFG;
 
         if ($this->process_actions_needing_ui()) {
             return;
@@ -473,7 +473,14 @@ class view {
         $thiscontext = $this->get_most_specific_context();
         // Category selection form.
         $this->display_question_bank_header();
-        array_unshift($this->searchconditions, new \core_question\bank\search\tag_condition([$catcontext, $thiscontext], $tagids));
+
+        // Display tag filter if usetags setting is enabled.
+        if ($CFG->usetags) {
+            array_unshift($this->searchconditions,
+                    new \core_question\bank\search\tag_condition([$catcontext, $thiscontext], $tagids));
+            $PAGE->requires->js_call_amd('core_question/edit_tags', 'init', ['#questionscontainer']);
+        }
+
         array_unshift($this->searchconditions, new \core_question\bank\search\hidden_condition(!$showhidden));
         array_unshift($this->searchconditions, new \core_question\bank\search\category_condition(
                 $cat, $recurse, $editcontexts, $this->baseurl, $this->course));
@@ -485,7 +492,6 @@ class view {
                 null, $page, $perpage, $showhidden, $showquestiontext,
                 $this->contexts->having_cap('moodle/question:add'));
 
-        $PAGE->requires->js_call_amd('core_question/edit_tags', 'init', ['#questionscontainer']);
     }
 
     protected function print_choose_category_message($categoryandcontext) {
@@ -688,7 +694,7 @@ class view {
     protected function display_question_list($contexts, $pageurl, $categoryandcontext,
             $cm = null, $recurse=1, $page=0, $perpage=100, $showhidden=false,
             $showquestiontext = false, $addcontexts = array()) {
-        global $CFG, $DB, $OUTPUT;
+        global $CFG, $DB, $OUTPUT, $PAGE;
 
         // This function can be moderately slow with large question counts and may time out.
         // We probably do not want to raise it to unlimited, so randomly picking 5 minutes.
@@ -757,6 +763,8 @@ class view {
             echo "<div class='paging'>{$showall}</div>";
         }
         echo '</div>';
+
+        $PAGE->requires->js_call_amd('core_question/qbankmanager', 'init');
 
         $this->display_bottom_controls($totalnumber, $recurse, $category, $catcontext, $addcontexts);
 

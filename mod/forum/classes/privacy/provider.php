@@ -96,6 +96,7 @@ class provider implements
             'subject' => 'privacy:metadata:forum_posts:subject',
             'message' => 'privacy:metadata:forum_posts:message',
             'userid' => 'privacy:metadata:forum_posts:userid',
+            'privatereplyto' => 'privacy:metadata:forum_posts:privatereplyto',
         ], 'privacy:metadata:forum_posts');
 
         // The 'forum_queue' table contains user data, but it is only a temporary cache of other data.
@@ -139,6 +140,8 @@ class provider implements
         $items->add_user_preference('autosubscribe', 'privacy:metadata:preference:autosubscribe');
         $items->add_user_preference('trackforums', 'privacy:metadata:preference:trackforums');
         $items->add_user_preference('markasreadonnotification', 'privacy:metadata:preference:markasreadonnotification');
+        $items->add_user_preference('forum_discussionlistsortorder',
+            'privacy:metadata:preference:forum_discussionlistsortorder');
 
         return $items;
     }
@@ -152,46 +155,105 @@ class provider implements
      * @return  contextlist $contextlist  The contextlist containing the list of contexts used in this plugin.
      */
     public static function get_contexts_for_userid(int $userid) : \core_privacy\local\request\contextlist {
-        $ratingsql = \core_rating\privacy\provider::get_sql_join('rat', 'mod_forum', 'post', 'p.id', $userid);
-        // Fetch all forum discussions, and forum posts.
+        $contextlist = new \core_privacy\local\request\contextlist();
+
+        $params = [
+            'modname'       => 'forum',
+            'contextlevel'  => CONTEXT_MODULE,
+            'userid'        => $userid,
+        ];
+
+        // Discussion creators.
         $sql = "SELECT c.id
                   FROM {context} c
                   JOIN {course_modules} cm ON cm.id = c.instanceid AND c.contextlevel = :contextlevel
                   JOIN {modules} m ON m.id = cm.module AND m.name = :modname
                   JOIN {forum} f ON f.id = cm.instance
-             LEFT JOIN {forum_discussions} d ON d.forum = f.id
-             LEFT JOIN {forum_posts} p ON p.discussion = d.id
-             LEFT JOIN {forum_digests} dig ON dig.forum = f.id AND dig.userid = :digestuserid
-             LEFT JOIN {forum_subscriptions} sub ON sub.forum = f.id AND sub.userid = :subuserid
-             LEFT JOIN {forum_track_prefs} pref ON pref.forumid = f.id AND pref.userid = :prefuserid
-             LEFT JOIN {forum_read} hasread ON hasread.forumid = f.id AND hasread.userid = :hasreaduserid
-             LEFT JOIN {forum_discussion_subs} dsub ON dsub.forum = f.id AND dsub.userid = :dsubuserid
-             {$ratingsql->join}
-                 WHERE (
-                    p.userid        = :postuserid OR
-                    d.userid        = :discussionuserid OR
-                    dig.id IS NOT NULL OR
-                    sub.id IS NOT NULL OR
-                    pref.id IS NOT NULL OR
-                    hasread.id IS NOT NULL OR
-                    dsub.id IS NOT NULL OR
-                    {$ratingsql->userwhere}
-                )
+                  JOIN {forum_discussions} d ON d.forum = f.id
+                 WHERE d.userid = :userid
         ";
-        $params = [
-            'modname'           => 'forum',
-            'contextlevel'      => CONTEXT_MODULE,
-            'postuserid'        => $userid,
-            'discussionuserid'  => $userid,
-            'digestuserid'      => $userid,
-            'subuserid'         => $userid,
-            'prefuserid'        => $userid,
-            'hasreaduserid'     => $userid,
-            'dsubuserid'        => $userid,
-        ];
-        $params += $ratingsql->params;
+        $contextlist->add_from_sql($sql, $params);
 
-        $contextlist = new \core_privacy\local\request\contextlist();
+        // Post authors.
+        $sql = "SELECT c.id
+                  FROM {context} c
+                  JOIN {course_modules} cm ON cm.id = c.instanceid AND c.contextlevel = :contextlevel
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+                  JOIN {forum} f ON f.id = cm.instance
+                  JOIN {forum_discussions} d ON d.forum = f.id
+                  JOIN {forum_posts} p ON p.discussion = d.id
+                 WHERE p.userid = :userid
+        ";
+        $contextlist->add_from_sql($sql, $params);
+
+        // Forum digest records.
+        $sql = "SELECT c.id
+                  FROM {context} c
+                  JOIN {course_modules} cm ON cm.id = c.instanceid AND c.contextlevel = :contextlevel
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+                  JOIN {forum} f ON f.id = cm.instance
+                  JOIN {forum_digests} dig ON dig.forum = f.id
+                 WHERE dig.userid = :userid
+        ";
+        $contextlist->add_from_sql($sql, $params);
+
+        // Forum subscriptions.
+        $sql = "SELECT c.id
+                  FROM {context} c
+                  JOIN {course_modules} cm ON cm.id = c.instanceid AND c.contextlevel = :contextlevel
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+                  JOIN {forum} f ON f.id = cm.instance
+                  JOIN {forum_subscriptions} sub ON sub.forum = f.id
+                 WHERE sub.userid = :userid
+        ";
+        $contextlist->add_from_sql($sql, $params);
+
+        // Discussion subscriptions.
+        $sql = "SELECT c.id
+                  FROM {context} c
+                  JOIN {course_modules} cm ON cm.id = c.instanceid AND c.contextlevel = :contextlevel
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+                  JOIN {forum} f ON f.id = cm.instance
+                  JOIN {forum_discussion_subs} dsub ON dsub.forum = f.id
+                 WHERE dsub.userid = :userid
+        ";
+        $contextlist->add_from_sql($sql, $params);
+
+        // Discussion tracking preferences.
+        $sql = "SELECT c.id
+                  FROM {context} c
+                  JOIN {course_modules} cm ON cm.id = c.instanceid AND c.contextlevel = :contextlevel
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+                  JOIN {forum} f ON f.id = cm.instance
+                  JOIN {forum_track_prefs} pref ON pref.forumid = f.id
+                 WHERE pref.userid = :userid
+        ";
+        $contextlist->add_from_sql($sql, $params);
+
+        // Discussion read records.
+        $sql = "SELECT c.id
+                  FROM {context} c
+                  JOIN {course_modules} cm ON cm.id = c.instanceid AND c.contextlevel = :contextlevel
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+                  JOIN {forum} f ON f.id = cm.instance
+                  JOIN {forum_read} hasread ON hasread.forumid = f.id
+                 WHERE hasread.userid = :userid
+        ";
+        $contextlist->add_from_sql($sql, $params);
+
+        // Rating authors.
+        $ratingsql = \core_rating\privacy\provider::get_sql_join('rat', 'mod_forum', 'post', 'p.id', $userid, true);
+        $sql = "SELECT c.id
+                  FROM {context} c
+                  JOIN {course_modules} cm ON cm.id = c.instanceid AND c.contextlevel = :contextlevel
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+                  JOIN {forum} f ON f.id = cm.instance
+                  JOIN {forum_discussions} d ON d.forum = f.id
+                  JOIN {forum_posts} p ON p.discussion = d.id
+                  {$ratingsql->join}
+                 WHERE {$ratingsql->userwhere}
+        ";
+        $params += $ratingsql->params;
         $contextlist->add_from_sql($sql, $params);
 
         return $contextlist;
@@ -347,7 +409,41 @@ class provider implements
             writer::export_user_preference('mod_forum', 'markasreadonnotification', $markasreadonnotification,
                     $markasreadonnotificationdescription);
         }
+
+        $vaultfactory = \mod_forum\local\container::get_vault_factory();
+        $discussionlistvault = $vaultfactory->get_discussions_in_forum_vault();
+        $discussionlistsortorder = get_user_preferences('forum_discussionlistsortorder',
+            $discussionlistvault::SORTORDER_LASTPOST_DESC);
+        switch ($discussionlistsortorder) {
+            case $discussionlistvault::SORTORDER_LASTPOST_DESC:
+                $discussionlistsortorderdescription = get_string('discussionlistsortbylastpostdesc',
+                    'mod_forum');
+                break;
+            case $discussionlistvault::SORTORDER_LASTPOST_ASC:
+                $discussionlistsortorderdescription = get_string('discussionlistsortbylastpostasc',
+                    'mod_forum');
+                break;
+            case $discussionlistvault::SORTORDER_CREATED_DESC:
+                $discussionlistsortorderdescription = get_string('discussionlistsortbycreateddesc',
+                    'mod_forum');
+                break;
+            case $discussionlistvault::SORTORDER_CREATED_ASC:
+                $discussionlistsortorderdescription = get_string('discussionlistsortbycreatedasc',
+                    'mod_forum');
+                break;
+            case $discussionlistvault::SORTORDER_REPLIES_DESC:
+                $discussionlistsortorderdescription = get_string('discussionlistsortbyrepliesdesc',
+                    'mod_forum');
+                break;
+            case $discussionlistvault::SORTORDER_REPLIES_ASC:
+                $discussionlistsortorderdescription = get_string('discussionlistsortbyrepliesasc',
+                    'mod_forum');
+                break;
+        }
+        writer::export_user_preference('mod_forum', 'forum_discussionlistsortorder',
+            $discussionlistsortorder, $discussionlistsortorderdescription);
     }
+
 
     /**
      * Export all user data for the specified user, in the specified contexts.
@@ -365,30 +461,68 @@ class provider implements
         $userid = $user->id;
 
         list($contextsql, $contextparams) = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
+        $params = $contextparams;
 
+        // Digested forums.
         $sql = "SELECT
                     c.id AS contextid,
-                    f.*,
-                    cm.id AS cmid,
-                    dig.maildigest,
-                    sub.userid AS subscribed,
+                    dig.maildigest AS maildigest
+                  FROM {context} c
+                  JOIN {course_modules} cm ON cm.id = c.instanceid
+                  JOIN {forum} f ON f.id = cm.instance
+                  JOIN {forum_digests} dig ON dig.forum = f.id
+                 WHERE (
+                    dig.userid = :userid AND
+                    c.id {$contextsql}
+                )
+        ";
+        $params['userid'] = $userid;
+        $digests = $DB->get_records_sql_menu($sql, $params);
+
+        // Forum subscriptions.
+        $sql = "SELECT
+                    c.id AS contextid,
+                    sub.userid AS subscribed
+                  FROM {context} c
+                  JOIN {course_modules} cm ON cm.id = c.instanceid
+                  JOIN {forum} f ON f.id = cm.instance
+                  JOIN {forum_subscriptions} sub ON sub.forum = f.id
+                 WHERE (
+                    sub.userid = :userid AND
+                    c.id {$contextsql}
+                )
+        ";
+        $params['userid'] = $userid;
+        $subscriptions = $DB->get_records_sql_menu($sql, $params);
+
+        // Tracked forums.
+        $sql = "SELECT
+                    c.id AS contextid,
                     pref.userid AS tracked
                   FROM {context} c
                   JOIN {course_modules} cm ON cm.id = c.instanceid
                   JOIN {forum} f ON f.id = cm.instance
-             LEFT JOIN {forum_digests} dig ON dig.forum = f.id AND dig.userid = :digestuserid
-             LEFT JOIN {forum_subscriptions} sub ON sub.forum = f.id AND sub.userid = :subuserid
-             LEFT JOIN {forum_track_prefs} pref ON pref.forumid = f.id AND pref.userid = :prefuserid
+                  JOIN {forum_track_prefs} pref ON pref.forumid = f.id
+                 WHERE (
+                    pref.userid = :userid AND
+                    c.id {$contextsql}
+                )
+        ";
+        $params['userid'] = $userid;
+        $tracked = $DB->get_records_sql_menu($sql, $params);
+
+        $sql = "SELECT
+                    c.id AS contextid,
+                    f.*,
+                    cm.id AS cmid
+                  FROM {context} c
+                  JOIN {course_modules} cm ON cm.id = c.instanceid
+                  JOIN {forum} f ON f.id = cm.instance
                  WHERE (
                     c.id {$contextsql}
                 )
         ";
 
-        $params = [
-            'digestuserid'  => $userid,
-            'subuserid'     => $userid,
-            'prefuserid'    => $userid,
-        ];
         $params += $contextparams;
 
         // Keep a mapping of forumid to contextid.
@@ -407,9 +541,15 @@ class provider implements
             request_helper::export_context_files($context, $user);
 
             // Store relevant metadata about this forum instance.
-            static::export_digest_data($userid, $forum);
-            static::export_subscription_data($userid, $forum);
-            static::export_tracking_data($userid, $forum);
+            if (isset($digests[$forum->contextid])) {
+                static::export_digest_data($userid, $forum, $digests[$forum->contextid]);
+            }
+            if (isset($subscriptions[$forum->contextid])) {
+                static::export_subscription_data($userid, $forum, $subscriptions[$forum->contextid]);
+            }
+            if (isset($tracked[$forum->contextid])) {
+                static::export_tracking_data($userid, $forum, $tracked[$forum->contextid]);
+            }
         }
         $forums->close();
 
@@ -517,6 +657,7 @@ class provider implements
                  WHERE f.id ${foruminsql} AND
                 (
                     p.userid = :postuserid OR
+                    p.privatereplyto = :privatereplyrecipient OR
                     fr.id IS NOT NULL OR
                     {$ratingsql->userwhere}
                 )
@@ -526,6 +667,7 @@ class provider implements
         $params = [
             'postuserid'    => $userid,
             'readuserid'    => $userid,
+            'privatereplyrecipient' => $userid,
         ];
         $params += $forumparams;
         $params += $ratingsql->params;
@@ -563,11 +705,18 @@ class provider implements
                LEFT JOIN {forum_read} fr ON fr.postid = p.id AND fr.userid = :readuserid
             {$ratingsql->join} AND {$ratingsql->userwhere}
                    WHERE d.id = :discussionid
+                     AND (
+                            p.privatereplyto = 0
+                         OR p.privatereplyto = :privatereplyrecipient
+                         OR p.userid = :privatereplyauthor
+                     )
         ";
 
         $params = [
             'discussionid'  => $discussionid,
             'readuserid'    => $userid,
+            'privatereplyrecipient' => $userid,
+            'privatereplyauthor' => $userid,
         ];
         $params += $ratingsql->params;
 
@@ -582,6 +731,7 @@ class provider implements
             $post->hasdata = $post->hasdata || !empty($post->hasratings);
             $post->hasdata = $post->hasdata || $post->readflag;
             $post->hasdata = $post->hasdata || ($post->userid == $USER->id);
+            $post->hasdata = $post->hasdata || ($post->privatereplyto == $USER->id);
 
             if (0 == $post->parent) {
                 $structure->children[$post->id] = $post;
@@ -653,6 +803,10 @@ class provider implements
             'author_was_you' => transform::yesno($post->userid == $userid),
         ];
 
+        if (!empty($post->privatereplyto)) {
+            $postdata->privatereply = transform::yesno(true);
+        }
+
         $postdata->message = writer::with_context($context)
             ->rewrite_pluginfile_urls($postarea, 'mod_forum', 'post', $post->id, $post->message);
 
@@ -704,16 +858,17 @@ class provider implements
      *
      * @param   int         $userid The userid of the user whose data is to be exported.
      * @param   \stdClass   $forum The forum whose data is being exported.
+     * @param   int         $maildigest The mail digest setting for this forum.
      * @return  bool        Whether any data was stored.
      */
-    protected static function export_digest_data(int $userid, \stdClass $forum) {
-        if (null !== $forum->maildigest) {
+    protected static function export_digest_data(int $userid, \stdClass $forum, int $maildigest) {
+        if (null !== $maildigest) {
             // The user has a specific maildigest preference for this forum.
             $a = (object) [
                 'forum' => format_string($forum->name, true),
             ];
 
-            switch ($forum->maildigest) {
+            switch ($maildigest) {
                 case 0:
                     $a->type = get_string('emaildigestoffshort', 'mod_forum');
                     break;
@@ -726,7 +881,7 @@ class provider implements
             }
 
             writer::with_context(\context_module::instance($forum->cmid))
-                ->export_metadata([], 'digestpreference', $forum->maildigest,
+                ->export_metadata([], 'digestpreference', $maildigest,
                     get_string('privacy:digesttypepreference', 'mod_forum', $a));
 
             return true;
@@ -740,10 +895,11 @@ class provider implements
      *
      * @param   int         $userid The userid of the user whose data is to be exported.
      * @param   \stdClass   $forum The forum whose data is being exported.
+     * @param   int         $subscribed if the user is subscribed
      * @return  bool        Whether any data was stored.
      */
-    protected static function export_subscription_data(int $userid, \stdClass $forum) {
-        if (null !== $forum->subscribed) {
+    protected static function export_subscription_data(int $userid, \stdClass $forum, int $subscribed) {
+        if (null !== $subscribed) {
             // The user is subscribed to this forum.
             writer::with_context(\context_module::instance($forum->cmid))
                 ->export_metadata([], 'subscriptionpreference', 1, get_string('privacy:subscribedtoforum', 'mod_forum'));
@@ -798,10 +954,11 @@ class provider implements
      *
      * @param   int         $userid The userid of the user whose data is to be exported.
      * @param   \stdClass   $forum The forum whose data is being exported.
+     * @param   int         $tracke if the user is subscribed
      * @return  bool        Whether any data was stored.
      */
-    protected static function export_tracking_data(int $userid, \stdClass $forum) {
-        if (null !== $forum->tracked) {
+    protected static function export_tracking_data(int $userid, \stdClass $forum, int $tracked) {
+        if (null !== $tracked) {
             // The user has a main preference to track all forums, but has opted out of this one.
             writer::with_context(\context_module::instance($forum->cmid))
                 ->export_metadata([], 'trackreadpreference', 0, get_string('privacy:readtrackingdisabled', 'mod_forum'));

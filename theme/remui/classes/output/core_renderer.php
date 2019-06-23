@@ -14,6 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Edwiser RemUI 
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace theme_remui\output;
 
 use coding_exception;
@@ -103,6 +110,7 @@ class core_renderer extends remui_renderer
         $html .= html_writer::tag('div', $this->course_header(), array('id' => 'course-header'));
 
         $html .= html_writer::end_tag('header');
+        
         return $html;
     }
 
@@ -157,7 +165,7 @@ class core_renderer extends remui_renderer
             $type = \theme_remui\toolbox::get_setting('announcementtype');
             $message = \theme_remui\toolbox::get_setting('announcementtext');
 
-            $announcement .= "<div class='alert alert-{$type} dark text-center rounded-0'>";
+            $announcement .= "<div class='alert alert-{$type} dark text-center rounded-0 site-announcement m-b-0'>";
             $announcement .= $message;
             $announcement .= "</div>";
         }
@@ -309,18 +317,16 @@ class core_renderer extends remui_renderer
         $inputattrs = array('type' => 'text', 'name' => 'q', 'placeholder' => get_string('search', 'search'),
              'size' => 13, 'tabindex' => -1, 'id' => 'id_q_' . $id, 'class' => 'form-control');
 
-        $formcontent = html_writer::tag(
-            'div',
-            html_writer::start_tag('div', array('class' => 'input-search')).
+        $formcontent = html_writer::tag('div', 
             $this->pix_icon('a/search', '', '', array('class' => 'input-search-icon')).
             html_writer::tag('input', '', $inputattrs).
-            html_writer::tag('input', '', array('type' => 'submit', 'class' => 'hidden')).
-            html_writer::tag('button', '', array('class' => 'input-search-close icon fa-times', 'data-target' => '#site-navbar-search', 'data-toggle' => 'collapse', 'aria-label' => 'Close')).
-            html_writer::end_tag('div'),
-            array('for' => 'id_q_' . $id, 'class' => 'form-group')
+            html_writer::tag('input', '', array('type' => 'submit', 'class' => 'hidden'))
         );
 
-        $form = html_writer::tag('form', $formcontent, $formattrs);
+        $form = html_writer::start_tag('div', array('class' => 'input-search')). 
+                html_writer::tag('form', $formcontent, $formattrs).
+                html_writer::tag('button', '', array('class' => 'input-search-close icon fa-times', 'data-target' => '#site-navbar-search', 'data-toggle' => 'collapse', 'aria-label' => 'Close')). 
+                html_writer::end_tag('div');
 
         $contentwrapper = html_writer::tag(
             'div',
@@ -352,8 +358,8 @@ class core_renderer extends remui_renderer
 
         // All the html stuff goes here.
         $html = '';
-
-        // get page heading button
+        $htmltemp = ''; // prepare html based on overlay is on or off
+        
         // moved from full_header for proper remui html structure
         $pageheadingbutton = $this->page_heading_button();
 
@@ -364,27 +370,32 @@ class core_renderer extends remui_renderer
             $headings = $this->heading($contextheader->heading, $contextheader->headinglevel, 'page-title');
         }
 
+        $html .= "<div class='float-left mr-10'>";
         $html .= $headings;
 
         if (empty($PAGE->layout_options['nonavbar'])) {
             $html .= $this->navbar();
+        } else {
+            $html .= '<ol class="breadcrumb"><li class="breadcrumb-item"><a href="#"><p></p></a></li></ol>';
+        }
+        $html .= "</div>";
+
+        // little hack for now, to always show overlay buttons for mobile devices
+        // will be transfered to html and css later
+        $actualdevice = \core_useragent::get_device_type();
+        $currentdevice = $this->page->devicetypeinuse;
+        $overlay = \theme_remui\toolbox::get_setting('enableheaderbuttons');
+        if(!$overlay) {
+            if($actualdevice == 'mobile' && $currentdevice == 'mobile') {
+                $overlay = 1;
+            }
         }
 
-        // page header actions
-        $html .= html_writer::start_div('page-header-actions');
-        $html .= $pageheadingbutton;
-        $html .= html_writer::end_div();
-
-
-        // header settings menu
-        $classes = array();
-        $settings_menu = $this->context_header_settings_menu();
-        if (!empty($settings_menu)) {
-            $classes = array();
+        // add heading and additional buttons in temp var
+        // additional context header buttons
+        if($overlay && !strpos($PAGE->bodyclasses, 'path-mod-forum')) {
+            $htmltemp .= $pageheadingbutton;
         }
-        $html .= html_writer::start_div('row additional-actions');
-        $html .= html_writer::start_div('col-12');
-        // Additional context header buttons.
         if (isset($contextheader->additionalbuttons)) {
             foreach ($contextheader->additionalbuttons as $button) {
                 if (!isset($button->page)) {
@@ -394,7 +405,7 @@ class core_renderer extends remui_renderer
                     }
 
                     $image = $this->pix_icon($button['formattedimage'], $button['title'], 'moodle', array(
-                        'class' => 'iconsmall',
+                        'class' => 'iconsize-button',
                         'role' => 'presentation'
                     ));
 
@@ -406,15 +417,40 @@ class core_renderer extends remui_renderer
                     ));
                 }
 
-                // add additional class
-                $button['linkattributes']['class'] .= ' btn btn-inverse mr-5';
-                $html .= html_writer::link($button['url'], $image, $button['linkattributes']);
+                $button['linkattributes']['class'] .= '  btn btn-inverse mr-5';
+                $htmltemp .= html_writer::link($button['url'], $image, $button['linkattributes']);
             }
         }
+
+        // page header actions
+        $html .= html_writer::start_div('page-header-actionss position-relative float-right');
+        
         $html .= $this->context_header_settings_menu();
 
+        if($overlay && strpos($PAGE->bodyclasses, 'path-mod-forum') || !$overlay) {
+            $html .= $pageheadingbutton;
+        }
+        
+        if(!$overlay) {
+            $html .= $htmltemp;
+        }
+
+        // show overlay menu icon if overlay is enabled and there are menu items (in html temp)
+        if($overlay) {
+            if($htmltemp != '') {
+                $html .= '<span class="overlay-menu my-5">';
+                $html .= '<button type="button" class="btn btn-inverse dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fa fa-ellipsis-v px-5" aria-hidden="true"></i></button>';
+                $html .= '<div class="dropdown-menu p-10 dropdown-menu-right">';
+                $html .= $htmltemp;
+                $html .= '</div>';
+                $html .= '</span>';
+            }
+        }
+        
         $html .= html_writer::end_div();
-        $html .= html_writer::end_div();
+
+        $html .= '<div style="clear: both;"></div>';
 
         return $html;
     }
@@ -525,7 +561,6 @@ class core_renderer extends remui_renderer
                     background-position: center; height:50px; background-size: contain; background-repeat: no-repeat;'></span>
             </a>";
         <?php
-
         } elseif ($logoorsitename == 'sitename') {
             ?>
             <a class="logo" href="<?php echo $CFG->wwwroot; ?>">
@@ -535,7 +570,6 @@ class core_renderer extends remui_renderer
               </span>
             </a>
         <?php
-
         } else {
             ?>
             <a class="logo" href="<?php echo $CFG->wwwroot; ?>">
@@ -546,7 +580,6 @@ class core_renderer extends remui_renderer
               </span>
             </a>
         <?php
-
         }
 
         // $logo = $this->get_compact_logo_url();
@@ -722,6 +755,12 @@ class core_renderer extends remui_renderer
             $loginurl = '#';
             $loginurl_datatoggle = 'data-toggle="dropdown"';
         }
+
+        $logintoken = \core\session\manager::get_login_token();
+        $tokenhtml = '<div class="form-group">
+                <input type="hidden" name="logintoken" value="'.$logintoken.'">
+            </div>';
+
         // sign in popup
         $signinformhtml = '<ul class="dropdown-menu w-350 p-15" role="menu">
                     <form class="mb-0" action="'.get_login_url().'" method="post" id="login">
@@ -734,7 +773,7 @@ class core_renderer extends remui_renderer
                             <label for="password" class="sr-only">'.get_string('password').'</label>
                             <input type="password" name="password" id="password" value="" class="form-control"placeholder='.get_string('password').'>
                         </div>
-
+                        '.$tokenhtml.'
                         <div class="form-group clearfix">
                             <div class="checkbox-custom checkbox-inline checkbox-primary float-left rememberpass">
                                 <input type="checkbox" id="rememberusername" name="rememberusername" value="1" />
@@ -744,8 +783,35 @@ class core_renderer extends remui_renderer
                         </div>
 
                         <button type="submit" class="btn btn-primary btn-block" id="loginbtn">'.get_string('login').'</button>
-                    </form>
-                    </ul>';
+                    </form>';
+
+        // $signinformhtml .= '</ul>';
+
+        $authsequence = get_enabled_auth_plugins(true); // Get all auths, in sequence.
+
+        $potentialidps = array();
+        foreach ($authsequence as $authname) {
+            $authplugin = get_auth_plugin($authname);
+            $potentialidps = array_merge($potentialidps, $authplugin->loginpage_idp_list($this->page->url->out(false)));
+        }
+        if (!empty($potentialidps)) {
+            $signinformhtml .= '<div class="potentialidp my-10 text-center">';
+            $signinformhtml .= '<label class="w-full m-5">Log in using your account on</label>';
+            $signinformhtml .= '<div class="button-group ">';
+            foreach ($potentialidps as $idp) {
+                // $signinformhtml .= '<button type="button">';
+                $signinformhtml .= '<a class="btn btn-icon m-5" href="' . $idp['url']->out() . '" title="' . s($idp['name']) . ' Login">';
+                if (!empty($idp['iconurl'])) {
+                    $signinformhtml .= '<img src="' . s($idp['iconurl']) . '" width="24" height="24" />';
+                }
+                $signinformhtml .= '</a>';
+                // $signinformhtml .= '</button>';
+            }
+            $signinformhtml .= '</div>';
+            $signinformhtml .= '</div>';
+        }
+        $signinformhtml .= '</ul>';
+
 
         // If not logged in, show the typical not-logged-in string.
         if (!isloggedin()) {
@@ -753,7 +819,7 @@ class core_renderer extends remui_renderer
             $returnstr = '';
             if (!$loginpage) {
                 $returnstr = '<a href="'.$loginurl.'" class="nav-link" '.$loginurl_datatoggle.' data-animation="scale-up">
-                <i class="icon wb-user"></i>&nbsp;'.get_string('login').'</a>';
+                <i class="icon fa-user"></i>&nbsp;'.get_string('login').'</a>';
 
                 if ($login_dropdown) {
                     $returnstr  .= $signinformhtml;
@@ -769,7 +835,7 @@ class core_renderer extends remui_renderer
             $returnstr = '';
             if (!$loginpage && $withlinks) {
                 $returnstr = '<a href="'.$loginurl.'" class="nav-link" '.$loginurl_datatoggle.' data-animation="scale-up">
-                <i class="icon wb-user"></i>&nbsp;'.get_string('login').'</a>';
+                <i class="icon fa-user"></i>&nbsp;'.get_string('login').'</a>';
 
                 if ($login_dropdown) {
                     $returnstr  .= $signinformhtml;
@@ -880,16 +946,6 @@ class core_renderer extends remui_renderer
                             ) . $value->title;
                         }
 
-                        // $al = new action_menu_link_secondary(
-                        //     $value->url,
-                        //     $pix,
-                        //     $value->title,
-                        //     array('class' => 'icon')
-                        // );
-                        // if (!empty($value->titleidentifier)) {
-                        //     $al->attributes['data-title'] = $value->titleidentifier;
-                        // }
-                        // $am->add($al);
                         $icon = $this->pix_icon($pix->pix, '', 'moodle', $pix->attributes);
                         $usermenu .= '<a class="dropdown-item" href="'.$value->url.'" role="menuitem">'.$icon.$value->title.'</a>';
                         break;
@@ -988,13 +1044,18 @@ class core_renderer extends remui_renderer
         $context->arialabel = $bc->arialabel;
         $context->ariarole = !empty($bc->attributes['role']) ? $bc->attributes['role'] : 'complementary';
         $context->type = $bc->attributes['data-block'];
-        $context->title = $bc->title;
+        $context->title = strip_tags($bc->title);
         $context->content = $bc->content;
         $context->annotation = $bc->annotation;
         $context->footer = $bc->footer;
         $context->hascontrols = !empty($bc->controls);
         if ($context->hascontrols) {
             $context->controls = $this->block_controls($bc->controls, $id);
+        }
+        
+        if($context->type == 'remuiblck')
+        {
+            $context->isremuiblck = true;
         }
 
         return $this->render_from_template('core/block', $context);
@@ -1093,7 +1154,7 @@ class core_renderer extends remui_renderer
      */
     public function render_login(\core_auth\output\login $form)
     {
-        global $SITE;
+        global $SITE, $CFG;
 
         $context = $form->export_for_template($this);
 
@@ -1109,7 +1170,12 @@ class core_renderer extends remui_renderer
 
         $context->loginpage_context = $this->should_display_logo();
         $context->loginsocial_context = \theme_remui\utility::get_footer_data(1);
-
+        $context->logopos = get_config('theme_remui', 'brandlogopos');
+        $context->logintoken = \core\session\manager::get_login_token();
+        $sitetext = get_config('theme_remui', 'brandlogotext');
+        if ($sitetext != '') {
+            $context->sitedesc = $sitetext;
+        }
         return $this->render_from_template('core/loginform', $context);
     }
 
@@ -1133,7 +1199,12 @@ class core_renderer extends remui_renderer
 
         // modify form html
         $context['formhtml'] = str_replace(array('form-inline', 'col-md-9', 'col-md-3', 'btn-primary', 'btn-secondary'), array('', 'col-md-11 p-0', 'col-md-1 p-0', 'btn-primary btn-block', 'btn-default btn-block'), $context['formhtml']);
-
+        $context['loginpage_context'] = $this->should_display_logo();
+        $context['logopos'] = get_config('theme_remui', 'brandlogopos');
+        $sitetext = get_config('theme_remui', 'brandlogotext');
+        if ($sitetext != '') {
+            $context['sitedesc'] = $sitetext;
+        }
         return $this->render_from_template('core/signup_form_layout', $context);
     }
 
@@ -1173,7 +1244,6 @@ class core_renderer extends remui_renderer
                 $showcoursemenu = true;
             } elseif (!empty($activenode) && ($activenode->type == navigation_node::TYPE_ACTIVITY ||
                     $activenode->type == navigation_node::TYPE_RESOURCE)) {
-
                 // We only want to show the menu on the first page of the activity. This means
                 // the breadcrumb has no additional nodes.
                 if ($currentnode && ($currentnode->key == $activenode->key && $currentnode->type == $activenode->type)) {
@@ -1307,7 +1377,7 @@ class core_renderer extends remui_renderer
      * @param boolean $onlytopleafnodes
      * @return boolean nodesskipped - True if nodes were skipped in building the menu
      */
-    private function build_action_menu_from_navigation(
+    protected function build_action_menu_from_navigation(
         action_menu $menu,
         navigation_node $node,
         $indent = false,
@@ -1353,16 +1423,70 @@ class core_renderer extends remui_renderer
     }
 
     /**
+     * The standard HTML that should be output just before the <footer> tag.
+     * Designed to be called in theme layout.php files.
+     *
+     * @return string HTML fragment.
+     */
+    public function standard_after_main_region_html() {
+        global $CFG;
+        $output = '';
+        if ($this->page->pagelayout !== 'embedded' && !empty($CFG->additionalhtmlbottomofbody)) {
+            $output .= "\n".$CFG->additionalhtmlbottomofbody;
+        }
+
+        // merge messaging panel into right sidebar or not
+        $mergemessagingsidebar = \theme_remui\toolbox::get_setting('mergemessagingsidebar');
+
+        // Give subsystems an opportunity to inject extra html content. The callback
+        // must always return a string containing valid html.
+        foreach (\core_component::get_core_subsystems() as $name => $path) {
+            if ($path) {
+                // remui, because messages are in sidebar, so skip here
+                if($mergemessagingsidebar && $name == 'message') {
+                    continue;
+                }
+                $output .= component_callback($name, 'standard_after_main_region_html', [], '');
+            }
+        }
+
+        // Give plugins an opportunity to inject extra html content. The callback
+        // must always return a string containing valid html.
+        $pluginswithfunction = get_plugins_with_function('standard_after_main_region_html', 'lib.php');
+        foreach ($pluginswithfunction as $plugins) {
+            foreach ($plugins as $function) {
+                $output .= $function();
+            }
+        }
+
+        return $output;
+    }
+
+    /**
      * Allow plugins to provide some content to be rendered in the navbar.
      * The plugin must define a PLUGIN_render_navbar_output function that returns
      * the HTML they wish to add to the navbar.
      *
      * @return string HTML for the navbar
      */
-    public function navbar_plugin_output()
-    {
-        global $CFG, $PAGE;
+    public function navbar_plugin_output() {
         $output = '';
+
+        // merge messaging panel into right sidebar or not
+        $mergemessagingsidebar = \theme_remui\toolbox::get_setting('mergemessagingsidebar');
+
+        // Give subsystems an opportunity to inject extra html content. The callback
+        // must always return a string containing valid html.
+        foreach (\core_component::get_core_subsystems() as $name => $path) {
+            
+            if ($path) {
+                // remui, because messages are in sidebar, so skip here
+                if($mergemessagingsidebar && $name == 'message') {
+                    continue;
+                }
+                $output .= component_callback($name, 'render_navbar_output', [$this], '');
+            }
+        }
 
         if ($pluginsfunction = get_plugins_with_function('render_navbar_output')) {
             foreach ($pluginsfunction as $plugintype => $plugins) {
@@ -1370,27 +1494,6 @@ class core_renderer extends remui_renderer
                     $output .= $pluginfunction($this);
                 }
             }
-        }
-
-        return $output;
-    }
-
-    public function navbar_plugin_output_custom_icons()
-    {
-        global $CFG, $PAGE;
-        $output = '';
-
-        // toggle chat sidebar nav menu item
-        // for RemUI
-        // get chat sidebar partial url
-        $slidepaneltemplateurl = $CFG->wwwroot . '/theme/remui/request_handler.php?action=get_remui_sidebar';
-        if (isloggedin() && !isguestuser()) {
-            $output .= '<li class="nav-item" id="toggleChat">
-            <a class="nav-link" data-toggle="site-sidebar" href="javascript:void(0)" title="Chat"
-            data-url="'.$slidepaneltemplateurl.'">
-              <i class="icon wb-chevron-left" aria-hidden="true"></i>
-            </a>
-          </li>';
         }
 
         return $output;
@@ -1433,17 +1536,116 @@ class core_renderer extends remui_renderer
     }
 
     /*
-     * For bottom links in sidebar, to check blog enable / disable
+     * For bottom links in sidebar, to check if user is Course Creater
      *
      * Will be removed later
      * Just for convenience
      */
-    public function check_blog_enable()
+    public function check_user_course_creater()
     {
-        global $CFG;
+        global $COURSE;
+        $coursecontext = context_course::instance($COURSE->id);
+        $cancreatecourse = has_capability('moodle/course:create', $coursecontext);
 
-        if ($CFG->enableblogs == 1) {
-            return true;
+        return $cancreatecourse;
+    }
+
+    /**
+     * Returns standard navigation between activities in a course.
+     *
+     * @return string the navigation HTML.
+     */
+  public function activity_navigation() {
+
+        $activitynavenable = get_config('theme_remui', 'activitynextpreviousbutton');
+        if (!$activitynavenable) {
+            return '';
         }
+
+        // First we should check if we want to add navigation.
+        $context = $this->page->context;
+        if (($this->page->pagelayout !== 'incourse' && $this->page->pagelayout !== 'frametop')
+            || $context->contextlevel != CONTEXT_MODULE) {
+            return '';
+        }
+
+        // If the activity is in stealth mode, show no links.
+        if ($this->page->cm->is_stealth()) {
+            return '';
+        }
+
+        // Get a list of all the activities in the course.
+        $course = $this->page->cm->get_course();
+        $modules = get_fast_modinfo($course->id)->get_cms();
+
+        // Put the modules into an array in order by the position they are shown in the course.
+        $mods = [];
+        $activitylist = [];
+        foreach ($modules as $module) {
+            // Only add activities the user can access, aren't in stealth mode and have a url (eg. mod_label does not).
+            if (!$module->uservisible || $module->is_stealth() || empty($module->url)) {
+                continue;
+            }
+            $mods[$module->id] = $module;
+
+            // No need to add the current module to the list for the activity dropdown menu.
+            if ($module->id == $this->page->cm->id) {
+                continue;
+            }
+            // Module name.
+            $modname = $module->get_formatted_name();
+            // Display the hidden text if necessary.
+            if (!$module->visible) {
+                $modname .= ' ' . get_string('hiddenwithbrackets');
+            }
+            // Module URL.
+            $linkurl = new moodle_url($module->url, array('forceview' => 1));
+            // Add module URL (as key) and name (as value) to the activity list array.
+            $activitylist[$linkurl->out(false)] = $modname;
+        }
+
+        $nummods = count($mods);
+
+        // If there is only one mod then do nothing.
+        if ($nummods == 1) {
+            return '';
+        }
+
+        // Get an array of just the course module ids used to get the cmid value based on their position in the course.
+        $modids = array_keys($mods);
+
+        // Get the position in the array of the course module we are viewing.
+        $position = array_search($this->page->cm->id, $modids);
+
+        $prevmod = null;
+        $nextmod = null;
+
+        // Check if we have a previous mod to show.
+        if ($position > 0) {
+            $prevmod = $mods[$modids[$position - 1]];
+        }
+
+        // Check if we have a next mod to show.
+        if ($position < ($nummods - 1)) {
+            $nextmod = $mods[$modids[$position + 1]];
+        }
+
+        $activitynav = new \core_course\output\activity_navigation($prevmod, $nextmod, $activitylist);
+        if ($activitynav->prevlink) {
+            $activitynav->prevlink->attributes['class'] = 'btn btn-inverse btn-sm';
+            if ($activitynavenable == 1) {
+                $activitynav->prevlink->text = get_string('activityprev', 'theme_remui');
+            }
+        }
+
+        if ($activitynav->nextlink) {
+            $activitynav->nextlink->attributes['class'] = 'btn btn-inverse btn-sm';
+            if ($activitynavenable == 1) {
+                $activitynav->nextlink->text = get_string('activitynext', 'theme_remui');
+            }
+        }
+
+        $renderer = $this->page->get_renderer('core', 'course');
+        return $renderer->render($activitynav);
     }
 }

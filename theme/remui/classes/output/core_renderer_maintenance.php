@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 /**
- * Overriden core maintenance renderer.
- *
+ * Edwiser RemUI 
  * @package    theme_remui
- * @copyright  2016 Frédéric Massart - FMCorz.net
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

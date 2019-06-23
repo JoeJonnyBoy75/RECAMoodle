@@ -14,9 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Edwiser RemUI
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace theme_remui\controller;
 
 use theme_remui\renderables\remui_sidebar;
+use moodle_url;
+use context_course;
 
 // use theme_remui\utility;
 defined('MOODLE_INTERNAL') || die();
@@ -131,12 +140,12 @@ class remui_controller extends controller_abstract
     // handle feedback form submit via ajax
     public function send_remuifeedback_ajax_action()
     {
-        $email = optional_param('email', '', PARAM_EMAIL);
+        // $email = optional_param('email', '', PARAM_EMAIL);
         $rating = optional_param('rating', '', PARAM_TEXT);
-        $fullname = optional_param('fullname', '', PARAM_TEXT);
+        // $fullname = optional_param('fullname', '', PARAM_TEXT);
         $feedback = optional_param('feedback', '', PARAM_TEXT);
 
-        return json_encode(\theme_remui\utility::sendfeedback($email, $fullname, $rating, $feedback));
+        return json_encode(\theme_remui\utility::sendfeedback('', '', $rating, $feedback));
     }
 
     //Handle Course Analytics
@@ -157,7 +166,25 @@ class remui_controller extends controller_abstract
         }
     }
 
+    
+    public function get_courses_progress_percentage_ajax_action() {
+        $progress = array();
+        $courseids = json_decode(required_param('courseids', PARAM_RAW));
+        foreach ($courseids as $key => $courseid) {
+            if ($courseid != null) {
+                $progress[$courseid] = \theme_remui\utility::get_course_progress($courseid);
+            } 
+        }
+        return json_encode($progress);
+    }
 
+    // Get course progress percentage
+    public function get_course_progress_percentage_ajax_action() {
+        $courseid = required_param('courseid', PARAM_INT);
+        $progress = \theme_remui\utility::get_course_progress($courseid);
+        return json_encode($progress);
+    }
+    
     // handle the course progress table on dashboard
     public function get_course_progress_ajax_action()
     {
@@ -171,5 +198,23 @@ class remui_controller extends controller_abstract
         $studentid = optional_param('studentid', 0, PARAM_INT);
         $message = optional_param('message', 0, PARAM_TEXT);
         return(json_encode(\theme_remui\utility::send_message_to_user($studentid, $message)));
+    }
+
+    // return courses based on parameters
+    public function get_courses_ajax_action() {
+        // get all parameters passed in the ajax url and pass in the function.
+        $wdmdata = json_decode(optional_param('wdmdata', '', PARAM_RAW));
+        $result = \theme_remui\utility::get_course_cards_content($wdmdata);
+        return(json_encode($result));
+    }
+
+    // Get Course Stats
+    public static function get_coursestats_ajax_action() {
+        global $CFG;
+        require_once($CFG->libdir . '/completionlib.php');
+        $courseid = required_param('courseid', PARAM_INT);
+        $course = get_course($courseid);
+
+        return json_encode(\theme_remui\utility::get_course_stats($course));
     }
 }

@@ -38,8 +38,20 @@ if ($hassiteconfig or has_any_capability($capabilities, $systemcontext)) {
         )
     );
     $ADMIN->add('courses',
+        new admin_externalpage('course_customfield', new lang_string('course_customfield', 'admin'),
+            $CFG->wwwroot . '/course/customfield.php',
+            array('moodle/course:configurecustomfields')
+        )
+    );
+    $ADMIN->add('courses',
         new admin_externalpage('addcategory', new lang_string('addcategory', 'admin'),
             new moodle_url('/course/editcategory.php', array('parent' => 0)),
+            array('moodle/category:manage')
+        )
+    );
+    $ADMIN->add('courses',
+        new admin_externalpage('addnewcourse', new lang_string('addnewcourse'),
+            new moodle_url('/course/edit.php', array('category' => 0)),
             array('moodle/category:manage')
         )
     );
@@ -148,7 +160,6 @@ if ($hassiteconfig or has_any_capability($capabilities, $systemcontext)) {
     $temp->add(new admin_setting_configselect('moodlecourse/groupmodeforce', new lang_string('force'), new lang_string('coursehelpforce'), 0,array(0 => new lang_string('no'), 1 => new lang_string('yes'))));
 
     $ADMIN->add('courses', $temp);
-
 
     // "courserequests" settingpage.
     $temp = new admin_settingpage('courserequest', new lang_string('courserequest'));
@@ -325,7 +336,7 @@ if ($hassiteconfig or has_any_capability($capabilities, $systemcontext)) {
     $temp->add(new admin_setting_configcheckbox('backup/backup_auto_skip_modif_prev', new lang_string('skipmodifprev', 'backup'), new lang_string('skipmodifprevhelp', 'backup'), 0));
 
     // Automated defaults section.
-    $temp->add(new admin_setting_heading('automatedsettings', new lang_string('automatedsettings','backup'), ''));
+    $temp->add(new admin_setting_heading('automatedsettings', new lang_string('automatedsettings','backup'), new lang_string('recyclebin_desc', 'backup')));
     $temp->add(new admin_setting_configcheckbox('backup/backup_auto_users', new lang_string('generalusers', 'backup'), new lang_string('configgeneralusers', 'backup'), 1));
     $temp->add(new admin_setting_configcheckbox('backup/backup_auto_role_assignments', new lang_string('generalroleassignments','backup'), new lang_string('configgeneralroleassignments','backup'), 1));
     $temp->add(new admin_setting_configcheckbox('backup/backup_auto_activities', new lang_string('generalactivities','backup'), new lang_string('configgeneralactivities','backup'), 1));
@@ -446,5 +457,29 @@ if ($hassiteconfig or has_any_capability($capabilities, $systemcontext)) {
         array(1 => get_string('yes'), 0 => get_string('no'))));
 
     $ADMIN->add('backups', $temp);
+
+    // Create a page for asynchronous backup and restore configuration and defaults.
+    if (!empty($CFG->enableasyncbackup)) {  // Only add settings if async mode is enable at site level.
+        $temp = new admin_settingpage('asyncgeneralsettings', new lang_string('asyncgeneralsettings', 'backup'));
+
+        $temp->add(new admin_setting_configcheckbox(
+                'backup/backup_async_message_users',
+                new lang_string('asyncemailenable', 'backup'),
+                new lang_string('asyncemailenabledetail', 'backup'), 0));
+
+        $temp->add(new admin_setting_configtext(
+                'backup/backup_async_message_subject',
+                new lang_string('asyncmessagesubject', 'backup'),
+                new lang_string('asyncmessagesubjectdetail', 'backup'),
+                new lang_string('asyncmessagesubjectdefault', 'backup')));
+
+        $temp->add(new admin_setting_confightmleditor(
+                'backup/backup_async_message',
+                new lang_string('asyncmessagebody', 'backup'),
+                new lang_string('asyncmessagebodydetail', 'backup'),
+                new lang_string('asyncmessagebodydefault', 'backup')));
+
+        $ADMIN->add('backups', $temp);
+    }
 
 }

@@ -14,7 +14,7 @@ Feature: A privileged user can create cohorts using a CSV file
   @javascript
   Scenario: Upload cohorts with default System context as admin
     When I log in as "admin"
-    And I navigate to "Cohorts" node in "Site administration > Users > Accounts"
+    And I navigate to "Users > Accounts >Cohorts" in site administration
     And I follow "Upload cohorts"
     And I upload "cohort/tests/fixtures/uploadcohorts1.csv" file to "File" filemanager
     And I click on "Preview" "button"
@@ -53,7 +53,7 @@ Feature: A privileged user can create cohorts using a CSV file
   @javascript @_file_upload
   Scenario: Upload cohorts with default category context as admin
     When I log in as "admin"
-    And I navigate to "Cohorts" node in "Site administration > Users > Accounts"
+    And I navigate to "Users > Accounts >Cohorts" in site administration
     And I follow "Upload cohorts"
     And I upload "cohort/tests/fixtures/uploadcohorts1.csv" file to "File" filemanager
     And I set the field "Default context" to "Cat 1 / Cat 3"
@@ -70,7 +70,7 @@ Feature: A privileged user can create cohorts using a CSV file
     And I should see "Uploaded 6 cohorts"
     And I press "Continue"
     And I should see "Category: Cat 3: available cohorts (3)"
-    And I navigate to "Cohorts" node in "Site administration > Users > Accounts"
+    And I navigate to "Users > Accounts >Cohorts" in site administration
     And I follow "All cohorts"
     And the following should exist in the "cohorts" table:
       | Category      | Name          | Cohort ID | Description       | Cohort size | Source           |
@@ -113,7 +113,7 @@ Feature: A privileged user can create cohorts using a CSV file
       | name   | idnumber  |
       | Cohort | cohortid2 |
     When I log in as "admin"
-    And I navigate to "Cohorts" node in "Site administration > Users > Accounts"
+    And I navigate to "Users > Accounts >Cohorts" in site administration
     And I follow "Upload cohorts"
     And I upload "cohort/tests/fixtures/uploadcohorts1.csv" file to "File" filemanager
     And I click on "Preview" "button"
@@ -131,7 +131,7 @@ Feature: A privileged user can create cohorts using a CSV file
   @javascript @_file_upload
   Scenario: Upload cohorts with different ways of specifying context
     When I log in as "admin"
-    And I navigate to "Cohorts" node in "Site administration > Users > Accounts"
+    And I navigate to "Users > Accounts >Cohorts" in site administration
     And I follow "Upload cohorts"
     And I upload "cohort/tests/fixtures/uploadcohorts2.csv" file to "File" filemanager
     And I click on "Preview" "button"
@@ -165,18 +165,18 @@ Feature: A privileged user can create cohorts using a CSV file
   @javascript @_file_upload
   Scenario: Upload cohorts with theme
     When I log in as "admin"
-    And I navigate to "Cohorts" node in "Site administration > Users > Accounts"
+    And I navigate to "Users > Accounts >Cohorts" in site administration
     And I follow "Upload cohorts"
     And I upload "cohort/tests/fixtures/uploadcohorts4.csv" file to "File" filemanager
     And I click on "Preview" "button"
     Then the following should exist in the "previewuploadedcohorts" table:
-      | name          | idnumber  | description       | Context       | visible | theme  | Status |
-      | cohort name 1 | cohortid1 | first description | System        | 1       | boost  |        |
-      | cohort name 2 | cohortid2 |                   | System        | 1       |        |        |
-      | cohort name 3 | cohortid3 |                   | Miscellaneous | 0       | boost  |        |
-      | cohort name 4 | cohortid4 |                   | Cat 1         | 1       | clean  |        |
-      | cohort name 5 | cohortid5 |                   | Cat 2         | 0       |        |        |
-      | cohort name 6 | cohortid6 |                   | Cat 3         | 1       | clean  |        |
+      | name          | idnumber  | description       | Context       | visible | theme    | Status |
+      | cohort name 1 | cohortid1 | first description | System        | 1       | boost    |        |
+      | cohort name 2 | cohortid2 |                   | System        | 1       |          |        |
+      | cohort name 3 | cohortid3 |                   | Miscellaneous | 0       | boost    |        |
+      | cohort name 4 | cohortid4 |                   | Cat 1         | 1       | classic  |        |
+      | cohort name 5 | cohortid5 |                   | Cat 2         | 0       |          |        |
+      | cohort name 6 | cohortid6 |                   | Cat 3         | 1       | classic  |        |
     And I press "Upload cohorts"
     And I should see "Uploaded 6 cohorts"
     And I press "Continue"

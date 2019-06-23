@@ -1880,10 +1880,6 @@ class mysqli_native_moodle_database extends moodle_database {
      */
     public function get_session_lock($rowid, $timeout) {
         parent::get_session_lock($rowid, $timeout);
-        // (jca) 20180502 Added in an attempt to disable session locking in MySQL.
-        if (!$this->used_for_db_sessions) {
-            return;
-        }
 
         $fullname = $this->dbname.'-'.$this->prefix.'-session-'.$rowid;
         $sql = "SELECT GET_LOCK('$fullname', $timeout)";

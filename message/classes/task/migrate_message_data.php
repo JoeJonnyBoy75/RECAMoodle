@@ -122,8 +122,26 @@ class migrate_message_data extends \core\task\adhoc_task {
     private function migrate_data($userid, $otheruserid) {
         global $DB;
 
-        if (!$conversationid = \core_message\api::get_conversation_between_users([$userid, $otheruserid])) {
-            $conversationid = \core_message\api::create_conversation_between_users([$userid, $otheruserid]);
+        if ($userid == $otheruserid) {
+            // Since 3.7, pending self-conversations should be migrated during the upgrading process so shouldn't be any
+            // self-conversations on the legacy tables. However, this extra-check has been added just in case.
+            $conversation = \core_message\api::get_self_conversation($userid);
+            if (empty($conversation)) {
+                $conversation = \core_message\api::create_conversation(
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF,
+                    [$userid]
+                );
+            }
+            $conversationid = $conversation->id;
+        } else if (!$conversationid = \core_message\api::get_conversation_between_users([$userid, $otheruserid])) {
+            $conversation = \core_message\api::create_conversation(
+                \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL,
+                [
+                    $userid,
+                    $otheruserid
+                ]
+            );
+            $conversationid = $conversation->id;
         }
 
         // First, get the rows from the 'message' table.
@@ -229,7 +247,7 @@ class migrate_message_data extends \core\task\adhoc_task {
         }
 
         // Check if we need to mark this message as deleted for the user to.
-        if ($message->timeusertodeleted) {
+        if ($message->timeusertodeleted and ($message->useridfrom != $message->useridto)) {
             $mua = new \stdClass();
             $mua->userid = $message->useridto;
             $mua->messageid = $messageid;

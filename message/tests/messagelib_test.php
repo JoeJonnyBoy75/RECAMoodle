@@ -28,6 +28,8 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot . '/message/lib.php');
 
+use \core_message\tests\helper as testhelper;
+
 /**
  * Test api's in message lib.
  *
@@ -85,9 +87,26 @@ class core_message_messagelib_testcase extends advanced_testcase {
             return $DB->insert_record('notifications', $record);
         }
 
-        if (!$conversationid = \core_message\api::get_conversation_between_users([$userfrom->id, $userto->id])) {
-            $conversationid = \core_message\api::create_conversation_between_users([$userfrom->id,
-                $userto->id]);
+        if ($userfrom->id == $userto->id) {
+            // It's a self conversation.
+            $conversation = \core_message\api::get_self_conversation($userfrom->id);
+            if (empty($conversation)) {
+                $conversation = \core_message\api::create_conversation(
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF,
+                    [$userfrom->id]
+                );
+            }
+            $conversationid = $conversation->id;
+        } else if (!$conversationid = \core_message\api::get_conversation_between_users([$userfrom->id, $userto->id])) {
+            // It's an individual conversation between two different users.
+            $conversation = \core_message\api::create_conversation(
+                \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL,
+                [
+                    $userfrom->id,
+                    $userto->id
+                ]
+            );
+            $conversationid = $conversation->id;
         }
 
         // Ok, send the message.
@@ -106,6 +125,8 @@ class core_message_messagelib_testcase extends advanced_testcase {
      * Test message_get_blocked_users.
      */
     public function test_message_get_blocked_users() {
+        global $USER;
+
         // Set this user as the admin.
         $this->setAdminUser();
 
@@ -113,15 +134,13 @@ class core_message_messagelib_testcase extends advanced_testcase {
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
 
-        // Add users to the admin's contact list.
-        message_add_contact($user1->id);
-        message_add_contact($user2->id, 1);
+        \core_message\api::block_user($USER->id, $user2->id);
 
         $this->assertCount(1, message_get_blocked_users());
         $this->assertDebuggingCalled();
 
         // Block other user.
-        message_block_contact($user1->id);
+        \core_message\api::block_user($USER->id, $user1->id);
         $this->assertCount(2, message_get_blocked_users());
         $this->assertDebuggingCalled();
 
@@ -149,8 +168,8 @@ class core_message_messagelib_testcase extends advanced_testcase {
         $user3 = $this->getDataGenerator()->create_user(); // Stranger.
 
         // Add users to the admin's contact list.
-        message_add_contact($user1->id);
-        message_add_contact($user2->id);
+        \core_message\api::add_contact($USER->id, $user1->id);
+        \core_message\api::add_contact($USER->id, $user2->id);
 
         // Send some messages.
         $this->send_fake_message($user1, $USER);
@@ -173,7 +192,7 @@ class core_message_messagelib_testcase extends advanced_testcase {
         $this->assertCount(3, $strangers);
 
         // Block 1 user.
-        message_block_contact($user2->id);
+        \core_message\api::block_user($USER->id, $user2->id);
         list($onlinecontacts, $offlinecontacts, $strangers) = message_get_contacts();
         $this->assertDebuggingCalled();
         $this->assertCount(0, $onlinecontacts);
@@ -286,29 +305,34 @@ class core_message_messagelib_testcase extends advanced_testcase {
      * Test message_add_contact.
      */
     public function test_message_add_contact() {
+        global $DB, $USER;
+
         // Set this user as the admin.
         $this->setAdminUser();
 
         // Create a user to add to the admin's contact list.
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
-        $user3 = $this->getDataGenerator()->create_user();
 
         message_add_contact($user1->id);
-        message_add_contact($user2->id, 0);
-        // Add duplicate contact and make sure only 1 record exists.
-        message_add_contact($user2->id, 1);
+        $this->assertDebuggingCalled();
+        $this->assertEquals(1, $DB->count_records('message_contact_requests'));
 
-        $this->assertNotEmpty(message_get_contact($user1->id));
-        $this->assertNotEmpty(message_get_contact($user2->id));
-        $this->assertEquals(false, message_get_contact($user3->id));
-        $this->assertEquals(1, \core_message\api::count_blocked_users());
+        message_add_contact($user2->id, 1);
+        $this->assertDebuggingCalled();
+        $this->assertEquals(1, $DB->count_records('message_users_blocked'));
+
+        message_add_contact($user2->id, 0);
+        $this->assertDebuggingCalled();
+        $this->assertEquals(0, $DB->count_records('message_users_blocked'));
     }
 
     /**
      * Test message_remove_contact.
      */
     public function test_message_remove_contact() {
+        global $USER;
+
         // Set this user as the admin.
         $this->setAdminUser();
 
@@ -316,18 +340,21 @@ class core_message_messagelib_testcase extends advanced_testcase {
         $user = $this->getDataGenerator()->create_user();
 
         // Add the user to the admin's contact list.
-        message_add_contact($user->id);
-        $this->assertNotEmpty(message_get_contact($user->id));
+        \core_message\api::add_contact($USER->id, $user->id);
 
         // Remove user from admin's contact list.
         message_remove_contact($user->id);
+        $this->assertDebuggingCalled();
         $this->assertEquals(false, message_get_contact($user->id));
+        $this->assertDebuggingCalled();
     }
 
     /**
      * Test message_block_contact.
      */
     public function test_message_block_contact() {
+        global $USER;
+
         // Set this user as the admin.
         $this->setAdminUser();
 
@@ -336,13 +363,14 @@ class core_message_messagelib_testcase extends advanced_testcase {
         $user2 = $this->getDataGenerator()->create_user();
 
         // Add users to the admin's contact list.
-        message_add_contact($user1->id);
-        message_add_contact($user2->id);
+        \core_message\api::add_contact($USER->id, $user1->id);
+        \core_message\api::add_contact($USER->id, $user2->id);
 
         $this->assertEquals(0, \core_message\api::count_blocked_users());
 
         // Block 1 user.
         message_block_contact($user2->id);
+        $this->assertDebuggingCalled();
         $this->assertEquals(1, \core_message\api::count_blocked_users());
 
     }
@@ -351,21 +379,21 @@ class core_message_messagelib_testcase extends advanced_testcase {
      * Test message_unblock_contact.
      */
     public function test_message_unblock_contact() {
+        global $USER;
+
         // Set this user as the admin.
         $this->setAdminUser();
 
         // Create a user to add to the admin's contact list.
         $user1 = $this->getDataGenerator()->create_user();
-        $user2 = $this->getDataGenerator()->create_user();
 
-        // Add users to the admin's contact list.
-        message_add_contact($user1->id);
-        message_add_contact($user2->id, 1); // Add blocked contact.
-
+        // Add users to the admin's blocked list.
+        \core_message\api::block_user($USER->id, $user1->id);
         $this->assertEquals(1, \core_message\api::count_blocked_users());
 
         // Unblock user.
-        message_unblock_contact($user2->id);
+        message_unblock_contact($user1->id);
+        $this->assertDebuggingCalled();
         $this->assertEquals(0, \core_message\api::count_blocked_users());
     }
 
@@ -373,6 +401,8 @@ class core_message_messagelib_testcase extends advanced_testcase {
      * Test message_search_users.
      */
     public function test_message_search_users() {
+        global $USER;
+
         // Set this user as the admin.
         $this->setAdminUser();
 
@@ -381,12 +411,89 @@ class core_message_messagelib_testcase extends advanced_testcase {
         $user2 = $this->getDataGenerator()->create_user(array('firstname' => 'Test2', 'lastname' => 'user2'));
 
         // Add users to the admin's contact list.
-        message_add_contact($user1->id);
-        message_add_contact($user2->id); // Add blocked contact.
+        \core_message\api::add_contact($USER->id, $user1->id);
+        \core_message\api::add_contact($USER->id, $user2->id);
 
         $this->assertCount(1, message_search_users(0, 'Test1'));
         $this->assertCount(2, message_search_users(0, 'Test'));
         $this->assertCount(1, message_search_users(0, 'user1'));
         $this->assertCount(2, message_search_users(0, 'user'));
     }
+
+    /**
+     * Test message_get_messages.
+     */
+    public function test_message_get_messages() {
+        $this->resetAfterTest(true);
+
+        // Set this user as the admin.
+        $this->setAdminUser();
+
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+
+        \core_message\api::add_contact($user1->id, $user2->id);
+        \core_message\api::add_contact($user1->id, $user3->id);
+
+        // Create some individual conversations.
+        $ic1 = \core_message\api::create_conversation(\core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL,
+            [$user1->id, $user2->id]);
+        $ic2 = \core_message\api::create_conversation(\core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL,
+            [$user1->id, $user3->id]);
+
+        // Send some messages to individual conversations.
+        $im1 = testhelper::send_fake_message_to_conversation($user1, $ic1->id, 'Message 1');
+        $im2 = testhelper::send_fake_message_to_conversation($user2, $ic1->id, 'Message 2');
+        $im3 = testhelper::send_fake_message_to_conversation($user1, $ic1->id, 'Message 3');
+        $im4 = testhelper::send_fake_message_to_conversation($user1, $ic2->id, 'Message 4');
+
+        // Retrieve all messages sent from user1 to user2.
+        $lastmessages = message_get_messages($user2->id, $user1->id, 0, false);
+        $this->assertCount(2, $lastmessages);
+        $this->assertArrayHasKey($im1, $lastmessages);
+        $this->assertArrayHasKey($im3, $lastmessages);
+
+        // Create some group conversations.
+        $gc1 = \core_message\api::create_conversation(\core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP,
+            [$user1->id, $user2->id, $user3->id], 'Group chat');
+
+        // Send some messages to group conversations.
+        $gm1 = testhelper::send_fake_message_to_conversation($user1, $gc1->id, 'Group message 1');
+
+        // Retrieve all messages sent from user1 to user2 (the result should be the same as before, because only individual
+        // conversations should be considered by the message_get_messages function).
+        $lastmessages = message_get_messages($user2->id, $user1->id, 0, false);
+        $this->assertCount(2, $lastmessages);
+        $this->assertArrayHasKey($im1, $lastmessages);
+        $this->assertArrayHasKey($im3, $lastmessages);
+    }
+
+    /**
+     * Test message_get_messages with only group conversations between users.
+     */
+    public function test_message_get_messages_only_group_conversations() {
+        $this->resetAfterTest(true);
+
+        // Set this user as the admin.
+        $this->setAdminUser();
+
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+
+        // Create some group conversations.
+        $gc1 = \core_message\api::create_conversation(\core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP,
+            [$user1->id, $user2->id, $user3->id], 'Group chat');
+
+        // Send some messages to group conversations.
+        $gm1 = testhelper::send_fake_message_to_conversation($user1, $gc1->id, 'Group message 1');
+        $gm2 = testhelper::send_fake_message_to_conversation($user2, $gc1->id, 'Group message 2');
+
+        // Retrieve all messages sent from user1 to user2. There shouldn't be messages, because only individual
+        // conversations should be considered by the message_get_messages function.
+        $lastmessages = message_get_messages($user2->id, $user1->id, 0, false);
+        $this->assertCount(0, $lastmessages);
+    }
+
 }

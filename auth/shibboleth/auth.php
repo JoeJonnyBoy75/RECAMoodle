@@ -277,14 +277,40 @@ class auth_plugin_shibboleth extends auth_plugin_base {
             return;
         }
     }
+
+    /**
+     * Return a list of identity providers to display on the login page.
+     *
+     * @param string $wantsurl The requested URL.
+     * @return array List of arrays with keys url, iconurl and name.
+     */
+    public function loginpage_idp_list($wantsurl) {
+        $config = get_config('auth_shibboleth');
+        $result = [];
+
+        // Before displaying the button check that Shibboleth is set-up correctly.
+        if (empty($config->user_attribute)) {
+            return $result;
+        }
+
+        $url = new moodle_url('/auth/shibboleth/index.php');
+        $iconurl = moodle_url::make_pluginfile_url(context_system::instance()->id,
+                                                   'auth_shibboleth',
+                                                   'logo',
+                                                   null,
+                                                   '/',
+                                                   $config->auth_logo);
+        $result[] = ['url' => $url, 'iconurl' => $iconurl, 'name' => $config->login_name];
+        return $result;
+    }
 }
 
 
     /**
      * Sets the standard SAML domain cookie that is also used to preselect
-     * the right entry on the local wayf
+     * the right entry on the local way
      *
-     * @param IdP identifiere
+     * @param string $selectedIDP IDP identifier
      */
     function set_saml_cookie($selectedIDP) {
         if (isset($_COOKIE['_saml_idp']))
@@ -299,41 +325,12 @@ class auth_plugin_shibboleth extends auth_plugin_base {
         setcookie ('_saml_idp', generate_cookie_value($IDPArray), time() + (100*24*3600));
     }
 
-     /**
-     * Prints the option elements for the select element of the drop down list
-     *
-     */
-    function print_idp_list(){
-        $config = get_config('auth_shibboleth');
-
-        $IdPs = get_idp_list($config->organization_selection);
-        if (isset($_COOKIE['_saml_idp'])){
-            $idp_cookie = generate_cookie_array($_COOKIE['_saml_idp']);
-            do {
-                $selectedIdP = array_pop($idp_cookie);
-            } while (!isset($IdPs[$selectedIdP]) && count($idp_cookie) > 0);
-
-        } else {
-            $selectedIdP = '-';
-        }
-
-        foreach($IdPs as $IdP => $data){
-            if ($IdP == $selectedIdP){
-                echo '<option value="'.$IdP.'" selected="selected">'.$data[0].'</option>';
-            } else {
-                echo '<option value="'.$IdP.'">'.$data[0].'</option>';
-            }
-        }
-    }
-
-
-     /**
+    /**
      * Generate array of IdPs from Moodle Shibboleth settings
      *
      * @param string Text containing tuble/triple of IdP entityId, name and (optionally) session initiator
      * @return array Identifier of IdPs and their name/session initiator
      */
-
     function get_idp_list($organization_selection) {
         $idp_list = array();
 

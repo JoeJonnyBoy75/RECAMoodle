@@ -11,8 +11,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+    Edwiser RemUI 
+    @package    theme_remui
+    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ 
 }}
 {{!
     @template mod_assign/grading_navigation
@@ -46,13 +49,15 @@
 <a href="{{config.wwwroot}}/course/view.php?id={{courseid}}" title="{{{coursename}}}">{{{coursename}}}</a><br/>
 
 {{!
-    Row 2) Assignment name & link.
+    Row 2) Assignment name & link, & edit settings.
 }}
 <a href="{{config.wwwroot}}/mod/assign/view.php?id={{cmid}}" title="{{name}}">{{name}}</a>
 
 {{!
-    Row 3) Edit settings, due date, with tool-tip thing.
+    Row 3) Assignment grading & link, due date, with tool-tip thing.
 }}
+<a href="{{config.wwwroot}}/mod/assign/view.php?id={{cmid}}&action={{actiongrading}}" title="{{viewgrading}}">{{viewgrading}}</a>
+
 <div role="tooltip" id="tooltip-{{uniqid}}" class="accesshide">
 {{#duedate}}
 {{#str}}duedatecolon, mod_assign, {{duedatestr}}{{/str}}

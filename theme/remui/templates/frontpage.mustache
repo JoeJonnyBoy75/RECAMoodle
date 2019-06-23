@@ -11,8 +11,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+    Edwiser RemUI
+    @package    theme_remui
+    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+
 }}
 {{!
     @template theme_remui/columns2
@@ -49,143 +52,279 @@
     }
 }}
 {{> theme_remui/common_start }}
+{{#newfrontpage}}
+<style>
+.sections-loader-wrapper {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    opacity: 0;
+    transition: opacity 300ms linear;
+    z-index: 1701;
+}
+.sections-loader-wrapper.show {
+    opacity: 1;
+}
+.section-loader-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: rgba(255,255,255,0.7);
+    z-index: 3;
+}
+.sections-loader-wrapper .sections-loader, .section-loader-wrapper .section-loader {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+.sections-loader-wrapper .sections-loader img, .section-loader-wrapper .section-loader img {
+    width:  10rem;
+}
+{{#transparentheader}}
+body#page-site-index.latest-frontpage.site-menubar-fold.animate-header .site-navbar .navbar-brand-logo i, body#page-site-index.latest-frontpage.site-menubar-fold.animate-header .site-navbar .nav-link {
+    color: {{headercolor}};
+}
+body#page-site-index.latest-frontpage.site-menubar-fold.animate-header .site-navbar .navbar-container .hamburger .hamburger-bar, body#page-site-index.latest-frontpage.site-menubar-fold.animate-header .site-navbar .navbar-container .hamburger:after, body#page-site-index.latest-frontpage.site-menubar-fold.animate-header .site-navbar .navbar-container .hamburger:before {
+    background: {{headercolor}};
+}
+{{/transparentheader}}
+</style>
+<div class="sections-loader-wrapper show">
+  <div class="sections-loader">
+    {{#loader}}
+        <img class="icon" src="{{loader}}"/>
+    {{/loader}}
+    {{^loader}}
+        {{#pix}} owl_loader_big, theme_remui {{/pix}}
+    {{/loader}}
+  </div>
+</div>
+    {{{ output.course_content_header }}}
+        <div class="home-sections {{#userisediting}}editing{{/userisediting}}">
+        </div>
 
-        <div class="page-main bg-white">
+        <section {{#hasdefaultsections}}class="default-sections panel invisible p-lg-50 p-md-30 p-20 m-b-0"{{/hasdefaultsections}}
+        {{^hasdefaultsections}}style="margin-top: -25px;"{{/hasdefaultsections}}>
+            {{{ output.main_content }}}
+        </section>
 
-            {{# slider }}
+    {{{ output.course_content_footer }}}
 
-            {{# isslider }}
-            <!-- slider -->
-            <div class="carousel slide mb-50" id="CarouselCaptions" data-interval="{{ slideinterval }}" data-ride="carousel">
-                <ol class="carousel-indicators">
-                    {{# slides }}
-                        <li data-slide-to="{{count}}" data-target="#CarouselCaptions" class="{{#active}}active{{/active}}"></li>
-                    {{/ slides}}
-                </ol>
+    {{#userisediting}}
+        <div class="editing-alert">
+            <p class="m-0">{{#str}}editingison, theme_remui{{/str}}</p>
+        </div>
+    {{/userisediting}}
 
-                <div class="carousel-inner" role="listbox">
-                    {{# slides }}
-                      <div class="carousel-item align-items-center {{#active}}active{{/active}}">
-                        <!-- <div id="banner-img-slider" class="col-12" style="background-image:url({{ img }}); background-position: center; background-size: cover; background-repeat:no-repeat; min-height:500px;"></div> -->
-                         <img id="banner-img-slider" class="d-block img-fluid" alt="Image {{count}}" src="{{ img }}" data-holder-rendered="true">
-                        <div class="carousel-caption">
-                          {{{ img_txt }}}
-                          {{# btn_txt }}
-                            <p><a href="{{ btn_link }}" class="btn btn-primary mt-10">{{{ btn_txt }}}</a></p>
-                          {{/ btn_txt }}
+
+{{> theme_remui/common_end }}
+
+{{#js}}
+require(['jquery', 'theme_remui/loader', 'theme_remui/frontpage'], function ($, Loader, FrontPage) {
+    Breakpoints();
+
+    FrontPage.init({{contextid}}, {{userisediting}});
+});
+{{/js}}
+{{/newfrontpage}}
+{{^newfrontpage}}
+    <div class="page-main bg-white">
+
+        {{# slider }}
+
+        {{# isslider }}
+        <!-- slider -->
+        <div class="carousel slide mb-50" id="CarouselCaptions" data-interval="{{ slideinterval }}" data-ride="carousel">
+            <ol class="carousel-indicators">
+                {{# slides }}
+                    <li data-slide-to="{{count}}" data-target="#CarouselCaptions" class="{{#active}}active{{/active}}"></li>
+                {{/ slides}}
+            </ol>
+
+            <div class="carousel-inner" role="listbox">
+                {{# slides }}
+                  <div class="carousel-item align-items-center {{#active}}active{{/active}}">
+                    <!-- <div id="banner-img-slider" class="col-12" style="background-image:url({{ img }}); background-position: center; background-size: cover; background-repeat:no-repeat; min-height:500px;"></div> -->
+                     <img id="banner-img-slider" class="d-block img-fluid w-p100" alt="Image {{count}}" src="{{ img }}" data-holder-rendered="true">
+                    <div class="carousel-caption">
+                      {{{ img_txt }}}
+                      {{# btn_txt }}
+                        <p><a href="{{ btn_link }}" class="btn btn-primary mt-10">{{{ btn_txt }}}</a></p>
+                      {{/ btn_txt }}
+                    </div>
+                  </div>
+                {{/ slides }}
+
+                <a class="carousel-control-prev" href="#CarouselCaptions" role="button" data-slide="prev">
+                  <span class="carousel-control-prev-icon fa fa-chevron-left" aria-hidden="true"></span>
+                  <span class="sr-only">Previous</span>
+                </a>
+                <a class="carousel-control-next" href="#CarouselCaptions" role="button" data-slide="next">
+                  <span class="carousel-control-next-icon fa fa-chevron-right" aria-hidden="true"></span>
+                  <span class="sr-only">Next</span>
+                </a>
+            </div>
+        </div>
+        <!-- slider ends -->
+        {{/ isslider }}
+
+        {{# isimage }}
+        <div class="cover card card-inverse rem-staticimage">
+          <img class="card-img w-full" src="{{staticimage}}" alt="Card image">
+          <div class="carousel-caption cover-background centered card-img-overlay w-p75 white">
+            {{{addtxt}}}
+          </div>
+        </div>
+        {{/ isimage }}
+
+        {{# isvideo }}
+            <div class="mb-50 w-p100 h-300 h-md-400 h-lg-500">
+                <iframe width="100%" height="100%" src="{{ video }}?rel=0" frameborder="0" allowfullscreen></iframe>
+            </div>
+        {{/ isvideo }}
+
+        {{/ slider }}
+
+        <div class="page-content py-0">
+            <!-- marketing spots -->
+            <div class="container mb-40 {{#aboutus_hide}} {{aboutus_hide}} {{/aboutus_hide}}">
+                {{{! output.full_header }}}
+
+                <div class="row">
+                    <div class="{{#dispAboutUsDiv}} {{dispAboutUsDiv}} {{/dispAboutUsDiv}}">
+                        {{# marketing_heading }}<h4>{{{ marketing_heading }}}</h4>{{/ marketing_heading }}
+                        {{# marketing_desc }} {{{ marketing_desc }}} {{/ marketing_desc }}
+                    </div>
+
+                    <div class="{{#dispmarketingspots}} {{dispmarketingspots}} {{/dispmarketingspots}}">
+                        <div class="marketing-spots row no-gutters">
+                        {{# marketing_spots }}
+                            <div class="{{#dispmarketingspotsin}} {{dispmarketingspotsin}} {{/dispmarketingspotsin}}">
+                              <!-- Example Overlay Fade -->
+                                  <figure class="overlay overlay-hover">
+                                   <div class="overlay-figure text-center {{^ image }} bg-grey-200 {{/ image }}"  {{# image }} style="background: url({{ image }}) center/cover;" {{/ image }}>
+                                        <div class="iconbox py-p15">
+                                            <div class="iconsquare">
+                                                <i class="fa fa-{{ icon }}"></i>
+                                            </div>
+
+                                            <div class="iconbox-content font-size-18 p-20">
+                                                {{# heading }} {{{ heading }}} {{/ heading }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <figcaption class="overlay-panel overlay-fade bg-white grey-700 text-center d-flex flex-column justify-content-center align-items-center">
+                                      {{# description }} {{{ description }}} {{/ description }}
+                                      {{# button }}
+                                        <a href="{{ link }}" target="_blank" class="btn btn-primary w-p50 mt-10">{{ button }}</a>
+                                      {{/ button }}
+                                    </figcaption>
+                                  </figure>
+
+
+                              <!-- End Example Overlay Fade -->
+                            </div>
+                        {{/ marketing_spots }}
                         </div>
-                      </div>
-                    {{/ slides }}
+                    </div>
+                </div>
 
-                    <a class="carousel-control-prev" href="#CarouselCaptions" role="button" data-slide="prev">
-                      <span class="carousel-control-prev-icon wb-chevron-left" aria-hidden="true"></span>
-                      <span class="sr-only">Previous</span>
-                    </a>
-                    <a class="carousel-control-next" href="#CarouselCaptions" role="button" data-slide="next">
-                      <span class="carousel-control-next-icon wb-chevron-right" aria-hidden="true"></span>
-                      <span class="sr-only">Next</span>
-                    </a>
+            </div>
+            <!-- marketing spots ends -->
+
+            <!-- main content -->
+            <div class="container-wrapper bg-grey-100 pt-10">
+                <div class="container">
+                    <div id="region-main-box">
+                        {{#hasregionmainsettingsmenu}}
+                            <div id="region-main-settings-menu" class="hidden-print {{#hasblocks}}has-blocks{{/hasblocks}}">
+                                <div> {{{ output.region_main_settings_menu }}} </div>
+                            </div>
+                        {{/hasregionmainsettingsmenu}}
+
+                        <section id="region-main" class="float-none">
+                            {{#hasregionmainsettingsmenu}}
+                                <div class="region_main_settings_menu_proxy"></div>
+                            {{/hasregionmainsettingsmenu}}
+
+                            {{{ output.course_content_header }}}
+                            {{{ output.main_content }}}
+                            {{{ output.course_content_footer }}}
+                        </section>
+                    </div>
                 </div>
             </div>
-            <!-- slider ends -->
-            {{/ isslider }}
+            <!-- main content ends -->
 
-            {{# isimage }}
-                <div class="mb-50">
-                    <img class="w-full img-fluid" src="{{staticimage}}" />
-                </div>
-            {{/ isimage }}
+            <!-- about us -->
+            {{# testimoniallist }}
+            <div class="container">
+                <div class="row {{^ both }}justify-content-center{{/ both }}">
 
-            {{# isvideo }}
-                <div class="mb-50 w-p100 h-300 h-md-400 h-lg-500">
-                    <iframe width="100%" height="100%" src="{{ video }}" frameborder="0" allowfullscreen></iframe>
-                </div>
-            {{/ isvideo }}
-
-            {{/ slider }}
-
-            <div class="page-content py-0">
-                <!-- marketing spots -->
-                <div class="container mb-40 {{#aboutus_hide}} {{aboutus_hide}} {{/aboutus_hide}}">
-                    {{{! output.full_header }}}
-
-                    <div class="row">
-                        <div class="{{#dispAboutUsDiv}} {{dispAboutUsDiv}} {{/dispAboutUsDiv}}">
-                            {{# marketing_heading }}<h4>{{ marketing_heading }}</h4>{{/ marketing_heading }}
-                            {{# marketing_desc }} {{{ marketing_desc }}} {{/ marketing_desc }}
+                    {{# both }}
+                        <div class="col-12 col-md-7 col-lg-6 mt-lg-30 aboutus-heading">
+                            {{# aboutus_heading }}<h3>{{ aboutus_heading }}</h3>{{/ aboutus_heading }}
+                            {{# aboutus_desc }} {{{ aboutus_desc }}} {{/ aboutus_desc }}
                         </div>
+                        <div class="col-12 col-md-5 col-lg-6 aboutus-testimonial">
+                            <div class="carousel testimonial_cr slide" id="testimonial_cr" data-interval="4000" data-ride="carousel">
+                                <ol class="carousel-indicators hidden-sm-down">
+                                    {{# testimonials }}
+                                        <li data-slide-to="{{count}}" data-target="#testimonial_cr" class="{{#active}}active{{/active}}"></li>
+                                    {{/ testimonials}}
+                                </ol>
 
-                        <div class="{{#dispmarketingspots}} {{dispmarketingspots}} {{/dispmarketingspots}}">
-                            <div class="marketing-spots row no-gutters">
-                            {{# marketing_spots }}
-                                <div class="{{#dispmarketingspotsin}} {{dispmarketingspotsin}} {{/dispmarketingspotsin}}">
-                                  <!-- Example Overlay Fade -->
-                                      <figure class="overlay overlay-hover">
-                                       <div class="overlay-figure text-center {{^ image }} bg-grey-200 {{/ image }}"  {{# image }} style="background: url({{ image }}) center/cover;" {{/ image }}>
-                                            <div class="iconbox py-p15">
-                                                <div class="iconsquare">
-                                                    <i class="fa fa-{{ icon }}"></i>
-                                                </div>
-
-                                                <div class="iconbox-content font-size-18 p-20">
-                                                    {{# heading }} {{ heading }} {{/ heading }}
+                                <div class="carousel-inner" role="listbox">
+                                    {{# testimonials }}
+                                      <div class="carousel-item align-items-center bg-grey-200 {{#active}}active{{/active}}">
+                                        <div class="text-center">
+                                            <div class="overlay-panel vertical-align">
+                                                <div class="vertical-align-middle">
+                                                  {{# image }}
+                                                  <a class="avatar avatar-100 bg-white mb-10 m-xs-0 img-bordered" href="javascript:void(0)">
+                                                    <img src="{{ image }}" alt="">
+                                                  </a>
+                                                  {{/ image }}
+                                                  {{# name }} <div class="font-size-20 grey-600">{{ name }}</div> {{/ name }}
+                                                  {{# designation }} <div class="font-size-14 grey-700">{{ designation }}</div> {{/ designation }}
+                                                  {{# text }}
+                                                    <div class="font-size-14 grey-600 pt-20">{{#shortentext}} 250, {{{ text }}} {{/shortentext}} </div>
+                                                  {{/ text }}
                                                 </div>
                                             </div>
                                         </div>
-                                        <figcaption class="overlay-panel overlay-fade bg-white grey-700 text-center d-flex flex-column justify-content-center align-items-center">
-                                          {{# description }} {{{ description }}} {{/ description }}
-                                          {{# button }}
-                                            <a href="{{ link }}" target="_blank" class="btn btn-primary w-p50 mt-10">{{ button }}</a>
-                                          {{/ button }}
-                                        </figcaption>
-                                      </figure>
+                                      </div>
+                                    {{/ testimonials }}
 
-
-                                  <!-- End Example Overlay Fade -->
+                                    <a class="carousel-control-prev" href="#testimonial_cr" role="button" data-slide="prev">
+                                      <span class="carousel-control-prev-icon fa fa-chevron-left" aria-hidden="true"></span>
+                                      <span class="sr-only">Previous</span>
+                                    </a>
+                                    <a class="carousel-control-next" href="#testimonial_cr" role="button" data-slide="next">
+                                      <span class="carousel-control-next-icon fa fa-chevron-right" aria-hidden="true"></span>
+                                      <span class="sr-only">Next</span>
+                                    </a>
                                 </div>
-                            {{/ marketing_spots }}
                             </div>
                         </div>
-                    </div>
+                    {{/ both }}
 
-                </div>
-                <!-- marketing spots ends -->
-
-                <!-- main content -->
-                <div class="container-wrapper bg-grey-100 pt-10">
-                    <div class="container">
-                        <div id="region-main-box">
-                            {{#hasregionmainsettingsmenu}}
-                                <div id="region-main-settings-menu" class="hidden-print {{#hasblocks}}has-blocks{{/hasblocks}}">
-                                    <div> {{{ output.region_main_settings_menu }}} </div>
-                                </div>
-                            {{/hasregionmainsettingsmenu}}
-
-                            <section id="region-main" class="float-none">
-                                {{#hasregionmainsettingsmenu}}
-                                    <div class="region_main_settings_menu_proxy"></div>
-                                {{/hasregionmainsettingsmenu}}
-
-                                {{{ output.course_content_header }}}
-                                {{{ output.main_content }}}
-                                {{{ output.course_content_footer }}}
-                            </section>
-                        </div>
-                    </div>
-                </div>
-                <!-- main content ends -->
-
-                <!-- about us -->
-                {{# testimoniallist }}
-                <div class="container">
-                    <div class="row {{^ both }}justify-content-center{{/ both }}">
-
-                        {{# both }}
-                            <div class="col-12 col-md-7 col-lg-6 mt-lg-30 aboutus-heading">
-                                {{# aboutus_heading }}<h3>{{ aboutus_heading }}</h3>{{/ aboutus_heading }}
+                    {{^ both }}
+                        {{# about }}
+                            <div class="col-10 text-center p-70">
+                                {{# aboutus_heading }} <h3>{{ aboutus_heading }}</h3> {{/ aboutus_heading }}
                                 {{# aboutus_desc }} {{{ aboutus_desc }}} {{/ aboutus_desc }}
                             </div>
-                            <div class="col-12 col-md-5 col-lg-6 aboutus-testimonial">
+                        {{/ about }}
+
+                        {{# test }}
+                            <div class="col-10 aboutus-testimonial">
                                 <div class="carousel testimonial_cr slide" id="testimonial_cr" data-interval="4000" data-ride="carousel">
                                     <ol class="carousel-indicators hidden-sm-down">
                                         {{# testimonials }}
@@ -195,7 +334,7 @@
 
                                     <div class="carousel-inner" role="listbox">
                                         {{# testimonials }}
-                                          <div class="carousel-item align-items-center bg-grey-200 {{#active}}active{{/active}}">
+                                          <div class="carousel-item align-items-center {{#active}}active{{/active}}">
                                             <div class="text-center">
                                                 <div class="overlay-panel vertical-align">
                                                     <div class="vertical-align-middle">
@@ -216,114 +355,61 @@
                                         {{/ testimonials }}
 
                                         <a class="carousel-control-prev" href="#testimonial_cr" role="button" data-slide="prev">
-                                          <span class="carousel-control-prev-icon wb-chevron-left" aria-hidden="true"></span>
+                                          <span class="carousel-control-prev-icon fa fa-chevron-left" aria-hidden="true"></span>
                                           <span class="sr-only">Previous</span>
                                         </a>
                                         <a class="carousel-control-next" href="#testimonial_cr" role="button" data-slide="next">
-                                          <span class="carousel-control-next-icon wb-chevron-right" aria-hidden="true"></span>
+                                          <span class="carousel-control-next-icon fa fa-chevron-right" aria-hidden="true"></span>
                                           <span class="sr-only">Next</span>
                                         </a>
                                     </div>
                                 </div>
                             </div>
-                        {{/ both }}
+                        {{/ test }}
+                    {{/ both }}
 
-                        {{^ both }}
-                            {{# about }}
-                                <div class="col-10 text-center p-70">
-                                    {{# aboutus_heading }} <h3>{{ aboutus_heading }}</h3> {{/ aboutus_heading }}
-                                    {{# aboutus_desc }} {{{ aboutus_desc }}} {{/ aboutus_desc }}
-                                </div>
-                            {{/ about }}
-
-                            {{# test }}
-                                <div class="col-10 aboutus-testimonial">
-                                    <div class="carousel testimonial_cr slide" id="testimonial_cr" data-interval="4000" data-ride="carousel">
-                                        <ol class="carousel-indicators hidden-sm-down">
-                                            {{# testimonials }}
-                                                <li data-slide-to="{{count}}" data-target="#testimonial_cr" class="{{#active}}active{{/active}}"></li>
-                                            {{/ testimonials}}
-                                        </ol>
-
-                                        <div class="carousel-inner" role="listbox">
-                                            {{# testimonials }}
-                                              <div class="carousel-item align-items-center {{#active}}active{{/active}}">
-                                                <div class="text-center">
-                                                    <div class="overlay-panel vertical-align">
-                                                        <div class="vertical-align-middle">
-                                                          {{# image }}
-                                                          <a class="avatar avatar-100 bg-white mb-10 m-xs-0 img-bordered" href="javascript:void(0)">
-                                                            <img src="{{ image }}" alt="">
-                                                          </a>
-                                                          {{/ image }}
-                                                          {{# name }} <div class="font-size-20 grey-600">{{ name }}</div> {{/ name }}
-                                                          {{# designation }} <div class="font-size-14 grey-700">{{ designation }}</div> {{/ designation }}
-                                                          {{# text }}
-                                                            <div class="font-size-14 grey-600 pt-20">{{#shortentext}} 250, {{{ text }}} {{/shortentext}} </div>
-                                                          {{/ text }}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                              </div>
-                                            {{/ testimonials }}
-
-                                            <a class="carousel-control-prev" href="#testimonial_cr" role="button" data-slide="prev">
-                                              <span class="carousel-control-prev-icon wb-chevron-left" aria-hidden="true"></span>
-                                              <span class="sr-only">Previous</span>
-                                            </a>
-                                            <a class="carousel-control-next" href="#testimonial_cr" role="button" data-slide="next">
-                                              <span class="carousel-control-next-icon wb-chevron-right" aria-hidden="true"></span>
-                                              <span class="sr-only">Next</span>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            {{/ test }}
-                        {{/ both }}
-
-                    </div>
                 </div>
-                {{/ testimoniallist }}
-                <!-- about us ends -->
+            </div>
+            {{/ testimoniallist }}
+            <!-- about us ends -->
 
-                <!-- blog -->
-                {{# blog }}
-                {{# hasblogs }}
-                <div class="container-wrapper bg-grey-100 pt-10">
-                    <div class="container">
-                        <h2 class="blue-grey-600">Blog</h2>
-                        <div class="row blog">
-                            {{# blogs }}
-                            <div class="col-md-4 col-sm-6 recent-item">
-                                <div class="card card-transparent">
-                                    <div class="card-block">
-                                      <div class="card-content">
-                                        <h4 class="card-title mt-10"><a href="{{ link }}" class="font-weight-400 blue-grey-600">{{ subject }}</a></h4>
-                                        <p class="card-text">
-                                          <small>By {{ firstname }} {{ lastname }}, on {{ createdat }}</small>
-                                        </p>
-                                        <p class="card-text">{{ summary }}</p>
-                                      </div>
-                                    </div>
+            <!-- blog -->
+            {{# blog }}
+            {{# hasblogs }}
+            <div class="container-wrapper bg-grey-100 pt-10">
+                <div class="container">
+                    <h2 class="blue-grey-600">{{#str}}blog, blog{{/str}}</h2>
+                    <div class="row blog">
+                        {{# blogs }}
+                        <div class="col-md-4 col-sm-6 recent-item">
+                            <div class="card card-transparent">
+                                <div class="card-block">
+                                  <div class="card-content">
+                                    <h4 class="card-title mt-10"><a href="{{ link }}" class="font-weight-400 blue-grey-600">{{ subject }}</a></h4>
+                                    <p class="card-text">
+                                      <small>By {{ firstname }} {{ lastname }}, on {{ createdat }}</small>
+                                    </p>
+                                    <p class="card-text">{{ summary }}</p>
+                                  </div>
                                 </div>
                             </div>
-                            {{/ blogs }}
                         </div>
+                        {{/ blogs }}
                     </div>
                 </div>
-                {{/ hasblogs }}
-                {{/ blog }}
-                <!-- blog ends -->
-
             </div>
+            {{/ hasblogs }}
+            {{/ blog }}
+            <!-- blog ends -->
+
         </div>
+    </div>
     {{> theme_remui/common_end }}
 
 {{#js}}
-require(['theme_remui/loader', 'theme_remui/slick'], function () {
+require(['theme_remui/loader'], function () {
   Breakpoints();
     jQuery(document).ready(function() {
-        jQuery('.carousel').carousel();
         jQuery(".carousel").on("touchstart", function(event){
             var xClick = event.originalEvent.touches[0].pageX;
             jQuery(this).one("touchmove", function(event){
@@ -340,14 +426,21 @@ require(['theme_remui/loader', 'theme_remui/slick'], function () {
             });
         });
     });
+});
+{{/js}}
+{{/newfrontpage}}
 
-    // Example Slick Responsive Display
-    // --------------------------------
+{{#js}}
+require(['theme_remui/loader', 'theme_remui/slick'], function () {
+    // Slick Responsive Display
+    // -----false-----------------------
     jQuery('.slick-course-slider').slick({
-      dots: true,
-      arrows: false,
-      infinite: true,
+      dots: false,
+      arrows: true,
+      infinite: false,
       speed: 500,
+      prevArrow: $(".available-courses.button-container .btn-prev"),
+      nextArrow: $(".available-courses.button-container .btn-next"),
       rtl: (jQuery("html").attr("dir") == "rtl") ? true : false,
       slidesToShow: 4,
       slidesToScroll: 4,
@@ -371,6 +464,10 @@ require(['theme_remui/loader', 'theme_remui/slick'], function () {
           }
         }
       ]
+    })
+    .on('setPosition', function (event, slick) {
+      slick.$slides.css('height', slick.$slideTrack.height() + 'px');
+      jQuery('.slick-slide > div').css('height', '100%');
     });
 });
 {{/js}}

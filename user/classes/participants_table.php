@@ -136,7 +136,7 @@ class participants_table extends \table_sql {
      * Sets up the table.
      *
      * @param int $courseid
-     * @param int|false $currentgroup False if groups not used, int if groups used, 0 for all groups.
+     * @param int|false $currentgroup False if groups not used, int if groups used, 0 all groups, USERSWITHOUTGROUP for no group
      * @param int $accesssince The time the user last accessed the site
      * @param int $roleid The role we are including, 0 means all enrolled users
      * @param int $enrolid The applied filter for the user enrolment ID.
@@ -375,6 +375,7 @@ class participants_table extends \table_sql {
             foreach ($userenrolments as $ue) {
                 $timestart = $ue->timestart;
                 $timeend = $ue->timeend;
+                $timeenrolled = $ue->timecreated;
                 $actions = $ue->enrolmentplugin->get_user_enrolment_actions($manager, $ue);
                 $instancename = $ue->enrolmentinstancename;
 
@@ -399,7 +400,8 @@ class participants_table extends \table_sql {
                         break;
                 }
 
-                $statusfield = new status_field($instancename, $coursename, $fullname, $status, $timestart, $timeend, $actions);
+                $statusfield = new status_field($instancename, $coursename, $fullname, $status, $timestart, $timeend,
+                    $actions, $timeenrolled);
                 $statusfielddata = $statusfield->set_status($statusval)->export_for_template($OUTPUT);
                 $enrolstatusoutput .= $OUTPUT->render_from_template('core_user/status_field', $statusfielddata);
             }

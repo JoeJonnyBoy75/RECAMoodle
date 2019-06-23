@@ -11,8 +11,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+    Edwiser RemUI 
+    @package    theme_remui
+    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ 
 }}
 {{!
     @template theme_remui/flat_navigation
@@ -59,7 +62,7 @@
 {{# flatnavigation }}
     {{#showdivider}}
 </li>
-<li class="site-menu-category"></li>
+<li class="site-menu-category" aria-label="{{get_collectionlabel}}"></li>
     {{/showdivider}}
     {{#action}}
         {{#get_indent}}
@@ -67,16 +70,35 @@
             <a href="{{{action}}}" data-key="{{key}}" class="py-5"  data-isexpandable="{{isexpandable}}" data-indent="{{get_indent}}" data-showdivider="{{showdivider}}" data-type="{{type}}" data-nodetype="{{nodetype}}" data-collapse="{{collapse}}" data-forceopen="{{forceopen}}" data-isactive="{{isactive}}" data-hidden="{{hidden}}" data-preceedwithhr="{{preceedwithhr}}" {{#parent.key}}data-parent-key="{{.}}"{{/parent.key}}>
                 <i class="site-menu-icon {{{remuiicon}}}" aria-hidden="true"></i>
         {{/get_indent}}
+        
         {{^get_indent}}
-            <li class="site-menu-item {{#togglable}}toggler {{/togglable}} {{#isactive}}active{{/isactive}}">
-            <a href="{{{action}}}" data-key="{{key}}" class="py-5 {{#togglable}}pr-0 {{/togglable}}">
-                <i class="site-menu-icon {{{remuiicon}}}" aria-hidden="true"></i>
+            <li class="site-menu-item {{#ismycourses}}has-sub{{/ismycourses}} {{#isactive}}active{{/isactive}}"  title="{{{text}}}"  aria-label="{{firstcollectionlabel}}">
+                <a href="{{{action}}}" data-key="{{key}}" class="py-5"  data-isexpandable="{{isexpandable}}" data-indent="{{get_indent}}" data-showdivider="{{showdivider}}" data-type="{{type}}" data-nodetype="{{nodetype}}" data-collapse="{{collapse}}" data-forceopen="{{forceopen}}" data-isactive="{{isactive}}" data-hidden="{{hidden}}" data-preceedwithhr="{{preceedwithhr}}" {{#parent.key}}data-parent-key="{{.}}"{{/parent.key}}>
+                    <i class="site-menu-icon {{{remuiicon}}}" aria-hidden="true"></i>
+                    <span class="site-menu-title">{{{text}}}</span>
         {{/get_indent}}
-                <span class="site-menu-title">{{{text}}}</span>
-                {{#togglable}}
-                    <span class="site-menu-toggle float-right pl-20"><i class="site-menu-icon {{{toggleicon}}}" aria-hidden="true"></i></span>
-                {{/togglable}}
+           {{#ismycourses}}<span class="site-menu-arrow px-15" id="mycourses-toggler" onclick="return false;"></span>{{/ismycourses}}
             </a>
+            {{#ismycourses}}
+                <ul class="site-menu-sub">
+                    {{#mycourses}}
+                    <li class="site-menu-item "  title="{{{text}}}">
+                      <a class="animsition-link py-5" href="{{{ config.wwwroot }}}/course/view.php?id={{{key}}}">
+                        <i class="site-menu-icon " aria-hidden="true" ></i>
+                        <span class="site-menu-title">{{{text}}}</span>
+                      </a>
+                    </li>
+                    {{/mycourses}}
+                    {{#hasmore}}
+                        <li class="site-menu-item " title="{{#str}}more, theme_remui{{/str}}">
+                          <a class="animsition-link py-5" href="{{{ config.wwwroot }}}/course/index.php?mycourses=1">
+                            <i class="site-menu-icon " aria-hidden="true" ></i>
+                            <span class="site-menu-title">{{#str}}more, theme_remui{{/str}}</span>
+                          </a>
+                        </li>
+                    {{/hasmore}}
+                </ul>
+            {{/ismycourses}}
         </li>
     {{/action}}
     {{^action}}

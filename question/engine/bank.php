@@ -267,7 +267,7 @@ abstract class question_bank {
         global $DB;
 
         if (self::$testmode) {
-            // Evil, test code in production, but now way round it.
+            // Evil, test code in production, but no way round it.
             return self::return_test_question_data($questionid);
         }
 
@@ -406,21 +406,6 @@ abstract class question_bank {
     public static function fraction_options_full() {
         self::ensure_fraction_options_initialised();
         return self::$fractionoptionsfull;
-    }
-
-    /**
-     * Perform scheduled maintenance tasks relating to the question bank.
-     */
-    public static function cron() {
-        global $CFG;
-
-        // Delete any old question preview that got left in the database.
-        require_once($CFG->dirroot . '/question/previewlib.php');
-        question_preview_cron();
-
-        // Clear older calculated stats from cache.
-        require_once($CFG->dirroot . '/question/engine/statisticslib.php');
-        question_usage_statistics_cron();
     }
 
     /**

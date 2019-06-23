@@ -26,7 +26,6 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->libdir . '/formslib.php');
 require_once($CFG->libdir . '/questionlib.php');
-require_once($CFG->libdir . '/coursecatlib.php');
 
 /**
  * Delete category moodleform.
@@ -37,8 +36,8 @@ require_once($CFG->libdir . '/coursecatlib.php');
 class core_course_deletecategory_form extends moodleform {
 
     /**
-     * The coursecat object for that category being deleted.
-     * @var coursecat
+     * The core_course_category object for that category being deleted.
+     * @var core_course_category
      */
     protected $coursecat;
 
@@ -105,7 +104,7 @@ class core_course_deletecategory_form extends moodleform {
             if (in_array($this->coursecat->parent, $displaylist)) {
                 $mform->setDefault('newparent', $this->coursecat->parent);
             }
-            $mform->disabledIf('newparent', 'fulldelete', 'eq', '1');
+            $mform->hideIf('newparent', 'fulldelete', 'eq', '1');
         }
 
         $mform->addElement('hidden', 'categoryid', $this->coursecat->id);

@@ -65,6 +65,8 @@ $string['expirymessageenrolledbody'] = 'Dear {$a->user},
 This is a notification that your enrolment in the course \'{$a->course}\' is due to expire on {$a->timeend}.
 
 If you need help, please contact {$a->enroller}.';
+$string['expirynotifyall'] = 'Teacher and enrolled user';
+$string['expirynotifyenroller'] = 'Teacher only';
 $string['groupkey'] = 'Use group enrolment keys';
 $string['groupkey_desc'] = 'Use group enrolment keys by default.';
 $string['groupkey_help'] = 'In addition to restricting access to the course to only those who know the key, use of group enrolment keys means users are automatically added to groups when they enrol in the course.
@@ -108,7 +110,7 @@ $string['showhint_desc'] = 'Show first letter of the guest access key.';
 $string['status'] = 'Allow existing enrolments';
 $string['status_desc'] = 'Enable self enrolment method in new courses.';
 $string['status_help'] = 'If enabled together with \'Allow new enrolments\' disabled, only users who self enrolled previously can access the course. If disabled, this self enrolment method is effectively disabled, since all existing self enrolments are suspended and new users cannot self enrol.';
-$string['syncenrolmentstask'] = 'Self enrolment synchronise enrolments task';
+$string['syncenrolmentstask'] = 'Synchronise self enrolments task';
 $string['unenrol'] = 'Unenrol user';
 $string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course "{$a}"?';
 $string['unenroluser'] = 'Do you really want to unenrol "{$a->user}" from course "{$a->course}"?';

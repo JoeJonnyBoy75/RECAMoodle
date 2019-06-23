@@ -11,8 +11,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+    Edwiser RemUI 
+    @package    theme_remui
+    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ 
 }}
 {{!
     @template theme_remui/columns2
@@ -62,15 +65,23 @@
                     {{/hasregionmainsettingsmenu}}
 
                     <section id="region-main" class="float-none">
-                        {{#hasregionmainsettingsmenu}}
-                            <div class="region_main_settings_menu_proxy"></div>
-                        {{/hasregionmainsettingsmenu}}
-
-                        {{{ output.course_content_header }}}
-                        {{{ output.main_content }}}
-                        {{{ output.course_content_footer }}}
+                        <div class="card card-block">
+                            {{#hasregionmainsettingsmenu}}
+                                <div class="region_main_settings_menu_proxy"></div>
+                            {{/hasregionmainsettingsmenu}}
+                            {{#notstudent}}
+                                {{#iscoursestatsshow}}
+                                    {{> theme_remui/course_stats }}
+                                {{/iscoursestatsshow}}
+                            {{/notstudent}}
+                            {{{ output.course_content_header }}}
+                            {{{ output.main_content }}}
+			                {{{ output.activity_navigation }}}
+                            {{{ output.course_content_footer }}}
+                        </div>
                     </section>
                 </div>
+            
             </div>
         </div>
         </div>
@@ -80,44 +91,52 @@
 require(['theme_remui/loader'], function () {
     Breakpoints();
 
-    // show hide extra activities in general/first section
-    jQuery('.showactivity').on('click', function() {
-        jQuery('.section.first-section').toggleClass('showhideactivity');
-        if(jQuery(this).hasClass('show')) {
-            jQuery(this).text('{{# str }} showless, theme_remui {{/ str }}');
-            jQuery(this).toggleClass('show');
-        } else {
-            jQuery(this).text('{{# str }} showmore, theme_remui {{/ str }}');
-            jQuery(this).toggleClass('show');
-        }
-    });
-
     // show load more button conditionally
-    jQuery(window).resize(function(){
-        var wwidth = jQuery(window).width();
-        var count = jQuery(".first-section-activity").length;
+    jQuery('body#page-course-view-topics .sectionname > span.wdm-sectionname > i, body#page-course-view-weeks .sectionname > span.wdm-sectionname > i').click(function(){
+        jQuery(this).toggleClass('fa-angle-down');
+        jQuery(this).toggleClass('fa-angle-up');
+        jQuery(this).parent().parent().siblings("ul").slideToggle();
+    });
 
-        if(wwidth > 991) {
-            if(count > 6)
-                jQuery('.showactivity').css('visibility', 'visible');
-            else
-                jQuery('.showactivity').css('visibility', 'hidden');
-        } else if(wwidth > 767 && wwidth < 992) {
-            if(count > 3)
-                jQuery('.showactivity').css('visibility', 'visible');
-            else
-                jQuery('.showactivity').css('visibility', 'hidden');
-        } else {
-            if(count > 2)
-                jQuery('.showactivity').css('visibility', 'visible');
-            else
-                jQuery('.showactivity').css('visibility', 'hidden');
+    {{#iscoursestatsshow}}
+        // Get course ID from URL
+        // Function to get the details from the URL
+        function getUrlParameter(sParam) {
+            var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : sParameterName[1];
+                }
+            }
         }
-    });
 
-    jQuery('body#page-course-view-topics a.panel-title, body#page-course-view-weeks a.panel-title').click(function(){
-        jQuery(this).find('i').toggleClass('fa-angle-down');
-        jQuery(this).find('i').toggleClass('fa-angle-up');
-    });
+        var courseid = getUrlParameter('id');
+        // AJAX call to get course stats
+        if(typeof courseid !== "undefined") {
+            jQuery.ajax({
+                type: "GET",
+                async: true,
+                url: M.cfg.wwwroot + '/theme/remui/request_handler.php?action=get_coursestats_ajax&courseid=' + courseid + '&sesskey=' + M.cfg.sesskey,
+                success: function(response) {
+                    // When course stats block is ready then render the respose value
+                    jQuery('.course-stats').ready(function() {
+                        jQuery.each(response, function(index, value) {
+                            var courseStatsDiv = '#wdm_course-stats .stats-card .course-stats-' + index;
+                            $(courseStatsDiv).text(value);
+                        })
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.log("Failed to load course stats");
+                }
+            });
+        }
+    {{/iscoursestatsshow}}
 });
 {{/js}}

@@ -64,7 +64,7 @@ class core_useragent_testcase extends advanced_testcase {
                     ),
 
                     'versionclasses'                => array(
-                        'safari',
+                        'edge',
                     ),
                 ),
             ),
@@ -97,8 +97,7 @@ class core_useragent_testcase extends advanced_testcase {
                     ),
 
                     'versionclasses'                => array(
-                        'safari',
-                        'android',
+                        'edge'
                     ),
 
                     'devicetype'                    => 'mobile',
@@ -898,8 +897,7 @@ class core_useragent_testcase extends advanced_testcase {
                     'is_webkit'                     => true,
 
                     'versionclasses'                => array(
-                        'safari',
-                        'ios',
+                        'ios'
                     ),
 
                     'devicetype'                    => 'mobile',
@@ -922,7 +920,6 @@ class core_useragent_testcase extends advanced_testcase {
                     'is_webkit'                     => true,
 
                     'versionclasses'                => array(
-                        'safari',
                         'ios',
                     ),
 
@@ -944,7 +941,6 @@ class core_useragent_testcase extends advanced_testcase {
                     'is_webkit'                     => true,
 
                     'versionclasses'                => array(
-                        'safari',
                         'ios',
                     ),
 
@@ -953,7 +949,7 @@ class core_useragent_testcase extends advanced_testcase {
             ),
 
             // Android WebKit 525; G1 Phone.
-            array(
+            'Android WebKit 525; G1 Phone' => array(
                 'Mozilla/5.0 (Linux; U; Android 1.1; en-gb; dream) AppleWebKit/525.10+ (KHTML, like Gecko) Version/3.0.4 Mobile Safari/523.12.2 – G1 Phone',
                 array(
                     'is_webkit_android'             => true,
@@ -965,7 +961,6 @@ class core_useragent_testcase extends advanced_testcase {
 
                     'versionclasses'                => array(
                         'android',
-                        'safari',
                     ),
 
                     'devicetype'                    => 'mobile',
@@ -975,7 +970,7 @@ class core_useragent_testcase extends advanced_testcase {
             ),
 
             // Android WebKit 530; Nexus.
-            array(
+            'Android WebKit 530; Nexus' => array(
                 'Mozilla/5.0 (Linux; U; Android 2.1; en-us; Nexus One Build/ERD62) AppleWebKit/530.17 (KHTML, like Gecko) Version/4.0 Mobile Safari/530.17 –Nexus',
                 array(
                     'is_webkit_android'             => true,
@@ -988,7 +983,6 @@ class core_useragent_testcase extends advanced_testcase {
 
                     'versionclasses'                => array(
                         'android',
-                        'safari',
                     ),
 
                     'devicetype'                    => 'mobile',
@@ -1017,7 +1011,7 @@ class core_useragent_testcase extends advanced_testcase {
                     ),
 
                     'versionclasses'                => array(
-                        'safari',
+                        'chrome',
                         'android',
                     ),
 
@@ -1045,7 +1039,7 @@ class core_useragent_testcase extends advanced_testcase {
                     ),
 
                     'versionclasses'                => array(
-                        'safari',
+                        'chrome',
                         'android',
                     ),
 
@@ -1066,7 +1060,7 @@ class core_useragent_testcase extends advanced_testcase {
                     'is_webkit'                     => true,
 
                     'versionclasses'                => array(
-                        'safari',
+                        'chrome',
                     ),
                 ),
             ),
@@ -1086,7 +1080,7 @@ class core_useragent_testcase extends advanced_testcase {
                     'is_webkit'                     => true,
 
                     'versionclasses'                => array(
-                        'safari',
+                        'chrome',
                     ),
                 ),
             ),
@@ -1231,7 +1225,6 @@ class core_useragent_testcase extends advanced_testcase {
                     ),
 
                     'versionclasses'                => array(
-                        'safari',
                         'ios',
                     ),
 
@@ -1390,6 +1383,141 @@ class core_useragent_testcase extends advanced_testcase {
                 array(
                     'is_web_crawler'                => true,
                     'versionclasses'                => array(
+                    ),
+               ),
+            ),
+
+            // Macos Desktop app.
+            array(
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) moodlemobile/3.6.0 Chrome/69.0.3497.106 Electron/4.0.1 Safari/537.36 MoodleMobile',
+                array(
+                    'is_moodle_app'                => true,
+                    'is_webkit'                    => true,
+                    'is_chrome'                    => true,
+                    'check_chrome_version'         => array(
+                        '7'                        => true,
+                        '8'                        => true,
+                        '10'                       => true,
+                        '39'                       => true,
+                    ),
+                    'versionclasses'               => array(
+                        'chrome',
+                    ),
+               ),
+            ),
+
+            // Linux Desktop app.
+            array(
+                'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) moodledesktop/3.6.0 Chrome/69.0.3497.106 Electron/4.0.1 Safari/537.36 MoodleMobile',
+                array(
+                    'is_moodle_app'                => true,
+                    'is_webkit'                    => true,
+                    'is_chrome'                    => true,
+                    'check_chrome_version'         => array(
+                        '7'                        => true,
+                        '8'                        => true,
+                        '10'                       => true,
+                        '39'                       => true,
+                    ),
+                    'versionclasses'               => array(
+                        'chrome',
+                    ),
+               ),
+            ),
+
+            // Windows Desktop app.
+            array(
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) moodledesktop/3.6.0 Chrome/69.0.3497.106 Electron/4.0.1 Safari/537.36 MoodleMobile',
+                array(
+                    'is_moodle_app'                => true,
+                    'is_webkit'                    => true,
+                    'is_chrome'                    => true,
+                    'check_chrome_version'         => array(
+                        '7'                        => true,
+                        '8'                        => true,
+                        '10'                       => true,
+                        '39'                       => true,
+                    ),
+                    'versionclasses'               => array(
+                        'chrome',
+                    ),
+               ),
+            ),
+
+            // Android app.
+            array(
+                'Mozilla/5.0 (Linux; Android 7.1.1; Moto G Play Build/NPIS26.48-43-2; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/71.0.3578.99 Mobile Safari/537.36 MoodleMobile',
+                array(
+                    'is_moodle_app'                => true,
+                    'is_webkit'                    => true,
+                    'is_webkit_android'            => true,
+                    'is_chrome'                    => true,
+                    'check_chrome_version'         => array(
+                        '7'                        => true,
+                        '8'                        => true,
+                        '10'                       => true,
+                        '39'                       => true,
+                    ),
+                    'devicetype'                   => 'mobile',
+                    'check_webkit_android_version' => array(
+                        '525'                       => true,
+                        '527'                       => true,
+                    ),
+                    'versionclasses'               => array(
+                        'android',
+                        'chrome'
+                    ),
+               ),
+            ),
+
+            // Android app, user agent lower case.
+            array(
+                'Mozilla/5.0 (Linux; Android 7.1.1; Moto G Play Build/NPIS26.48-43-2; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/71.0.3578.99 Mobile Safari/537.36 moodlemobile',
+                array(
+                    'is_moodle_app'                => true,
+                    'is_webkit'                    => true,
+                    'is_webkit_android'            => true,
+                    'is_chrome'                    => true,
+                    'check_chrome_version'         => array(
+                        '7'                        => true,
+                        '8'                        => true,
+                        '10'                       => true,
+                        '39'                       => true,
+                    ),
+                    'devicetype'                   => 'mobile',
+                    'check_webkit_android_version' => array(
+                        '525'                       => true,
+                        '527'                       => true,
+                    ),
+                    'versionclasses'               => array(
+                        'android',
+                        'chrome'
+                    ),
+               ),
+            ),
+
+            // iOS (iPhone) app.
+            array(
+                'Mozilla/5.0 (iPhone; CPU OS 13_3_3 like Mac OS X) AppleWebKit/603.3.8 (KHTML, like Gecko) Mobile/14G60 MoodleMobile',
+                array(
+                    'is_moodle_app'                => true,
+                    'is_ios'                       => true,
+                    'is_webkit'                    => true,
+                    'devicetype'                   => 'mobile',
+                    'versionclasses'               => array(
+                    ),
+               ),
+            ),
+
+            // iOS (iPad) app.
+            array(
+                'Mozilla/5.0 (iPad; CPU OS 12_1_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/16D39 MoodleMobile',
+                array(
+                    'is_moodle_app'                => true,
+                    'is_ios'                       => true,
+                    'is_webkit'                    => true,
+                    'devicetype'                   => 'tablet',
+                    'versionclasses'               => array(
                     ),
                ),
             ),
@@ -1717,7 +1845,10 @@ class core_useragent_testcase extends advanced_testcase {
         if (isset($tests['is_ios']) && $tests['is_ios']) {
             $this->assertTrue(core_useragent::is_ios(),
                 "Browser was not identified as an iOS device browser");
-            $this->assertTrue(core_useragent::check_safari_ios_version());
+            // The iOS app is not Safari based.
+            if (!isset($tests['is_moodle_app']) || !$tests['is_moodle_app']) {
+                $this->assertTrue(core_useragent::check_safari_ios_version());
+            }
         } else {
             $this->assertFalse(core_useragent::is_ios(),
                 "Browser was incorrectly identified as an iOS device browser");
@@ -1886,5 +2017,16 @@ class core_useragent_testcase extends advanced_testcase {
 
         $expectation = isset($tests['is_web_crawler']) ? $tests['is_web_crawler'] : false;
         $this->assertSame($expectation, core_useragent::is_web_crawler());
+    }
+
+    /**
+     * @dataProvider user_agents_providers
+     */
+    public function test_useragent_moodle_app($useragent, $tests) {
+        // Setup the core_useragent instance.
+        core_useragent::instance(true, $useragent);
+
+        $expectation = isset($tests['is_moodle_app']) ? $tests['is_moodle_app'] : false;
+        $this->assertSame($expectation, core_useragent::is_moodle_app());
     }
 }

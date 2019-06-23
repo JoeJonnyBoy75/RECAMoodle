@@ -14,6 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Edwiser RemUI File Renderer Class
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace theme_remui\output\core;
 
 use plugin_renderer_base;
@@ -21,13 +28,6 @@ use plugin_renderer_base;
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/files/renderer.php');
-
-/**
- * Rendering of files viewer related widgets.
- * @package   theme_remui
- * @copyright 2016 Damyon Wiese
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 
 /**
  * Rendering of files viewer related widgets.

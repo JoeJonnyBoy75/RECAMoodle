@@ -22,11 +22,14 @@ Feature: Test editing a drag and drop into text questions
       | Test questions   | ddwtos | Drag to text | fox      |
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
-    And I navigate to "Question bank" node in "Course administration"
+    And I navigate to "Question bank" in current page administration
 
   @javascript
   Scenario: Edit a drag and drop into text question
     When I click on "Edit" "link" in the "Drag to text" "table_row"
+    Then I should see "Choice [[1]]"
+    And I should see "Choice [[2]]"
+    And I should see "Choice [[3]]"
     And I set the following fields to these values:
       | Question name | Edited question name |
     And I press "id_submitbutton"

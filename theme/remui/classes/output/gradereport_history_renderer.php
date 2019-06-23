@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Edwiser RemUI 
  * Overriden gradereport_history renderer.
- *
  * @package    theme_remui
- * @copyright  2016 Frédéric Massart - FMCorz.net
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

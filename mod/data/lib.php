@@ -1153,11 +1153,12 @@ function data_delete_instance($id) {    // takes the dataid
         $event->delete();
     }
 
-    // Delete the instance itself
-    $result = $DB->delete_records('data', array('id'=>$id));
-
     // cleanup gradebook
     data_grade_item_delete($data);
+
+    // Delete the instance itself
+    // We must delete the module record after we delete the grade item.
+    $result = $DB->delete_records('data', array('id'=>$id));
 
     return $result;
 }
@@ -1192,12 +1193,20 @@ function data_user_outline($course, $user, $mod, $data) {
                                            ORDER BY timemodified DESC', array($data->id, $user->id), true);
         $result->time = $lastrecord->timemodified;
         if ($grade) {
-            $result->info .= ', ' . get_string('grade') . ': ' . $grade->str_long_grade;
+            if (!$grade->hidden || has_capability('moodle/grade:viewhidden', context_course::instance($course->id))) {
+                $result->info .= ', ' . get_string('grade') . ': ' . $grade->str_long_grade;
+            } else {
+                $result->info = get_string('grade') . ': ' . get_string('hidden', 'grades');
+            }
         }
         return $result;
     } else if ($grade) {
         $result = new stdClass();
-        $result->info = get_string('grade') . ': ' . $grade->str_long_grade;
+        if (!$grade->hidden || has_capability('moodle/grade:viewhidden', context_course::instance($course->id))) {
+            $result->info = get_string('grade') . ': ' . $grade->str_long_grade;
+        } else {
+            $result->info = get_string('grade') . ': ' . get_string('hidden', 'grades');
+        }
 
         //datesubmitted == time created. dategraded == time modified or time overridden
         //if grade was last modified by the user themselves use date graded. Otherwise use date submitted
@@ -1229,9 +1238,13 @@ function data_user_complete($course, $user, $mod, $data) {
     $grades = grade_get_grades($course->id, 'mod', 'data', $data->id, $user->id);
     if (!empty($grades->items[0]->grades)) {
         $grade = reset($grades->items[0]->grades);
-        echo $OUTPUT->container(get_string('grade').': '.$grade->str_long_grade);
-        if ($grade->str_feedback) {
-            echo $OUTPUT->container(get_string('feedback').': '.$grade->str_feedback);
+        if (!$grade->hidden || has_capability('moodle/grade:viewhidden', context_course::instance($course->id))) {
+            echo $OUTPUT->container(get_string('grade').': '.$grade->str_long_grade);
+            if ($grade->str_feedback) {
+                echo $OUTPUT->container(get_string('feedback').': '.$grade->str_feedback);
+            }
+        } else {
+            echo $OUTPUT->container(get_string('grade') . ': ' . get_string('hidden', 'grades'));
         }
     }
 
@@ -1798,7 +1811,7 @@ function data_print_preference_form($data, $perpage, $search, $sort='', $order='
          'class="form-control" size="16" name="search" id= "pref_search" value="' . s($search) . '" /></div>';
     echo '&nbsp;&nbsp;&nbsp;<label for="pref_sortby">'.get_string('sortby').'</label> ';
     // foreach field, print the option
-    echo '<select name="sort" id="pref_sortby" class="custom-select m-r-1">';
+    echo '<select name="sort" id="pref_sortby" class="custom-select mr-1">';
     if ($fields = $DB->get_records('data_fields', array('dataid'=>$data->id), 'name')) {
         echo '<optgroup label="'.get_string('fields', 'data').'">';
         foreach ($fields as $field) {
@@ -1829,7 +1842,7 @@ function data_print_preference_form($data, $perpage, $search, $sort='', $order='
     echo '</optgroup>';
     echo '</select>';
     echo '<label for="pref_order" class="accesshide">'.get_string('order').'</label>';
-    echo '<select id="pref_order" name="order" class="custom-select m-r-1">';
+    echo '<select id="pref_order" name="order" class="custom-select mr-1">';
     if ($order == 'ASC') {
         echo '<option value="ASC" selected="selected">'.get_string('ascending','data').'</option>';
     } else {
@@ -1852,7 +1865,7 @@ function data_print_preference_form($data, $perpage, $search, $sort='', $order='
     echo '&nbsp;<input type="hidden" name="advanced" value="0" />';
     echo '&nbsp;<input type="hidden" name="filter" value="1" />';
     echo '&nbsp;<input type="checkbox" id="advancedcheckbox" name="advanced" value="1" ' . $checked . ' ' .
-         'onchange="showHideAdvSearch(this.checked);" class="m-x-1" />' .
+         'onchange="showHideAdvSearch(this.checked);" class="mx-1" />' .
          '<label for="advancedcheckbox">' . get_string('advancedsearch', 'data') . '</label>';
     echo '&nbsp;<input type="submit" class="btn btn-secondary" value="' . get_string('savesettings', 'data') . '" />';
 
@@ -1927,7 +1940,7 @@ function data_print_preference_form($data, $perpage, $search, $sort='', $order='
     echo '</td></tr>';
 
     echo '<tr><td colspan="4"><br/>' .
-         '<input type="submit" class="btn btn-primary m-r-1" value="' . get_string('savesettings', 'data') . '" />' .
+         '<input type="submit" class="btn btn-primary mr-1" value="' . get_string('savesettings', 'data') . '" />' .
          '<input type="submit" class="btn btn-secondary" name="resetadv" value="' . get_string('resetsettings', 'data') . '" />' .
          '</td></tr>';
     echo '</table>';
@@ -3003,7 +3016,8 @@ function data_reset_userdata($data) {
  * @return array
  */
 function data_get_extra_capabilities() {
-    return array('moodle/site:accessallgroups', 'moodle/site:viewfullnames', 'moodle/rating:view', 'moodle/rating:viewany', 'moodle/rating:viewall', 'moodle/rating:rate', 'moodle/comment:view', 'moodle/comment:post', 'moodle/comment:delete');
+    return ['moodle/rating:view', 'moodle/rating:viewany', 'moodle/rating:viewall', 'moodle/rating:rate',
+            'moodle/comment:view', 'moodle/comment:post', 'moodle/comment:delete'];
 }
 
 /**
@@ -4555,10 +4569,9 @@ function mod_data_get_completion_active_rule_descriptions($cm) {
     foreach ($cm->customdata['customcompletionrules'] as $key => $val) {
         switch ($key) {
             case 'completionentries':
-                if (empty($val)) {
-                    continue;
+                if (!empty($val)) {
+                    $descriptions[] = get_string('completionentriesdesc', 'data', $val);
                 }
-                $descriptions[] = get_string('completionentriesdesc', 'data', $val);
                 break;
             default:
                 break;

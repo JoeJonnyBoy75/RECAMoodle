@@ -14,7 +14,7 @@ Feature: Upload users
       | Section 1 | math102 | S1 |
       | Section 3 | math102 | S3 |
     And I log in as "admin"
-    And I navigate to "Upload users" node in "Site administration > Users > Accounts"
+    And I navigate to "Users > Accounts >Upload users" in site administration
     When I upload "lib/tests/fixtures/upload_users.csv" file to "File" filemanager
     And I press "Upload users"
     Then I should see "Upload users preview"
@@ -48,7 +48,7 @@ Feature: Upload users
       | Section 1 | math102 | S1 |
       | Section 3 | math102 | S3 |
     And I log in as "admin"
-    And I navigate to "Upload users" node in "Site administration > Users > Accounts"
+    And I navigate to "Users > Accounts > Upload users" in site administration
     When I upload "lib/tests/fixtures/upload_users.csv" file to "File" filemanager
     And I press "Upload users"
     And I set the following fields to these values:
@@ -67,20 +67,81 @@ Feature: Upload users
   Scenario: Upload users with custom profile fields
     # Create user profile field.
     Given I log in as "admin"
-    And I navigate to "User profile fields" node in "Site administration > Users > Accounts"
+    And I navigate to "Users > Accounts > User profile fields" in site administration
     And I set the field "datatype" to "Text area"
     And I set the following fields to these values:
       | Short name | superfield  |
       | Name       | Super field |
     And I click on "Save changes" "button"
     # Upload users.
-    When I navigate to "Upload users" node in "Site administration > Users > Accounts"
+    When I navigate to "Users > Accounts > Upload users" in site administration
     And I upload "lib/tests/fixtures/upload_users_profile.csv" file to "File" filemanager
     And I press "Upload users"
     And I press "Upload users"
     # Check that users were created and the superfield is filled.
-    And I navigate to "Browse list of users" node in "Site administration > Users > Accounts"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I follow "Tom Jones"
     And I should see "Super field"
     And I should see "The big guy"
+    And I log out
+
+  @javascript
+  Scenario: Upload users setting their user theme
+    Given the following "courses" exist:
+      | fullname | shortname | category |
+      | Maths    | math102   | 0        |
+    # We need to do a bit of setup here.
+    And I change window size to "large"
+    And I log in as "admin"
+    And I navigate to "Security > Site security settings" in site administration
+    And I click on "Password policy" "checkbox"
+    And I click on "Save changes" "button"
+    And I navigate to "Appearance > Themes > Theme settings" in site administration
+    And I click on "Allow user themes" "checkbox"
+    And I click on "Save changes" "button"
+    # Upload the users.
+    And I navigate to "Users > Accounts > Upload users" in site administration
+    When I upload "lib/tests/fixtures/upload_users_themes.csv" file to "File" filemanager
+    And I press "Upload users"
+    Then I should see "Upload users preview"
+    And I should see "boost"
+    And I should see "classic"
+    And I should see "No theme is defined for this user."
+    And I should see "Theme \"somefaketheme\" is not installed and will be ignored."
+    And I press "Upload users"
+    And I should see "Users created: 4"
+    And I press "Continue"
+    And I log out
+    # Boost check.
+    And I log in as "jonest"
+    And I am on "Maths" course homepage
+    And "Turn editing on" "button" should not exist
+    And I log out
+    # Classic check.
+    And I log in as "reznor"
+    And I am on "Maths" course homepage
+    And "Turn editing on" "button" should exist
+
+  @javascript
+  Scenario: Upload users setting their user theme when allowuserthemes is false
+    Given the following "courses" exist:
+      | fullname | shortname | category |
+      | Maths    | math102   | 0        |
+    # We need to do a bit of setup here.
+    And I change window size to "large"
+    And I log in as "admin"
+    And I navigate to "Security > Site security settings" in site administration
+    And I click on "Password policy" "checkbox"
+    And I click on "Save changes" "button"
+    # Upload the users.
+    And I navigate to "Users > Accounts > Upload users" in site administration
+    When I upload "lib/tests/fixtures/upload_users_themes.csv" file to "File" filemanager
+    And I press "Upload users"
+    Then I should see "Upload users preview"
+    And I should see "boost"
+    And I should see "classic"
+    And I press "Upload users"
+    And I should see "User themes are not enabled, so any included in the upload users file will be ignored."
+    And I should see "Users created: 4"
+    And I press "Continue"
     And I log out

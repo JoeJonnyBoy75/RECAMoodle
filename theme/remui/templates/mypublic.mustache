@@ -11,8 +11,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+    Edwiser RemUI 
+    @package    theme_remui
+    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ 
 }}
 {{!
     @template theme_remui/mypublic
@@ -74,12 +77,33 @@
 
                         <div id="user-description"><p>{{{ description }}}</p></div>
 
-                        
+                        <div class="profile-social">
+                            <a class="icon fa fa-skype" target="_blank" href="{{ skype }}"></a>
+                            <a class="icon fa fa-yahoo" target="_blank" href="{{ yahoo }}"></a>
+                            <a class="icon fa fa-windows" target="_blank" href="{{ msn }}"></a>
+                        </div>
                         {{# url }}
                         <a role="button" href="{{ url }}" target="_blank" class="btn btn-primary">{{# str }} webpage, theme_remui {{/ str }}</a>
                         {{/ url }}
                         </div>
-                        
+                        <div class="card-footer">
+                        <div class="row no-space">
+                            <div class="col">
+                            <strong class="profile-stat-count">{{ contactscount }}</strong>
+                            <span>{{# str }} contacts, theme_remui {{/ str }}</span>
+                            </div>
+                            <div class="col">
+                            <strong class="profile-stat-count">{{ forumpostcount }}</strong>
+                            <span>{{# str }} discussions, theme_remui {{/ str }}</span>
+                            </div>
+                            {{# blogpostcount }}
+                            <div class="col">
+                            <strong class="profile-stat-count">{{ blogpostcount }}</strong>
+                            <span>{{# str }} blogentries, theme_remui {{/ str }}</span>
+                            </div>
+                            {{/ blogpostcount }}
+                        </div>
+                        </div>
                     </div>
                     <!-- End Page Widget -->
                 </div>
@@ -93,10 +117,12 @@
                                 <li class="nav-item" role="presentation"><a class="active nav-link" data-toggle="tab" href="#aboutme" aria-controls="aboutme" role="tab">{{# notcurrentuser }} {{ firstname }}{{/ notcurrentuser}} {{^ notcurrentuser }}{{# str }} aboutme, theme_remui {{/ str }}{{/ notcurrentuser}}</a></li>
                                 {{/ aboutme }}
                                 <li class="nav-item" role="presentation"><a class="nav-link {{^ aboutme }}active{{/ aboutme }}" data-toggle="tab" href="#usercourses" aria-controls="usercourses" role="tab">{{# str }} courses, theme_remui {{/ str }}</a></li>
+                                {{#haseditpermission}}
                                 {{^ notcurrentuser }}
                                     <li class="nav-item" role="presentation"><a class="nav-link" data-toggle="tab" href="#editprofile" aria-controls="editprofile" role="tab">{{# str }} editprofile, theme_remui {{/ str }}</a></li>
                                 {{/ notcurrentuser }}
-                                <li class="nav-item ml-auto" role="presentation"><a class="nav-link" data-toggle="tab" href="#userprefs" aria-controls="userprefs" role="tab"><i class="icon wb-settings"></i></a></li>
+                                {{/haseditpermission}}
+                                <li class="nav-item ml-auto" role="presentation"><a class="nav-link" data-toggle="tab" href="#userprefs" aria-controls="userprefs" role="tab"><i class="icon fa fa-cog"></i></a></li>
                             </ul>
                             
                             <div class="tab-content">
@@ -200,7 +226,7 @@
                                                 {{# enablecompletion }}
                                                     <div class="float-right remui-course-progress w-full pie-progress pie-progress-sm"
                                                         data-plugin="pieProgress"
-                                                        data-barcolor="#62a8ea"
+                                                        data-barcolor="#11c26d"
                                                         data-size="100"
                                                         data-barsize="6"
                                                         data-goal="100"
@@ -245,6 +271,7 @@
                                 </div>
 
                                 <!-- edit profile tab content -->
+                                {{#haseditpermission}}
                                 {{^ notcurrentuser }}
                                     <div class="tab-pane animation-slide-left" id="editprofile" role="tabpanel">
                                         <div class="panel-body">
@@ -252,13 +279,13 @@
                                                 <div class="form-group row">
                                                     <label class="col-md-3 form-control-label">{{# str }} firstname, theme_remui {{/ str }}</label>
                                                     <div class="col-md-9">
-                                                        <input disabled type="text" class="form-control" id='first_name' name="first_name" data-fv-field="first_name" value="{{ firstname }}">
+                                                        <input type="text" class="form-control" id='first_name' name="first_name" data-fv-field="first_name" value="{{ firstname }}" {{#field_lock_firstname}}disabled{{/field_lock_firstname}} >
                                                     </div>
                                                 </div>
                                                 <div class="form-group row">
                                                     <label class="col-md-3 form-control-label">{{# str }} surname, theme_remui {{/ str }}</label>
                                                     <div class="col-md-9">
-                                                        <input disabled type="text" class="form-control" id='surname' name="surname" data-fv-field="surname" value="{{ lastname }}">
+                                                        <input type="text" class="form-control" id='surname' name="surname" data-fv-field="surname" value="{{ lastname }}" {{#field_lock_lastname}}disabled{{/field_lock_lastname}} >
                                                     </div>
                                                 </div>
                                                 <div class="form-group row">
@@ -270,13 +297,13 @@
                                                 <div class="form-group row">
                                                     <label class="col-md-3 form-control-label">{{# str }} citytown, theme_remui {{/ str }}</label>
                                                     <div class="col-md-9">
-                                                        <input disabled type="text" class="form-control" id='city' name="city" data-fv-field="city" value="{{#location}}{{city}} {{/location}}">
+                                                        <input type="text" class="form-control" id='city' name="city" data-fv-field="city" value="{{#location}}{{city}} {{/location}}" {{#field_lock_city}}disabled{{/field_lock_city}}>
                                                     </div>
                                                 </div>
                                                 <div class="form-group row">
                                                       <label class="col-md-3 form-control-label">{{# str }} country, theme_remui {{/ str }}</label>
                                                       <div class="col-md-9">
-                                                        <select disabled class="form-control" id="country" name="country" required="" data-fv-field="country">
+                                                        <select class="form-control" id="country" name="country" required="" data-fv-field="country" {{#field_lock_country}}disabled{{/field_lock_country}}>
                                                           {{# countries }}
                                                           <option value="{{ keyName }}">{{ valName }}</option>
                                                           {{/ countries }}
@@ -286,10 +313,11 @@
                                                 <div class="form-group row">
                                                   <label class="col-md-3 form-control-label">{{# str }} description, theme_remui {{/ str }}</label>
                                                   <div class="col-md-9">
-                                                    <textarea disabled class="form-control" id='description' name="description" rows="3" data-fv-field="description"> {{{description}}} </textarea>
+                                                    <textarea class="form-control" id='description' name="description" rows="3" data-fv-field="description"> {{{description}}} </textarea>
                                                   </div>
                                                 </div>
                                             <div class="text-right">
+                                                <button type="button" class="btn btn-primary" id="btn-save-changes">{{# str }} submit, theme_remui {{/ str }}</button>
                                             </div>
                                         </form>
                                             <!--<div class="alert alert-danger" id="error-message" style="display:none;margin-top:10px"></div>-->
@@ -299,6 +327,7 @@
                                         </div>
                                     </div>
                                 {{/ notcurrentuser }}
+                                {{/haseditpermission}}
                             </div>
                         </div>
                     </div>

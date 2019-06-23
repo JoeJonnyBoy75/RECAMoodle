@@ -28,6 +28,7 @@
 defined('MOODLE_INTERNAL') || die;
 
 require_once("$CFG->libdir/externallib.php");
+require_once($CFG->dirroot . '/calendar/lib.php');
 
 use \core_calendar\local\api as local_api;
 use \core_calendar\local\event\container as event_container;
@@ -79,8 +80,7 @@ class core_calendar_external extends external_api {
      * @since Moodle 2.5
      */
     public static function delete_calendar_events($events) {
-        global $CFG, $DB;
-        require_once($CFG->dirroot."/calendar/lib.php");
+        global $DB;
 
         // Parameter validation.
         $params = self::validate_parameters(self:: delete_calendar_events_parameters(), array('events' => $events));
@@ -173,8 +173,7 @@ class core_calendar_external extends external_api {
      * @since Moodle 2.5
      */
     public static function get_calendar_events($events = array(), $options = array()) {
-        global $SITE, $DB, $USER, $CFG;
-        require_once($CFG->dirroot."/calendar/lib.php");
+        global $SITE, $DB, $USER;
 
         // Parameter validation.
         $params = self::validate_parameters(self::get_calendar_events_parameters(), array('events' => $events, 'options' => $options));
@@ -242,7 +241,8 @@ class core_calendar_external extends external_api {
             $categories = [];
 
             if (!empty($params['events']['categoryids'])) {
-                $catobjs = \coursecat::get_many(array_merge($params['events']['categoryids'], array_keys($coursecategories)));
+                $catobjs = \core_course_category::get_many(
+                    array_merge($params['events']['categoryids'], array_keys($coursecategories)));
                 foreach ($catobjs as $catobj) {
                     if (isset($coursecategories[$catobj->id]) ||
                             has_capability('moodle/category:manage', $catobj->get_context())) {
@@ -267,7 +267,7 @@ class core_calendar_external extends external_api {
                     $categories = array_flip($categories);
                 } else {
                     $categories = [];
-                    foreach (\coursecat::get_all() as $category) {
+                    foreach (\core_course_category::get_all() as $category) {
                         if (isset($coursecategories[$category->id]) ||
                                 has_capability('moodle/category:manage', $category->get_context(), $USER, false)) {
                             // If the user has access to a course in this category or can manage the category,
@@ -403,7 +403,10 @@ class core_calendar_external extends external_api {
                 'timesortfrom' => new external_value(PARAM_INT, 'Time sort from', VALUE_DEFAULT, 0),
                 'timesortto' => new external_value(PARAM_INT, 'Time sort to', VALUE_DEFAULT, null),
                 'aftereventid' => new external_value(PARAM_INT, 'The last seen event id', VALUE_DEFAULT, 0),
-                'limitnum' => new external_value(PARAM_INT, 'Limit number', VALUE_DEFAULT, 20)
+                'limitnum' => new external_value(PARAM_INT, 'Limit number', VALUE_DEFAULT, 20),
+                'limittononsuspendedevents' => new external_value(PARAM_BOOL,
+                        'Limit the events to courses the user is not suspended in', VALUE_DEFAULT, false),
+                'userid' => new external_value(PARAM_INT, 'The user id', VALUE_DEFAULT, null),
             )
         );
     }
@@ -416,15 +419,14 @@ class core_calendar_external extends external_api {
      * @param null|int $timesortto Events before this time (inclusive)
      * @param null|int $aftereventid Get events with ids greater than this one
      * @param int $limitnum Limit the number of results to this value
+     * @param null|int $userid The user id
      * @return array
      */
     public static function get_calendar_action_events_by_timesort($timesortfrom = 0, $timesortto = null,
-                                                       $aftereventid = 0, $limitnum = 20) {
-        global $CFG, $PAGE, $USER;
+                                                       $aftereventid = 0, $limitnum = 20, $limittononsuspendedevents = false,
+                                                       $userid = null) {
+        global $PAGE, $USER;
 
-        require_once($CFG->dirroot . '/calendar/lib.php');
-
-        $user = null;
         $params = self::validate_parameters(
             self::get_calendar_action_events_by_timesort_parameters(),
             [
@@ -432,9 +434,17 @@ class core_calendar_external extends external_api {
                 'timesortto' => $timesortto,
                 'aftereventid' => $aftereventid,
                 'limitnum' => $limitnum,
+                'limittononsuspendedevents' => $limittononsuspendedevents,
+                'userid' => $userid,
             ]
         );
-        $context = \context_user::instance($USER->id);
+        if ($params['userid']) {
+            $user = \core_user::get_user($params['userid']);
+        } else {
+            $user = $USER;
+        }
+
+        $context = \context_user::instance($user->id);
         self::validate_context($context);
 
         if (empty($params['aftereventid'])) {
@@ -446,7 +456,9 @@ class core_calendar_external extends external_api {
             $params['timesortfrom'],
             $params['timesortto'],
             $params['aftereventid'],
-            $params['limitnum']
+            $params['limitnum'],
+            $params['limittononsuspendedevents'],
+            $user
         );
 
         $exportercache = new events_related_objects_cache($events);
@@ -496,9 +508,7 @@ class core_calendar_external extends external_api {
     public static function get_calendar_action_events_by_course(
         $courseid, $timesortfrom = null, $timesortto = null, $aftereventid = 0, $limitnum = 20) {
 
-        global $CFG, $PAGE, $USER;
-
-        require_once($CFG->dirroot . '/calendar/lib.php');
+        global $PAGE, $USER;
 
         $user = null;
         $params = self::validate_parameters(
@@ -581,9 +591,7 @@ class core_calendar_external extends external_api {
     public static function get_calendar_action_events_by_courses(
         array $courseids, $timesortfrom = null, $timesortto = null, $limitnum = 10) {
 
-        global $CFG, $PAGE, $USER;
-
-        require_once($CFG->dirroot . '/calendar/lib.php');
+        global $PAGE, $USER;
 
         $user = null;
         $params = self::validate_parameters(
@@ -676,8 +684,7 @@ class core_calendar_external extends external_api {
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
     public static function create_calendar_events($events) {
-        global $CFG, $DB, $USER;
-        require_once($CFG->dirroot."/calendar/lib.php");
+        global $DB, $USER;
 
         // Parameter validation.
         $params = self::validate_parameters(self::create_calendar_events_parameters(), array('events' => $events));
@@ -782,8 +789,7 @@ class core_calendar_external extends external_api {
      * @return array Array of event details
      */
     public static function get_calendar_event_by_id($eventid) {
-        global $CFG, $PAGE, $USER;
-        require_once($CFG->dirroot."/calendar/lib.php");
+        global $PAGE, $USER;
 
         $params = self::validate_parameters(self::get_calendar_event_by_id_parameters(), ['eventid' => $eventid]);
         $context = \context_user::instance($USER->id);
@@ -853,8 +859,7 @@ class core_calendar_external extends external_api {
      * @throws moodle_exception
      */
     public static function submit_create_update_form($formdata) {
-        global $CFG, $USER, $PAGE;
-        require_once($CFG->dirroot."/calendar/lib.php");
+        global $USER, $PAGE, $CFG;
         require_once($CFG->libdir."/filelib.php");
 
         // Parameter validation.
@@ -980,8 +985,7 @@ class core_calendar_external extends external_api {
      * @return  array
      */
     public static function get_calendar_monthly_view($year, $month, $courseid, $categoryid, $includenavigation, $mini) {
-        global $CFG, $DB, $USER, $PAGE;
-        require_once($CFG->dirroot."/calendar/lib.php");
+        global $DB, $USER, $PAGE;
 
         // Parameter validation.
         $params = self::validate_parameters(self::get_calendar_monthly_view_parameters(), [
@@ -1058,8 +1062,7 @@ class core_calendar_external extends external_api {
      * @return  array
      */
     public static function get_calendar_day_view($year, $month, $day, $courseid, $categoryid) {
-        global $CFG, $DB, $USER, $PAGE;
-        require_once($CFG->dirroot."/calendar/lib.php");
+        global $DB, $USER, $PAGE;
 
         // Parameter validation.
         $params = self::validate_parameters(self::get_calendar_day_view_parameters(), [
@@ -1199,8 +1202,7 @@ class core_calendar_external extends external_api {
      * @return  array
      */
     public static function get_calendar_upcoming_view($courseid, $categoryid) {
-        global $CFG, $DB, $USER, $PAGE;
-        require_once($CFG->dirroot."/calendar/lib.php");
+        global $DB, $USER, $PAGE;
 
         // Parameter validation.
         $params = self::validate_parameters(self::get_calendar_upcoming_view_parameters(), [
@@ -1241,5 +1243,126 @@ class core_calendar_external extends external_api {
      */
     public static function get_calendar_upcoming_view_returns() {
         return \core_calendar\external\calendar_upcoming_exporter::get_read_structure();
+    }
+
+
+    /**
+     * Returns description of method parameters.
+     *
+     * @return external_function_parameters.
+     * @since  Moodle 3.7
+     */
+    public static function get_calendar_access_information_parameters() {
+        return new external_function_parameters(
+            [
+                'courseid' => new external_value(PARAM_INT, 'Course to check, empty for site calendar events.', VALUE_DEFAULT, 0),
+            ]
+        );
+    }
+
+    /**
+     * Convenience function to retrieve some permissions information for the given course calendar.
+     *
+     * @param int $courseid Course to check, empty for site.
+     * @return array The access information
+     * @throws moodle_exception
+     * @since  Moodle 3.7
+     */
+    public static function get_calendar_access_information($courseid = 0) {
+
+        $params = self::validate_parameters(self::get_calendar_access_information_parameters(), ['courseid' => $courseid]);
+
+        if (empty($params['courseid']) || $params['courseid'] == SITEID) {
+            $context = \context_system::instance();
+        } else {
+            $context = \context_course::instance($params['courseid']);
+        }
+
+        self::validate_context($context);
+
+        return [
+            'canmanageentries' => has_capability('moodle/calendar:manageentries', $context),
+            'canmanageownentries' => has_capability('moodle/calendar:manageownentries', $context),
+            'canmanagegroupentries' => has_capability('moodle/calendar:managegroupentries', $context),
+            'warnings' => [],
+        ];
+    }
+
+    /**
+     * Returns description of method result value.
+     *
+     * @return external_description.
+     * @since  Moodle 3.7
+     */
+    public static function  get_calendar_access_information_returns() {
+
+        return new external_single_structure(
+            [
+                'canmanageentries' => new external_value(PARAM_BOOL, 'Whether the user can manage entries.'),
+                'canmanageownentries' => new external_value(PARAM_BOOL, 'Whether the user can manage its own entries.'),
+                'canmanagegroupentries' => new external_value(PARAM_BOOL, 'Whether the user can manage group entries.'),
+                'warnings' => new external_warnings(),
+            ]
+        );
+    }
+
+    /**
+     * Returns description of method parameters.
+     *
+     * @return external_function_parameters.
+     * @since  Moodle 3.7
+     */
+    public static function get_allowed_event_types_parameters() {
+        return new external_function_parameters(
+            [
+                'courseid' => new external_value(PARAM_INT, 'Course to check, empty for site.', VALUE_DEFAULT, 0),
+            ]
+        );
+    }
+
+    /**
+     * Get the type of events a user can create in the given course.
+     *
+     * @param int $courseid Course to check, empty for site.
+     * @return array The types allowed
+     * @throws moodle_exception
+     * @since  Moodle 3.7
+     */
+    public static function get_allowed_event_types($courseid = 0) {
+
+        $params = self::validate_parameters(self::get_allowed_event_types_parameters(), ['courseid' => $courseid]);
+
+        if (empty($params['courseid']) || $params['courseid'] == SITEID) {
+            $context = \context_system::instance();
+        } else {
+            $context = \context_course::instance($params['courseid']);
+        }
+
+        self::validate_context($context);
+
+        $allowedeventtypes = array_filter(calendar_get_allowed_event_types($params['courseid']));
+
+        return [
+            'allowedeventtypes' => array_keys($allowedeventtypes),
+            'warnings' => [],
+        ];
+    }
+
+    /**
+     * Returns description of method result value.
+     *
+     * @return external_description.
+     * @since  Moodle 3.7
+     */
+    public static function  get_allowed_event_types_returns() {
+
+        return new external_single_structure(
+            [
+                'allowedeventtypes' => new external_multiple_structure(
+                    new external_value(PARAM_NOTAGS, 'Allowed event types to be created in the given course.')
+                ),
+                'warnings' => new external_warnings(),
+            ]
+        );
     }
 }

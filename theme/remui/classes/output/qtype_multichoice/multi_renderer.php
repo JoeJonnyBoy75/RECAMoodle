@@ -15,11 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Multiple choice question renderer classes.
- *
- * @package    qtype
- * @subpackage multichoice
- * @copyright  2009 The Open University
+ * Edwiser RemUI 
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\output\qtype_multichoice;
@@ -81,7 +79,7 @@ class multi_renderer extends \qtype_multichoice_multi_renderer {
                         $question->make_html_inline($question->format_text(
                                 $ans->answer, $ans->answerformat,
                                 $qa, 'question', 'answer', $ansid)),
-                    array('for' => $inputattributes['id'], 'class' => 'd-block ml-20 mr-25'));
+                    array('for' => $inputattributes['id'], 'class' => 'd-inline-block ml-20 mr-25'));
 
             // Param $options->suppresschoicefeedback is a hack specific to the
             // oumultiresponse question type. It would be good to refactor to

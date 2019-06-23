@@ -11,8 +11,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+    Edwiser RemUI 
+    @package    theme_remui
+    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ 
 }}
 {{!
     @template message_output_popup/notification_popover
@@ -45,9 +48,9 @@
     {{$togglelabel}}{{#str}} shownotificationwindownonew, message {{/str}}{{/togglelabel}}
     {{$toggletitle}}{{#str}} togglenotificationmenu, message {{/str}}{{/toggletitle}}
     {{$togglecontent}}
-        <i class="icon wb-bell" aria-hidden="true"></i>
+        <i class="icon fa fa-bell" aria-hidden="true"></i>
         <!-- {{#pix}} i/notifications, core, {{#str}} togglenotificationmenu, message {{/str}} {{/pix}} -->
-        <span class="badge badge-pill badge-important up" data-region="count-container"></span>
+        <span class="font-size-10 badge badge-important up animation-shake {{^unreadcount}}hidden{{/unreadcount}}" data-region="count-container">{{unreadcount}}</span>
     {{/togglecontent}}
 
     {{$containerlabel}}{{#str}} notificationwindow, message {{/str}}{{/containerlabel}}
@@ -60,7 +63,7 @@
                 title="{{#str}} markallread {{/str}}"
                 data-action="mark-all-read"
                 role="button">
-                <i class="icon wb-check" aria-hidden="true"></i>
+                <i class="icon fa fa-check" aria-hidden="true"></i>
                 {{! core/loading }}
             </a>
         {{/anchor}}
@@ -70,7 +73,7 @@
         {{$anchor}}
             <a href="{{{urls.preferences}}}" class="dropdown-menu-footer-btn"
                 title="{{#str}} notificationpreferences, message {{/str}}">
-                <i class="icon wb-settings" aria-hidden="true"></i>
+                <i class="icon fa fa-cog" aria-hidden="true"></i>
             </a>
         {{/anchor}}
     {{/footeractions}}

@@ -139,4 +139,43 @@ class search_base_testcase extends advanced_testcase {
         $this->assertEquals([\context_system::instance()],
                 iterator_to_array($area->get_contexts_to_reindex(), false));
     }
+
+    /**
+     * Test default document icon.
+     */
+    public function test_get_default_doc_icon() {
+        $basearea = $this->getMockBuilder('\core_search\base')
+            ->disableOriginalConstructor()
+            ->getMockForAbstractClass();
+
+        $document = $this->getMockBuilder('\core_search\document')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $result = $basearea->get_doc_icon($document);
+
+        $this->assertEquals('i/empty', $result->get_name());
+        $this->assertEquals('moodle', $result->get_component());
+    }
+
+    /**
+     * Test base search area category names.
+     */
+    public function test_get_category_names() {
+        $builder = $this->getMockBuilder('\core_search\base');
+        $builder->disableOriginalConstructor();
+        $stub = $builder->getMockForAbstractClass();
+
+        $expected = ['core-other'];
+        $this->assertEquals($expected, $stub->get_category_names());
+    }
+
+    /**
+     * Test getting all required search area setting names.
+     */
+    public function test_get_settingnames() {
+        $expected = array('_enabled', '_indexingstart', '_indexingend', '_lastindexrun',
+            '_docsignored', '_docsprocessed', '_recordsprocessed', '_partial');
+        $this->assertEquals($expected, \core_search\base::get_settingnames());
+    }
 }

@@ -11,8 +11,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+    Edwiser RemUI 
+    @package    theme_remui
+    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ 
 }}
 {{!
     @template theme_remui/admin_setting_tabs
@@ -80,7 +83,7 @@
             jQuery.ajax({
                 type: "GET",
                 async: true,
-                url: M.cfg.wwwroot + '/theme/remui/request_handler.php?action=send_remuifeedback_ajax&email=' + email + '&rating=' + rating + '&fullname=' + fullname + '&feedback=' + feedback,
+                url: M.cfg.wwwroot + '/theme/remui/request_handler.php?action=send_remuifeedback_ajax&email=' + email + '&rating=' + rating + '&fullname=' + fullname + '&feedback=' + feedback + '&sesskey=' + M.cfg.sesskey,
                 success: function(response) {
                     jQuery('.feedbacki').toggleClass('d-none');
                     if (response == null || response['sent'] == 0) {

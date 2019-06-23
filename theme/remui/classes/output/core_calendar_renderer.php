@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,11 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Core calender renderer
- *
- * @package   theme_remui
- * @copyright Copyright (c) 2016 WisdmLabs. (http://www.wisdmlabs.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Edwiser RemUI 
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\output;
 
@@ -33,6 +31,7 @@ use calendar_event;
 use html_table;
 use html_table_row;
 use html_table_cell;
+use lang_string;
 
 defined('MOODLE_INTERNAL') || die();
 

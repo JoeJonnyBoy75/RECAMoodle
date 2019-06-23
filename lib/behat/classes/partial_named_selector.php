@@ -65,8 +65,6 @@ class behat_partial_named_selector extends \Behat\Mink\Selector\PartialNamedSele
         'fieldset' => 'fieldset',
         'icon' => 'icon',
         'list_item' => 'list_item',
-        'message_area_region' => 'message_area_region',
-        'message_area_region_content' => 'message_area_region_content',
         'question' => 'question',
         'region' => 'region',
         'section' => 'section',
@@ -74,6 +72,7 @@ class behat_partial_named_selector extends \Behat\Mink\Selector\PartialNamedSele
         'table_row' => 'table_row',
         'xpath_element' => 'xpath_element',
         'form_row' => 'form_row',
+        'group_message_header' => 'group_message_header',
     );
 
     /**
@@ -90,13 +89,16 @@ class behat_partial_named_selector extends \Behat\Mink\Selector\PartialNamedSele
         'fieldset' => 'fieldset',
         'file' => 'file',
         'filemanager' => 'filemanager',
+        'group_message' => 'group_message',
+        'group_message_conversation' => 'group_message_conversation',
+        'group_message_header' => 'group_message_header',
+        'group_message_member' => 'group_message_member',
+        'group_message_tab' => 'group_message_tab',
+        'group_message_list_area' => 'group_message_list_area',
         'icon' => 'icon',
         'link' => 'link',
         'link_or_button' => 'link_or_button',
         'list_item' => 'list_item',
-        'message_area_action' => 'message_area_action',
-        'message_area_region' => 'message_area_region',
-        'message_area_region_content' => 'message_area_region_content',
         'optgroup' => 'optgroup',
         'option' => 'option',
         'question' => 'question',
@@ -152,6 +154,27 @@ XPATH
         normalize-space(descendant::*[contains(concat(' ', normalize-space(@class), ' '), ' modal-header ')] = %locator%)
     ]
 XPATH
+        , 'group_message' => <<<XPATH
+        .//*[@data-conversation-id]//img[contains(@alt, %locator%)]/..
+XPATH
+        , 'group_message_conversation' => <<<XPATH
+            .//*[@data-region='message-drawer' and contains(., %locator%)]//div[@data-region='content-message-container']
+XPATH
+    , 'group_message_header' => <<<XPATH
+        .//*[@data-region='message-drawer']//div[@data-region='header-container' and contains(., %locator%)]
+XPATH
+    , 'group_message_member' => <<<XPATH
+        .//*[@data-region='message-drawer']//div[@data-region='group-info-content-container']
+        //div[@class='list-group' and not(contains(@class, 'hidden'))]//*[text()[contains(., %locator%)]] |
+        .//*[@data-region='message-drawer']//div[@data-region='group-info-content-container']
+        //div[@data-region='empty-message-container' and not(contains(@class, 'hidden')) and contains(., %locator%)]
+XPATH
+    , 'group_message_tab' => <<<XPATH
+        .//*[@data-region='message-drawer']//button[@data-toggle='collapse' and contains(string(), %locator%)]
+XPATH
+    , 'group_message_list_area' => <<<XPATH
+        .//*[@data-region='message-drawer']//*[contains(@data-region, concat('view-overview-', %locator%))]
+XPATH
         , 'icon' => <<<XPATH
 .//*[contains(concat(' ', normalize-space(@class), ' '), ' icon ') and ( contains(normalize-space(@title), %locator%))]
 XPATH
@@ -183,15 +206,6 @@ XPATH
 XPATH
         , 'form_row' => <<<XPATH
 .//*[self::label or self::div[contains(concat(' ', @class, ' '), ' fstaticlabel ')]][contains(., %locator%)]/ancestor::*[contains(concat(' ', @class, ' '), ' fitem ')]
-XPATH
-        , 'message_area_region' => <<<XPATH
-.//div[@data-region='messaging-area']/descendant::*[@data-region = %locator%]
-XPATH
-        , 'message_area_region_content' => <<<XPATH
-.//div[@data-region='messaging-area']/descendant::*[@data-region-content = %locator%]
-XPATH
-        , 'message_area_action' => <<<XPATH
-.//div[@data-region='messaging-area']/descendant::*[@data-action = %locator%]
 XPATH
         , 'autocomplete_selection' => <<<XPATH
 .//div[contains(concat(' ', normalize-space(@class), ' '), concat(' ', 'form-autocomplete-selection', ' '))]/span[@role='listitem'][contains(normalize-space(.), %locator%)]

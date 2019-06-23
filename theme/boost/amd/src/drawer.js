@@ -20,8 +20,8 @@
  * @copyright  2016 Damyon Wiese
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/custom_interaction_events', 'core/log'],
-     function($, CustomEvents, Log) {
+define(['jquery', 'core/custom_interaction_events', 'core/log', 'core/pubsub'],
+     function($, CustomEvents, Log, PubSub) {
 
     var SELECTORS = {
         TOGGLE_REGION: '[data-region="drawer-toggle"]',
@@ -29,8 +29,11 @@ define(['jquery', 'core/custom_interaction_events', 'core/log'],
         TOGGLE_TARGET: 'aria-controls',
         TOGGLE_SIDE: 'left',
         BODY: 'body',
-        SECTION: '.list-group-item[href*="#section-"]'
+        SECTION: '.list-group-item[href*="#section-"]',
+        DRAWER: '#nav-drawer'
     };
+
+    var small = $(document).width() < 768;
 
     /**
      * Constructor for the Drawer.
@@ -52,6 +55,10 @@ define(['jquery', 'core/custom_interaction_events', 'core/log'],
             var hidden = trigger.attr('aria-expanded') == 'false';
             var side = trigger.attr('data-side');
             var body = $(SELECTORS.BODY);
+            var preference = trigger.attr('data-preference');
+            if (small) {
+                M.util.set_user_preference(preference, 'false');
+            }
 
             drawer.on('mousewheel DOMMouseScroll', this.preventPageScroll);
 
@@ -64,7 +71,6 @@ define(['jquery', 'core/custom_interaction_events', 'core/log'],
         }.bind(this));
 
         this.registerEventListeners();
-        var small = $(document).width() < 768;
         if (small) {
             this.closeAll();
         }
@@ -83,7 +89,9 @@ define(['jquery', 'core/custom_interaction_events', 'core/log'],
             body.removeClass('drawer-open-' + side);
             drawer.attr('aria-hidden', 'true');
             drawer.addClass('closed');
-            M.util.set_user_preference(preference, 'false');
+            if (!small) {
+                M.util.set_user_preference(preference, 'false');
+            }
         });
     };
 
@@ -100,6 +108,9 @@ define(['jquery', 'core/custom_interaction_events', 'core/log'],
         var body = $(SELECTORS.BODY);
         var side = trigger.attr('data-side');
         var preference = trigger.attr('data-preference');
+        if (small) {
+            M.util.set_user_preference(preference, 'false');
+        }
 
         body.addClass('drawer-ease');
         var open = trigger.attr('aria-expanded') == 'true';
@@ -110,15 +121,24 @@ define(['jquery', 'core/custom_interaction_events', 'core/log'],
             drawer.focus();
             body.addClass('drawer-open-' + side);
             drawer.removeClass('closed');
-            M.util.set_user_preference(preference, 'true');
+            if (!small) {
+                M.util.set_user_preference(preference, 'true');
+            }
         } else {
             // Close.
             body.removeClass('drawer-open-' + side);
             trigger.attr('aria-expanded', 'false');
             drawer.attr('aria-hidden', 'true');
             drawer.addClass('closed');
-            M.util.set_user_preference(preference, 'false');
+            if (!small) {
+                M.util.set_user_preference(preference, 'false');
+            }
         }
+
+        // Publish an event to tell everything that the drawer has been toggled.
+        // The drawer transitions closed so another event will fire once teh transition
+        // has completed.
+        PubSub.publish('nav-drawer-toggle-start', open);
     };
 
     /**
@@ -153,11 +173,18 @@ define(['jquery', 'core/custom_interaction_events', 'core/log'],
         }.bind(this));
 
         $(SELECTORS.SECTION).click(function() {
-            var small = $(document).width() < 768;
             if (small) {
                 this.closeAll();
             }
         }.bind(this));
+
+        // Publish an event to tell everything that the drawer completed the transition
+        // to either an open or closed state.
+        $(SELECTORS.DRAWER).on('webkitTransitionEnd msTransitionEnd transitionend', function(e) {
+            var drawer = $(e.target).closest(SELECTORS.DRAWER);
+            var open = drawer.attr('aria-hidden') == 'false';
+            PubSub.publish('nav-drawer-toggle-end', open);
+        });
     };
 
     return {

@@ -15,11 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * A two column layout for the Edwiser RemUI theme.
- *
- * @package   theme_remui
- * @copyright WisdmLabs
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Edwiser RemUI
+ * @package    theme_remui
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
@@ -45,6 +44,10 @@ foreach ($countries as $key => $value) {
 }
 
 $templatecontext['usercanmanage'] = \theme_remui\utility::check_user_admin_cap($userobject);
+$systemcontext = \context_system::instance();
+if ( has_capability('moodle/user:editownprofile', $systemcontext) ) {
+    $templatecontext["haseditpermission"] = true;
+}
 $templatecontext['notcurrentuser'] = ($userobject->id != $USER->id)?true:false;
 $templatecontext['countries'] = $tempArray;
 
@@ -55,6 +58,16 @@ $hasbadges = false;
 $onlypublic = true;
 $aboutme = false;
 $country = '';
+
+$userauth = get_auth_plugin($userobject->auth);
+$lockfields = array('field_lock_firstname', 'field_lock_lastname', 'field_lock_city', 'field_lock_country');
+foreach ($userauth->config as $lockfield_key => $lockfield) {
+    if ($lockfield == 'locked') {
+        if (in_array($lockfield_key, $lockfields)) {
+            $userobject->$lockfield_key = 'locked';
+        }
+    }
+}
 
 $templatecontext['user'] = $userobject;
 $templatecontext['user']->profilepicture = \theme_remui\utility::get_user_picture($userobject, 200);

@@ -1490,6 +1490,7 @@ class mod_assign_locallib_testcase extends advanced_testcase {
     }
 
     public function test_cron() {
+        global $PAGE;
         $this->resetAfterTest();
 
         // First run cron so there are no messages waiting to be sent (from other tests).
@@ -1519,6 +1520,15 @@ class mod_assign_locallib_testcase extends advanced_testcase {
         $this->assertEquals(1, count($messages));
         $this->assertEquals(1, $messages[0]->notification);
         $this->assertEquals($assign->get_instance()->name, $messages[0]->contexturlname);
+        // Test customdata.
+        $customdata = json_decode($messages[0]->customdata);
+        $this->assertEquals($assign->get_course_module()->id, $customdata->cmid);
+        $this->assertEquals($assign->get_instance()->id, $customdata->instance);
+        $this->assertEquals('feedbackavailable', $customdata->messagetype);
+        $userpicture = new user_picture($teacher);
+        $this->assertEquals($userpicture->get_url($PAGE)->out(false), $customdata->notificationiconurl);
+        $this->assertEquals(0, $customdata->uniqueidforuser);   // Not used in this case.
+        $this->assertFalse($customdata->blindmarking);
     }
 
     public function test_cron_without_notifications() {
@@ -3004,7 +3014,7 @@ class mod_assign_locallib_testcase extends advanced_testcase {
      * Testing for comment inline settings
      */
     public function test_feedback_comment_commentinline() {
-        global $CFG;
+        global $CFG, $USER;
 
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();
@@ -3023,22 +3033,6 @@ External link 2:<img alt=\"Moodle\" src=\"https://moodle.org/logo/logo-240x60.gi
 Internal link 1:<img src='@@PLUGINFILE@@/logo-240x60.gif' alt='Moodle'/>
 Internal link 2:<img alt=\"Moodle\" src=\"@@PLUGINFILE@@logo-240x60.gif\"/>
 Anchor link 1:<a href=\"@@PLUGINFILE@@logo-240x60.gif\" alt=\"bananas\">Link text</a>
-Anchor link 2:<a title=\"bananas\" href=\"../logo-240x60.gif\">Link text</a>
-";
-
-        // Note the internal images have been stripped and the html is purified (quotes fixed in this case).
-        $filteredtext = "Hello!
-
-I'm writing to you from the Moodle Majlis in Muscat, Oman, where we just had several days of Moodle community goodness.
-
-URL outside a tag: https://moodle.org/logo/logo-240x60.gif
-Plugin url outside a tag: @@PLUGINFILE@@/logo-240x60.gif
-
-External link 1:<img src=\"https://moodle.org/logo/logo-240x60.gif\" alt=\"Moodle\" />
-External link 2:<img alt=\"Moodle\" src=\"https://moodle.org/logo/logo-240x60.gif\" />
-Internal link 1:
-Internal link 2:
-Anchor link 1:Link text
 Anchor link 2:<a title=\"bananas\" href=\"../logo-240x60.gif\">Link text</a>
 ";
 
@@ -3067,6 +3061,27 @@ Anchor link 2:<a title=\"bananas\" href=\"../logo-240x60.gif\">Link text</a>
             ];
         $formparams = array($assign, $data, $pagination);
         $mform = new mod_assign_grade_form(null, [$assign, $data, $pagination]);
+
+        // We need to get the URL these will be transformed to.
+        $context = context_user::instance($USER->id);
+        $itemid = $data->assignfeedbackcomments_editor['itemid'];
+        $url = $CFG->wwwroot . '/draftfile.php/' . $context->id . '/user/draft/' . $itemid;
+
+        // Note the internal images have been stripped and the html is purified (quotes fixed in this case).
+        $filteredtext = "Hello!
+
+I'm writing to you from the Moodle Majlis in Muscat, Oman, where we just had several days of Moodle community goodness.
+
+URL outside a tag: https://moodle.org/logo/logo-240x60.gif
+Plugin url outside a tag: $url/logo-240x60.gif
+
+External link 1:<img src=\"https://moodle.org/logo/logo-240x60.gif\" alt=\"Moodle\" />
+External link 2:<img alt=\"Moodle\" src=\"https://moodle.org/logo/logo-240x60.gif\" />
+Internal link 1:<img src=\"$url/logo-240x60.gif\" alt=\"Moodle\" />
+Internal link 2:<img alt=\"Moodle\" src=\"@@PLUGINFILE@@logo-240x60.gif\" />
+Anchor link 1:<a href=\"@@PLUGINFILE@@logo-240x60.gif\">Link text</a>
+Anchor link 2:<a title=\"bananas\" href=\"../logo-240x60.gif\">Link text</a>
+";
 
         $this->assertEquals($filteredtext, $data->assignfeedbackcomments_editor['text']);
     }
@@ -3496,11 +3511,14 @@ Anchor link 2:<a title=\"bananas\" href=\"../logo-240x60.gif\">Link text</a>
             } else if ($type == 'file') {
                 $this->assertEquals(array('feedback_files' => 'Feedback files'), $fileareas);
                 $usingfilearea++;
+            } else if ($type == 'comments') {
+                $this->assertEquals(array('feedback' => 'Feedback comments'), $fileareas);
+                $usingfilearea++;
             } else {
                 $this->assertEmpty($fileareas);
             }
         }
-        $this->assertEquals(2, $usingfilearea);
+        $this->assertEquals(3, $usingfilearea);
     }
 
     /**
@@ -3632,7 +3650,7 @@ Anchor link 2:<a title=\"bananas\" href=\"../logo-240x60.gif\">Link text</a>
         $result = $assign->testable_process_save_quick_grades($data);
         $this->assertContains(get_string('quickgradingchangessaved', 'assign'), $result);
         $grade = $assign->get_user_grade($student->id, false);
-        $this->assertEquals('60.0', $grade->grade);
+        $this->assertEquals(60.0, $grade->grade);
 
         // Attempt to grade with a past attempts grade info.
         $assign->testable_process_add_attempt($student->id);
@@ -3656,7 +3674,7 @@ Anchor link 2:<a title=\"bananas\" href=\"../logo-240x60.gif\">Link text</a>
         $result = $assign->testable_process_save_quick_grades($data);
         $this->assertContains(get_string('quickgradingchangessaved', 'assign'), $result);
         $grade = $assign->get_user_grade($student->id, false);
-        $this->assertEquals('40.0', $grade->grade);
+        $this->assertEquals(40.0, $grade->grade);
 
         // Catch grade update conflicts.
         // Save old data for later.
@@ -3670,13 +3688,13 @@ Anchor link 2:<a title=\"bananas\" href=\"../logo-240x60.gif\">Link text</a>
         $result = $assign->testable_process_save_quick_grades($data);
         $this->assertContains(get_string('quickgradingchangessaved', 'assign'), $result);
         $grade = $assign->get_user_grade($student->id, false);
-        $this->assertEquals('30.0', $grade->grade);
+        $this->assertEquals(30.0, $grade->grade);
 
         // Now update using 'old' data. Should fail.
         $result = $assign->testable_process_save_quick_grades($pastdata);
         $this->assertContains(get_string('errorrecordmodified', 'assign'), $result);
         $grade = $assign->get_user_grade($student->id, false);
-        $this->assertEquals('30.0', $grade->grade);
+        $this->assertEquals(30.0, $grade->grade);
     }
 
     /**
@@ -3978,5 +3996,18 @@ Anchor link 2:<a title=\"bananas\" href=\"../logo-240x60.gif\">Link text</a>
         $this->assertNotContains(get_string('submissionslocked', 'assign'), $output2);
         // Check that submissionstatus_marked 'Graded' message does appear for student.
         $this->assertContains(get_string('submissionstatus_marked', 'assign'), $output2);
+    }
+
+    /**
+     * Test the result of get_filters is consistent.
+     */
+    public function test_get_filters() {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $assign = $this->create_instance($course);
+        $valid = $assign->get_filters();
+
+        $this->assertEquals(count($valid), 5);
     }
 }

@@ -76,8 +76,35 @@ class question_category_list extends moodle_list {
         $topcategory = question_get_top_category($item->item->contextid, true);
         return $topcategory->id;
     }
-}
 
+    /**
+     * process any actions.
+     *
+     * @param integer $left id of item to move left
+     * @param integer $right id of item to move right
+     * @param integer $moveup id of item to move up
+     * @param integer $movedown id of item to move down
+     * @return void
+     * @throws coding_exception
+     */
+    public function process_actions($left, $right, $moveup, $movedown) {
+        $category = new stdClass();
+        if (!empty($left)) {
+            // Moved Left (In to another category).
+            $category->id = $left;
+            $category->contextid = $this->context->id;
+            $event = \core\event\question_category_moved::create_from_question_category_instance($category);
+            $event->trigger();
+        } else if (!empty($right)) {
+            // Moved Right (Out of the current category).
+            $category->id = $right;
+            $category->contextid = $this->context->id;
+            $event = \core\event\question_category_moved::create_from_question_category_instance($category);
+            $event->trigger();
+        }
+        parent::process_actions($left, $right, $moveup, $movedown);
+    }
+}
 
 /**
  * An item in a list of question categories.
@@ -115,13 +142,11 @@ class question_category_list_item extends list_item {
         // Each section adds html to be displayed as part of this list item.
         $questionbankurl = new moodle_url('/question/edit.php', $this->parentlist->pageurl->params());
         $questionbankurl->param('cat', $category->id . ',' . $category->contextid);
-        $catediturl = new moodle_url($this->parentlist->pageurl, array('edit' => $this->id));
         $item = '';
-        $item .= html_writer::tag('b', html_writer::link($catediturl,
-                format_string($category->name, true, array('context' => $this->parentlist->context)),
-                array('title' => $str->edit))) . ' ';
-        $item .= html_writer::link($questionbankurl, '(' . $category->questioncount . ')',
-                array('title' => $editqestions)) . ' ';
+        $text = format_string($category->name, true, ['context' => $this->parentlist->context])
+                . ' (' . $category->questioncount . ')';
+        $item .= html_writer::tag('b', html_writer::link($questionbankurl, $text,
+                        ['title' => $editqestions]) . ' ');
         $item .= format_text($category->info, $category->infoformat,
                 array('context' => $this->parentlist->context, 'noclean' => true));
 
@@ -377,6 +402,12 @@ class question_category_object {
 
         /// Finally delete the category itself
         $DB->delete_records("question_categories", array("id" => $category->id));
+
+        // Log the deletion of this category.
+        $event = \core\event\question_category_deleted::create_from_question_category_instance($category);
+        $event->add_record_snapshot('question_categories', $category);
+        $event->trigger();
+
     }
 
     public function move_questions_and_delete_category($oldcat, $newcat){
@@ -404,7 +435,8 @@ class question_category_object {
     /**
      * Creates a new category with given params
      */
-    public function add_category($newparent, $newcategory, $newinfo, $return = false, $newinfoformat = FORMAT_HTML) {
+    public function add_category($newparent, $newcategory, $newinfo, $return = false, $newinfoformat = FORMAT_HTML,
+            $idnumber = null) {
         global $DB;
         if (empty($newcategory)) {
             print_error('categorynamecantbeblank', 'question');
@@ -419,6 +451,16 @@ class question_category_object {
             }
         }
 
+        if ((string) $idnumber === '') {
+            $idnumber = null;
+        } else if (!empty($contextid)) {
+            // While this check already exists in the form validation, this is a backstop preventing unnecessary errors.
+            if ($DB->record_exists('question_categories',
+                    ['idnumber' => $idnumber, 'contextid' => $contextid])) {
+                $idnumber = null;
+            }
+        }
+
         $cat = new stdClass();
         $cat->parent = $parentid;
         $cat->contextid = $contextid;
@@ -427,14 +469,16 @@ class question_category_object {
         $cat->infoformat = $newinfoformat;
         $cat->sortorder = 999;
         $cat->stamp = make_unique_id_code();
+        if ($idnumber) {
+            $cat->idnumber = $idnumber;
+        }
         $categoryid = $DB->insert_record("question_categories", $cat);
 
         // Log the creation of this category.
-        $params = array(
-            'objectid' => $categoryid,
-            'contextid' => $contextid
-        );
-        $event = \core\event\question_category_created::create($params);
+        $category = new stdClass();
+        $category->id = $categoryid;
+        $category->contextid = $contextid;
+        $event = \core\event\question_category_created::create_from_question_category_instance($category);
         $event->trigger();
 
         if ($return) {
@@ -446,8 +490,18 @@ class question_category_object {
 
     /**
      * Updates an existing category with given params
+     *
+     * @param int $updateid
+     * @param int $newparent
+     * @param string $newname
+     * @param string $newinfo
+     * @param int $newinfoformat
+     * @param int $idnumber
+     * @param bool $redirect
+     * @return int
      */
-    public function update_category($updateid, $newparent, $newname, $newinfo, $newinfoformat = FORMAT_HTML) {
+    public function update_category($updateid, $newparent, $newname, $newinfo, $newinfoformat = FORMAT_HTML,
+            $idnumber = null, $redirect = true) {
         global $CFG, $DB;
         if (empty($newname)) {
             print_error('categorynamecantbeblank', 'question');
@@ -480,6 +534,16 @@ class question_category_object {
             }
         }
 
+        if ((string) $idnumber === '') {
+            $idnumber = null;
+        } else if (!empty($tocontextid)) {
+            // While this check already exists in the form validation, this is a backstop preventing unnecessary errors.
+            if ($DB->record_exists('question_categories',
+                    ['idnumber' => $idnumber, 'contextid' => $tocontextid])) {
+                $idnumber = null;
+            }
+        }
+
         // Update the category record.
         $cat = new stdClass();
         $cat->id = $updateid;
@@ -488,10 +552,17 @@ class question_category_object {
         $cat->infoformat = $newinfoformat;
         $cat->parent = $parentid;
         $cat->contextid = $tocontextid;
+        if ($idnumber) {
+            $cat->idnumber = $idnumber;
+        }
         if ($newstamprequired) {
             $cat->stamp = make_unique_id_code();
         }
         $DB->update_record('question_categories', $cat);
+
+        // Log the update of this category.
+        $event = \core\event\question_category_updated::create_from_question_category_instance($cat);
+        $event->trigger();
 
         // If the category name has changed, rename any random questions in that category.
         if ($oldcat->name != $cat->name) {
@@ -512,6 +583,8 @@ class question_category_object {
 
         // Cat param depends on the context id, so update it.
         $this->pageurl->param('cat', $updateid . ',' . $tocontextid);
-        redirect($this->pageurl);
+        if ($redirect) {
+            redirect($this->pageurl); // Always redirect after successful action.
+        }
     }
 }

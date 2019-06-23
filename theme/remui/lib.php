@@ -15,10 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Theme functions.
- *
+ * Edwiser RemUI Functions
  * @package    theme_remui
- * @copyright  WisdmLabs
+ * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -75,17 +74,19 @@ function theme_remui_process_css($css, $theme)
     // custom color sitewide
     $colorhex = \theme_remui\toolbox::get_setting('sitecolorhex');
     if (empty($colorhex)) {
-        $colorhex = '#62a8ea';
+        $colorhex = '#3e8ef7';
     } else {
         $colorhex = '#'.$colorhex;
     }
 
     $colorobj = new \theme_remui\Color($colorhex);
-    if ($colorhex !== '#62a8ea') {
-        $css = str_replace('#62a8ea', $colorhex, $css);
-        $css = str_replace('#89bceb', '#'.$colorobj->darken(3), $css);
+    if ($colorhex !== '#3e8ef7') {
+        $css = str_replace('#3e8ef7', $colorhex, $css);// main color
+        $css = str_replace('#007bff', $colorhex, $css);
+        $css = str_replace('#589ffc', '#'.$colorobj->darken(3), $css); // on hover
         $css = str_replace('#4397e6', '#'.$colorobj->darken(5), $css);
-        $css = str_replace('#e8f1f8', '#'.$colorobj->lighten(32), $css);
+        $css = str_replace('#d9e9ff', '#'.$colorobj->lighten(32), $css);
+        $css = str_replace('#247cf0', '#'.$colorobj->darken(5), $css); // on active
         $css = str_replace('rgba(53, 131, 202, .07)', '#'.$colorobj->lighten(32), $css);
         $css = str_replace('rgba(53, 131, 202, .04)', '#'.$colorobj->lighten(34), $css);
     }
@@ -101,69 +102,91 @@ function remui_clear_cache()
 
 function flatnav_icon_support($flatnav)
 {
-    global $CFG, $USER;
+    global $CFG, $USER, $PAGE;
     // Getting strings for privatefiles & competencies, because their keys are numeric in $PAGE-flatnav
-    $pf = get_string('privatefiles');
+    $pf   = get_string('privatefiles');
     $cmpt = get_string('competencies', 'core_competency');
     $flatnav_new = array();
-    $home_count = 0;
+    $home_count  = 0;
+    $coursecount = 0;
     foreach ($flatnav as $key => $value) {
+        $key = $coursecount++;
         $flatnav_new[$key] = $value;
         switch ($value->key) {
             case 'myhome':
                 $flatnav_new[$key]->remuiicon = 'fa-dashboard';
                 break;
             case 'home':
-                $flatnav_new[$key]->remuiicon = 'wb-home';
+                $flatnav_new[$key]->remuiicon = 'fa-home';
                 if ($home_count == 1) {
                     $flatnav_new[$key]->remuiicon = 'fa-dashboard';
                 }
-                        $home_count++;
+                $home_count++;
                 break;
             case 'calendar':
-                $flatnav_new[$key]->remuiicon = 'wb-calendar';
+                $flatnav_new[$key]->remuiicon = 'fa-calendar';
                 break;
             case 'mycourses':
-                $flatnav_new[$key]->remuiicon = 'wb-book';
-                $flatnav_new[$key]->action = $CFG->wwwroot . "/course/index.php?mycourses=1";
-                $flatnav_new[$key]->togglable = true;
-                $flatnav_new[$key]->toggleicon = 'fa fa-chevron-circle-right'; if (get_user_preferences('menubar_state') == 'fold') {
-                    $flatnav_new[$key]->folded = true;
-                } else {
-                    $flatnav_new[$key]->folded  = false;
+                $mycoursekey = $key;    // Store a key value to check if mycourses available
+                $flatnav_new[$key]->remuiicon = 'fa-archive';
+                $flatnav_new[$key]->action    = $CFG->wwwroot . "/course/index.php?mycourses=1";
+                if ($PAGE->pagelayout == 'coursecategory' && optional_param('mycourses', null, PARAM_TEXT)) {
+                    $flatnav_new[$key]->isactive = true;
                 }
                 break;
             case 'sitesettings':
-                $flatnav_new[$key]->remuiicon = 'wb-settings';
+                $flatnav_new[$key]->remuiicon = 'fa-cog';
+                if ($PAGE->pagelayout == 'admin') {
+                    $flatnav_new[$key]->isactive = true;
+                }
                 break;
             case 'addblock':
-                $flatnav_new[$key]->remuiicon = 'wb-plus-circle';
+                $flatnav_new[$key]->remuiicon = 'fa-plus-circle ';
                 break;
             case 'badgesview':
-                $flatnav_new[$key]->remuiicon = 'wb-bookmark';
+                $flatnav_new[$key]->remuiicon = 'fa-bookmark';
                 break;
             case 'participants':
-                $flatnav_new[$key]->remuiicon = 'wb-users';
+                $flatnav_new[$key]->remuiicon = 'fa-users';
                 break;
             case 'grades':
-                $flatnav_new[$key]->remuiicon = 'wb-star';
+                $flatnav_new[$key]->remuiicon = 'fa-star';
                 break;
             case 'coursehome':
-                $flatnav_new[$key]->remuiicon = 'wb-book';
+                $flatnav_new[$key]->remuiicon = 'fa-archive';
                 break;
             default:
-                $flatnav_new[$key]->remuiicon = 'wb-folder'; if (!strpos($flatnav_new[$key]->action, 'section')) {
+                // Check Whether the link has course id number
+                if (is_numeric($value->key)) {
+                    // Check for course type i.e. is it 20?
+                    if ($flatnav_new[$key]->type == 20) {
+                        $mycourses[] = $value;
+                        unset($flatnav_new[$key]);
+                        $coursecount--;
+                        break;
+                    }
+                }
+                $flatnav_new[$key]->remuiicon = 'fa-folder';
+                if (!strpos($flatnav_new[$key]->action, 'section')) {
                     $flatnav_new[$key]->hidable = true;
                 }
+                
                 break;
         }
         switch ($value->text) {
             case $pf:
-                $flatnav_new[$key]->remuiicon = 'wb-copy';
+                $flatnav_new[$key]->remuiicon = 'fa-paste';
                 break;
             case $cmpt:
-                $flatnav_new[$key]->remuiicon = 'wb-check-circle';
+                $flatnav_new[$key]->remuiicon = 'fa-check-circle';
                 break;
+        }
+    }
+    if (!empty($mycourses)) {
+        $flatnav_new[$mycoursekey]->ismycourses = true;
+        $flatnav_new[$mycoursekey]->mycourses   = $mycourses;
+        if (count($mycourses) == 10) {
+            $flatnav_new[$mycoursekey]->hasmore = true;
         }
     }
     return $flatnav_new;
@@ -206,71 +229,99 @@ function theme_remui_pluginfile($course, $cm, $context, $filearea, $args, $force
             return $theme->setting_file_serve('staticimage', $args, $forcedownload, $options);
         } elseif ($filearea === 'layoutimage') {
             return $theme->setting_file_serve('layoutimage', $args, $forcedownload, $options);
+        } elseif ($filearea === 'frontpageloader') {
+            return $theme->setting_file_serve('frontpageloader', $args, $forcedownload, $options);
         } else {
-            send_file_not_found();
+            $itemid = (int)array_shift($args);
+            $relativepath = implode('/', $args);
+            $fullpath = "/{$context->id}/theme_remui/$filearea/$itemid/$relativepath";
+            $fs = get_file_storage();
+            if (!($file = $fs->get_file_by_hash(sha1($fullpath)))) {
+                send_file_not_found();
+                return false;
+            }
+            // Download MUST be forced - security.
+            send_stored_file($file, 0, 0, $forcedownload, $options);
         }
     } else {
         send_file_not_found();
     }
 }
 
-// Activities Navigation Previous Next
-function activities_navigation_previous_next($pagelayout = null, $id = null, $course = null)
-{
-    global $USER, $CFG;
-    if ($pagelayout == 'incourse') {
-        $prev = $next = $count = 0;
-        $prevlink = $nextlink = '';
-        $first = '';
-        $last;
-        $visible;
 
-        $allActivities = get_array_of_activities($course->id);
+function theme_remui_output_fragment_frontpage_section_form($args) {
+    global $CFG;
 
-        foreach ($allActivities as $activity) {
-            if ($activity->visible == 1 || $USER->id == 2) {
-                $visible = 1;
-                $count++;
-            } else {
-                $visible = 0;
-            }
-            if ($visible == 1) {
-                if (!$first) {
-                    $first = $activity->cm;
-                }
-                if ($next == 1) {
-                    $nextlink = $CFG->wwwroot.'/mod/'.$activity->mod.'/view.php?id='.$activity->cm;
-                    $next = 0;
-                }
-                if ($id == $activity->cm) {
-                    $prev = $next = 1;
-                }
-                if ($prev == 0) {
-                    $prevlink = $CFG->wwwroot.'/mod/'.$activity->mod.'/view.php?id='.$activity->cm;
-                }
-                $last = $activity->cm;
-            }
-        }
+    $args = (object) $args;
+    $mform = new theme_remui\frontpage\sections\main_form(null, $args);
 
-        if ($count > 1) {
-            $prev = get_string('activityprev', 'theme_remui');
-            $next = get_string('activitynext', 'theme_remui');
+    ob_start();
+    $mform->display();
+    $o = ob_get_contents();
+    ob_end_clean();
 
-            $anpn = "<div class='pad row' style='clear:both'><div class='col-lg-12 px-45'>";
-            $exit_button = "<div class='pull-left exitbutton'><a href='/course/view.php?id=" . $course->id . "' class='btn btn-primary'>Return to Course Home</a></div>";
-            $anpn .= $exit_button;
+    return $o;
+}
 
-            if ($id == $first) {
-                $anpn .= "<div class='pull-right'><a href='".$nextlink."' class ='btn btn-primary'>".$next."</a></div>";
-            } elseif ($id == $last) {
-                $anpn .= "<div class='pull-left prevbutton'><a href='".$prevlink."' class ='btn btn-primary'>".$prev."</a></div>";
-            } else {
-                $anpn .= "<div class='pull-left prevbutton'><a href='".$prevlink."' class ='btn btn-primary'>".$prev."</a></div><div class='pull-right'><a href='".$nextlink."' class ='btn btn-primary'>".$next."</a></div>";
-            }
-            $anpn .= "</div></div>";
-        } else {
-            $anpn = "";
+/**
+ * This function will generate frontpage settings form and return it's html view
+ * @param  array $args Argument passed with fragment call
+ * @return string      Frontpage settings form's html output
+ */
+function theme_remui_output_fragment_frontpage_settings_form($args) {
+    global $CFG;
+
+    $configdata = [];
+    $configdata['frontpageloader'] = get_config('theme_remui', 'frontpageloader');
+    $configdata['frontpagetransparentheader'] = get_config('theme_remui', 'frontpagetransparentheader');
+    $configdata['frontpageheadercolor'] = get_config('theme_remui', 'frontpageheadercolor');
+    $configdata['frontpageappearanimation'] = get_config('theme_remui', 'frontpageappearanimation');
+    $configdata['frontpageappearanimationstyle'] = get_config('theme_remui', 'frontpageappearanimationstyle');
+    $args['configdata'] = $configdata;
+
+    $args = (object) $args;
+    $mform = new theme_remui\frontpage\settings(null, $args);
+
+    return $mform->render();
+}
+
+
+// This function will return random unused itemid
+function theme_remui_get_unused_itemid($filearea) {
+    global $DB, $USER;
+
+    if (isguestuser() or !isloggedin()) {
+        // guests and not-logged-in users can not be allowed to upload anything!!!!!!
+        print_error('noguest');
+    }
+
+    $contextid = context_system::instance()->id;
+
+    $fs = get_file_storage();
+    $itemid = rand(1, 999999999);
+    while ($files = $fs->get_area_files($contextid, 'theme_remui', $filearea, $itemid)) {
+        $itemid = rand(1, 999999999);
+    }
+
+    return $itemid;
+}
+
+function get_file_img_url($itemid, $component, $filearea) {
+    $context = \context_system::instance();
+
+    $fs = get_file_storage();
+    $files = $fs->get_area_files($context->id, $component, $filearea, $itemid);
+    foreach ($files as $file) {
+        if ($file->get_filename() != '.') {
+            return moodle_url::make_pluginfile_url(
+                $file->get_contextid(),
+                $file->get_component(),
+                $file->get_filearea(),
+                $file->get_itemid(),
+                $file->get_filepath(),
+                $file->get_filename(),
+                false)->out();
         }
     }
-    return $anpn;
+    return "";
 }
