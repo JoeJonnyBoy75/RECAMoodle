@@ -155,4 +155,82 @@
             </div>
         </div>
     {{/caneditfrontpage}}
+
+<script type="text/javascript">
+if (!String.prototype.endsWith) {
+    String.prototype.endsWith = function(search, this_len) {
+        if (this_len === undefined || this_len > this.length) {
+            this_len = this.length;
+        }
+        return this.substring(this_len - search.length, this_len) === search;
+    };
+}
+
+require(['jquery'], function($) {
+    $("#section-1").before($(".opencloseallwrapper").detach());
+    $(".course-open-all").on("click", function() {
+        //$(".course-content *[data-toggle='collapse'][aria-expanded=false]").click();
+        $(".course-content .toggle-section.fa-angle-down").click();
+        return false;
+    });
+    $(".course-close-all").on("click", function() {
+        //$(".course-content *[data-toggle='collapse'][aria-expanded=true]").click();
+        $(".course-content .toggle-section.fa-angle-up").click();
+        return false;
+    });
+
+    // Attempt to highlight the correct current course row.
+    var potentialIcons = $(".course-content .activity img.icon");
+        if (potentialIcons.length > 0) {
+        var i;
+        for (i=0; i < potentialIcons.length; i++) {
+            if (potentialIcons[i].src.endsWith("completion-auto-y")) {
+                continue;
+            }
+            break;
+        }
+        //console.log("i", i);
+        $(potentialIcons[i]).parent().parent().parent().parent().parent().parent().css("background-color", "#deecf9");
+    }
+
+    // Update the user menu items.
+    var usermenuDashboard = $(".usermenu .dropdown-item:contains('Dashboard')");
+    usermenuDashboard.attr("href", "/course/index.php?mycourses=1");
+    usermenuDashboard.html(usermenuDashboard.html().replace(/Dashboard/g, "My Courses"));
+    var usermenuProfile = $(".usermenu .dropdown-item:contains('Dashboard')");
+
+    // Make the new here links open in new windows.
+    $(".nav-link:contains('New Here')").parent().find(".dropdown-item").attr("target", "_blank")
+
+    // Return to Course Home, populate with correct URL.
+    $(".course-exitbutton a").attr("href", $(".back-to-course a").attr("href"));
+});
+
+// Make the homepage link go to where we really want it, rename it to RECA.ca
+var elems = document.querySelectorAll(".site-menubar-body .site-menu [data-key='home']");
+for (var i=0; i < elems.length; i++) {
+    elems[i].href = "//www.reca.ca";
+    elems[i].target = "_blank";
+}
+var elems = document.querySelectorAll(".site-menubar-body .site-menu [data-key='home'] span");
+for (var i=0; i < elems.length; i++) {
+    elems[i].innerHTML = "RECA.ca";
+}
+
+// Hide the left menu nagivation dashboard link.
+var elems = document.querySelectorAll(".site-menubar-body .site-menu [data-key='myhome']");
+for (var i=0; i < elems.length; i++) {
+    elems[i].style.display = "none";
+}
+var elems = document.querySelectorAll(".site-menubar-body .site-menu [data-key='privatefiles']");
+for (var i=0; i < elems.length; i++) {
+    elems[i].style.display = "none";
+}
+// Hide the left menu nagivation calendar link.
+//var elems = document.querySelectorAll(".site-menubar-body .site-menu [data-key='calendar']");
+//for (var i=0; i < elems.length; i++) {
+//    elems[i].style.display = "none";
+//}
+
+</script>
 </footer>

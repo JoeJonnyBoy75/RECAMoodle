@@ -66,13 +66,19 @@
 }}
 <div class="activity-navigation row d-flex">
     <!-- class order-lg-1 for first element not necessary, it will always be first by order-1 -->
-    <div class="col-6 col-lg-4 pull-left text-left py-5 order-1 order-lg-1">
+    <div class="col-6 col-lg-4 pull-left text-left py-5 order-1 order-lg-1 course-exitbutton">
+        <a href="#" class="btn btn-inverse btn-sm">Return to Course Home</a>
+    </div>
+    <div class="col-6 col-lg-4 pull-left text-left py-5 order-1 order-lg-1" style="display: none;">
         {{#prevlink}}{{> core/action_link }}{{/prevlink}}
     </div>
+    <!--
     <div class="col-12 col-lg-4 mdl-align text-left py-5 order-3 order-lg-2">
         {{#activitylist}}{{> core/url_select }}{{/activitylist}}
     </div>
     <div class="col-6 col-lg-4 pull-right text-right py-5 order-2 order-lg-3">
+    -->
+    <div class="col-18 col-lg-8 pull-right text-right py-5 order-2 order-lg-3">
         {{#nextlink}}{{> core/action_link }}{{/nextlink}}
     </div>
 </div>
