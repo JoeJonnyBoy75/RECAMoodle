@@ -149,5 +149,10 @@ function report_outline_myprofile_navigation(core_user\output\myprofile\tree $tr
             array('id' => $user->id, 'course' => $course->id, 'mode' => 'complete'));
         $node = new core_user\output\myprofile\node('reports', 'complete', get_string('completereport'), null, $url);
         $tree->add_node($node);
+	// (gav) 20190821 Added to provide deletion options.
+        $url = new moodle_url('/custom/user_reset_report.php',
+            array('id' => $user->id, 'course' => $course->id, 'mode' => 'outline'));
+        $node = new core_user\output\myprofile\node('reports', 'userreset', 'User Reset Report', null, $url);
+        $tree->add_node($node);
     }
 }
