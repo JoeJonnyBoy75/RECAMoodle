@@ -1583,7 +1583,9 @@ class core_renderer extends remui_renderer
         $activitylist = [];
         foreach ($modules as $module) {
             // Only add activities the user can access, aren't in stealth mode and have a url (eg. mod_label does not).
-            if (!$module->uservisible || $module->is_stealth() || empty($module->url)) {
+            //if (!$module->uservisible || $module->is_stealth() || empty($module->url)) {
+            // (gav) 20190821 TODO We always want the next button to show, even if the user can't get there yet.  Because it won't appear later since it's not JS-injectable..
+            if ($module->is_stealth() || empty($module->url)) {
                 continue;
             }
             $mods[$module->id] = $module;
