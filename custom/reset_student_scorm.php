@@ -20,6 +20,10 @@ function reset_student_scorm_module($user_id, $course_id, $cm_id) {
 	$DB->execute('DELETE FROM mdl_grade_grades WHERE itemid = ? AND userid = ?', array($grade_item->id, $user_id));
 	$DB->execute('DELETE FROM mdl_scorm_scoes_track WHERE scormid = ? AND userid = ?', array($cm->instance, $user_id));
 
+	// Delete the course copmletion.
+	$DB->execute('DELETE FROM mdl_course_completions where course = ? and userid = ?', array($course_id, $user_id));
+	
+	// Delete the course module completions.
 	$cmcs = $DB->get_records_sql('SELECT * FROM mdl_course_modules_completion where coursemoduleid = ? and userid = ?', array($cm_id, $user_id));
 	//print_r($cmcs);
 	$DB->execute('DELETE FROM mdl_course_modules_completion where coursemoduleid = ? and userid = ?', array($cm_id, $user_id));
