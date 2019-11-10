@@ -150,7 +150,6 @@ foreach ($sections as $i => $section) {
 
                 foreach ($modinfo->sections[$i] as $cmid) {
                     $mod = $modinfo->cms[$cmid];
-
                     if (empty($mod->uservisible)) {
                         continue;
                     }
