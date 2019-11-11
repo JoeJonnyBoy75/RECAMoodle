@@ -154,5 +154,10 @@ function report_outline_myprofile_navigation(core_user\output\myprofile\tree $tr
             array('id' => $user->id, 'course' => $course->id, 'mode' => 'outline'));
         $node = new core_user\output\myprofile\node('reports', 'userreset', 'User Reset Report', null, $url);
         $tree->add_node($node);
+	// (gav) 20191110 Added to provide completion options.
+        $url = new moodle_url('/custom/user_pass_report.php',
+            array('userid' => $user->id, 'id' => $course->id, 'userview' => '1'));
+        $node = new core_user\output\myprofile\node('reports', 'userpass', 'User Pass Report', null, $url);
+        $tree->add_node($node);
     }
 }
