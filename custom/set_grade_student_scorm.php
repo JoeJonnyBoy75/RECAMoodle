@@ -112,10 +112,14 @@ if (!empty($_GET['pass']) && $_GET['pass'] == 'cm') {
     pass_student_scorm_module($_GET['user'], $_GET['course'], $_GET['cm']);
     //header('Location: /custom/user_pass_report.php?id=' . $_GET['user'] . '&course=' . $_GET['course'] . '&mode=outline');
 }
-else if  (!empty($_GET['pass']) && $_GET['pass'] == 'course') {
-    pass_student_scorm_course($_GET['user'], $_GET['course']);
-    //header('Location: /custom/user_pass_report.php?id=' . $_GET['user'] . '&course=' . $_GET['course'] . '&mode=outline');
+else if (!empty($_GET['pass']) && $_GET['pass'] == 'section') {
+    $cms = explode(',', $_GET['cms']);
+    print_r($cms);
+    foreach ($cms as $cmid) {
+        pass_student_scorm_module($_GET['user'], $_GET['course'], $cmid);
+    }
 }
+
 	echo "REBUILD COURSE CACHE FOR {$_GET['course']} ?";
 	rebuild_course_cache($_GET['course'], false);
 	\availability_grade\callbacks::grade_changed($_GET['user']);

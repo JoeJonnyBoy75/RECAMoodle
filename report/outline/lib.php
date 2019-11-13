@@ -156,7 +156,7 @@ function report_outline_myprofile_navigation(core_user\output\myprofile\tree $tr
         $tree->add_node($node);
 	// (gav) 20191110 Added to provide completion options.
         $url = new moodle_url('/custom/user_pass_report.php',
-            array('userid' => $user->id, 'id' => $course->id, 'userview' => '1'));
+            array('userid' => $user->id, 'courseid' => $course->id));
         $node = new core_user\output\myprofile\node('reports', 'userpass', 'User Pass Report', null, $url);
         $tree->add_node($node);
     }
