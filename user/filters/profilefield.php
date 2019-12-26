@@ -74,14 +74,13 @@ class user_filter_profilefield extends user_filter_type {
      */
     public function get_profile_fields() {
         global $DB;
-        if (!$fields = $DB->get_records('user_info_field', null, 'shortname', 'id,shortname')) {
+        $order = $DB->sql_order_by_text('name');
+        if (!$fields = $DB->get_records_menu('user_info_field', null, $order, 'id, name')) {
             return null;
         }
         $res = array(0 => get_string('anyfield', 'filters'));
-        foreach ($fields as $k => $v) {
-            $res[$k] = $v->shortname;
-        }
-        return $res;
+
+        return $res + $fields;
     }
 
     /**
@@ -123,7 +122,7 @@ class user_filter_profilefield extends user_filter_type {
         $operator = $field.'_op';
         $profile  = $field.'_fld';
 
-        if (array_key_exists($profile, $formdata)) {
+        if (property_exists($formdata, $profile)) {
             if ($formdata->$operator < 5 and $formdata->$field === '') {
                 return false;
             }

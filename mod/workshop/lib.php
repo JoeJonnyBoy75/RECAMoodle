@@ -1057,37 +1057,11 @@ function workshop_print_recent_mod_activity($activity, $courseid, $detail, $modn
 }
 
 /**
- * Is a given scale used by the instance of workshop?
- *
- * The function asks all installed grading strategy subplugins. The workshop
- * core itself does not use scales. Both grade for submission and grade for
- * assessments do not use scales.
- *
- * @param int $workshopid id of workshop instance
- * @param int $scaleid id of the scale to check
- * @return bool
+ * @deprecated since Moodle 3.8
  */
-function workshop_scale_used($workshopid, $scaleid) {
-    global $CFG; // other files included from here
-
-    $strategies = core_component::get_plugin_list('workshopform');
-    foreach ($strategies as $strategy => $strategypath) {
-        $strategylib = $strategypath . '/lib.php';
-        if (is_readable($strategylib)) {
-            require_once($strategylib);
-        } else {
-            throw new coding_exception('the grading forms subplugin must contain library ' . $strategylib);
-        }
-        $classname = 'workshop_' . $strategy . '_strategy';
-        if (method_exists($classname, 'scale_used')) {
-            if (call_user_func_array(array($classname, 'scale_used'), array($scaleid, $workshopid))) {
-                // no need to include any other files - scale is used
-                return true;
-            }
-        }
-    }
-
-    return false;
+function workshop_scale_used() {
+    throw new coding_exception('workshop_scale_used() can not be used anymore. Plugins can implement ' .
+        '<modname>_scale_used_anywhere, all implementations of <modname>_scale_used are now ignored');
 }
 
 /**
@@ -1807,6 +1781,14 @@ function mod_workshop_core_calendar_provide_event_action(calendar_event $event,
         return null;
     }
 
+    $completion = new \completion_info($cm->get_course());
+
+    $completiondata = $completion->get_data($cm, false, $userid);
+
+    if ($completiondata->completionstate != COMPLETION_INCOMPLETE) {
+        return null;
+    }
+
     return $factory->create_instance(
         get_string('viewworkshopsummary', 'workshop'),
         new \moodle_url('/mod/workshop/view.php', array('id' => $cm->id)),
@@ -2194,4 +2176,32 @@ function workshop_check_updates_since(cm_info $cm, $from, $filter = array()) {
         }
     }
     return $updates;
+}
+
+/**
+ * Given an array with a file path, it returns the itemid and the filepath for the defined filearea.
+ *
+ * @param  string $filearea The filearea.
+ * @param  array  $args The path (the part after the filearea and before the filename).
+ * @return array|null The itemid and the filepath inside the $args path, for the defined filearea.
+ */
+function mod_workshop_get_path_from_pluginfile(string $filearea, array $args) : ?array {
+    if ($filearea !== 'instructauthors' && $filearea !== 'instructreviewers' && $filearea !== 'conclusion') {
+        return null;
+    }
+
+    // Workshop only has empty itemid for some of the fileareas.
+    array_shift($args);
+
+    // Get the filepath.
+    if (empty($args)) {
+        $filepath = '/';
+    } else {
+        $filepath = '/' . implode('/', $args) . '/';
+    }
+
+    return [
+        'itemid' => 0,
+        'filepath' => $filepath,
+    ];
 }

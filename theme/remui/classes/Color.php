@@ -22,6 +22,7 @@
  */
 
 namespace theme_remui;
+defined('MOODLE_INTERNAL') || die();
 
 use \Exception;
 

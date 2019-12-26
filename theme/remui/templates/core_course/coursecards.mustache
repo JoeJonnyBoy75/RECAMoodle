@@ -34,12 +34,12 @@
     }
 }}
 
-<div class="card-deck dashboard-card-deck {{$classes}}{{/classes}} slick-slider" role="list">
+<div class="card-deck dashboard-card-deck {{$classes}}{{/classes}} slick-slider" data-region="card-deck" role="list">
 {{#courses}}
-    <div class="card dashboard-card m-0 mb-20 position-relative" role="listitem"
+    <div class="card dashboard-card m-0 my-2 position-relative" role="listitem"
         data-region="course-content"
         data-course-id="{{{id}}}">
-        <div class="card-body p-0 mx-10">
+        <div class="card-body p-0 mx-2">
             <figure class="overlay overlay-hover rounded">
                 <div class="card-img dashboard-card-img" style='background-image: url("{{{courseimage}}}");background-size: cover;background-position: center;height: 110px;'>
                     <span class="sr-only">{{#str}}aria:courseimage, core_course{{/str}}</span>
@@ -66,7 +66,7 @@
                         {{$progress}}{{/progress}}
                     </div>
                 </div>
-                <figcaption onclick="location.href='{{ viewurl }}';" class="overlay-panel overlay-background overlay-fade text-center vertical-align" style="cursor: pointer;">
+                <figcaption onclick="location.href='{{ viewurl }}';" class="overlay-panel overlay-background overlay-fade d-flex align-items-center justify-content-center w-100" style="cursor: pointer;">
                     <a href = "{{ viewurl }}" class="btn text-white font-weight-600 font-size-18 vertical-align-middle">{{#str}} viewcourse, theme_remui {{/str}}</a>
                 </figcaption>
             </figure>

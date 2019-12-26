@@ -22,64 +22,42 @@
 defined('MOODLE_INTERNAL') || die();
 
 $functions = array(
-    'theme_remui_create_section_instance' => array(
+    'theme_remui_set_setting' => array(
         'classname'     => 'theme_remui\external\api',
-        'methodname'    => 'create_section_instance',
-        'description'   => 'Create New Section Instance',
+        'methodname'    => 'set_setting',
+        'description'   => 'Set config',
         'type'          => 'write',
         'ajax'          => true,
     ),
-    'theme_remui_delete_section_instance' => array(
+    'theme_remui_save_user_profile_settings' => array(
         'classname'     => 'theme_remui\external\api',
-        'methodname'    => 'delete_section_instance',
-        'description'   => 'Delete Section Instance',
+        'methodname'    => 'save_user_profile_settings',
+        'description'   => 'Save user profile data from profile page',
         'type'          => 'write',
         'ajax'          => true,
     ),
-    'theme_remui_fetch_all_instances' => array(
+    'theme_remui_send_message' => array(
         'classname'     => 'theme_remui\external\api',
-        'methodname'    => 'fetch_all_instances',
-        'description'   => 'Fetch All Instances',
-        'loginrequired' => false,
-        'type'          => 'read',
-        'ajax'          => true,
-    ),
-    'theme_remui_get_frontpage_section_courses_in_category' => array(
-        'classname'     => 'theme_remui\external\api',
-        'methodname'    => 'get_frontpage_section_courses_in_category',
-        'description'   => 'Get courses and it\'s data of category',
-        'type'          => 'read',
-        'loginrequired' => false,
-        'ajax'          => true,
-    ),
-    'theme_remui_save_frontpage_settings' => array(
-        'classname'     => 'theme_remui\external\api',
-        'methodname'    => 'save_frontpage_settings',
-        'description'   => 'Save frontapge settings into plugin config',
+        'methodname'    => 'send_message',
+        'description'   => 'Send message to user',
         'type'          => 'write',
         'ajax'          => true,
     ),
-    'theme_remui_save_sections_order' => array(
+    'theme_remui_get_course_stats' => array(
         'classname'     => 'theme_remui\external\api',
-        'methodname'    => 'save_sections_order',
-        'description'   => 'Save order of sections',
+        'methodname'    => 'get_course_stats',
+        'description'   => 'Get course statistics',
         'type'          => 'write',
         'ajax'          => true,
     ),
-    'theme_remui_update_section_instance' => array(
+    'theme_remui_get_courses' => array(
         'classname'     => 'theme_remui\external\api',
-        'methodname'    => 'update_section_instance',
-        'description'   => 'Update Section Instance',
+        'methodname'    => 'get_courses',
+        'description'   => 'Get courses',
         'type'          => 'write',
         'ajax'          => true,
-    ),
-    'theme_remui_update_section_visibility' => array(
-        'classname'     => 'theme_remui\external\api',
-        'methodname'    => 'update_section_visibility',
-        'description'   => 'Update Section visibility',
-        'type'          => 'write',
-        'ajax'          => true,
-    ),
+        'loginrequired' => false
+    )
 );
 
 

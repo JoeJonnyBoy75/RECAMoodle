@@ -35,10 +35,10 @@
     }
 
 }}
-<li class="popover-region nav-item collapsed">
-    <a id="message-drawer-toggle-{{uniqid}}" class="nav-link popover-region-toggle" data-toggle="tab" href="#sidebar-message" role="tab" aria-selected="false" data-placement="top" data-toggle="tooltip" data-original-title="{{#str}} togglemessagemenu, message {{/str}}">
+<li class="popover-region nav-item collapsed text-center m-0">
+    <a id="message-drawer-toggle-{{uniqid}}" class="nav-link popover-region-toggle p-3" data-toggle="tab" href="#sidebar-message" role="tab" aria-selected="false" data-placement="top" data-toggle="tooltip" data-original-title="{{#str}} togglemessagemenu, message {{/str}}">
         <i class="icon fa fa-comment" aria-hidden="true"></i>
-        <span class="font-size-10 badge badge-important up animation-shake {{^unreadcount}}hidden{{/unreadcount}}" data-region="count-container">{{unreadcount}}</span>
+        <span class="wdm-msg-count font-size-10 badge badge-danger up animation-shake {{^unreadcount}}hidden{{/unreadcount}}" data-region="count-container">{{unreadcount}}</span>
     </a>
 </li>
 

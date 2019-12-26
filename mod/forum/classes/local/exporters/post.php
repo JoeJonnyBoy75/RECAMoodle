@@ -92,6 +92,7 @@ class post extends exporter {
         return [
             'id' => ['type' => PARAM_INT],
             'subject' => ['type' => PARAM_TEXT],
+            'replysubject' => ['type' => PARAM_TEXT],
             'message' => ['type' => PARAM_RAW],
             'messageformat' => ['type' => PARAM_INT],
             'author' => ['type' => author_exporter::read_properties_definition()],
@@ -114,6 +115,12 @@ class post extends exporter {
             'isprivatereply' => ['type' => PARAM_BOOL],
             'haswordcount' => ['type' => PARAM_BOOL],
             'wordcount' => [
+                'type' => PARAM_INT,
+                'optional' => true,
+                'default' => null,
+                'null' => NULL_ALLOWED
+            ],
+            'charcount' => [
                 'type' => PARAM_INT,
                 'optional' => true,
                 'default' => null,
@@ -145,6 +152,11 @@ class post extends exporter {
                         'type' => PARAM_BOOL,
                         'null' => NULL_ALLOWED,
                         'description' => 'Whether the user can reply to the post',
+                    ],
+                    'selfenrol' => [
+                        'type' => PARAM_BOOL,
+                        'null' => NULL_ALLOWED,
+                        'description' => 'Whether the user can self enrol into the course',
                     ],
                     'export' => [
                         'type' => PARAM_BOOL,
@@ -360,6 +372,7 @@ class post extends exporter {
         $canreply = $capabilitymanager->can_reply_to_post($user, $discussion, $post);
         $canexport = $capabilitymanager->can_export_post($user, $post);
         $cancontrolreadstatus = $capabilitymanager->can_manually_control_post_read_status($user);
+        $canselfenrol = $capabilitymanager->can_self_enrol($user);
         $canreplyprivately = $capabilitymanager->can_reply_privately_to_post($user, $post);
 
         $urlfactory = $this->related['urlfactory'];
@@ -369,7 +382,7 @@ class post extends exporter {
         $editurl = $canedit ? $urlfactory->get_edit_post_url_from_post($forum, $post) : null;
         $deleteurl = $candelete ? $urlfactory->get_delete_post_url_from_post($post) : null;
         $spliturl = $cansplit ? $urlfactory->get_split_discussion_at_post_url_from_post($post) : null;
-        $replyurl = $canreply ? $urlfactory->get_reply_to_post_url_from_post($post) : null;
+        $replyurl = $canreply || $canselfenrol ? $urlfactory->get_reply_to_post_url_from_post($post) : null;
         $exporturl = $canexport ? $urlfactory->get_export_post_url_from_post($post) : null;
         $markasreadurl = $cancontrolreadstatus ? $urlfactory->get_mark_post_as_read_url_from_post($post) : null;
         $markasunreadurl = $cancontrolreadstatus ? $urlfactory->get_mark_post_as_unread_url_from_post($post) : null;
@@ -379,7 +392,7 @@ class post extends exporter {
             $author,
             $authorcontextid,
             $authorgroups,
-            ($canview && !$isdeleted),
+            $canview,
             $this->related
         );
         $exportedauthor = $authorexporter->export($output);
@@ -395,15 +408,27 @@ class post extends exporter {
             $subject = $isdeleted ? get_string('forumsubjectdeleted', 'forum') : get_string('forumsubjecthidden', 'forum');
             $message = $isdeleted ? get_string('forumbodydeleted', 'forum') : get_string('forumbodyhidden', 'forum');
             $timecreated = null;
+        }
 
-            if ($isdeleted) {
-                $exportedauthor->fullname = null;
-            }
+        $replysubject = $subject;
+        $strre = get_string('re', 'forum');
+        if (!(substr($replysubject, 0, strlen($strre)) == $strre)) {
+            $replysubject = "{$strre} {$replysubject}";
+        }
+
+        $showwordcount = $forum->should_display_word_count();
+        if ($showwordcount) {
+            $wordcount = $post->get_wordcount() ?? count_words($message);
+            $charcount = $post->get_charcount() ?? count_letters($message);
+        } else {
+            $wordcount = null;
+            $charcount = null;
         }
 
         return [
             'id' => $post->get_id(),
             'subject' => $subject,
+            'replysubject' => $replysubject,
             'message' => $message,
             'messageformat' => $post->get_message_format(),
             'author' => $exportedauthor,
@@ -414,8 +439,9 @@ class post extends exporter {
             'unread' => ($loadcontent && $readreceiptcollection) ? !$readreceiptcollection->has_user_read_post($user, $post) : null,
             'isdeleted' => $isdeleted,
             'isprivatereply' => $isprivatereply,
-            'haswordcount' => $forum->should_display_word_count(),
-            'wordcount' => $forum->should_display_word_count() ? count_words($message) : null,
+            'haswordcount' => $showwordcount,
+            'wordcount' => $wordcount,
+            'charcount' => $charcount,
             'capabilities' => [
                 'view' => $canview,
                 'edit' => $canedit,
@@ -424,7 +450,8 @@ class post extends exporter {
                 'reply' => $canreply,
                 'export' => $canexport,
                 'controlreadstatus' => $cancontrolreadstatus,
-                'canreplyprivately' => $canreplyprivately
+                'canreplyprivately' => $canreplyprivately,
+                'selfenrol' => $canselfenrol
             ],
             'urls' => [
                 'view' => $viewurl ? $viewurl->out(false) : null,

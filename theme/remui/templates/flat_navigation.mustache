@@ -11,16 +11,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    Edwiser RemUI 
-    @package    theme_remui
-    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
-    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- 
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
     @template theme_remui/flat_navigation
 
-    Display the flat navigation for the Edwiser RemUI theme
+    Display the flat navigation for the remui theme
 
     Classes required for JS:
     * none
@@ -58,63 +55,87 @@
         ]
     }
 }}
-
+<nav class="list-group" aria-label="{{firstcollectionlabel}}">
 {{# flatnavigation }}
     {{#showdivider}}
-</li>
-<li class="site-menu-category" aria-label="{{get_collectionlabel}}"></li>
+</nav>
+<nav class="list-group border-top" aria-label="{{get_collectionlabel}}">
     {{/showdivider}}
+    {{#show}}
     {{#action}}
-        {{#get_indent}}
-            <li class="site-menu-item pl-20 {{#isactive}}active{{/isactive}} {{#hidable}}hidable collapse{{/hidable}}">
-            <a href="{{{action}}}" data-key="{{key}}" class="py-5"  data-isexpandable="{{isexpandable}}" data-indent="{{get_indent}}" data-showdivider="{{showdivider}}" data-type="{{type}}" data-nodetype="{{nodetype}}" data-collapse="{{collapse}}" data-forceopen="{{forceopen}}" data-isactive="{{isactive}}" data-hidden="{{hidden}}" data-preceedwithhr="{{preceedwithhr}}" {{#parent.key}}data-parent-key="{{.}}"{{/parent.key}}>
-                <i class="site-menu-icon {{{remuiicon}}}" aria-hidden="true"></i>
-        {{/get_indent}}
-        
-        {{^get_indent}}
-            <li class="site-menu-item {{#ismycourses}}has-sub{{/ismycourses}} {{#isactive}}active{{/isactive}}"  title="{{{text}}}"  aria-label="{{firstcollectionlabel}}">
-                <a href="{{{action}}}" data-key="{{key}}" class="py-5"  data-isexpandable="{{isexpandable}}" data-indent="{{get_indent}}" data-showdivider="{{showdivider}}" data-type="{{type}}" data-nodetype="{{nodetype}}" data-collapse="{{collapse}}" data-forceopen="{{forceopen}}" data-isactive="{{isactive}}" data-hidden="{{hidden}}" data-preceedwithhr="{{preceedwithhr}}" {{#parent.key}}data-parent-key="{{.}}"{{/parent.key}}>
-                    <i class="site-menu-icon {{{remuiicon}}}" aria-hidden="true"></i>
-                    <span class="site-menu-title">{{{text}}}</span>
-        {{/get_indent}}
-           {{#ismycourses}}<span class="site-menu-arrow px-15" id="mycourses-toggler" onclick="return false;"></span>{{/ismycourses}}
-            </a>
-            {{#ismycourses}}
-                <ul class="site-menu-sub">
-                    {{#mycourses}}
-                    <li class="site-menu-item "  title="{{{text}}}">
-                      <a class="animsition-link py-5" href="{{{ config.wwwroot }}}/course/view.php?id={{{key}}}">
-                        <i class="site-menu-icon " aria-hidden="true" ></i>
-                        <span class="site-menu-title">{{{text}}}</span>
-                      </a>
-                    </li>
-                    {{/mycourses}}
-                    {{#hasmore}}
-                        <li class="site-menu-item " title="{{#str}}more, theme_remui{{/str}}">
-                          <a class="animsition-link py-5" href="{{{ config.wwwroot }}}/course/index.php?mycourses=1">
-                            <i class="site-menu-icon " aria-hidden="true" ></i>
-                            <span class="site-menu-title">{{#str}}more, theme_remui{{/str}}</span>
-                          </a>
-                        </li>
-                    {{/hasmore}}
-                </ul>
-            {{/ismycourses}}
-        </li>
+    <a class="list-group-item list-group-item-action {{#isactive}}active{{/isactive}}" href="{{{action}}}" data-key="{{key}}" data-isexpandable="{{isexpandable}}" data-indent="{{get_indent}}" data-showdivider="{{showdivider}}" data-type="{{type}}" data-nodetype="{{nodetype}}" data-collapse="{{collapse}}" data-forceopen="{{forceopen}}" data-isactive="{{isactive}}" data-hidden="{{hidden}}" title="{{{text}}}" data-preceedwithhr="{{preceedwithhr}}" {{#parent.key}}data-parent-key="{{.}}"{{/parent.key}}>
+        <div class="ml-{{get_indent}}">
+            <div class="media">
+            {{#icon.pix}}
+                <span class="media-left">
+                    {{#pix}}{{{icon.pix}}}, {{{icon.component}}}, {{{icon.alt}}}{{/pix}}
+                </span>
+            {{/icon.pix}}
+                <span class="media-body">{{{text}}}</span>
+            </div>
+        </div>
+    </a>
     {{/action}}
+    {{/show}}
+    {{#show}}
     {{^action}}
-        {{#get_indent}}
-            <li class="site-menu-item pl-20 {{#isactive}}active{{/isactive}}">
-            <a href="javascript:void(0)" data-key="{{key}}" class="py-5"  data-isexpandable="{{isexpandable}}" data-indent="{{get_indent}}" data-showdivider="{{showdivider}}" data-type="{{type}}" data-nodetype="{{nodetype}}" data-collapse="{{collapse}}" data-forceopen="{{forceopen}}" data-isactive="{{isactive}}" data-hidden="{{hidden}}" data-preceedwithhr="{{preceedwithhr}}" {{#parent.key}}data-parent-key="{{.}}"{{/parent.key}}>
-                <i class="site-menu-icon {{{remuiicon}}}" aria-hidden="true"></i>
-        {{/get_indent}}
-        {{^get_indent}}
-            <li class="site-menu-item {{#isactive}}active{{/isactive}}">
-            <a href="javascript:void(0)" data-key="{{key}}" class="py-5">
-                <i class="site-menu-icon {{{remuiicon}}}" aria-hidden="true"></i>
-        {{/get_indent}}
-                <span class="site-menu-title">{{{text}}}</span>
-            </a>
-        </li>
+    {{#mycoursestab}}
+        <a class="list-group-item list-group-item-action {{#isactive}}active{{/isactive}}" href="{{mycoursesurl}}" data-key="{{key}}" data-isexpandable="{{isexpandable}}" data-indent="{{get_indent}}" data-showdivider="{{showdivider}}" data-type="{{type}}" data-nodetype="{{nodetype}}" data-collapse="{{collapse}}" data-forceopen="{{forceopen}}" data-isactive="{{isactive}}" data-hidden="{{hidden}}" title="{{{text}}}" data-preceedwithhr="{{preceedwithhr}}" {{#parent.key}}data-parent-key="{{.}}"{{/parent.key}}>
+            <div class="ml-{{get_indent}}">
+                <div class="media">
+                {{#icon.pix}}
+                    <span class="media-left">
+                        {{#pix}}{{{icon.pix}}}, {{{icon.component}}}, {{{icon.alt}}}{{/pix}}
+                    </span>
+                {{/icon.pix}}
+                    <span class="media-body d-flex justify-content-between align-items-center">
+                        {{{text}}}
+                        <div class="">
+                            <i class="fa fa-angle-down align-items-center justify-content-center toggle-menu" data-key="{{key}}" aria-hidden="true"></i>
+                            <i class="fa fa-angle-right align-items-center justify-content-center toggle-menu show" data-key="{{key}}" aria-hidden="true"></i>
+                        </div>
+                    </span>
+                </div>
+            </div>
+        </a>
+        <div class="mycoursesubmenu" data-parent-key="mycourses">
+            {{#mycourseschild}}
+                <a class="list-group-item list-group-item-action {{#isactive}}active{{/isactive}}" href="{{{action}}}" data-key="{{key}}" data-isexpandable="{{isexpandable}}" data-indent="1" data-showdivider="{{showdivider}}" data-type="{{type}}" data-nodetype="{{nodetype}}" data-collapse="{{collapse}}" data-forceopen="{{forceopen}}" data-isactive="{{isactive}}" data-hidden="{{hidden}}" title="{{{text}}}" data-preceedwithhr="{{preceedwithhr}}" {{#parent.key}}data-parent-key="{{.}}"{{/parent.key}}>
+                    <div class="ml-1">
+                        <div class="media">
+                        {{#icon.pix}}
+                            <span class="media-left">
+                                {{#pix}}{{{icon.pix}}}, {{{icon.component}}}, {{{icon.alt}}}{{/pix}}
+                            </span>
+                        {{/icon.pix}}
+                            <span class="media-body">{{{text}}}</span>
+                        </div>
+                    </div>
+                </a>
+            {{/mycourseschild}}
+        </div>
+    {{/mycoursestab}}
+    {{^mycoursestab}}
+        <div class="list-group-item" data-key="{{key}}" data-isexpandable="{{isexpandable}}" data-indent="{{get_indent}}" data-showdivider="{{showdivider}}" data-type="{{type}}" data-nodetype="{{nodetype}}" data-collapse="{{collapse}}" data-forceopen="{{forceopen}}" data-isactive="{{isactive}}" data-hidden="{{hidden}}" title="{{{text}}}" data-preceedwithhr="{{preceedwithhr}}" {{#parent.key}}data-parent-key="{{.}}"{{/parent.key}}>
+            <div class="ml-{{get_indent}}">
+                <div class="media">
+                {{#icon.pix}}
+                    <span class="media-left">
+                        {{#pix}}{{{icon.pix}}}, {{{icon.component}}}, {{{icon.alt}}}{{/pix}}
+                    </span>
+                {{/icon.pix}}
+                    <span class="media-body d-flex justify-content-between align-items-center">
+                        {{{text}}}
+                        <div class="">
+                            <i class="fa fa-angle-down align-items-center justify-content-center toggle-menu" data-key="{{key}}" aria-hidden="true"></i>
+                            <i class="fa fa-angle-right align-items-center justify-content-center toggle-menu show" data-key="{{key}}" aria-hidden="true"></i>
+                        </div>
+                    </span>
+                </div>
+            </div>
+        </div>
+    {{/mycoursestab}}
     {{/action}}
-
+    {{/show}}
 {{/ flatnavigation }}
+</nav>

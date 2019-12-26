@@ -36,12 +36,12 @@
 }}
 
 <div
-    class="section card mb-0"
+    class="section border-0 bg-transparent card px-2"
     data-region="{{$region}}{{/region}}"
 >
-    <div id="{{$region}}{{/region}}-toggle" class="card-header px-0 py-10 bg-transparent" data-region="toggle">
-        <span
-            class="w-100 overview-section-toggle {{^expanded}}collapsed{{/expanded}}"
+    <div id="{{$region}}{{/region}}-toggle" class="card-header p-0" data-region="toggle">
+        <button
+            class="btn btn-link w-100 text-left p-2 d-flex align-items-center overview-section-toggle bg-transparent {{^expanded}}collapsed{{/expanded}}"
             data-toggle="collapse"
             data-target="#{{$region}}{{/region}}-target-{{uniqid}}"
             aria-expanded="{{#expanded}}true{{/expanded}}{{^expanded}}false{{/expanded}}"
@@ -53,7 +53,7 @@
             <span class="expanded-icon-container">
                 {{#pix}} t/expanded, core {{/pix}}
             </span>
-            <span class="font-weight-bold">{{$title}}{{/title}}</span>
+            <span class="font-weight-normal">{{$title}}{{/title}}</span>
             <small class="hidden ml-1" data-region="section-total-count-container"
             aria-label="{{#str}} totalconversations, core_message, {{count.total}} {{/str}}">
                 (<span data-region="section-total-count">{{count.total}}</span>)
@@ -61,15 +61,15 @@
             <span class="hidden ml-2" data-region="loading-icon-container">
                 {{> core/loading }}
             </span>
-            <span class="font-size-10 {{^count.unread}}hidden{{/count.unread}} badge badge-pill badge-important mt-1 float-right"
+            <span class="{{^count.unread}}hidden{{/count.unread}} badge badge-pill badge-primary ml-auto bg-primary"
             data-region="section-unread-count"
             {{#count.unread}}aria-label="{{#str}} unreadconversations, core_message, {{count.unread}} {{/str}}"{{/count.unread}}>
                 {{count.unread}}
             </span>
-        </span>
+        </button>
     </div>
     {{< core_message/message_drawer_lazy_load_list }}
-        {{$rootclasses}}collapse border-bottom {{#expanded}}show{{/expanded}}{{/rootclasses}}
+        {{$rootclasses}}collapse {{#expanded}}show{{/expanded}}{{/rootclasses}}
         {{$rootattributes}}
             id="{{$region}}{{/region}}-target-{{uniqid}}"
             aria-labelledby="{{$region}}{{/region}}-toggle"

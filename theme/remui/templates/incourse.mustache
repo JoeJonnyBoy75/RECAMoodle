@@ -11,18 +11,15 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    Edwiser RemUI 
-    @package    theme_remui
-    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
-    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- 
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
     @template theme_remui/columns2
 
     Admin time setting template.
 
-    Boost 2 column layout template.
+    remui 2 column layout template.
 
     Context variables required for this template:
     * sitename - The name of the site
@@ -53,39 +50,19 @@
 }}
 {{> theme_remui/common_start }}
 
-        <div class="page-main">
-        <div class="container">
-            {{{ output.full_header }}}
-            <div class="page-content" id="page-content">
-            {{{ output.activity_navigation }}}
+<section id="region-main" {{#hasblocks}}class="has-blocks mb-3"{{/hasblocks}} aria-label="{{#str}}content{{/str}}">
+    <div class="card card-body">
+        {{#hasregionmainsettingsmenu}}
+            <div class="region_main_settings_menu_proxy"></div>
+        {{/hasregionmainsettingsmenu}}
+        {{{ output.course_content_header }}}
+        {{{ output.main_content }}}
+        {{{ output.activity_navigation }}}
+        {{{ output.course_content_footer }}}
+    </div> 
+</section>
 
-            <div class="panel">
-                <div class="panel-body p-20">
-                <div id="region-main-box">
-                    {{#hasregionmainsettingsmenu}}
-                        <div id="region-main-settings-menu" class="hidden-print {{#hasblocks}}has-blocks{{/hasblocks}}">
-                            <div> {{{ output.region_main_settings_menu }}} </div>
-                        </div>
-                    {{/hasregionmainsettingsmenu}}
-
-                    <section id="region-main" class="float-none">
-                        {{#hasregionmainsettingsmenu}}
-                            <div class="region_main_settings_menu_proxy"></div>
-                        {{/hasregionmainsettingsmenu}}
-
-                        {{{ output.course_content_header }}}
-                        {{{ output.main_content }}}
-                        {{{ output.course_content_footer }}}
-                    </section>
-                </div>
-                </div>
-            </div>
-
-            </div>
-        </div>
-        </div>
-    {{> theme_remui/common_end }}
-
+{{> theme_remui/common_end }}
 {{#js}}
 require(['theme_remui/loader', 'theme_remui/TimeCircles'], function (loader, TimeCircles) {
     Breakpoints();

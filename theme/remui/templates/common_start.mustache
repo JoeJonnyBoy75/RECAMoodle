@@ -11,218 +11,180 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    Edwiser RemUI
-    @package    theme_remui
-    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
-    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
-
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
-{{{ output.doctype }}}
-<html {{{ output.htmlattributes }}}>
-<head>
-    <title>{{{ output.page_title }}}</title>
-    <link rel="shortcut icon" href="{{{ output.favicon }}}" />
-    {{{ output.standard_head_html }}}
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
-</head>
+{{!
+    @template theme_remui/columns2
 
-<body {{{ bodyattributes }}} data-isfolded="{{ isfolded }}">
+    Admin time setting template.
 
-    <div class="edwiser-notice position-fixed mt-10" style="display: none; z-index: 1500;left: 50%;transform: translateX(-50%);" role="alert">
-    </div>
+    remui 2 column layout template.
 
+    Context variables required for this template:
+    * sitename - The name of the site
+    * output - The core renderer for the page
+    * bodyattributes - attributes for the body tag as a string of html attributes
+    * sidepreblocks - HTML for the blocks
+    * hasblocks - true if there are blocks on this page
+    * navdraweropen - true if the nav drawer should be open on page load
+    * regionmainsettingsmenu - HTML for the region main settings menu
+    * hasregionmainsettingsmenu - There is a region main settings menu on this page.
+
+    Example context (json):
+    {
+        "sitename": "Moodle",
+        "output": {
+            "doctype": "<!DOCTYPE html>",
+            "page_title": "Test page",
+            "favicon": "favicon.ico",
+            "main_content": "<h1>Headings make html validators happier</h1>"
+         },
+        "bodyattributes":"",
+        "sidepreblocks": "<h2>Blocks html goes here</h2>",
+        "hasblocks":true,
+        "navdraweropen":true,
+        "regionmainsettingsmenu": "",
+        "hasregionmainsettingsmenu": false
+    }
+}}
+{{> theme_remui/head }}
+
+<body {{{ bodyattributes }}}>
+
+{{> theme_remui/navbar }}
+{{> theme_remui/nav-drawer }}
+<div id="page-wrapper">
     {{{ output.standard_top_of_body_html }}}
-
-    {{> theme_remui/header }}
-    {{> theme_remui/sidebar }}
-
-    <div class="page">
-        <div class="floating-buttons page-settings" data-html2canvas-ignore>
-            <button id="gotop" type="button" class=" btn btn-floating btn-primary {{#hasblock}}hasblock{{/hasblock}} d-none align-items-center justify-content-center" data-toggle="tooltip" data-original-title="Go Top" data-placement="left" data-trigger="hover">
-                <i class="fa fa-chevron-up" aria-hidden="true"></i>
-            </button>
-            {{#caneditfrontpage}}
-                {{#userisediting}}
-                    <button type="button" class="hidden-sm-down btn btn-floating bg-blue-300 d-flex align-items-center justify-content-center btns-animate animate-2 settings" data-toggle="tooltip" data-original-title="Settings" data-placement="left" data-trigger="hover">
-                        <i class="fa fa-cog" aria-hidden="true"></i>
-                    </button>
-
-                    <button type="button" class="hidden-sm-down btn btn-floating bg-purple-300 d-flex align-items-center justify-content-center btns-animate animate-2 publish " data-toggle="tooltip" data-original-title="Publish" data-placement="left" data-trigger="hover">
-                        <i class="fa fa-cloud-upload" aria-hidden="true"></i>
-                    </button>
-
-                    <button type="button" class="hidden-sm-down preview-section btn btn-floating btn-primary d-flex align-items-center justify-content-center btns-animate animate-1" data-toggle="tooltip" data-original-title="{{#str}} preview {{/str}}" data-placement="left" data-trigger="hover">
-                        <i class="fa fa-eye" aria-hidden="true"></i>
-                    </button>
-
-                    <button type="button" class="hidden-sm-down add-section btn btn-floating bg-green-300 d-flex align-items-center justify-content-center btns-animate animate-1" data-toggle="tooltip" data-original-title="Add Sections" data-placement="left" data-trigger="hover">
-                        <i class="fa fa-plus" aria-hidden="true"></i>
-                    </button>
-
-                    <button type="button" class=" editing-action btn btn-floating bg-orange-300 d-flex align-items-center justify-content-center" data-toggle="tooltip" data-original-title="Turn Editing Off" data-placement="left"  data-edit="{{customizepagevalue}}" data-trigger="hover">
-                        <i class="fa fa-times" aria-hidden="true"></i>
-                    </button>
-                {{/userisediting}}
-                {{^userisediting}}
-                    <button type="button" class="hidden-sm-down editing-action btn btn-floating bg-orange-300 d-flex align-items-center justify-content-center" data-toggle="tooltip" data-original-title="Turn Editing On" data-placement="left"  data-edit="{{customizepagevalue}}" data-trigger="hover">
-                        <i class="fa fa-pencil" aria-hidden="true"></i>
-                    </button>
-                {{/userisediting}}
-            {{/caneditfrontpage}}
+    <div id="page">
+        <div class="edwiser-notice position-fixed mt-10" style="display: none; z-index: 1500;left: 50%;transform: translateX(-50%);" role="alert">
         </div>
         {{{ output.render_site_announcement }}}
-
-         <!-- blocks aside -->
-        {{#init_rightsidebar}}
-            <div class="page-aside {{#pin_aside}} opencustom {{/pin_aside}} moodle-has-index" data-html2canvas-ignore>
-                <div class="page-aside-switch d-lg-none">
-                    <i class="wb-chevron-left" aria-hidden="true">
-                        {{#unread_request_count}}
-                            <span class="unread-count-sidebarbutton font-size-10 badge badge-important animation-shake position-absolute" style="top: -20px;left: -10px;">{{unread_request_count}}</span>
-                        {{/unread_request_count}}
-                    </i>
-                    <i class="wb-chevron-right" aria-hidden="true"></i>
+        {{#homepage}}
+            <div>
+        {{/homepage}}
+        {{^homepage}}
+            <div class="container">
+            {{{ output.full_header }}}
+        {{/homepage}}
+        <div id="page-content" class="row {{^homepage}}pb-3{{/homepage}} {{#homepage}}m-0 w-p10 pb-0{{/homepage}}">
+            <div id="region-main-box" class="col-12">
+                {{#hasregionmainsettingsmenu}}
+                <div id="region-main-settings-menu" class="d-print-none {{#hasblocks}}has-blocks{{/hasblocks}}">
+                    <div> {{{ output.region_main_settings_menu }}} </div>
                 </div>
-                <div class="page-aside-switch-lg d-none d-lg-inline">
-                    <i class="wb-chevron-left" aria-hidden="true">
-                        {{#unread_request_count}}
-                            <span class="unread-count-sidebarbutton font-size-10 badge badge-important animation-shake position-absolute" style="top: -5px;left: -5px;">{{unread_request_count}}</span>
-                        {{/unread_request_count}}
-                    </i>
-                    {{#hasblocks}}
-                    {{^disablesidebarpinning}}
-                        <div class="page-aside-pin">
-                            <i class="fa fa-thumb-tack"  title="{{#pin_aside}}{{#str}}unpinsidebar, theme_remui{{/str}}{{/pin_aside}}{{^pin_aside}}{{#str}}pinsidebar, theme_remui{{/str}}{{/pin_aside}}" aria-hidden="true"></i>
-                        </div>
-                    {{/disablesidebarpinning}}
-                    {{/hasblocks}}
-                </div>
-                <div class="page-aside-inner page-aside-scroll">
-                    <div data-role="container">
-                        <div data-role="content">
-                            <ul class="site-sidebar-nav nav nav-tabs nav-tabs-line" role="tablist">
-                                {{#hasblocks}}
-                                <li class="nav-item">
-                                    <a class="nav-link active show" data-toggle="tab" href="#sidebar-blocks" role="tab" aria-selected="false">
-                                    <i class="icon fa fa-th-large" aria-hidden="true"></i>
-                                    </a>
-                                </li>
-                                {{/hasblocks}}
-
-                                {{! message drawer toggle }}
-                                {{{messagetoggle}}}
-
-                                {{#usercanmanage}}
-                                <li class="nav-item {{^hasblocks}}{{^messagetoggle}}active show{{/messagetoggle}}{{/hasblocks}}">
-                                    <a class="nav-link" data-toggle="tab" href="#sidebar-settings" role="tab" aria-selected="false">
-                                    <i class="icon fa-paint-brush" aria-hidden="true"></i>
-                                    </a>
-                                </li>
-                                {{/usercanmanage}}
-                            </ul>
-                            <div class="site-sidebar-tab-content tab-content">
-                                {{#hasblocks}}
-                                <div class="tab-pane fade p-0 active show" id="sidebar-blocks">
-                                    {{{ sidepreblocks }}}
-                                </div>
-                                {{/hasblocks}}
-
-                                {{! message drawer html }}
-                                {{#messagedrawer}}
-                                    <div class="tab-pane fade px-15 py-15 {{^hasblocks}}active show{{/hasblocks}}" id="sidebar-message">
-                                        {{{messagedrawer}}}
-                                    </div>
-                                {{/messagedrawer}}
-
-                                {{#usercanmanage}}
-                                <div class="tab-pane fade  {{^hasblocks}}{{^messagedrawer}}active show{{/messagedrawer}}{{/hasblocks}}" id="sidebar-settings">
-                                    <div class="site-skintools">
-                                        <!-- navbr type -->
-                                        <h5 class="site-skintools-title">{{#str}}navbartype, theme_remui{{/str}}</h5>
-                                        <div id="skintoolsNavbar">
-                                            <div class="checkbox-custom checkbox-inverse">
-                                            <input id="skintoolsNavbar-inverse" name="navbartype" type="checkbox" value="navbar-inverse" {{# navbarinverse }} checked {{/ navbarinverse }}><label for="skintoolsNavbar-inverse">{{#str}} applysitecolor, theme_remui {{/str}}</label>
-                                            </div>
-                                        </div>
-
-                                        <!-- sidebar color -->
-                                        <div id="skintoolsSidebar">
-                                            <h5 class="site-skintools-title">{{#str}}sidebarcolor, theme_remui{{/str}}</h5>
-                                            <div class="radio-custom radio-dark">
-                                            <input id="skintoolsSidebar-dark" type="radio" name="skintoolsSidebar" value="" checked><label for="skintoolsSidebar-dark">Dark</label>
-                                            </div>
-                                            <div class="radio-custom radio-light">
-                                                <input id="skintoolsSidebar-light" type="radio" name="skintoolsSidebar" value="site-menubar-light" {{# sidebarcolor }} checked {{/sidebarcolor }}><label for="skintoolsSidebar-light">Light</label>
-                                            </div>
-                                        </div>
-
-                                        <!-- site color -->
-                                        <div id="skintoolsSiteColor">
-                                            <h5 class="site-skintools-title">{{#str}}sitecolor, theme_remui{{/str}}</h5>
-                                            <div class="radio-custom radio-primary">
-                                            <input id="skintoolsNavbar-primary" name="skintoolsNavbar" type="radio" value="primary" {{# primary }} checked {{/ primary }}><label for="skintoolsNavbar-primary">primary</label>
-                                            </div>
-                                            <div class="radio-custom radio-brown">
-                                            <input id="skintoolsNavbar-brown" name="skintoolsNavbar" type="radio" value="brown" {{# brown }} checked {{/ brown }}><label for="skintoolsNavbar-brown">brown</label>
-                                            </div>
-                                            <div class="radio-custom radio-cyan">
-                                            <input id="skintoolsNavbar-cyan" name="skintoolsNavbar" type="radio" value="cyan" {{# cyan }} checked {{/ cyan }}><label for="skintoolsNavbar-cyan">cyan</label>
-                                            </div>
-                                            <div class="radio-custom radio-green">
-                                            <input id="skintoolsNavbar-green" name="skintoolsNavbar" type="radio" value="green" {{# green }} checked {{/ green }}><label for="skintoolsNavbar-green">green</label>
-                                            </div>
-                                            <div class="radio-custom radio-grey">
-                                            <input id="skintoolsNavbar-grey" name="skintoolsNavbar" type="radio" value="grey" {{# grey }} checked {{/ grey }}><label for="skintoolsNavbar-grey">grey</label>
-                                            </div>
-                                            <div class="radio-custom radio-indigo">
-                                            <input id="skintoolsNavbar-indigo" name="skintoolsNavbar" type="radio" value="indigo" {{# indigo }} checked {{/ indigo }}><label for="skintoolsNavbar-indigo">indigo</label>
-                                            </div>
-                                            <div class="radio-custom radio-orange">
-                                            <input id="skintoolsNavbar-orange" name="skintoolsNavbar" type="radio" value="orange" {{# orange }} checked {{/ orange }}><label for="skintoolsNavbar-orange">orange</label>
-                                            </div>
-                                            <div class="radio-custom radio-pink">
-                                            <input id="skintoolsNavbar-pink" name="skintoolsNavbar" type="radio" value="pink" {{# pink }} checked {{/ pink }}><label for="skintoolsNavbar-pink">pink</label>
-                                            </div>
-                                            <div class="radio-custom radio-purple">
-                                            <input id="skintoolsNavbar-purple" name="skintoolsNavbar" type="radio" value="purple" {{# purple }} checked {{/ purple }}><label for="skintoolsNavbar-purple">purple</label>
-                                            </div>
-                                            <div class="radio-custom radio-red">
-                                            <input id="skintoolsNavbar-red" name="skintoolsNavbar" type="radio" value="red" {{# red }} checked {{/ red }}><label for="skintoolsNavbar-red">red</label>
-                                            </div>
-                                            <div class="radio-custom radio-teal">
-                                            <input id="skintoolsNavbar-teal" name="skintoolsNavbar" type="radio" value="teal" {{# teal }} checked {{/ teal }}><label for="skintoolsNavbar-teal">teal</label>
-                                            </div>
-                                            <!--<div class="radio-custom radio-yellow">
-                                            <input id="skintoolsNavbar-yellow" name="skintoolsNavbar" type="radio" value="yellow" {{# yellow }} checked {{/ yellow }}><label for="skintoolsNavbar-yellow">yellow</label>
-                                            </div> -->
-                                            <div class="radio-custom radio-customcolor">
-                                            <input id="skintoolsNavbar-customcolor" name="skintoolsNavbar" type="radio" value="customcolor" {{# customcolor }} checked {{/ customcolor }}><label for="skintoolsNavbar-customcolor">Custom Color</label>
-                                            </div>
-                                        </div>
-
-                                        <!-- site color picker-->
-                                        <form method="post" class="text-center">
-                                            <input type="color" name="customcolor" class="site-colorpicker w-full bg-white border-0 h-40" style="display:none; {{# customcolor }}display:inherit;{{/ customcolor }}" value="#62a8ea">
-                                            <input type="hidden" name="choosen-color">
-                                            <input type="hidden" name="sesskey" value="{{ sesskey }}">
-                                            <input type="submit" name="applysitewidecolor" class="btn btn-primary my-10" value="{{#str}} applysitewide, theme_remui {{/ str }}">
-                                        </form>
-                                    </div>
-                                </div>
-                                {{/usercanmanage}}
-                            </div>
-                        </div>
+                {{/hasregionmainsettingsmenu}}
+                <section data-region="blocks-column" class="d-print-none page-aside" aria-label="{{#str}}blocks{{/str}}">
+                    {{#initrightsidebar}}
+                    <div class="page-aside-switch d-flex align-items-center justify-content-center">
+                        <i class="fa fa-angle-left icon m-0 d-flex align-items-center justify-content-center" aria-hidden="true">
+                            {{#unreadrequestcount}}
+                                <span class="unread-count-sidebarbutton font-size-10 count-container animation-shake position-absolute" style="top: 0px;left: -5px;">{{unreadrequestcount}}</span>
+                            {{/unreadrequestcount}}
+                        </i>
+                        {{^disablesidebarpinning}}<i class="fa fa-thumb-tack icon m-0 d-none align-items-center justify-content-center" title="{{#pinaside}}{{#str}}unpinsidebar, theme_remui{{/str}}{{/pinaside}}{{^pinaside}}{{#str}}pinsidebar, theme_remui{{/str}}{{/pinaside}}" aria-hidden="true"></i>{{/disablesidebarpinning}}
                     </div>
-                </div>
-                <!---page-aside-inner-->
-            </div>
-        {{/init_rightsidebar}}
-        <!-- end blocks aside -->
+                    <ul class="site-sidebar-nav nav nav-tabs nav-tabs-line" role="tablist">
+                        {{#hasblocks}}
+                            <li class="nav-item text-center">
+                                <a class="nav-link active show py-3" data-toggle="tab" href="#sidebar-blocks" role="tab" aria-selected="false">
+                                <i class="icon fa fa-th-large" aria-hidden="true"></i>
+                                </a>
+                            </li>
+                        {{/hasblocks}}
+                        {{{ messagetoggle }}}
+                        {{#usercanmanage}}
+                            <li class="nav-item text-center">
+                                <a class="nav-link py-3 {{^hasblocks}}{{^messagetoggle}}active show{{/messagetoggle}}{{/hasblocks}}" data-toggle="tab" href="#sidebar-settings" role="tab" aria-selected="false">
+                                <i class="icon fa fa-paint-brush" aria-hidden="true"></i>
+                                </a>
+                            </li>
+                        {{/usercanmanage}}
+                    </ul>
+                    <div class="site-sidebar-tab-content tab-content">
+                        {{#hasblocks}}
+                            <div class="tab-pane fade p-0 active show" id="sidebar-blocks">
+                                {{{ sidepreblocks }}}
+                            </div>
+                        {{/hasblocks}}
+                        {{#messagedrawer}}
+                            <div class="tab-pane fade p-0 {{^hasblocks}}active show{{/hasblocks}}" id="sidebar-message">
+                                {{{ messagedrawer }}}
+                            </div>
+                        {{/messagedrawer}}
+                        {{#usercanmanage}}
+                            <div class="tab-pane fade p-0 {{^hasblocks}}{{^messagetoggle}}active show{{/messagetoggle}}{{/hasblocks}}" id="sidebar-settings">
+                                <div class="site-skintools px-4 py-2">
+                                    <!-- navbr type -->
+                                    <h5 class="site-skintools-title">{{#str}}navbartype, theme_remui{{/str}}</h5>
+                                    <div id="skintoolsNavbar">
+                                        <div class="checkbox-custom checkbox-inverse">
+                                        <input id="skintoolsNavbar-inverse" name="navbartype" type="checkbox" value="navbar-inverse" {{# navbarinverse }} checked {{/ navbarinverse }}><label for="skintoolsNavbar-inverse">{{#str}}applysitecolor, theme_remui{{/str}}</label>
+                                        </div>
+                                    </div>
 
-{{#js}}
-require(['jquery'], function ($) {
-    $( ".popover-region-toggle" ).trigger( "click" );
-});
-{{/js}}
+                                    <!-- sidebar color -->
+                                    <div id="skintoolsSidebar">
+                                        <h5 class="site-skintools-title">{{#str}}sidebarcolor, theme_remui{{/str}}</h5>
+                                        <div class="radio-custom radio-dark">
+                                        <input id="skintoolsSidebar-dark" type="radio" name="skintoolsSidebar" value="" checked><label for="skintoolsSidebar-dark">Dark</label>
+                                        </div>
+                                        <div class="radio-custom radio-light">
+                                            <input id="skintoolsSidebar-light" type="radio" name="skintoolsSidebar" value="site-menubar-light" {{# sidebarcolor }} checked {{/sidebarcolor }}><label for="skintoolsSidebar-light">Light</label>
+                                        </div>
+                                    </div>
+
+                                    <!-- site color -->
+                                    <div id="skintoolsSiteColor">
+                                        <h5 class="site-skintools-title">{{#str}}sitecolor, theme_remui{{/str}}</h5>
+                                        <div class="radio-custom radio-primary">
+                                        <input id="skintoolsNavbar-primary" name="skintoolsNavbar" type="radio" value="primary" {{# primary }} checked {{/ primary }}><label for="skintoolsNavbar-primary">primary</label>
+                                        </div>
+                                        <div class="radio-custom radio-brown">
+                                        <input id="skintoolsNavbar-brown" name="skintoolsNavbar" type="radio" value="brown" {{# brown }} checked {{/ brown }}><label for="skintoolsNavbar-brown">brown</label>
+                                        </div>
+                                        <div class="radio-custom radio-cyan">
+                                        <input id="skintoolsNavbar-cyan" name="skintoolsNavbar" type="radio" value="cyan" {{# cyan }} checked {{/ cyan }}><label for="skintoolsNavbar-cyan">cyan</label>
+                                        </div>
+                                        <div class="radio-custom radio-green">
+                                        <input id="skintoolsNavbar-green" name="skintoolsNavbar" type="radio" value="green" {{# green }} checked {{/ green }}><label for="skintoolsNavbar-green">green</label>
+                                        </div>
+                                        <div class="radio-custom radio-grey">
+                                        <input id="skintoolsNavbar-grey" name="skintoolsNavbar" type="radio" value="grey" {{# grey }} checked {{/ grey }}><label for="skintoolsNavbar-grey">grey</label>
+                                        </div>
+                                        <div class="radio-custom radio-indigo">
+                                        <input id="skintoolsNavbar-indigo" name="skintoolsNavbar" type="radio" value="indigo" {{# indigo }} checked {{/ indigo }}><label for="skintoolsNavbar-indigo">indigo</label>
+                                        </div>
+                                        <div class="radio-custom radio-orange">
+                                        <input id="skintoolsNavbar-orange" name="skintoolsNavbar" type="radio" value="orange" {{# orange }} checked {{/ orange }}><label for="skintoolsNavbar-orange">orange</label>
+                                        </div>
+                                        <div class="radio-custom radio-pink">
+                                        <input id="skintoolsNavbar-pink" name="skintoolsNavbar" type="radio" value="pink" {{# pink }} checked {{/ pink }}><label for="skintoolsNavbar-pink">pink</label>
+                                        </div>
+                                        <div class="radio-custom radio-purple">
+                                        <input id="skintoolsNavbar-purple" name="skintoolsNavbar" type="radio" value="purple" {{# purple }} checked {{/ purple }}><label for="skintoolsNavbar-purple">purple</label>
+                                        </div>
+                                        <div class="radio-custom radio-red">
+                                        <input id="skintoolsNavbar-red" name="skintoolsNavbar" type="radio" value="red" {{# red }} checked {{/ red }}><label for="skintoolsNavbar-red">red</label>
+                                        </div>
+                                        <div class="radio-custom radio-teal">
+                                        <input id="skintoolsNavbar-teal" name="skintoolsNavbar" type="radio" value="teal" {{# teal }} checked {{/ teal }}><label for="skintoolsNavbar-teal">teal</label>
+                                        </div>
+                                        <div class="radio-custom radio-customcolor">
+                                        <input id="skintoolsNavbar-customcolor" name="skintoolsNavbar" type="radio" value="customcolor" {{# customcolor }} checked {{/ customcolor }}><label for="skintoolsNavbar-customcolor">Custom Color</label>
+                                        </div>
+                                    </div>
+
+                                    <!-- site color picker-->
+                                    <form method="post" class="text-center">
+                                        <input type="color" name="customcolor" class="site-colorpicker w-full bg-white border-0" style="display:none; {{# customcolor }}display:inherit;{{/ customcolor }}" value="#62a8ea">
+                                        <input type="hidden" name="choosen-color">
+                                        <input type="hidden" name="sesskey" value="{{ sesskey }}">
+                                        <input type="submit" name="applysitewidecolor" class="btn btn-primary my-3" value="{{#str}} applysitewide, theme_remui {{/ str }}">
+                                    </form>
+                                </div>
+                            </div>
+                        {{/usercanmanage}}
+                    </div>
+                    {{/initrightsidebar}}
+                </section>

@@ -11,11 +11,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    Edwiser RemUI 
-    @package    theme_remui
-    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
-    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- 
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
     @template theme_remui/login
@@ -32,25 +29,18 @@
         }
     }
 }}
-{{{ output.doctype }}}
-<html {{{ output.htmlattributes }}}>
-<head>
-    <title>{{{ output.page_title }}}</title>
-    <link rel="shortcut icon" href="{{{ output.favicon }}}" />
-    {{{ output.standard_head_html }}}
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
-</head>
+{{> theme_remui/head }}
 
 <body {{{ bodyattributes }}}>
 
+<div id="page-wrapper">
+
     {{{ output.standard_top_of_body_html }}}
 
-    <!-- Page -->
-    <div class="page">
-        <div class="page-content">
-            <div id="region-main-box">
-                <section id="region-main" aria-label="{{#str}}content{{/str}}">
+    <div id="page" class="container-fluid mt-0">
+        <div id="page-content" class="row">
+            <div id="region-main-box" class="col-12">
+                <section id="region-main" class="col-12" aria-label="{{#str}}content{{/str}}">
                     {{{ output.course_content_header }}}
                     {{{ output.main_content }}}
                     {{{ output.course_content_footer }}}
@@ -58,17 +48,24 @@
             </div>
         </div>
     </div>
-    
-    <footer id="page-footer">
-        {{{ output.standard_footer_html }}}
-        {{{ output.standard_end_of_body_html }}}
+    <footer id="page-footer" class="py-3 ">
+        <div class="container">
+            <div id="course-footer">{{{ output.course_footer }}}</div>
+
+            {{# output.page_doc_link }}
+                <p class="helplink">{{{ output.page_doc_link }}}</p>
+            {{/ output.page_doc_link }}
+
+            {{{ output.login_info }}}
+            {{{ output.home_link }}}
+            {{{ output.standard_footer_html }}}
+            {{{ output.standard_end_of_body_html }}}
+        </div>
     </footer>
+</div>
+
 </body>
 </html>
-
 {{#js}}
-require(['theme_remui/loader'], function () {
-  Breakpoints();
-});
+require(['theme_remui/loader']);
 {{/js}}
-

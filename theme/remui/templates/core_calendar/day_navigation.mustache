@@ -31,38 +31,34 @@
     {
     }
 }}
-<div id="day-navigation-{{uniqid}}" class="controls clearfix mx-0 mt-20 w-full">
+<div id="day-navigation-{{uniqid}}" class="controls clearfix">
     <div class="calendar-controls d-flex justify-content-between align-items-end">
-        <div class="wdm-prev-month">
-            <a{{!
-                }} href="{{previousperiodlink}}"{{!
-                }} class="arrow_link btn btn-primary w-auto previous"{{!
-                }} title="{{#str}}dayprev, calendar{{/str}}"{{!
-                }} data-year="{{previousperiod.year}}"{{!
-                }} data-month="{{previousperiod.mon}}"{{!
-                }} data-day="{{previousperiod.mday}}"{{!
-            }}>
-                <span class="arrow">{{{larrow}}}</span>
-                &nbsp;
-                <span class="arrow_text">{{previousperiodname}}</span>
-            </a>
-        </div>
+        <a{{!
+            }} href="{{previousperiodlink}}"{{!
+            }} class="arrow_link previous btn btn-primary w-auto"{{!
+            }} title="{{#str}}dayprev, calendar{{/str}}"{{!
+            }} data-year="{{previousperiod.year}}"{{!
+            }} data-month="{{previousperiod.mon}}"{{!
+            }} data-day="{{previousperiod.mday}}"{{!
+        }}>
+            <span class="arrow">{{{larrow}}}</span>
+            &nbsp;
+            <span class="arrow_text">{{previousperiodname}}</span>
+        </a>
         <span class="hide"> | </span>
         <h2 class="current m-0 font-size-20">{{periodname}}</h2>
         <span class="hide"> | </span>
-        <div class="wdm-next-month">
-            <a{{!
-                }} href="{{nextperiodlink}}"{{!
-                }} class="arrow_link btn btn-primary w-auto next"{{!
-                }} title="{{#str}}daynext, calendar{{/str}}"{{!
-                }} data-year="{{nextperiod.year}}"{{!
-                }} data-month="{{nextperiod.mon}}"{{!
-                }} data-day="{{nextperiod.mday}}"{{!
-            }}>
-                <span class="arrow_text">{{nextperiodname}}</span>
-                &nbsp;
-                <span class="arrow">{{{rarrow}}}</span>
-            </a>
-        </div>
+        <a{{!
+            }} href="{{nextperiodlink}}"{{!
+            }} class="arrow_link next btn btn-primary w-auto"{{!
+            }} title="{{#str}}daynext, calendar{{/str}}"{{!
+            }} data-year="{{nextperiod.year}}"{{!
+            }} data-month="{{nextperiod.mon}}"{{!
+            }} data-day="{{nextperiod.mday}}"{{!
+        }}>
+            <span class="arrow_text">{{nextperiodname}}</span>
+            &nbsp;
+            <span class="arrow">{{{rarrow}}}</span>
+        </a>
     </div>
 </div>

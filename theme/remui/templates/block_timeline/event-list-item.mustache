@@ -41,39 +41,29 @@
         }
     }
 }}
-<div class="list-group-item flex-column p-10 my-5 border-0 wdm-timeline-event"
+<div class="list-group-item flex-column p-2 border-0 my-1"
     data-region="event-list-item"
     >
     <div class="d-flex">
-        <div class="icon-size-4 d-flex align-self-top wdm-timeline-icon">
+        <div class="icon-size-5 d-flex align-self-top">
             {{#icon}}{{#pix}} {{key}}, {{component}}, {{alttext}} {{/pix}}{{/icon}}
         </div>
-        <div class="w-p100 event-name-container text-truncate line-height-3">
+        <div class="w-100 event-name-container text-truncate line-height-3">
             <a href="{{url}}"
                title="{{name}}"
                aria-label='{{#str}} ariaeventlistitem, block_timeline, { "name": "{{name}}", "course": "{{course.fullnamedisplay}}", "date": "{{#userdate}} {{timesort}}, {{#str}} strftimedatetime, core_langconfig {{/str}} {{/userdate}}" } {{/str}}'
-            ><h6 class="event-name text-truncate mb-0 h5">{{{name}}}</h6></a>
-            <small class="text-muted text-truncate m-b-0">{{{course.fullnamedisplay}}}</small>
+            ><h6 class="event-name text-truncate mb-0">{{{name}}}</h6></a>
+            <small class="text-muted text-truncate mb-0">{{{course.fullnamedisplay}}}</small>
             {{#action.actionable}}
-            <h6 class="m-b-0 pt-2">
-                <a class="btn btn-primary btn-sm" href="{{{action.url}}}" aria-label="{{{action.name}}}" title="{{{action.name}}}" class="list-group-item-action">{{{action.name}}}</a>
+            <h6 class="mb-0 pt-2">
+                <a class="btn btn-sm btn-primary" href="{{{action.url}}}" aria-label="{{{action.name}}}" title="{{{action.name}}}" class="list-group-item-action">{{{action.name}}}</a>
             </h6>
             {{/action.actionable}}
         </div>
-        <small class="text-right text-nowrap ml-5 d-flex align-items-center bold font-size-12 px-10 text-info">
-            <i class="fa fa-clock-o bold font-size-14" aria-hidden="true"></i>&nbsp;&nbsp;
+        <small class="text-right text-nowrap ml-1 d-flex align-items-center bold">
+            <i class="fa fa-clock-o bold font-size-14 mr-2"></i>
             {{#userdate}} {{timesort}}, {{#str}} strftimetime24, core_langconfig {{/str}} {{/userdate}}
         </small>
 
     </div>
 </div>
-{{#js}}
-require(['jquery'], function($) {
-    $(document).ready(function() {
-        $('div[data-region="paging-control-container"] button.btn-outline-secondary').addClass('btn-outline-default');
-        $('div[data-region="paging-control-container"] button.btn-outline-secondary').removeClass('btn-outline-secondary');
-        $('div[data-region="paged-content-container"]')
-        $('div[data-region="paged-content-container"] div.m-t-1').removeClass('m-t-1');
-    });
-});
-{{/js}}

@@ -41,7 +41,7 @@
     }} data-event-count="{{eventcount}}"{{!
     }}>
     <div class="card">
-        <div class="box card-header clearfix p-y-1">
+        <div class="box card-header clearfix p-y-1 bg-light">
             <div class="commands float-right">
                 {{#canedit}}
                     {{#candelete}}
@@ -56,24 +56,24 @@
                     {{/isactionevent}}
                 {{/canedit}}
             </div>
-            {{#icon}}<div class="d-inline-block mt-1 align-top icon-size-4">{{#pix}} {{key}}, {{component}}, {{alttext}} {{/pix}}</div>{{/icon}}
+            {{#icon}}<div class="d-inline-block align-top icon-size-3">{{#pix}} {{key}}, {{component}}, {{alttext}} {{/pix}}</div>{{/icon}}
             <div class="d-inline-block wdm-cal-event-title">
                 <h3 class="name d-inline-block font-size-18 m-0">{{{name}}}</h3>
                 <span class="date m-r-1">{{{formattedtime}}}</span>
                 <div class="location">{{#location}}{{{location}}}{{/location}}</div>
             </div>
         </div>
-        <div class="description card-block calendar_event_{{eventtype}}">
+        <div class="description card-block calendar_event_{{eventtype}} p-2">
             <p>{{{description}}}</p>
             {{#iscourseevent}}
-                <div class="mb-5"><a href="{{url}}">{{course.fullname}}</a></div>
+                <div class="mb-2"><a href="{{url}}">{{course.fullname}}</a></div>
             {{/iscourseevent}}
             {{> core_calendar/event_subscription}}
             {{#isactionevent}}
                 <a class="btn btn-primary" href="{{url}}">{{#str}} gotoactivity, core_calendar {{/str}}</a>
             {{/isactionevent}}
             {{#groupname}}
-                <div class="mb-5"><a href="{{url}}">{{{course.fullname}}}</a></div>
+                <div class="mb-2"><a href="{{url}}">{{{course.fullname}}}</a></div>
                 <div>{{{groupname}}}</div>
             {{/groupname}}
         </div>

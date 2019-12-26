@@ -57,19 +57,19 @@ trait eventtype {
         $options = [];
 
         if (!empty($eventtypes['user'])) {
-            $options['user'] = get_string('user');
+            $options['user'] = get_string('user', 'calendar');
         }
         if (!empty($eventtypes['group'])) {
-            $options['group'] = get_string('group');
+            $options['group'] = get_string('group', 'calendar');
         }
         if (!empty($eventtypes['course'])) {
-            $options['course'] = get_string('course');
+            $options['course'] = get_string('course', 'calendar');
         }
         if (!empty($eventtypes['category'])) {
-            $options['category'] = get_string('category');
+            $options['category'] = get_string('category', 'calendar');
         }
         if (!empty($eventtypes['site'])) {
-            $options['site'] = get_string('site');
+            $options['site'] = get_string('site', 'calendar');
         }
 
         // If we only have one event type and it's 'user' event then don't bother
@@ -98,7 +98,7 @@ trait eventtype {
             $mform->hideIf('categoryid', 'eventtype', 'noteq', 'category');
         }
 
-        $showall = $CFG->calendar_adminseesall && !has_capability('moodle/calendar:manageentries', \context_system::instance());
+        $showall = is_siteadmin() && !empty($CFG->calendar_adminseesall);
         if (!empty($eventtypes['course'])) {
             $mform->addElement('course', 'courseid', get_string('course'), ['limittoenrolled' => !$showall]);
             $mform->hideIf('courseid', 'eventtype', 'noteq', 'course');

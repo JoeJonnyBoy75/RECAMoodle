@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Edwiser RemUI 
+ * Edwiser RemUI
  * @package    theme_remui
  * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -79,7 +79,7 @@ class multi_renderer extends \qtype_multichoice_multi_renderer {
                         $question->make_html_inline($question->format_text(
                                 $ans->answer, $ans->answerformat,
                                 $qa, 'question', 'answer', $ansid)),
-                    array('for' => $inputattributes['id'], 'class' => 'd-inline-block ml-20 mr-25'));
+                    array('for' => $inputattributes['id'], 'class' => 'd-block ml-20 mr-25'));
 
             // Param $options->suppresschoicefeedback is a hack specific to the
             // oumultiresponse question type. It would be good to refactor to
@@ -94,7 +94,7 @@ class multi_renderer extends \qtype_multichoice_multi_renderer {
             } else {
                 $feedback[] = '';
             }
-            $class = 'checkbox-custom checkbox-primary r' . ($value % 2);
+            $class = 'checkbox-custom checkbox-primary my-2 r' . ($value % 2);
             if ($options->correctness && $isselected) {
                 $feedbackimg[] = $this->feedback_image($this->is_right($ans));
                 $class .= ' ' . $this->feedback_class($this->is_right($ans));
@@ -114,7 +114,7 @@ class multi_renderer extends \qtype_multichoice_multi_renderer {
         $result .= html_writer::start_tag('div', array('class' => 'answer'));
         foreach ($radiobuttons as $key => $radio) {
             $result .= html_writer::tag('div', $radio . ' ' . $feedbackimg[$key] . $feedback[$key],
-                    array('class' => $classes[$key])) . "\n";
+                    array('class' => $classes[$key]. ' checkbox-custom')) . "\n";
         }
         $result .= html_writer::end_tag('div'); // Answer.
 

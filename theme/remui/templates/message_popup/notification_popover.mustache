@@ -11,11 +11,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    Edwiser RemUI 
-    @package    theme_remui
-    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
-    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- 
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
     @template message_output_popup/notification_popover
@@ -42,45 +39,36 @@
 
 }}
 {{< theme_remui/remui_popover_region }}
-    {{$classes}}popover-region-notifications{{/classes}}
+    {{$classes}}popover-region-notifications nav-item m-0{{/classes}}
     {{$attributes}}id="nav-notification-popover-container" data-userid="{{userid}}"{{/attributes}}
 
     {{$togglelabel}}{{#str}} shownotificationwindownonew, message {{/str}}{{/togglelabel}}
-    {{$toggletitle}}{{#str}} togglenotificationmenu, message {{/str}}{{/toggletitle}}
     {{$togglecontent}}
-        <i class="icon fa fa-bell" aria-hidden="true"></i>
-        <!-- {{#pix}} i/notifications, core, {{#str}} togglenotificationmenu, message {{/str}} {{/pix}} -->
-        <span class="font-size-10 badge badge-important up animation-shake {{^unreadcount}}hidden{{/unreadcount}}" data-region="count-container">{{unreadcount}}</span>
+        {{#pix}} i/notifications, core, {{#str}} togglenotificationmenu, message {{/str}} {{/pix}}
+        <div class="count-container {{^unreadcount}}hidden{{/unreadcount}}" data-region="count-container"
+        aria-label="{{#str}} unreadnotifications, core_message, {{unreadcount}} {{/str}}">{{unreadcount}}</div>
     {{/togglecontent}}
 
     {{$containerlabel}}{{#str}} notificationwindow, message {{/str}}{{/containerlabel}}
 
     {{$headertext}}{{#str}} notifications, message {{/str}}{{/headertext}}
     {{$headeractions}}
-        {{$anchor}}
-            <a class="mark-all-read-button badge badge-round badge-info"
-                href="javascript:void(0)"
-                title="{{#str}} markallread {{/str}}"
-                data-action="mark-all-read"
-                role="button">
-                <i class="icon fa fa-check" aria-hidden="true"></i>
-                {{! core/loading }}
-            </a>
-        {{/anchor}}
+        <a class="mark-all-read-button"
+           href="#"
+           title="{{#str}} markallread {{/str}}"
+           data-action="mark-all-read"
+           role="button">
+            <span class="normal-icon">{{#pix}} t/markasread, core, {{#str}} markallread {{/str}} {{/pix}}</span>
+            {{> core/loading }}
+        </a>
+        <a href="{{{urls.preferences}}}"
+           title="{{#str}} notificationpreferences, message {{/str}}">
+            {{#pix}} i/settings, core, {{#str}} notificationpreferences, message {{/str}} {{/pix}}
+        </a>
     {{/headeractions}}
-
-    {{$footeractions}}
-        {{$anchor}}
-            <a href="{{{urls.preferences}}}" class="dropdown-menu-footer-btn"
-                title="{{#str}} notificationpreferences, message {{/str}}">
-                <i class="icon fa fa-cog" aria-hidden="true"></i>
-            </a>
-        {{/anchor}}
-    {{/footeractions}}
 
     {{$content}}
         <div class="all-notifications"
-            data-role="content"
             data-region="all-notifications"
             role="log"
             aria-busy="false"

@@ -11,11 +11,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    Edwiser RemUI 
-    @package    theme_remui
-    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
-    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- 
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
     @template core/action_menu
@@ -33,16 +30,24 @@
         }
     }
 }}
-<div class="action-menu {{classes}} d-inline"{{#attributes}} {{name}}="{{value}}"{{/attributes}}>
+<div class="action-menu {{classes}} d-inline-flex"{{#attributes}} {{name}}="{{value}}"{{/attributes}}>
     {{#primary}}
 
-        <div class="{{classes}} d-inline"{{#attributes}} {{name}}="{{value}}"{{/attributes}}>
+        <div class="{{classes}} d-flex"{{#attributes}} {{name}}="{{value}}"{{/attributes}}>
 
             {{#prioritise}}{{> core/action_menu_trigger }}{{/prioritise}}
 
-            {{#items}}{{> core/action_menu_item }}{{/items}}
+            {{#items}}
+                <div class="action-menu-item">
+                    {{> core/action_menu_item }}
+                </div>
+            {{/items}}
 
-            {{^prioritise}}{{> core/action_menu_trigger }}{{/prioritise}}
+            {{^prioritise}}
+                <div class="action-menu-trigger">
+                    {{> core/action_menu_trigger }}
+                </div>
+            {{/prioritise}}
 
         </div>
 

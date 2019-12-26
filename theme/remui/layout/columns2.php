@@ -15,14 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Edwiser RemUI
- * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * A two column layout for the remui theme.
+ *
+ * @package   theme_remui
+ * @copyright 2016 Damyon Wiese
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
-require_once('common.php');
 
+require_once('common.php');
 echo $OUTPUT->render_from_template('theme_remui/columns2', $templatecontext);
 

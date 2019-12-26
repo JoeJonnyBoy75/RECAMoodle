@@ -33,12 +33,9 @@ use external_api;
  * Uses all moodle webservices trait defined in external folder
  */
 class api extends external_api {
-    use create_section_instance;
-    use delete_section_instance;
-    use fetch_all_instances;
-    use get_frontpage_section_courses_in_category;
-    use save_frontpage_settings;
-    use save_sections_order;
-    use update_section_instance;
-    use update_section_visibility;
+    use set_setting;
+    use save_user_profile_settings;
+    use send_message;
+    use get_course_stats;
+    use get_courses;
 }

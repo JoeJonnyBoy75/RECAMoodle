@@ -304,7 +304,14 @@ class grade_item extends grade_object {
         $this->aggregationcoef = grade_floatval($this->aggregationcoef);
         $this->aggregationcoef2 = grade_floatval($this->aggregationcoef2);
 
-        return parent::update($source);
+        $result = parent::update($source);
+
+        if ($result) {
+            $event = \core\event\grade_item_updated::create_from_grade_item($this);
+            $event->trigger();
+        }
+
+        return $result;
     }
 
     /**
@@ -479,6 +486,10 @@ class grade_item extends grade_object {
         if (parent::insert($source)) {
             // force regrading of items if needed
             $this->force_regrading();
+
+            $event = \core\event\grade_item_created::create_from_grade_item($this);
+            $event->trigger();
+
             return $this->id;
 
         } else {
@@ -670,9 +681,7 @@ class grade_item extends grade_object {
             if ($category_array && array_key_exists($this->categoryid, $category_array)) {
                 $category = $category_array[$this->categoryid];
                 //call set_hidden on the category regardless of whether it is hidden as its parent might be hidden
-                //if($category->is_hidden()) {
-                    $category->set_hidden($hidden, false);
-                //}
+                $category->set_hidden($hidden, false);
             }
         }
     }

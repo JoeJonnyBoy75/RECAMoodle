@@ -11,18 +11,15 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    Edwiser RemUI 
-    @package    theme_remui
-    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
-    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- 
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
     @template theme_remui/columns2
 
     Admin time setting template.
 
-    Boost 2 column layout template.
+    remui 2 column layout template.
 
     Context variables required for this template:
     * sitename - The name of the site
@@ -53,55 +50,31 @@
 }}
 {{> theme_remui/common_start }}
 
-        <div class="page-main">
-        <div class="container">
-            {{{ output.full_header }}}
-            <div class="page-content">
-                <div id="region-main-box">
-                    {{#hasregionmainsettingsmenu}}
-                        <div id="region-main-settings-menu" class="hidden-print {{#hasblocks}}has-blocks{{/hasblocks}}">
-                            <div> {{{ output.region_main_settings_menu }}} </div>
-                        </div>
-                    {{/hasregionmainsettingsmenu}}
+<section id="region-main" {{#hasblocks}}class="has-blocks mb-3"{{/hasblocks}} aria-label="{{#str}}content{{/str}}">
+    <div class="card card-body">
+        {{#hasregionmainsettingsmenu}}
+            <div class="region_main_settings_menu_proxy"></div>
+        {{/hasregionmainsettingsmenu}}
+        {{#notstudent}}
+            {{#iscoursestatsshow}}
+                {{> theme_remui/course_stats }}
+            {{/iscoursestatsshow}}
+        {{/notstudent}}
+        {{{ output.course_content_header }}}
+        {{{ output.main_content }}}
+        {{{ output.activity_navigation }}}
+        {{{ output.course_content_footer }}}
+    </div> 
+</section>
 
-                    <section id="region-main" class="float-none">
-                        <div class="card card-block">
-                            {{#hasregionmainsettingsmenu}}
-                                <div class="region_main_settings_menu_proxy"></div>
-                            {{/hasregionmainsettingsmenu}}
-                            {{#notstudent}}
-                                {{#iscoursestatsshow}}
-                                    {{> theme_remui/course_stats }}
-                                {{/iscoursestatsshow}}
-                            {{/notstudent}}
-                            {{{ output.course_content_header }}}
-<div class="text-center opencloseallwrapper"><button class="course-open-all btn btn-primary px-25 show"><i class="fa fa-folder-open" aria-hidden="true"></i> Open All Sections</button> <button class="course-close-all btn btn-primary px-25 show"><i class="fa fa-folder" aria-hidden="true"></i> Close All Sections</button></div>
-                            {{{ output.main_content }}}
-			                {{{ output.activity_navigation }}}
-                            {{{ output.course_content_footer }}}
-                        </div>
-                    </section>
-                </div>
-            
-            </div>
-        </div>
-        </div>
-    {{> theme_remui/common_end }}
-
+{{> theme_remui/common_end }}
 {{#js}}
-require(['theme_remui/loader'], function () {
-    Breakpoints();
-
-    // show load more button conditionally
-    jQuery('body#page-course-view-topics .sectionname > span.wdm-sectionname > i, body#page-course-view-weeks .sectionname > span.wdm-sectionname > i').click(function(){
-        jQuery(this).toggleClass('fa-angle-down');
-        jQuery(this).toggleClass('fa-angle-up');
-        jQuery(this).parent().parent().siblings("ul").slideToggle();
-    });
-
-    {{#iscoursestatsshow}}
-        // Get course ID from URL
-        // Function to get the details from the URL
+    require(['jquery', 'core/ajax', 'theme_remui/loader'], function ($, Ajax) {
+        Breakpoints();
+        // Topics click in sidebar 
+        window.addEventListener("hashchange", function () {
+            window.scrollTo(window.scrollX, window.scrollY - 80);
+        });
         function getUrlParameter(sParam) {
             var sPageURL = decodeURIComponent(window.location.search.substring(1)),
             sURLVariables = sPageURL.split('&'),
@@ -116,28 +89,24 @@ require(['theme_remui/loader'], function () {
                 }
             }
         }
-
-        var courseid = getUrlParameter('id');
-        // AJAX call to get course stats
-        if(typeof courseid !== "undefined") {
-            jQuery.ajax({
-                type: "GET",
-                async: true,
-                url: M.cfg.wwwroot + '/theme/remui/request_handler.php?action=get_coursestats_ajax&courseid=' + courseid + '&sesskey=' + M.cfg.sesskey,
-                success: function(response) {
-                    // When course stats block is ready then render the respose value
-                    jQuery('.course-stats').ready(function() {
-                        jQuery.each(response, function(index, value) {
-                            var courseStatsDiv = '#wdm_course-stats .stats-card .course-stats-' + index;
-                            $(courseStatsDiv).text(value);
-                        })
-                    });
-                },
-                error: function(xhr, status, error) {
-                    console.log("Failed to load course stats");
+        {{#iscoursestatsshow}}
+            let courseid = getUrlParameter('id');
+            let service_name = 'theme_remui_get_course_stats';
+            let cstats = Ajax.call([
+                {
+                    methodname: service_name,
+                    args: { courseid : courseid }
                 }
+            ]);
+            cstats[0].done(function(response) {
+                // When course stats block is ready then render the respose value
+                $('.course-stats').ready(function() {
+                    $.each(response, function(index, value) {
+                        var courseStatsDiv = '#wdm_course-stats .stats-card .course-stats-' + index;
+                        $(courseStatsDiv).text(value);
+                    })
+                });
             });
-        }
-    {{/iscoursestatsshow}}
-});
+        {{/iscoursestatsshow}}
+    });
 {{/js}}

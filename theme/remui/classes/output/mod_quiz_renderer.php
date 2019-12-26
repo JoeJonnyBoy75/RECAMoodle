@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Edwiser RemUI 
+ * Edwiser RemUI
  * @package    theme_remui
  * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -54,12 +54,12 @@ class mod_quiz_renderer extends \mod_quiz_renderer {
         }
 
         $output .= html_writer::tag('div', get_string('timeleft', 'quiz') . ' ' .
-                html_writer::tag('span', '', array('id' => 'quiz-time-left')),
-                array('id' => 'quiz-timer', 'role' => 'timer',
-                    'aria-atomic' => 'true', 'aria-relevant' => 'text'));
+            html_writer::tag('span', '', array('id' => 'quiz-time-left')),
+            array('id' => 'quiz-timer', 'role' => 'timer',
+            'aria-atomic' => 'true', 'aria-relevant' => 'text'));
 
-        if(isset($timerstartvalue) && $timerstartvalue != null) {
-            $output .= '<div id="quiztimer" class="quiztimer" data-timer="'.($timerstartvalue-2).'"></div>';
+        if (isset($timerstartvalue) && $timerstartvalue != null) {
+            $output .= '<div id="quiztimer" class="quiztimer" data-timer="'.($timerstartvalue - 2).'"></div>';
         }
 
         return $output;

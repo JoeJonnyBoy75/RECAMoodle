@@ -28,135 +28,23 @@ global $OUTPUT, $USER, $CFG, $PAGE, $SITE;
 
 $systemcontext = context_system::instance();
 $templatecontext['contextid'] = $systemcontext->id;
+$templatecontext['homepage'] = true;
 
-// This Block will add "has-slider and animate-header class to body tag
-// will add only when first section is slider otherwiser won't add it
-$templatecontext['newfrontpage'] = \theme_remui\toolbox::get_setting('frontpagechooser');
-
-if ($templatecontext['newfrontpage']) {
-    $templatecontext['bodyattributes'] = str_replace("class=\"", "class=\"latest-frontpage ", $templatecontext['bodyattributes']);
-    $sm = new  \theme_remui\frontpage\section_manager();
-    if (isloggedin()) {
-        $usercontext = context_user::instance($USER->id);
-        $templatecontext['caneditfrontpage'] = has_capability('theme/remui:editfrontpage', $usercontext);
-
-        // Migrate previous settings
-        if ($templatecontext['caneditfrontpage'] && get_config('theme_remui', 'createfrontpagesections')) {
-            $migrator = new \theme_remui\frontpage\migrator();
-            $hassettings = $migrator->has_settings();
-            if (!$hassettings) {
-                unset_config('createfrontpagesections', 'theme_remui');
-            } else {
-                $PAGE->requires->data_for_js('createfrontpagesections', $hassettings);
-                if (optional_param('migrate', false, PARAM_BOOL)) {
-                    $migrator->create_sections_from_older_configs();
-                    unset_config('createfrontpagesections', 'theme_remui');
-                    $sm->reset_cache();
-                    redirect(new moodle_url('', array('redirect' => 0)));
-                }
-                if (optional_param('nomigrate', false, PARAM_BOOL)) {
-                    unset_config('createfrontpagesections', 'theme_remui');
-                    redirect(new moodle_url('', array('redirect' => 0)));
-                }
-            }
-        }
-
-        if ($templatecontext['caneditfrontpage'] && optional_param('frontpageediting', false, PARAM_BOOL)) {
-            if (optional_param('publish', false, PARAM_BOOL)) {
-                $sm->publish_sections();
-                $sm->reset_cache();
-            }
-            $USER->editing = optional_param('editpage', false, PARAM_BOOL);
-            redirect(new moodle_url('', array('redirect' => 0)));
-        }
-        $templatecontext['userisediting'] = $templatecontext['caneditfrontpage'] && $PAGE->user_is_editing();
-        if ($templatecontext['userisediting']) {
-            $sm->create_draft_configs();
-        }
-        if ($templatecontext['caneditfrontpage']) {
-            $templatecontext['customizepagevalue'] = !$templatecontext['userisediting'];
-            $templatecontext['sesskey'] = sesskey();
-            $templatecontext['customizepagelabel'] = get_string($templatecontext['userisediting'] ? 'turneditingoff' : 'turneditingon');
-        }
-    }
-    $orderconfigname = 'sections_order';
-    if (isset($templatecontext['userisediting'])) {
-        $orderconfigname = 'draft_sections_order';
-    }
-    $order = get_config('theme_remui', $orderconfigname);
-    $transparentheader = get_config('theme_remui', 'frontpagetransparentheader');
-    if ($transparentheader == 1) {
-        $templatecontext['transparentheader'] = $transparentheader;
-        $templatecontext['headercolor'] = get_config('theme_remui', 'frontpageheadercolor');
-    }
-    $PAGE->requires->data_for_js('transparentheader', $transparentheader);
-    if ($order) {
-        $instances = explode(',', substr($order, 1, -1));
-        if ($instances[0] != null) {
-            $configdata = $sm->get_config_by_instanceid($instances[0]);
-            if ($configdata != null && $configdata->name == 'slider' && $transparentheader && ($configdata->visible == true || isset($USER->editing))) {
-                $templatecontext['bodyattributes'] = str_replace("class=\"", "class=\"has-slider animate-header ", $templatecontext['bodyattributes']);
-            }
-        }
-    }
-    if (get_config('theme_remui', 'frontpageloader')) {
-        $templatecontext['loader'] = \theme_remui\toolbox::setting_file_url('frontpageloader', 'frontpageloader');
-    }
-
-    // Appear animation configuration for js
-    $PAGE->requires->data_for_js('appearanimation', get_config('theme_remui', 'frontpageappearanimation'));
-    if (!$style = get_config('theme_remui', 'frontpageappearanimationstyle')) {
-        $style = 'animation-slide-bottom';
-    }
-    $PAGE->requires->data_for_js('appearanimationstyle', $style);
-
-    // Check for default sections
-    if (isloggedin() and !isguestuser() and isset($CFG->frontpageloggedin)) {
-        $frontpagelayout = $CFG->frontpageloggedin;
-    } else {
-        $frontpagelayout = $CFG->frontpage;
-    }
-
-    if ($frontpagelayout != "") {
-        $templatecontext['hasdefaultsections'] = true;
-    }
-
-    // Check for site summary
-    $modinfo = get_fast_modinfo($SITE);
-    $section = $modinfo->get_section_info(1);
-
-    if (!empty($section->summary)) {
-        $templatecontext['hasdefaultsections'] = true;
-    }
-
-    if ($PAGE->user_is_editing()) {
-        $templatecontext['hasdefaultsections'] = true;
-    }
-    $PAGE->requires->strings_for_js([
-        'homepagesettings',
-        'migrate',
-        'migratorheader',
-        'migratormessge',
-        'sectionupdated',
-        'sectiondeleted',
-        'slidersection',
-        'aboutussection',
-        'contactsection',
-        'featuresection',
-        'coursessection',
-        'teamsection',
-        'testimonialsection',
-        'htmlsection',
-        'separatorsection',
-    ], 'theme_remui');
-    $PAGE->requires->strings_for_js(['success'], 'moodle');
-    $templatecontext['disablesidebarpinning'] = true;
-    $templatecontext['pin_aside'] = false;
-    $templatecontext['bodyattributes'] = str_replace("pinaside", "", $templatecontext['bodyattributes']);
-    unset($templatecontext['sitecolor']);
+if (class_exists('local_remuihomepage_plugin')) {
+    $homepage = new local_remuihomepage_plugin();
+} else {
+    $homepage = false;
 }
 
-if (!$templatecontext['newfrontpage']) {
+$templatecontext['customhomepage'] = $homepage != false && \theme_remui\toolbox::get_setting('frontpagechooser') == 1;
+
+if ($templatecontext['customhomepage']) {
+    $templatecontext['remui_lite'] = true;
+    $templatecontext = $homepage->layout($templatecontext);
+} else {
+    // This Block will add "has-slider and animate-header class to body tag
+    // will add only when first section is slider otherwiser won't add it
+
     $templatecontext['bodyattributes'] = str_replace("class=\"", "class=\"old-frontpage ", $templatecontext['bodyattributes']);
     // frontpage context
     // slider
@@ -233,5 +121,4 @@ if (!$templatecontext['newfrontpage']) {
         'blogs' => array_values($recentblogs),
     ];
 }
-
 echo $OUTPUT->render_from_template('theme_remui/frontpage', $templatecontext);

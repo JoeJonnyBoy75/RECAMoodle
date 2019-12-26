@@ -11,11 +11,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    Edwiser RemUI 
-    @package    theme_remui
-    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
-    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- 
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
     @template message_output_popup/notification_content_item
@@ -52,37 +49,33 @@
     }
 
 }}
-<div class="list-group-item notification {{^read}}unread{{/read}}"
+<div class="content-item-container notification {{^read}}unread{{/read}} m-2 w-auto rounded border-0"
     data-region="notification-content-item-container"
     data-id="{{id}}"
     role="listitem">
 
     {{#contexturl}}
-    <a class="context-link" href="{{{.}}}" data-action="content-item-link"
+    <a class="context-link" {{#viewmoreurl}}href="{{{.}}}"{{/viewmoreurl}} data-action="content-item-link"
     {{/contexturl}}
     {{^contexturl}}
     <div tabindex="0"
     {{/contexturl}}
         {{#read}}aria-label="{{subject}}"{{/read}}
         {{^read}}aria-label="{{#str}} unreadnotification, message, {{subject}} {{/str}}"{{/read}}>
-        <div class="media">
-    
-            <div class="pr-10">
-                <!-- <span class="avatar avatar-sm avatar-online">
-                    <img src="{{{iconurl}}}" alt="{{#str}}notificationimage, message{{/str}}"/>
-                </span> -->
-                <i class="icon fa fa-bars bg-red-600 white icon-circle" aria-hidden="true"></i>
-            </div>
 
-            <div class="content-item-body media-body">
-                <h6 class="media-heading">{{shortenedsubject}}</h6>
-                <time class="timestamp media-meta" datetime="{{timecreatedpretty}}">{{timecreatedpretty}}</time>
-
-                {{#viewmoreurl}}
-                    <a href="{{{.}}}" class="view-more mt-5 d-block" data-action="view-more">{{#str}} viewfullnotification, message {{/str}}</a>
-                {{/viewmoreurl}}
+        <div class="content-item-body">
+            <div class="notification-image">
+                <img src="{{{iconurl}}}" alt="{{#str}}notificationimage, message{{/str}}"/>
             </div>
+            <div class="notification-message">{{shortenedsubject}}</div>
         </div>
+        <div class="content-item-footer">
+            <div class="timestamp">{{timecreatedpretty}}</div>
+        </div>
+
+        {{#viewmoreurl}}
+            <a href="{{{.}}}" class="view-more" data-action="view-more">{{#str}} viewfullnotification, message {{/str}}</a>
+        {{/viewmoreurl}}
     {{#contexturl}}
     </a>
     {{/contexturl}}

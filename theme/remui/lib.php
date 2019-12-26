@@ -15,181 +15,68 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Edwiser RemUI Functions
+ * Theme functions.
+ *
  * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @copyright  2016 Frédéric Massart - FMCorz.net
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 
+// Handle license status change on form submit.
+$lcontroller = new \theme_remui\controller\license_controller();
+$lcontroller->addData();
+
+/**
+ * Reset all caches
+ */
+function remui_clear_cache() {
+    global $CFG, $PAGE;
+    $link = $PAGE->url;
+    $link->remove_params();
+    purge_other_caches();
+    remove_dir($CFG->dataroot . '/temp/theme/remui');
+    theme_reset_all_caches();
+    redirect($link);
+}
+
 if (isset($_POST['applysitewidecolor'])) {
     remui_clear_cache();
 }
 
-// handle license status change on form submit
-$l_controller = new \theme_remui\controller\license_controller();
-$l_controller->addData();
 
 /**
- * CSS Processor
+ * Post process the CSS tree.
  *
- * @param string $css
- * @param theme_config $theme
+ * @param string $tree The CSS tree.
+ * @param theme_config $theme The theme config object.
+ */
+function theme_remui_css_tree_post_processor($tree, $theme) {
+    $prefixer = new theme_remui\autoprefixer($tree);
+    $prefixer->prefix();
+}
+
+/**
+ * Inject additional SCSS.
+ *
+ * @param theme_config $theme The theme config object.
  * @return string
  */
-function theme_remui_process_css($css, $theme)
-{
-    global $PAGE, $OUTPUT;
-    $outputus = $PAGE->get_renderer('theme_remui', 'core');
-    \theme_remui\toolbox::set_core_renderer($outputus);
+function theme_remui_get_extra_scss($theme) {
+    $content = '';
+    $imageurl = $theme->setting_file_url('backgroundimage', 'backgroundimage');
 
-    // set login background
-    $tag = '[[setting:login_bg]]';
-    $loginbg = \theme_remui\toolbox::setting_file_url('loginsettingpic', 'loginsettingpic');
-    if (empty($loginbg)) {
-        $loginbg = \theme_remui\toolbox::image_url('login_bg', 'theme');
-    }
-    $css = str_replace($tag, $loginbg, $css);
-
-    // Set the signup panel text color
-    $signuptextcolor = \theme_remui\toolbox::get_setting('signuptextcolor');
-    $css = \theme_remui\toolbox::set_color($css, $signuptextcolor, "'[[setting:signuptextcolor]]'", '#fff');
-
-    // Get the theme font from setting and apply it in CSS
-    if (\theme_remui\toolbox::get_setting('fontselect') === "2") {
-        $fontname = ucwords(\theme_remui\toolbox::get_setting('fontname'));
-    }
-    if (empty($fontname)) {
-        $fontname = 'Open Sans';
+    // Sets the background image, and its settings.
+    if (!empty($imageurl)) {
+        $content .= 'body { ';
+        $content .= "background-image: url('$imageurl'); background-size: cover;";
+        $content .= ' }';
     }
 
-    $css = \theme_remui\toolbox::set_font($css, $fontname);
-
-    // Set custom CSS.
-    $customcss = \theme_remui\toolbox::get_setting('customcss');
-    $css = \theme_remui\toolbox::set_customcss($css, $customcss);
-
-    // custom color sitewide
-    $colorhex = \theme_remui\toolbox::get_setting('sitecolorhex');
-    if (empty($colorhex)) {
-        $colorhex = '#3e8ef7';
-    } else {
-        $colorhex = '#'.$colorhex;
-    }
-
-    $colorobj = new \theme_remui\Color($colorhex);
-    if ($colorhex !== '#3e8ef7') {
-        $css = str_replace('#3e8ef7', $colorhex, $css);// main color
-        $css = str_replace('#007bff', $colorhex, $css);
-        $css = str_replace('#589ffc', '#'.$colorobj->darken(3), $css); // on hover
-        $css = str_replace('#4397e6', '#'.$colorobj->darken(5), $css);
-        $css = str_replace('#d9e9ff', '#'.$colorobj->lighten(32), $css);
-        $css = str_replace('#247cf0', '#'.$colorobj->darken(5), $css); // on active
-        $css = str_replace('rgba(53, 131, 202, .07)', '#'.$colorobj->lighten(32), $css);
-        $css = str_replace('rgba(53, 131, 202, .04)', '#'.$colorobj->lighten(34), $css);
-    }
-
-    return $css;
-}
-
-// clear theme cache on click 'apply sitewide color'
-function remui_clear_cache()
-{
-    theme_reset_all_caches();
-}
-
-function flatnav_icon_support($flatnav)
-{
-    global $CFG, $USER, $PAGE;
-    // Getting strings for privatefiles & competencies, because their keys are numeric in $PAGE-flatnav
-    $pf   = get_string('privatefiles');
-    $cmpt = get_string('competencies', 'core_competency');
-    $flatnav_new = array();
-    $home_count  = 0;
-    $coursecount = 0;
-    foreach ($flatnav as $key => $value) {
-        $key = $coursecount++;
-        $flatnav_new[$key] = $value;
-        switch ($value->key) {
-            case 'myhome':
-                $flatnav_new[$key]->remuiicon = 'fa-dashboard';
-                break;
-            case 'home':
-                $flatnav_new[$key]->remuiicon = 'fa-home';
-                if ($home_count == 1) {
-                    $flatnav_new[$key]->remuiicon = 'fa-dashboard';
-                }
-                $home_count++;
-                break;
-            case 'calendar':
-                $flatnav_new[$key]->remuiicon = 'fa-calendar';
-                break;
-            case 'mycourses':
-                $mycoursekey = $key;    // Store a key value to check if mycourses available
-                $flatnav_new[$key]->remuiicon = 'fa-archive';
-                $flatnav_new[$key]->action    = $CFG->wwwroot . "/course/index.php?mycourses=1";
-                if ($PAGE->pagelayout == 'coursecategory' && optional_param('mycourses', null, PARAM_TEXT)) {
-                    $flatnav_new[$key]->isactive = true;
-                }
-                break;
-            case 'sitesettings':
-                $flatnav_new[$key]->remuiicon = 'fa-cog';
-                if ($PAGE->pagelayout == 'admin') {
-                    $flatnav_new[$key]->isactive = true;
-                }
-                break;
-            case 'addblock':
-                $flatnav_new[$key]->remuiicon = 'fa-plus-circle ';
-                break;
-            case 'badgesview':
-                $flatnav_new[$key]->remuiicon = 'fa-bookmark';
-                break;
-            case 'participants':
-                $flatnav_new[$key]->remuiicon = 'fa-users';
-                break;
-            case 'grades':
-                $flatnav_new[$key]->remuiicon = 'fa-star';
-                break;
-            case 'coursehome':
-                $flatnav_new[$key]->remuiicon = 'fa-archive';
-                break;
-            default:
-                // Check Whether the link has course id number
-                if (is_numeric($value->key)) {
-                    // Check for course type i.e. is it 20?
-                    if ($flatnav_new[$key]->type == 20) {
-                        $mycourses[] = $value;
-                        unset($flatnav_new[$key]);
-                        $coursecount--;
-                        break;
-                    }
-                }
-                $flatnav_new[$key]->remuiicon = 'fa-folder';
-                if (!strpos($flatnav_new[$key]->action, 'section')) {
-                    $flatnav_new[$key]->hidable = true;
-                }
-                
-                break;
-        }
-        switch ($value->text) {
-            case $pf:
-                $flatnav_new[$key]->remuiicon = 'fa-paste';
-                break;
-            case $cmpt:
-                $flatnav_new[$key]->remuiicon = 'fa-check-circle';
-                break;
-        }
-    }
-    if (!empty($mycourses)) {
-        $flatnav_new[$mycoursekey]->ismycourses = true;
-        $flatnav_new[$mycoursekey]->mycourses   = $mycourses;
-        if (count($mycourses) == 10) {
-            $flatnav_new[$mycoursekey]->hasmore = true;
-        }
-    }
-    return $flatnav_new;
+    // Always return the background image with the scss when we have it.
+    return !empty($theme->settings->scss) ? $theme->settings->scss . ' ' . $content : $content;
 }
 
 /**
@@ -204,94 +91,140 @@ function flatnav_icon_support($flatnav)
  * @param array $options
  * @return bool
  */
-function theme_remui_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = array())
-{
-    static $theme;
-    $course = $course;
-    $cm = $cm;
-    if (empty($theme)) {
-        $theme = theme_config::load('remui');
-    }
-    if ($context->contextlevel == CONTEXT_SYSTEM) {
-        if ($filearea === 'frontpageaboutusimage') {
-            return $theme->setting_file_serve('frontpageaboutusimage', $args, $forcedownload, $options);
-        } elseif ($filearea === 'loginsettingpic') {
-            return $theme->setting_file_serve('loginsettingpic', $args, $forcedownload, $options);
-        } elseif ($filearea === 'logo') {
-            return $theme->setting_file_serve('logo', $args, $forcedownload, $options);
-        } elseif ($filearea === 'logomini') {
-            return $theme->setting_file_serve('logomini', $args, $forcedownload, $options);
-        } elseif (preg_match("/^(slideimage|testimonialimage|frontpageblockimage)[1-5]/", $filearea)) {
-            return $theme->setting_file_serve($filearea, $args, $forcedownload, $options);
-        } elseif ($filearea === 'faviconurl') {
-            return $theme->setting_file_serve('faviconurl', $args, $forcedownload, $options);
-        } elseif ($filearea === 'staticimage') {
-            return $theme->setting_file_serve('staticimage', $args, $forcedownload, $options);
-        } elseif ($filearea === 'layoutimage') {
-            return $theme->setting_file_serve('layoutimage', $args, $forcedownload, $options);
-        } elseif ($filearea === 'frontpageloader') {
-            return $theme->setting_file_serve('frontpageloader', $args, $forcedownload, $options);
-        } else {
-            $itemid = (int)array_shift($args);
-            $relativepath = implode('/', $args);
-            $fullpath = "/{$context->id}/theme_remui/$filearea/$itemid/$relativepath";
-            $fs = get_file_storage();
-            if (!($file = $fs->get_file_by_hash(sha1($fullpath)))) {
-                send_file_not_found();
-                return false;
-            }
-            // Download MUST be forced - security.
-            send_stored_file($file, 0, 0, $forcedownload, $options);
-        }
-    } else {
+function theme_remui_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = array()) {
+    if ($context->contextlevel != CONTEXT_SYSTEM) {
         send_file_not_found();
     }
-}
-
-
-function theme_remui_output_fragment_frontpage_section_form($args) {
-    global $CFG;
-
-    $args = (object) $args;
-    $mform = new theme_remui\frontpage\sections\main_form(null, $args);
-
-    ob_start();
-    $mform->display();
-    $o = ob_get_contents();
-    ob_end_clean();
-
-    return $o;
+    // By default, theme files must be cache-able by both browsers and proxies.
+    $settings = [
+        'frontpageloader',
+        'staticimage',
+        'testimonialimage0',
+        'testimonialimage1',
+        'testimonialimage2',
+        'slideimage0',
+        'slideimage1',
+        'slideimage2',
+        'slideimage3',
+        'slideimage4',
+        'frontpageblockimage1',
+        'frontpageblockimage2',
+        'frontpageblockimage3',
+        'frontpageblockimage4',
+        'logo',
+        'logomini',
+        'faviconurl',
+        'loginsettingpic'
+    ];
+    if (in_array($filearea, $settings)) {
+        $theme = theme_config::load('remui');
+        // By default, theme files must be cache-able by both browsers and proxies.
+        if (!array_key_exists('cacheability', $options)) {
+            $options['cacheability'] = 'public';
+        }
+        return $theme->setting_file_serve($filearea, $args, $forcedownload, $options);
+    } else {
+        $itemid = (int)array_shift($args);
+        $relativepath = implode('/', $args);
+        $fullpath = "/{$context->id}/theme_remui/$filearea/$itemid/$relativepath";
+        $fs = get_file_storage();
+        if (!($file = $fs->get_file_by_hash(sha1($fullpath)))) {
+            return false;
+        }
+        // Download MUST be forced - security!
+        send_stored_file($file, 0, 0, $forcedownload, $options);
+    }
+    return false;
 }
 
 /**
- * This function will generate frontpage settings form and return it's html view
- * @param  array $args Argument passed with fragment call
- * @return string      Frontpage settings form's html output
+ * Returns the main SCSS content.
+ *
+ * @param theme_config $theme The theme config object.
+ * @return string
  */
-function theme_remui_output_fragment_frontpage_settings_form($args) {
+function theme_remui_get_main_scss_content($theme) {
     global $CFG;
 
-    $configdata = [];
-    $configdata['frontpageloader'] = get_config('theme_remui', 'frontpageloader');
-    $configdata['frontpagetransparentheader'] = get_config('theme_remui', 'frontpagetransparentheader');
-    $configdata['frontpageheadercolor'] = get_config('theme_remui', 'frontpageheadercolor');
-    $configdata['frontpageappearanimation'] = get_config('theme_remui', 'frontpageappearanimation');
-    $configdata['frontpageappearanimationstyle'] = get_config('theme_remui', 'frontpageappearanimationstyle');
-    $args['configdata'] = $configdata;
+    $scss = '';
+    $filename = !empty($theme->settings->preset) ? $theme->settings->preset : null;
+    $fs = get_file_storage();
 
-    $args = (object) $args;
-    $mform = new theme_remui\frontpage\settings(null, $args);
-
-    return $mform->render();
+    $context = context_system::instance();
+    if ($filename == 'default.scss') {
+        $scss .= file_get_contents($CFG->dirroot . '/theme/remui/scss/preset/default.scss');
+    } else if ($filename == 'plain.scss') {
+        $scss .= file_get_contents($CFG->dirroot . '/theme/remui/scss/preset/plain.scss');
+    } else if ($filename && ($presetfile = $fs->get_file($context->id, 'theme_remui', 'preset', 0, '/', $filename))) {
+        $scss .= $presetfile->get_content();
+    } else {
+        // Safety fallback - maybe new installs etc.
+        $scss .= file_get_contents($CFG->dirroot . '/theme/remui/scss/preset/default.scss');
+    }
+    return $scss;
 }
 
+/**
+ * Get compiled css.
+ *
+ * @return string compiled css
+ */
+function theme_remui_get_precompiled_css() {
+    global $CFG;
+    return file_get_contents($CFG->dirroot . '/theme/remui/style/remui-min.css');
+}
 
-// This function will return random unused itemid
+/**
+ * Get SCSS to prepend.
+ *
+ * @param theme_config $theme The theme config object.
+ *
+ * @return array
+ */
+function theme_remui_get_pre_scss($theme) {
+    global $CFG;
+
+    $scss = '';
+    $configurable = [
+        // Config key => [variableName, ...].
+        'brandcolor' => ['primary'],
+    ];
+
+    // Prepend variables first.
+    foreach ($configurable as $configkey => $targets) {
+        $value = isset($theme->settings->{$configkey}) ? $theme->settings->{$configkey} : null;
+        if (empty($value)) {
+            continue;
+        }
+        array_map(function($target) use (&$scss, $value) {
+            $scss .= '$' . $target . ': ' . $value . ";\n";
+        }, (array) $targets);
+    }
+
+    // Prepend pre-scss.
+    if (!empty($theme->settings->scsspre)) {
+        $scss .= $theme->settings->scsspre;
+    }
+
+    if (!empty($theme->settings->fontsize)) {
+        $scss .= '$font-size-base: ' . (1 / 100 * $theme->settings->fontsize) . "rem !default;\n";
+    }
+
+    return $scss;
+}
+
+/**
+ * Get unused item id for file uploading
+ *
+ * @param  String  $filearea File area of file
+ *
+ * @return Integer           File item id
+ */
 function theme_remui_get_unused_itemid($filearea) {
     global $DB, $USER;
 
     if (isguestuser() or !isloggedin()) {
-        // guests and not-logged-in users can not be allowed to upload anything!!!!!!
+        // Guests and not-logged-in users can not be allowed to upload anything!!!!!!
         print_error('noguest');
     }
 
@@ -306,6 +239,15 @@ function theme_remui_get_unused_itemid($filearea) {
     return $itemid;
 }
 
+/**
+ * Get image url of file using itemid, component and filearea
+ *
+ * @param  Integer $itemid    File item id
+ * @param  String  $component File component
+ * @param  String  $filearea  File area
+ *
+ * @return String             File url
+ */
 function get_file_img_url($itemid, $component, $filearea) {
     $context = \context_system::instance();
 
@@ -325,3 +267,46 @@ function get_file_img_url($itemid, $component, $filearea) {
     }
     return "";
 }
+
+function theme_remui_process_css($css, $theme) {
+    // Set login background.
+    $tag = '[[setting:login_bg]]';
+    $loginbg = \theme_remui\toolbox::setting_file_url('loginsettingpic', 'loginsettingpic');
+    if (empty($loginbg)) {
+        $loginbg = \theme_remui\toolbox::image_url('login_bg', 'theme');
+    }
+    $css = str_replace($tag, $loginbg, $css);
+
+    // Get the theme font from setting and apply it in CSS.
+    if (\theme_remui\toolbox::get_setting('fontselect') === "2") {
+        $fontname = ucwords(\theme_remui\toolbox::get_setting('fontname'));
+    }
+    if (empty($fontname)) {
+        $fontname = 'Open Sans';
+    }
+
+    $css = \theme_remui\toolbox::set_font($css, $fontname);
+
+    // Set custom CSS.
+    $customcss = \theme_remui\toolbox::get_setting('customcss');
+    $css .= $customcss;
+
+    // Set primary color.
+    $css = str_replace($tag, $loginbg, $css);
+    $colorhex = get_config('theme_remui', 'sitecolorhex');
+    if ($colorhex != "" || $colorhex != null) {
+        $colorhex = '#'.$colorhex;
+        $colorobj = new \theme_remui\Color($colorhex);
+        $css = str_replace('#1177d1', $colorhex, $css);
+        $css = str_replace('#62a8ea', $colorhex, $css);
+        $css = str_replace('#3e8ef7', $colorhex, $css);
+        $css = str_replace('#589ffc', '#'.$colorobj->darken(3), $css); // on hover
+        $css = str_replace('#0e63ae', '#'.$colorobj->darken(3), $css);
+        $css = str_replace('#55a1e8', '#'.$colorobj->darken(3), $css); // On Hover.
+        $css = str_replace('#4c9ce7', '#'.$colorobj->darken(5), $css); // On Hover.
+        $css = str_replace('#0d5ca2', '#'.$colorobj->darken(5), $css); // On Focus.
+    }
+
+    return $css;
+}
+

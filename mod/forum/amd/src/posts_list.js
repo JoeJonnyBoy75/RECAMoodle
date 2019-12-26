@@ -29,12 +29,14 @@ define([
         'jquery',
         'core/templates',
         'core/notification',
+        'core/pending',
         'mod_forum/selectors',
         'mod_forum/inpage_reply',
     ], function(
         $,
         Templates,
         Notification,
+        Pending,
         Selectors,
         InPageReply
     ) {
@@ -52,6 +54,7 @@ define([
                 var url = window.location.href.split('#')[0];
                 history.pushState({}, document.title, url);
             }
+            var pending = new Pending('inpage-reply');
             var currentTarget = $(e.currentTarget).parents(Selectors.post.forumCoreContent);
             var currentSubject = currentTarget.find(Selectors.post.forumSubject);
             var currentRoot = $(e.currentTarget).parents(Selectors.post.forumContent);
@@ -59,7 +62,7 @@ define([
                 postid: $(currentRoot).data('post-id'),
                 "reply_url": $(e.currentTarget).attr('href'),
                 sesskey: M.cfg.sesskey,
-                parentsubject: currentSubject.html(),
+                parentsubject: currentSubject.data('replySubject'),
                 canreplyprivately: $(e.currentTarget).data('can-reply-privately'),
                 postformat: InPageReply.CONTENT_FORMATS.MOODLE
             };
@@ -70,12 +73,13 @@ define([
                         return Templates.appendNodeContents(currentTarget, html, js);
                     })
                     .then(function() {
-                        return currentRoot.find(Selectors.post.inpageReplyContent).slideToggle(300).find('textarea').focus();
+                        return currentRoot.find(Selectors.post.inpageReplyContent)
+                            .slideToggle(300, pending.resolve).find('textarea').focus();
                     })
                     .fail(Notification.exception);
             } else {
                 var form = currentRoot.find(Selectors.post.inpageReplyContent);
-                form.slideToggle(300);
+                form.slideToggle(300, pending.resolve);
                 if (form.is(':visible')) {
                     form.find('textarea').focus();
                 }

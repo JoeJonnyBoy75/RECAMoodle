@@ -24,8 +24,8 @@
 defined('MOODLE_INTERNAL') || die();
 require_once('common.php');
 
-// prepare activity sidebar context
-global $COURSE;
+// Prepare activity sidebar context.
+global $COURSE, $PAGE;
 $isactivitypage = false;
 if (isset($PAGE->cm->id) && $COURSE->id != 1 && $COURSE->format != 'singleactivity') {
     $isactivitypage = true;
@@ -34,9 +34,9 @@ $templatecontext['isactivitypage'] = $isactivitypage;
 $templatecontext['courseurl'] = course_get_url($COURSE->id);
 $templatecontext['activitysections'] = \theme_remui\utility::get_activity_list();
 
-$flatnavigation = flatnav_icon_support($PAGE->flatnav);
+$flatnavigation = $PAGE->flatnav;
 foreach ($flatnavigation as $navs) {
-    if ($navs->key == 'addblock') {
+    if ($navs->key === 'addblock') {
         $templatecontext['addblock'] = $navs;
         break;
     }

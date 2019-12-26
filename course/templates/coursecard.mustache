@@ -28,7 +28,8 @@
                 "courseimage": "https://moodlesite/pluginfile/123/course/overviewfiles/123.jpg",
                 "fullname": "course 3",
                 "hasprogress": true,
-                "progress": 10
+                "progress": 10,
+                "visible": true
             }
         ]
     }
@@ -43,8 +44,8 @@
     </a>
     <div class="card-body pr-1 course-info-container" id="course-info-container-{{id}}-{{uniqid}}">
         <div class="d-flex align-items-start">
-            <div>
-                <div class="text-muted muted d-flex w-100 mb-1 text-truncate flex-wrap">
+            <div class="w-100 text-truncate">
+                <div class="text-muted muted d-flex mb-1 flex-wrap">
                     {{$coursecategory}}{{/coursecategory}}
                     {{#showshortname}}
                     {{$divider}}{{/divider}}
@@ -56,13 +57,18 @@
                     </div>
                     {{/showshortname}}
                 </div>
-                <a href="{{viewurl}}" class="coursename mr-2 text-truncate">
+                <a href="{{viewurl}}" class="coursename mr-2">
                     {{> core_course/favouriteicon }}
                     <span class="sr-only">
                             {{#str}}aria:coursename, core_course{{/str}}
                         </span>
                     {{$coursename}}{{/coursename}}
                 </a>
+                {{^visible}}
+                    <div class="d-flex flex-wrap">
+                        <span class="tag tag-info">{{#str}} hiddenfromstudents {{/str}}</span>
+                    </div>
+                {{/visible}}
             </div>
             {{$menu}}{{/menu}}
         </div>

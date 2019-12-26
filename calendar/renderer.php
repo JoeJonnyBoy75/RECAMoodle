@@ -161,7 +161,7 @@ class core_calendar_renderer extends plugin_renderer_base {
                 $deletelink = null;
             }
 
-            $commands  = html_writer::start_tag('div', array('class' => 'commands pull-xs-right'));
+            $commands  = html_writer::start_tag('div', array('class' => 'commands float-sm-right'));
             $commands .= html_writer::start_tag('a', array('href' => $editlink));
             $str = get_string('tt_editevent', 'calendar');
             $commands .= $this->output->pix_icon('t/edit', $str);
@@ -205,9 +205,9 @@ class core_calendar_renderer extends plugin_renderer_base {
             $output .= html_writer::tag('div', $event->courselink);
         }
         if (!empty($event->time)) {
-            $output .= html_writer::tag('span', $event->time, array('class' => 'date pull-xs-right mr-1'));
+            $output .= html_writer::tag('span', $event->time, array('class' => 'date float-sm-right mr-1'));
         } else {
-            $attrs = array('class' => 'date pull-xs-right mr-1');
+            $attrs = array('class' => 'date float-sm-right mr-1');
             $output .= html_writer::tag('span', calendar_time_representation($event->timestart), $attrs);
         }
 
@@ -297,7 +297,8 @@ class core_calendar_renderer extends plugin_renderer_base {
         }
 
         $select = html_writer::label($label, 'course', false, ['class' => 'mr-1']);
-        $select .= html_writer::select($courseoptions, 'course', $selected, false, ['class' => 'cal_courses_flt']);
+        $select .= html_writer::select($courseoptions, 'course', $selected, false,
+                ['class' => 'cal_courses_flt mr-auto']);
 
         return $select;
     }

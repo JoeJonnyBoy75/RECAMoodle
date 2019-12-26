@@ -15,16 +15,17 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Edwiser RemUI
+ * remui.
+ *
  * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @copyright  2016 Frédéric Massart
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2019052800;
-$plugin->requires  = 2018120300;
+$plugin->version   = 2019120400;
+$plugin->requires  = 2018112800;
 $plugin->maturity  = MATURITY_STABLE; // This version's maturity level.
-$plugin->release   = '3.7.1';
+$plugin->release   = '3.8.0';
 $plugin->component = 'theme_remui';

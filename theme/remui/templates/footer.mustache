@@ -11,226 +11,89 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    Edwiser RemUI 
-    @package    theme_remui
-    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
-    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- 
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template theme_remui/footer
-
-    footer template
+    Page footer.
 }}
-
-<!-- Footer -->
-<footer class="site-footer {{# sitecolor }} bg-{{sitecolor}}-600 {{/ sitecolor }} {{^ sitecolor }} bg-primary-600 {{/ sitecolor }} grey-100">
+<footer id="page-footer" class="py-3 bg-primary">
+    <div class="floating-buttons page-settings" data-html2canvas-ignore>
+        <button id="gotop" type="button" class=" btn btn-floating btn-primary {{#hasblock}}hasblock{{/hasblock}} d-none align-items-center justify-content-center" data-toggle="tooltip" data-original-title="Go Top" data-placement="left" data-trigger="hover">
+            <i class="fa fa-chevron-up" aria-hidden="true"></i>
+        </button>
+        {{#floating_buttons}}
+            {{{floating_buttons}}}
+        {{/floating_buttons}}
+    </div>
     {{# footerdata }}
-    <div class="container">
-        <div class="row">
-           {{# sections }}
-            <div class="{{ classes }} text-xs-center">
-                <div class="py-30 px-10">
-                    <h4 class="card-title mt-10 grey-100">{{ title }}</h4>
-                    <p class="card-text">{{{ content }}}</p>
-                </div>
-            </div>
-            {{/ sections }}
-
-            {{# social }}
-            <div class="{{ classes }} text-xs-center">
-                <div class="py-30 px-10">
-                    <h4 class="card-title mt-10 grey-100">{{# str }} followus, theme_remui {{/ str }}</h4>
-                    <p class="card-text">
-                        {{# facebook }}
-                            <a href="{{ facebook }}" target="_blank" class="btn btn-icon btn-round social-facebook m-5"><i class="icon fa-facebook" aria-hidden="true"></i></a>
-                        {{/ facebook }}
-                        {{# twitter }}
-                            <a href="{{ twitter }}" target="_blank" class="btn btn-icon btn-round social-twitter m-5"><i class="icon fa-twitter" aria-hidden="true"></i></a>
-                        {{/ twitter }}
-                        {{# linkedin }}
-                            <a href="{{ linkedin }}" target="_blank" class="btn btn-icon btn-round social-linkedin m-5"><i class="icon fa-linkedin" aria-hidden="true"></i></a>
-                        {{/ linkedin }}
-                        {{# quora }}
-                            <a href="{{ quora }}" target="_blank" class="btn btn-icon btn-round social-pinterest m-5"><i class="icon fa-quora" aria-hidden="true"></i></a>
-                        {{/ quora }}
-                        {{# gplus }}
-                            <a href="{{ gplus }}" target="_blank" class="btn btn-icon btn-round social-google-plus m-5"><i class="icon fa-google-plus" aria-hidden="true"></i></a>
-                        {{/ gplus }}
-                        {{# instagram }}
-                            <a href="{{ instagram }}" target="_blank" class="btn btn-icon btn-round social-instagram m-5"><i class="icon fa-instagram" aria-hidden="true"></i></a>
-                        {{/ instagram }}
-                        {{# youtube }}
-                            <a href="{{ youtube }}" target="_blank" class="btn btn-icon btn-round social-youtube m-5"><i class="icon fa-youtube" aria-hidden="true"></i></a>
-                        {{/ youtube }}
-                        {{# pinterest }}
-                            <a href="{{ pinterest }}" target="_blank" class="btn btn-icon btn-round social-pinterest m-5"><i class="icon fa-pinterest" aria-hidden="true"></i></a>
-                        {{/ pinterest }}
-                        
-                    </p>
-                </div>
-            </div>
-            {{/ social }}
-        </div>
-    </div>
-    
-    <!-- bottom sections -->
-    <div class="footer-bottom">
-        <div class="site-footer-legal pt-5">
-            <a href="{{ bottomlink }}">{{{ bottomtext }}}</a>
-        </div>
-        
-        <div class="site-footer-right pt-5">
-            {{# poweredby }}
-            <a href="https://edwiser.org/remui/" rel="nofollow" target="_blank" >{{# str }} poweredby, theme_remui {{/ str }}</a>
-            {{/ poweredby }}
-            
-            {{{ output.standard_footer_html }}}
-            <div id="course-footer">
-                {{{ output.course_footer }}}
-            </div>
-        </div>
-    </div>
-    {{/ footerdata }}
-
-    {{{ output.standard_end_of_body_html }}}
-
-    <!-- screenshot button for homepage -->
-    {{#caneditfrontpage}}
-        <div class="take-screenshot-section w-100 mx-auto text-center" data-html2canvas-ignore>
-            <a href="#" class="show-screenshot-modal d-block" data-toggle="modal" data-target="#screenshotShareModal">
-                <img src="data:image/png;base64,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" alt="take screenshot button" class="camera-img">
-            </a>
-
-            <div class="flash fixed-top w-p100 h-p100 bg-white"></div>
-            <canvas id="videofixCanvas" class="d-none"></canvas>
-
-            <!-- Screenshot share Modal -->
-            <div class="modal modal-slide-from-bottom" id="screenshotShareModal">
-                <div class="modal-dialog modal-lg modal-simple modal-bottom">
-                    <div class="modal-content rounded-0">
-                        <!-- Modal Close -->
-                        <button type="button" class="close position-absolute mx-10 my-5" data-dismiss="modal" style="right: 0;z-index: 1;">×</button>
-
-                        <!-- Modal body -->
-                        <div class="modal-body p-0">
-                            <section class="taken-screenshot" style="display:none;">
-                                <div class="card-group">
-                                    <!-- preview screenshot -->
-                                    <div class="screenshot-container card card-block p-0">
-                                        <a href="" class="preview-screenshot" target="_blank">
-                                            <div class="vertical-align screenshot text-center bg-primary p-30 h-400">
-                                            </div>
-                                        </a>
-                                    </div>
-
-                                    <div class="card card-block d-block p-20">
-                                        <h3 class="screenshot-success font-weight-300 m-0 mb-15">Screenshot uploaded successfully.</h3>
-                                        
-                                        <h4 class="font-weight-300 my-25">Share Now</h4>
-                                        
-                                        <!-- share links -->
-                                        <a href="" target="_blank" data-network="facebook" class="social-share btn-round btn-lg btn social-facebook mx-5 w-55"><i class="fa fa-facebook" aria-hidden="true"></i></a>
-                                        <a href="" target="_blank" data-network="twitter" class="social-share btn-round btn-lg btn social-twitter mx-5 w-55"><i class="fa fa-twitter" aria-hidden="true"></i></a>
-                                        <a href="" target="_blank" data-network="linkedin" class="social-share btn-round btn-lg btn social-linkedin mx-5 w-55"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
-                                        
-                                        <!-- download image link -->
-                                        <a href="" target="_blank" class="btn-round btn-lg btn btn-info download-screenshot mx-5 w-55" download><i class="fa fa-download" aria-hidden="true"></i></a>
-
-                                        <h4 class="font-weight-300 my-25">Not happy?</h4>
-
-                                        <button type="button" class="btn btn-warning delete-screenshot">Delete and Capture Again</button>
-                                    </div>
-                                </div>
-                            </section>
-                            
-                            <section class="take-screenshot p-40">
-                                <h3 class="screenshot-heading font-weight-300 m-0 mb-15">Share your Moodle homepage with the World.</h3>
-                                <a href="#" id="take_screenshot" class="btn btn-primary text-uppercase mt-25">CAPTURE SCREENSHOT</a>
-                                <label class="failed-screenshot-message text-danger"></label>
-                            </section>
-                        </div>
+    <div class="container-fluid">
+        <div class="container">
+            <div class="row m-0 p-0">
+                {{# sections }}
+                <div class="{{ classes }} text-xs-center">
+                    <div class="p-2">
+                        <h4 class="card-title mt-1 text-white font-weight-normal font-size-18">{{{ title }}}</h4>
+                        <div class="card-text text-white">{{{ content }}}</div>
                     </div>
                 </div>
+                {{/ sections }}
+
+                {{# social }}
+                <div class="{{ classes }} text-xs-center">
+                    <div class="py-2 px-1">
+                        <h4 class="card-title mt-1 text-white font-weight-normal font-size-18">{{# str }} followus, theme_remui {{/ str }}</h4>
+                        <p class="card-text">
+                            {{# facebook }}
+                                <a href="{{ facebook }}" class="btn btn-icon btn-round social-facebook m-1"><i class="icon fa fa-facebook" aria-hidden="true"></i></a>
+                            {{/ facebook }}
+                            {{# twitter }}
+                                <a href="{{ twitter }}" class="btn btn-icon btn-round social-twitter m-1"><i class="icon fa fa-twitter" aria-hidden="true"></i></a>
+                            {{/ twitter }}
+                            {{# linkedin }}
+                                <a href="{{ linkedin }}" class="btn btn-icon btn-round social-linkedin m-1"><i class="icon fa fa-linkedin" aria-hidden="true"></i></a>
+                            {{/ linkedin }}
+                            {{# gplus }}
+                                <a href="{{ gplus }}" class="btn btn-icon btn-round social-google-plus m-1"><i class="icon fa fa-google-plus" aria-hidden="true"></i></a>
+                            {{/ gplus }}
+                            {{# instagram }}
+                                <a href="{{ instagram }}" class="btn btn-icon btn-round social-instagram m-1"><i class="icon fa fa-instagram" aria-hidden="true"></i></a>
+                            {{/ instagram }}
+                            {{# youtube }}
+                                <a href="{{ youtube }}" class="btn btn-icon btn-round social-youtube m-1"><i class="icon fa fa-youtube" aria-hidden="true"></i></a>
+                            {{/ youtube }}
+                            {{# pinterest }}
+                                <a href="{{ pinterest }}" class="btn btn-icon btn-round social-pinterest m-1"><i class="icon fa fa-pinterest" aria-hidden="true"></i></a>
+                            {{/ pinterest }}
+                        </p>
+                    </div>
+                </div>
+                {{/ social }}
             </div>
         </div>
-    {{/caneditfrontpage}}
 
-<script type="text/javascript">
-if (!String.prototype.endsWith) {
-    String.prototype.endsWith = function(search, this_len) {
-        if (this_len === undefined || this_len > this.length) {
-            this_len = this.length;
-        }
-        return this.substring(this_len - search.length, this_len) === search;
-    };
-}
-
-require(['jquery'], function($) {
-    $("#section-1").before($(".opencloseallwrapper").detach());
-    $(".course-open-all").on("click", function() {
-        //$(".course-content *[data-toggle='collapse'][aria-expanded=false]").click();
-        $(".course-content .toggle-section.fa-angle-down").click();
-        return false;
-    });
-    $(".course-close-all").on("click", function() {
-        //$(".course-content *[data-toggle='collapse'][aria-expanded=true]").click();
-        $(".course-content .toggle-section.fa-angle-up").click();
-        return false;
-    });
-
-    // Attempt to highlight the correct current course row.
-    var potentialIcons = $(".course-content .activity img.icon");
-        if (potentialIcons.length > 0) {
-        var i;
-        for (i=0; i < potentialIcons.length; i++) {
-            if (potentialIcons[i].src.endsWith("completion-auto-y")) {
-                continue;
-            }
-            break;
-        }
-        //console.log("i", i);
-        $(potentialIcons[i]).parent().parent().parent().parent().parent().parent().css("background-color", "#deecf9");
-    }
-
-    // Update the user menu items.
-    var usermenuDashboard = $(".usermenu .dropdown-item:contains('Dashboard')");
-    usermenuDashboard.attr("href", "/course/index.php?mycourses=1");
-    usermenuDashboard.html(usermenuDashboard.html().replace(/Dashboard/g, "My Courses"));
-    var usermenuProfile = $(".usermenu .dropdown-item:contains('Dashboard')");
-
-    // Make the new here links open in new windows.
-    $(".nav-link:contains('New Here')").parent().find(".dropdown-item").attr("target", "_blank")
-
-    // Return to Course Home, populate with correct URL.
-    $(".course-exitbutton a").attr("href", $(".back-to-course a").attr("href"));
-});
-
-// Make the homepage link go to where we really want it, rename it to RECA.ca
-var elems = document.querySelectorAll(".site-menubar-body .site-menu [data-key='home']");
-for (var i=0; i < elems.length; i++) {
-    elems[i].href = "//www.reca.ca";
-    elems[i].target = "_blank";
-}
-var elems = document.querySelectorAll(".site-menubar-body .site-menu [data-key='home'] span");
-for (var i=0; i < elems.length; i++) {
-    elems[i].innerHTML = "RECA.ca";
-}
-
-// Hide the left menu nagivation dashboard link.
-var elems = document.querySelectorAll(".site-menubar-body .site-menu [data-key='myhome']");
-for (var i=0; i < elems.length; i++) {
-    elems[i].style.display = "none";
-}
-var elems = document.querySelectorAll(".site-menubar-body .site-menu [data-key='privatefiles']");
-for (var i=0; i < elems.length; i++) {
-    elems[i].style.display = "none";
-}
-// Hide the left menu nagivation calendar link.
-//var elems = document.querySelectorAll(".site-menubar-body .site-menu [data-key='calendar']");
-//for (var i=0; i < elems.length; i++) {
-//    elems[i].style.display = "none";
-//}
-
-</script>
+        <div class="footer-bottom row mx-3 px-0 py-2">
+            <div class="site-footer-legal pt-2 col-md-6">
+                <nav class="nav navbar-nav d-md-none" aria-label="{{#str}}custommenu, admin{{/str}}">
+                    {{# output.custom_menu_flat }}
+                        <ul class="list-unstyled pt-3">
+                            {{> theme_remui/custom_menu_footer }}
+                        </ul>
+                    {{/ output.custom_menu_flat }}
+                </nav>
+                <a href="{{ bottomlink }}">{{{ bottomtext }}}</a>
+            </div>
+            <div class="site-footer-right pt-2 col-md-6 text-right">
+                {{# poweredby }}
+                    <a href="https://edwiser.org/remui/" rel="nofollow" target="_blank" >{{# str }} poweredby, theme_remui {{/ str }}</a>
+                {{/ poweredby }}
+                {{{ output.login_info }}}
+                <div class="tool_usertours-resettourcontainer"></div>
+                {{{ output.standard_footer_html }}}
+            </div>
+        </div>
+        <div id="course-footer">{{{ output.course_footer }}}</div>
+        {{{ output.standard_end_of_body_html }}}
+    </div>
+    {{/ footerdata }}
 </footer>

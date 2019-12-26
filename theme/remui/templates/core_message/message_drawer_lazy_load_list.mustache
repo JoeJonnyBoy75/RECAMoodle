@@ -42,14 +42,12 @@
 >
     {{$notification}}{{/notification}}
     <div class="hidden text-center p-2" data-region="empty-message-container">
-        <p class="text-muted mt-2">
-            {{$emptymessage}}{{/emptymessage}}
-        </p>
+        {{$emptymessage}}{{/emptymessage}}
     </div>
-    <div class="hidden list-group m-0" data-region="content-container">
+    <div class="hidden list-group p-1" data-region="content-container">
         {{$content}}{{/content}}
     </div>
-    <div class="list-group m-0" data-region="placeholder-container">
+    <div class="list-group" data-region="placeholder-container">
         {{$placeholder}}{{/placeholder}}
     </div>
     <div class="w-100 text-center p-3 hidden" data-region="loading-icon-container" >

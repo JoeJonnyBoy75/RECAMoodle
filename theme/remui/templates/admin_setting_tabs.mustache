@@ -11,11 +11,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    Edwiser RemUI 
-    @package    theme_remui
-    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
-    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- 
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
     @template theme_remui/admin_setting_tabs
@@ -39,14 +36,14 @@
         ]
     }
 }}
-<ul class="nav nav-tabs nav-tabs-line" role="tablist">
+<ul class="nav nav-tabs" role="tablist">
     {{#tabs}}
         <li class="nav-item">
             <a href="#{{name}}" class="nav-link {{#active}}active{{/active}} {{ customclass }}" data-toggle="tab" role="tab">{{displayname}}</a>
         </li>
     {{/tabs}}
 </ul>
-<div class="tab-content mt-10">
+<div class="tab-content mt-3">
     {{#tabs}}
         <div class="tab-pane {{#active}}active{{/active}}" id="{{name}}" role="tabpanel">
             {{{html}}}
@@ -59,46 +56,12 @@
         // hide save cahnges buttons on custom tabs made for remui
         jQuery('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
           if(jQuery(this).hasClass('remuitab')) {
-            jQuery('.form-buttons').hide();
+            jQuery('button[type="submit"]').hide();
             jQuery('#onLicensePage').val(1);
           } else {
-            jQuery('.form-buttons').show();
+            jQuery('button[type="submit"]').show();
             jQuery('#onLicensePage').val(0);
           }
-        });
-
-        // RemUI feedback form ajax call
-        jQuery('#sendfeedback').click( function() {
-            jQuery(this).prop('disabled', true);
-            jQuery('.feedbacki').toggleClass('d-none');
-            jQuery('.feedbackm').text('');
-            var email = jQuery('.remail').val();
-            var rating = jQuery("[name='rrating']:checked").val();
-            if(rating == undefined) {
-                rating = 'Not Given';
-            }
-            var fullname = jQuery('.rfullname').val();
-            var feedback = jQuery('.rfeedback').val();
-            
-            jQuery.ajax({
-                type: "GET",
-                async: true,
-                url: M.cfg.wwwroot + '/theme/remui/request_handler.php?action=send_remuifeedback_ajax&email=' + email + '&rating=' + rating + '&fullname=' + fullname + '&feedback=' + feedback + '&sesskey=' + M.cfg.sesskey,
-                success: function(response) {
-                    jQuery('.feedbacki').toggleClass('d-none');
-                    if (response == null || response['sent'] == 0) {
-                        jQuery('.feedbackm').text('Not sent!').css('color', 'red');
-                    } else if( response['sent'] == 1) {
-                        jQuery('.feedbackm').text('Sent.').css('color', 'green');
-                    }
-                    jQuery('#sendfeedback').prop('disabled', false);
-                },
-                error: function(xhr, status, error) {
-                    jQuery('.feedbacki').toggleClass('d-none');
-                    jQuery('.feedbackm').text('Not sent!').css('color', 'red');
-                    jQuery('#sendfeedback').prop('disabled', false);
-                }
-            });
         });
     });
 {{/js}}

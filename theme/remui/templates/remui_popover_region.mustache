@@ -36,54 +36,46 @@
     }
 
 }}
-<li class="popover-region collapsed {{$classes}}{{/classes}} nav-item dropdown"
+<div class="popover-region collapsed {{$classes}}{{/classes}} dropdown"
     {{$attributes}}{{/attributes}}
     data-region="popover-region">
-    <a class="popover-region-toggle nav-link"
+    <div class="popover-region-toggle nav-link"
         data-toggle="dropdown"
         data-region="popover-region-toggle"
-        href="javascript:void(0)"
-        title="{{$toggletitle}}{{/toggletitle}}"
-        aria-expanded="false"
-        data-animation="scale-up"
-        role="button">
+        aria-role="button"
+        aria-controls="popover-region-container-{{uniqid}}"
+        aria-haspopup="true"
+        aria-label="{{$togglelabel}}{{#str}}showpopovermenu{{/str}}{{/togglelabel}}"
+        tabindex="0">
         {{$togglecontent}}{{/togglecontent}}
-    </a>
-
+    </div>
     <div {{$containerattributes}}{{/containerattributes}}
         id="popover-region-container-{{uniqid}}"
-        class="dropdown-menu dropdown-menu-right dropdown-menu-media"
-        style="height: auto;"
+        class="dropdown-menu dropdown-menu-right dropdown-menu-media p-0"
         data-region="popover-region-container"
         aria-expanded="false"
         aria-hidden="true"
         aria-label="{{$containerlabel}}{{/containerlabel}}"
         role="region">
-        <div class="dropdown-menu-header">
-            <h5 class="text-uppercase d-inline" data-region="popover-region-header-text">{{$headertext}}{{/headertext}}</h5>
-            <span class="float-right popover-region-header-actions">{{$headeractions}}{{/headeractions}}</span>
+        <div class="popover-region-header-container d-flex h-auto p-3 justify-content-between">
+            <h3 class="popover-region-header-text" data-region="popover-region-header-text">{{$headertext}}{{/headertext}}</h3>
+            <div class="popover-region-header-actions" data-region="popover-region-header-actions">{{$headeractions}}{{/headeractions}}</div>
         </div>
-
-        <div class="list-group" role="presentation">
-            <div class="popover-region-content-container" style="min-height: 200px;" data-role="container" data-region="popover-region-content-container">
-                <div class="popover-region-content" data-role="content" data-region="popover-region-content">
-                    {{$content}}{{/content}}
-                </div>
-                {{> core/loading }}
+        <div class="popover-region-content-container" style="min-height: 200px;" data-region="popover-region-content-container">
+            <div class="popover-region-content" data-region="popover-region-content">
+                {{$content}}{{/content}}
             </div>
+            {{> core/loading }}
         </div>
-        <div class="dropdown-menu-footer" role="presentation">
-            {{$footeractions}}{{/footeractions}}
-
-            {{$anchor}}
-                {{#urls.seeall}}
-                    <a class="see-all-link dropdown-item"
-                        role="menuitem"
-                        href="{{{.}}}">
-                        {{#str}} seeall, message {{/str}}
-                    </a>
-                {{/urls.seeall}}
-            {{/anchor}}
-        </div>
+        {{$anchor}}
+            {{#urls.seeall}}
+                <a class="see-all-link d-flex p-2 justify-content-center border-top"
+                    href="{{{.}}}">
+                    <div class="popover-region-footer-container border-0">
+                        <div class="popover-region-seeall-text">{{#str}} seeall, message {{/str}}</div>
+                    </div>
+                </a>
+            {{/urls.seeall}}
+        {{/anchor}}
     </div>
-</li>
+</div>

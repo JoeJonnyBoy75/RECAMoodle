@@ -28,40 +28,39 @@ global $CFG, $PAGE, $USER, $SITE, $COURSE;
 require_once('common.php');
 
 
-// Generate page url
+// Generate page url.
 $pageurl = new moodle_url('/course/index.php');
-
 $mycourses  = optional_param('mycourses', 0, PARAM_INT);
 
-// $stringman = get_string_manager();
-// $strings = $stringman->load_component_strings('theme_remui', 'en');
-// $PAGE->requires->strings_for_js(array_keys($strings), 'theme_remui');
+// Get the filters first.
+$filterdata = \theme_remui\utility::get_course_filters_data();
+$templatecontext['categories'] = $filterdata['catdata'];
+$templatecontext['searchhtml'] = $filterdata['searchhtml'];
 
-// Get the filters first
-$templatecontext['allfilters'] = \theme_remui\utility::get_course_category_filters();
+$templatecontext['tabcontent'] = array();
 
-// Tab creation Content
-$mycoursesObj = new stdClass();
-$mycoursesObj->name = 'mycourses';
-$mycoursesObj->text = get_string('mycourses', 'theme_remui');
-if ($mycourses) {
-    $mycoursesObj->isActive = true;
+if (isloggedin()) {
+    // Tab creation Content.
+    $mycoursesobj = new stdClass();
+    $mycoursesobj->name = 'mycourses';
+    $mycoursesobj->text = get_string('mycourses', 'theme_remui');
+    if ($mycourses) {
+        $mycoursesobj->isActive = true;
+    }
+    $templatecontext['tabcontent'][] = $mycoursesobj;
 }
 
-$coursesObj = new stdClass();
-$coursesObj->name = 'courses';
-$coursesObj->text = get_string('courses', 'theme_remui');
+$coursesobj = new stdClass();
+$coursesobj->name = 'courses';
+$coursesobj->text = get_string('courses', 'theme_remui');
 if (!$mycourses) {
-    $coursesObj->isActive = true;
+    $coursesobj->isActive = true;
 }
-
-$templatecontext['tabcontent'] = array($mycoursesObj, $coursesObj);
-
+$templatecontext['tabcontent'][] = $coursesobj;
 
 $templatecontext['mycourses'] = $mycourses;
 if (\theme_remui\toolbox::get_setting('enablenewcoursecards')) {
     $templatecontext['latest_card'] = true;
 }
 
-
-echo $OUTPUT->render_from_template('theme_remui/coursecategory', $templatecontext);
+echo $OUTPUT->render_from_template('theme_remui/coursearchive', $templatecontext);

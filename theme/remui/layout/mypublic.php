@@ -27,20 +27,22 @@ require_once($CFG->libdir . "/badgeslib.php");
 
 global $USER, $DB;
 
+use theme_remui\usercontroller as usercontroller;
+
 // Get user's object from page url
 $uid = optional_param('id', $USER->id, PARAM_INT);
 $userobject = $DB->get_record('user', array('id' => $uid));
 
 $countries = get_string_manager()->get_list_of_countries();// get the list of all country
 if (!empty($userobject->country)) { // country field in user object is empty
-    $tempArray[] = array("keyName" => $userobject->country, "valName" => $countries[$userobject->country]);
-    $tempArray[] = array("keyName" => '', "valName" => 'Select a country...');
+    $temparray[] = array("keyName" => $userobject->country, "valName" => $countries[$userobject->country]);
+    $temparray[] = array("keyName" => '', "valName" => 'Select a country...');
 } else {
-    $tempArray[] = array("keyName" => '', "valName" => 'Select a country...');
+    $temparray[] = array("keyName" => '', "valName" => 'Select a country...');
 }
 
 foreach ($countries as $key => $value) {
-    $tempArray[] = array("keyName" => $key, "valName" => $value);
+    $temparray[] = array("keyName" => $key, "valName" => $value);
 }
 
 $templatecontext['usercanmanage'] = \theme_remui\utility::check_user_admin_cap($userobject);
@@ -48,8 +50,8 @@ $systemcontext = \context_system::instance();
 if ( has_capability('moodle/user:editownprofile', $systemcontext) ) {
     $templatecontext["haseditpermission"] = true;
 }
-$templatecontext['notcurrentuser'] = ($userobject->id != $USER->id)?true:false;
-$templatecontext['countries'] = $tempArray;
+$templatecontext['notcurrentuser'] = ($userobject->id != $USER->id) ? true : false;
+$templatecontext['countries'] = $temparray;
 
 // prepare profile context
 
@@ -61,19 +63,19 @@ $country = '';
 
 $userauth = get_auth_plugin($userobject->auth);
 $lockfields = array('field_lock_firstname', 'field_lock_lastname', 'field_lock_city', 'field_lock_country');
-foreach ($userauth->config as $lockfield_key => $lockfield) {
+foreach ($userauth->config as $key => $lockfield) {
     if ($lockfield == 'locked') {
-        if (in_array($lockfield_key, $lockfields)) {
-            $userobject->$lockfield_key = 'locked';
+        if (in_array($key, $lockfields)) {
+            $userobject->$key = 'locked';
         }
     }
 }
 
 $templatecontext['user'] = $userobject;
 $templatecontext['user']->profilepicture = \theme_remui\utility::get_user_picture($userobject, 200);
-$templatecontext['user']->forumpostcount = \theme_remui\utility::get_user_forum_post_count($userobject);
-$templatecontext['user']->blogpostcount  = \theme_remui\utility::get_user_blog_post_count($userobject);
-$templatecontext['user']->contactscount  = \theme_remui\utility::get_user_contacts_count($userobject);
+$templatecontext['user']->forumpostcount = usercontroller::get_user_forum_post_count($userobject);
+$templatecontext['user']->blogpostcount  = usercontroller::get_user_blog_post_count($userobject);
+$templatecontext['user']->contactscount  = usercontroller::get_user_contacts_count($userobject);
 $templatecontext['user']->description  = strip_tags($userobject->description);
 
 // about me tab data
@@ -118,10 +120,17 @@ if (!empty($templatecontext['user']->location) || !empty($templatecontext['user'
 $templatecontext['user']->aboutme = $aboutme;
 
 // courses tab data
-$usercourses = array_values(\theme_remui\utility::get_users_courses_with_progress($userobject));
-$templatecontext['user']->hascourses = (count($usercourses))?true:false;
+$usercourses = array_values(usercontroller::get_users_courses_with_progress($userobject));
+$templatecontext['user']->hascourses = (count($usercourses)) ? true : false;
 $templatecontext['user']->courses = $usercourses;
 
 echo $OUTPUT->render_from_template('theme_remui/mypublic', $templatecontext);
 
-$PAGE->requires->strings_for_js(array('enterfirstname', 'enterlastname', 'enteremailid', 'enterproperemailid', 'detailssavedsuccessfully', 'actioncouldnotbeperformed'), 'theme_remui');
+$PAGE->requires->strings_for_js(array(
+    'enterfirstname',
+    'enterlastname',
+    'enteremailid',
+    'enterproperemailid',
+    'detailssavedsuccessfully',
+    'actioncouldnotbeperformed'
+), 'theme_remui');

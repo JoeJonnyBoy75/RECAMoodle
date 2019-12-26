@@ -19,20 +19,22 @@
 }}
 {{#old_card}}
 <div class=" col-lg-12  animation-{{animation}}" data-plugin="appear" data-animate="{{animation}}" course-id="{{id}}">
-    <div class="row no-space my-10 bg-white">
-        <div class="col-lg-3 col-md-4">
+    <div class="row no-space my-2 bg-white mx-0">
+        <div class="col-lg-3 col-md-4 p-0">
             <a href="{{ courseurl }}">
-            <div class="h-200 rounded-top" style="background-image: url('{{ courseimage }}');background-size: cover;background-position: center; position: relative;"></div></a>
+            <div class="rounded-top" style="background-image: url('{{ courseimage }}');background-size: cover;background-position: center; position: relative;height:200px;"></div>
+            {{^visible}}<i class="hidden-icon fa fa-eye-slash text-white" aria-hidden="true" title="{{#str}} hiddencourse, theme_remui {{/str}}"></i>{{/visible}}
+            </a>
 
             {{# instructors }}
-            <a href="{{ url }}" class="d-block instructor-img {{ imgStyle }}" data-toggle="tooltip" title="{{ name }}">
-                <img src="{{ picture }}" style="border: 2px solid white; cursor: pointer;" class="h-50 w-50 rounded-circle" alt="{{ name }}" />
+            <a href="{{ url }}" class="d-flex justify-content-end instructor-img {{ imgStyle }}" data-toggle="tooltip" title="{{{name}}}">
+                <img src="{{ picture }}" style="border: 2px solid white; cursor: pointer;" class="rounded-circle" alt="{{ name }}" />
             </a>
             {{/ instructors }}
         </div>
-        <div class="col-lg-9 col-md-8">
-            <div class="card-block h-full">
-                <h4 class="card-title mt-10"><a href="{{ courseurl }}" class="font-weight-400 blue-grey-600 font-size-18">{{{ coursename }}}</a></h4>
+        <div class="col-lg-9 col-md-8 p-0">
+            <div class="card-body h-full p-3"  title="{{{ coursename }}}">
+                <h4 class="card-title mt-1 ellipsis ellipsis-2"><a href="{{ courseurl }}" class="font-weight-400  font-size-18">{{{ coursename }}}</a></h4>
                 <p class="card-text"><span class="text-muted">{{{ categoryname }}}</span></p>
                 <p class="card-text">{{{ coursesummary }}}</p>
 
@@ -40,7 +42,7 @@
                 {{# mycourses}}
                     <div class="w-200 pull-right">
                         {{# coursecompleted }}
-                            <div class="card-footer card-footer-transparent p-0 activity-btn {{listbuttons}}">
+                            <div class="card-footer bg-transparent border-0 p-0 activity-btn {{listbuttons}}">
                                 <a href="{{ courseurl }}" class="btn btn-success btn-block p-10 bg-green-500 border-0 rounded-0 text-white font-weight-800" href="">
                                 <i class="fa fa-check" aria-hidden="true"></i>
                                 {{coursecompleted}}</a>
@@ -52,14 +54,14 @@
                                 <div class="progress-bar bg-purple-400" style="width: {{percentage}}%;" role="progressbar">
                                 </div>
                             </div>
-                            <div class="card-footer card-footer-transparent p-0 activity-btn {{listbuttons}}">
+                            <div class="card-footer bg-transparent border-0 p-0 activity-btn {{listbuttons}}">
                                 <a href="{{# lastaccessactivity}} {{lastaccessactivity}} {{/ lastaccessactivity}}{{^ lastaccessactivity}} {{ courseurl }} {{/ lastaccessactivity}}" class="btn btn-default btn-block p-10 bg-purple-500 border-0 rounded-0 text-white font-weight-800" href=""><i class="fa fa-refresh" aria-hidden="true"></i>
                                 {{courseinprogress}}</a>
                             </div>
                         {{/ courseinprogress }}
 
                         {{# coursetostart }}
-                            <div class="card-footer card-footer-transparent p-0 activity-btn {{listbuttons}}">
+                            <div class="card-footer bg-transparent border-0 p-0 activity-btn {{listbuttons}}">
                                 <a href="{{ courseurl }}" class="btn btn-info btn-block p-10 border-0 rounded-0 text-white font-weight-800" href=""><i class="fa fa-play-circle" aria-hidden="true"></i>
                                 {{coursetostart}}</a>
                             </div>
@@ -69,19 +71,19 @@
 
                 {{^ mycourses}}
                     {{# usercanmanage }}
-                        <div class="card-footer card-footer-transparent text-muted activity-btn {{listbuttons}}">
+                        <div class="card-footer bg-transparent border-0 text-muted activity-btn {{listbuttons}}">
                             <div class="enrolmenticons d-inline-block">
                                 {{{ enrollmenticons }}}
                             </div>
 
                             <button type="button"
-                                class="btn btn-icon btn-outline btn-sm btn-primary btn-round float-right showoptions "
+                                class="btn btn-icon btn-outline-primary btn-sm btn-round float-right showoptions "
                                 data-plugin="toolbar"
-                                data-toolbar="#course-{{ courseid }}-options">
+                                data-toolbar="#course-{{ id }}-options">
                                 <i class="icon fa fa-cog" aria-hidden="true"></i>
                             </button>
                         </div>
-                        <div class="toolbar-icons tool-items toolbar-primary" id="course-{{ courseid }}-options" hidden="">
+                        <div class="toolbar-icons tool-items toolbar-primary" id="course-{{ id }}-options" hidden="">
                             <a href="{{ enrollusers }}" class="tool-item" title="{{# str }} enroluser, theme_remui {{/ str }}"><i class="icon fa fa-users" aria-hidden="true"></i></a>
                             <a href="{{ grader }}" class="tool-item" title="{{# str }} graderreport, theme_remui {{/ str }}"><i class="icon fa fa-star" aria-hidden="true"></i></a>
                             <a href="{{ activity }}" class="tool-item" title="{{# str }} activityeport, theme_remui {{/ str }}"><i class="icon fa fa-pie-chart" aria-hidden="true"></i></a>
@@ -90,7 +92,7 @@
                     {{/ usercanmanage }}
 
                     {{^ usercanmanage }}
-                        <div class="card-footer card-footer-transparent text-muted">
+                        <div class="card-footer bg-transparent text-muted">
                             <div class="enrolmenticons">
                                 {{{ enrollmenticons }}}
                             </div>

@@ -51,152 +51,76 @@
         "hasregionmainsettingsmenu": false
     }
 }}
+
 {{> theme_remui/common_start }}
-{{#newfrontpage}}
-<style>
-.sections-loader-wrapper {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background: white;
-    opacity: 0;
-    transition: opacity 300ms linear;
-    z-index: 1701;
-}
-.sections-loader-wrapper.show {
-    opacity: 1;
-}
-.section-loader-wrapper {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    background: rgba(255,255,255,0.7);
-    z-index: 3;
-}
-.sections-loader-wrapper .sections-loader, .section-loader-wrapper .section-loader {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-}
-.sections-loader-wrapper .sections-loader img, .section-loader-wrapper .section-loader img {
-    width:  10rem;
-}
-{{#transparentheader}}
-body#page-site-index.latest-frontpage.site-menubar-fold.animate-header .site-navbar .navbar-brand-logo i, body#page-site-index.latest-frontpage.site-menubar-fold.animate-header .site-navbar .nav-link {
-    color: {{headercolor}};
-}
-body#page-site-index.latest-frontpage.site-menubar-fold.animate-header .site-navbar .navbar-container .hamburger .hamburger-bar, body#page-site-index.latest-frontpage.site-menubar-fold.animate-header .site-navbar .navbar-container .hamburger:after, body#page-site-index.latest-frontpage.site-menubar-fold.animate-header .site-navbar .navbar-container .hamburger:before {
-    background: {{headercolor}};
-}
-{{/transparentheader}}
-</style>
-<div class="sections-loader-wrapper show">
-  <div class="sections-loader">
-    {{#loader}}
-        <img class="icon" src="{{loader}}"/>
-    {{/loader}}
-    {{^loader}}
-        {{#pix}} owl_loader_big, theme_remui {{/pix}}
-    {{/loader}}
-  </div>
-</div>
-    {{{ output.course_content_header }}}
-        <div class="home-sections {{#userisediting}}editing{{/userisediting}}">
-        </div>
 
-        <section {{#hasdefaultsections}}class="default-sections panel invisible p-lg-50 p-md-30 p-20 m-b-0"{{/hasdefaultsections}}
-        {{^hasdefaultsections}}style="margin-top: -25px;"{{/hasdefaultsections}}>
-            {{{ output.main_content }}}
-        </section>
+<section id="region-main" {{#hasblocks}}class="has-blocks"{{/hasblocks}} aria-label="{{#str}}content{{/str}}">
 
-    {{{ output.course_content_footer }}}
-
-    {{#userisediting}}
-        <div class="editing-alert">
-            <p class="m-0">{{#str}}editingison, theme_remui{{/str}}</p>
-        </div>
-    {{/userisediting}}
-
-
-{{> theme_remui/common_end }}
-
-{{#js}}
-require(['jquery', 'theme_remui/loader', 'theme_remui/frontpage'], function ($, Loader, FrontPage) {
-    Breakpoints();
-
-    FrontPage.init({{contextid}}, {{userisediting}});
-});
-{{/js}}
-{{/newfrontpage}}
-{{^newfrontpage}}
-    <div class="page-main bg-white">
-
+    {{#customhomepage}}
+        {{{customhomepage}}}
+    {{/customhomepage}}
+    {{^customhomepage}}
         {{# slider }}
 
-        {{# isslider }}
-        <!-- slider -->
-        <div class="carousel slide mb-50" id="CarouselCaptions" data-interval="{{ slideinterval }}" data-ride="carousel">
-            <ol class="carousel-indicators">
-                {{# slides }}
-                    <li data-slide-to="{{count}}" data-target="#CarouselCaptions" class="{{#active}}active{{/active}}"></li>
-                {{/ slides}}
-            </ol>
+            {{# isslider }}
+            <!-- slider -->
+            <div class="carousel slide" id="CarouselCaptions" data-interval="{{ slideinterval }}" data-ride="carousel">
+                <ol class="carousel-indicators">
+                    {{# slides }}
+                        <li data-slide-to="{{count}}" data-target="#CarouselCaptions" class="{{#active}}active{{/active}}"></li>
+                    {{/ slides}}
+                </ol>
 
-            <div class="carousel-inner" role="listbox">
-                {{# slides }}
-                  <div class="carousel-item align-items-center {{#active}}active{{/active}}">
-                    <!-- <div id="banner-img-slider" class="col-12" style="background-image:url({{ img }}); background-position: center; background-size: cover; background-repeat:no-repeat; min-height:500px;"></div> -->
-                     <img id="banner-img-slider" class="d-block img-fluid w-p100" alt="Image {{count}}" src="{{ img }}" data-holder-rendered="true">
-                    <div class="carousel-caption">
-                      {{{ img_txt }}}
-                      {{# btn_txt }}
-                        <p><a href="{{ btn_link }}" class="btn btn-primary mt-10">{{{ btn_txt }}}</a></p>
-                      {{/ btn_txt }}
-                    </div>
-                  </div>
-                {{/ slides }}
+                <div class="carousel-inner" role="listbox">
+                    {{# slides }}
+                        <div class="carousel-item align-items-center {{#active}}active{{/active}}">
+                        <!-- <div id="banner-img-slider" class="col-12" style="background-image:url({{ img }}); background-position: center; background-size: cover; background-repeat:no-repeat; min-height:500px;"></div> -->
+                            <img id="banner-img-slider" class="d-block img-fluid w-p100" alt="Image {{count}}" src="{{ img }}" data-holder-rendered="true">
+                        <div class="carousel-caption">
+                            {{{ img_txt }}}
+                            {{# btn_txt }}
+                            <p><a href="{{ btn_link }}" class="btn btn-primary mt-2">{{{ btn_txt }}}</a></p>
+                            {{/ btn_txt }}
+                        </div>
+                        </div>
+                    {{/ slides }}
 
-                <a class="carousel-control-prev" href="#CarouselCaptions" role="button" data-slide="prev">
-                  <span class="carousel-control-prev-icon fa fa-chevron-left" aria-hidden="true"></span>
-                  <span class="sr-only">Previous</span>
-                </a>
-                <a class="carousel-control-next" href="#CarouselCaptions" role="button" data-slide="next">
-                  <span class="carousel-control-next-icon fa fa-chevron-right" aria-hidden="true"></span>
-                  <span class="sr-only">Next</span>
-                </a>
+                    <a class="carousel-control-prev" href="#CarouselCaptions" role="button" data-slide="prev">
+                        <span class="carousel-control-prev-icon fa fa-chevron-left" aria-hidden="true"></span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                    <a class="carousel-control-next" href="#CarouselCaptions" role="button" data-slide="next">
+                        <span class="carousel-control-next-icon fa fa-chevron-right" aria-hidden="true"></span>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </div>
             </div>
-        </div>
-        <!-- slider ends -->
-        {{/ isslider }}
+            <!-- slider ends -->
+            {{/ isslider }}
 
-        {{# isimage }}
-        <div class="cover card card-inverse rem-staticimage">
-          <img class="card-img w-full" src="{{staticimage}}" alt="Card image">
-          <div class="carousel-caption cover-background centered card-img-overlay w-p75 white">
-            {{{addtxt}}}
-          </div>
-        </div>
-        {{/ isimage }}
-
-        {{# isvideo }}
-            <div class="mb-50 w-p100 h-300 h-md-400 h-lg-500">
-                <iframe width="100%" height="100%" src="{{ video }}?rel=0" frameborder="0" allowfullscreen></iframe>
+            {{# isimage }}
+            <div class="cover card card-inverse rem-staticimage border-0">
+                <img class="card-img w-full" src="{{staticimage}}" alt="Card image">
+                <div class="carousel-caption cover-background centered card-img-overlay w-p75 white">
+                {{{addtxt}}}
+                </div>
             </div>
-        {{/ isvideo }}
+            {{/ isimage }}
+
+            {{# isvideo }}
+                <div class="w-p100 wdm-home-video">
+                    <iframe width="100%" height="100%" src="{{ video }}?rel=0" frameborder="0" allowfullscreen></iframe>
+                </div>
+            {{/ isvideo }}
 
         {{/ slider }}
 
-        <div class="page-content py-0">
+        <div class="page-content py-0 pt-3 bg-white px-3">
             <!-- marketing spots -->
-            <div class="container mb-40 {{#aboutus_hide}} {{aboutus_hide}} {{/aboutus_hide}}">
+            <div class="container mb-4 {{#aboutus_hide}} {{aboutus_hide}} {{/aboutus_hide}}">
                 {{{! output.full_header }}}
 
-                <div class="row">
+                <div class="row bg-white pb-3 px-4">
                     <div class="{{#dispAboutUsDiv}} {{dispAboutUsDiv}} {{/dispAboutUsDiv}}">
                         {{# marketing_heading }}<h4>{{{ marketing_heading }}}</h4>{{/ marketing_heading }}
                         {{# marketing_desc }} {{{ marketing_desc }}} {{/ marketing_desc }}
@@ -206,9 +130,9 @@ require(['jquery', 'theme_remui/loader', 'theme_remui/frontpage'], function ($, 
                         <div class="marketing-spots row no-gutters">
                         {{# marketing_spots }}
                             <div class="{{#dispmarketingspotsin}} {{dispmarketingspotsin}} {{/dispmarketingspotsin}}">
-                              <!-- Example Overlay Fade -->
-                                  <figure class="overlay overlay-hover">
-                                   <div class="overlay-figure text-center {{^ image }} bg-grey-200 {{/ image }}"  {{# image }} style="background: url({{ image }}) center/cover;" {{/ image }}>
+                                <!-- Example Overlay Fade -->
+                                    <figure class="overlay overlay-hover">
+                                    <div class="overlay-figure text-center {{^ image }} bg-grey-200 {{/ image }}"  {{# image }} style="background: url({{ image }}) center/cover;" {{/ image }}>
                                         <div class="iconbox py-p15">
                                             <div class="iconsquare">
                                                 <i class="fa fa-{{ icon }}"></i>
@@ -219,16 +143,16 @@ require(['jquery', 'theme_remui/loader', 'theme_remui/frontpage'], function ($, 
                                             </div>
                                         </div>
                                     </div>
-                                    <figcaption class="overlay-panel overlay-fade bg-white grey-700 text-center d-flex flex-column justify-content-center align-items-center">
-                                      {{# description }} {{{ description }}} {{/ description }}
-                                      {{# button }}
-                                        <a href="{{ link }}" target="_blank" class="btn btn-primary w-p50 mt-10">{{ button }}</a>
-                                      {{/ button }}
+                                    <figcaption class="overlay-panel overlay-fade bg-white text-dark text-center d-flex flex-column justify-content-center align-items-center">
+                                        {{# description }} {{{ description }}} {{/ description }}
+                                        {{# button }}
+                                        <a href="{{ link }}" target="_blank" class="btn btn-primary w-p50 mt-2">{{ button }}</a>
+                                        {{/ button }}
                                     </figcaption>
-                                  </figure>
+                                    </figure>
 
 
-                              <!-- End Example Overlay Fade -->
+                                <!-- End Example Overlay Fade -->
                             </div>
                         {{/ marketing_spots }}
                         </div>
@@ -239,7 +163,7 @@ require(['jquery', 'theme_remui/loader', 'theme_remui/frontpage'], function ($, 
             <!-- marketing spots ends -->
 
             <!-- main content -->
-            <div class="container-wrapper bg-grey-100 pt-10">
+            <div class="container-wrapper pt-2">
                 <div class="container">
                     <div id="region-main-box">
                         {{#hasregionmainsettingsmenu}}
@@ -265,10 +189,10 @@ require(['jquery', 'theme_remui/loader', 'theme_remui/frontpage'], function ($, 
             <!-- about us -->
             {{# testimoniallist }}
             <div class="container">
-                <div class="row {{^ both }}justify-content-center{{/ both }}">
+                <div class="row {{^ both }}justify-content-center{{/ both }} bg-white px-4">
 
                     {{# both }}
-                        <div class="col-12 col-md-7 col-lg-6 mt-lg-30 aboutus-heading">
+                        <div class="col-12 col-md-7 col-lg-6 mt-lg-3 aboutus-heading">
                             {{# aboutus_heading }}<h3>{{ aboutus_heading }}</h3>{{/ aboutus_heading }}
                             {{# aboutus_desc }} {{{ aboutus_desc }}} {{/ aboutus_desc }}
                         </div>
@@ -282,33 +206,33 @@ require(['jquery', 'theme_remui/loader', 'theme_remui/frontpage'], function ($, 
 
                                 <div class="carousel-inner" role="listbox">
                                     {{# testimonials }}
-                                      <div class="carousel-item align-items-center bg-grey-200 {{#active}}active{{/active}}">
+                                        <div class="carousel-item align-items-center bg-grey-200 {{#active}}active{{/active}}">
                                         <div class="text-center">
                                             <div class="overlay-panel vertical-align">
-                                                <div class="vertical-align-middle">
-                                                  {{# image }}
-                                                  <a class="avatar avatar-100 bg-white mb-10 m-xs-0 img-bordered" href="javascript:void(0)">
+                                                <div class="d-flex flex-column align-items-center justify-content-center h-100">
+                                                    {{# image }}
+                                                    <a class="avatar avatar-100 bg-white mb-2 m-xs-0 img-bordered" href="javascript:void(0)">
                                                     <img src="{{ image }}" alt="">
-                                                  </a>
-                                                  {{/ image }}
-                                                  {{# name }} <div class="font-size-20 grey-600">{{ name }}</div> {{/ name }}
-                                                  {{# designation }} <div class="font-size-14 grey-700">{{ designation }}</div> {{/ designation }}
-                                                  {{# text }}
-                                                    <div class="font-size-14 grey-600 pt-20">{{#shortentext}} 250, {{{ text }}} {{/shortentext}} </div>
-                                                  {{/ text }}
+                                                    </a>
+                                                    {{/ image }}
+                                                    {{# name }} <div class="font-size-20 text-muted">{{ name }}</div> {{/ name }}
+                                                    {{# designation }} <div class="font-size-14 text-dark">{{ designation }}</div> {{/ designation }}
+                                                    {{# text }}
+                                                    <div class="font-size-14 text-muted pt-2">{{#shortentext}} 250, {{{ text }}} {{/shortentext}} </div>
+                                                    {{/ text }}
                                                 </div>
                                             </div>
                                         </div>
-                                      </div>
+                                        </div>
                                     {{/ testimonials }}
 
                                     <a class="carousel-control-prev" href="#testimonial_cr" role="button" data-slide="prev">
-                                      <span class="carousel-control-prev-icon fa fa-chevron-left" aria-hidden="true"></span>
-                                      <span class="sr-only">Previous</span>
+                                        <span class="carousel-control-prev-icon fa fa-chevron-left" aria-hidden="true"></span>
+                                        <span class="sr-only">Previous</span>
                                     </a>
                                     <a class="carousel-control-next" href="#testimonial_cr" role="button" data-slide="next">
-                                      <span class="carousel-control-next-icon fa fa-chevron-right" aria-hidden="true"></span>
-                                      <span class="sr-only">Next</span>
+                                        <span class="carousel-control-next-icon fa fa-chevron-right" aria-hidden="true"></span>
+                                        <span class="sr-only">Next</span>
                                     </a>
                                 </div>
                             </div>
@@ -334,33 +258,33 @@ require(['jquery', 'theme_remui/loader', 'theme_remui/frontpage'], function ($, 
 
                                     <div class="carousel-inner" role="listbox">
                                         {{# testimonials }}
-                                          <div class="carousel-item align-items-center {{#active}}active{{/active}}">
+                                            <div class="carousel-item align-items-center {{#active}}active{{/active}}">
                                             <div class="text-center">
                                                 <div class="overlay-panel vertical-align">
-                                                    <div class="vertical-align-middle">
-                                                      {{# image }}
-                                                      <a class="avatar avatar-100 bg-white mb-10 m-xs-0 img-bordered" href="javascript:void(0)">
+                                                    <div class="d-flex flex-column align-items-center justify-content-center h-100">
+                                                        {{# image }}
+                                                        <a class="avatar avatar-100 bg-white mb-2 m-xs-0 img-bordered" href="javascript:void(0)">
                                                         <img src="{{ image }}" alt="">
-                                                      </a>
-                                                      {{/ image }}
-                                                      {{# name }} <div class="font-size-20 grey-600">{{ name }}</div> {{/ name }}
-                                                      {{# designation }} <div class="font-size-14 grey-700">{{ designation }}</div> {{/ designation }}
-                                                      {{# text }}
-                                                        <div class="font-size-14 grey-600 pt-20">{{#shortentext}} 250, {{{ text }}} {{/shortentext}} </div>
-                                                      {{/ text }}
+                                                        </a>
+                                                        {{/ image }}
+                                                        {{# name }} <div class="font-size-20 text-muted">{{ name }}</div> {{/ name }}
+                                                        {{# designation }} <div class="font-size-14 text-dark">{{ designation }}</div> {{/ designation }}
+                                                        {{# text }}
+                                                        <div class="font-size-14 text-muted pt-2">{{#shortentext}} 250, {{{ text }}} {{/shortentext}} </div>
+                                                        {{/ text }}
                                                     </div>
                                                 </div>
                                             </div>
-                                          </div>
+                                            </div>
                                         {{/ testimonials }}
 
                                         <a class="carousel-control-prev" href="#testimonial_cr" role="button" data-slide="prev">
-                                          <span class="carousel-control-prev-icon fa fa-chevron-left" aria-hidden="true"></span>
-                                          <span class="sr-only">Previous</span>
+                                            <span class="carousel-control-prev-icon fa fa-chevron-left" aria-hidden="true"></span>
+                                            <span class="sr-only">Previous</span>
                                         </a>
                                         <a class="carousel-control-next" href="#testimonial_cr" role="button" data-slide="next">
-                                          <span class="carousel-control-next-icon fa fa-chevron-right" aria-hidden="true"></span>
-                                          <span class="sr-only">Next</span>
+                                            <span class="carousel-control-next-icon fa fa-chevron-right" aria-hidden="true"></span>
+                                            <span class="sr-only">Next</span>
                                         </a>
                                     </div>
                                 </div>
@@ -376,21 +300,21 @@ require(['jquery', 'theme_remui/loader', 'theme_remui/frontpage'], function ($, 
             <!-- blog -->
             {{# blog }}
             {{# hasblogs }}
-            <div class="container-wrapper bg-grey-100 pt-10">
+            <div class="container-wrapper bg-grey-100 pt-2">
                 <div class="container">
-                    <h2 class="blue-grey-600">{{#str}}blog, blog{{/str}}</h2>
-                    <div class="row blog">
+                    <h2 class="blue-grey-600 px-4">{{#str}}blog, blog{{/str}}</h2>
+                    <div class="row blog px-4">
                         {{# blogs }}
                         <div class="col-md-4 col-sm-6 recent-item">
                             <div class="card card-transparent">
-                                <div class="card-block">
-                                  <div class="card-content">
-                                    <h4 class="card-title mt-10"><a href="{{ link }}" class="font-weight-400 blue-grey-600">{{ subject }}</a></h4>
+                                <div class="card-body">
+                                    <div class="card-content">
+                                    <h4 class="card-title mt-2"><a href="{{ link }}" class="font-weight-400 font-size-18">{{ subject }}</a></h4>
                                     <p class="card-text">
-                                      <small>By {{ firstname }} {{ lastname }}, on {{ createdat }}</small>
+                                        <small>By {{ firstname }} {{ lastname }}, on {{ createdat }}</small>
                                     </p>
                                     <p class="card-text">{{ summary }}</p>
-                                  </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -403,45 +327,26 @@ require(['jquery', 'theme_remui/loader', 'theme_remui/frontpage'], function ($, 
             <!-- blog ends -->
 
         </div>
-    </div>
-    {{> theme_remui/common_end }}
+        {{{ output.standard_after_main_region_html }}}
+    {{/customhomepage}}
+
+</section>
+
+{{> theme_remui/common_end }}
 
 {{#js}}
-require(['theme_remui/loader'], function () {
-  Breakpoints();
-    jQuery(document).ready(function() {
-        jQuery(".carousel").on("touchstart", function(event){
-            var xClick = event.originalEvent.touches[0].pageX;
-            jQuery(this).one("touchmove", function(event){
-                var xMove = event.originalEvent.touches[0].pageX;
-                if( Math.floor(xClick - xMove) > 5 ){
-                    jQuery(".carousel").carousel('next');
-                }
-                else if( Math.floor(xClick - xMove) < -5 ){
-                    jQuery(".carousel").carousel('prev');
-                }
-            });
-            jQuery(".carousel").on("touchend", function(){
-                    jQuery(this).off("touchmove");
-            });
-        });
-    });
-});
-{{/js}}
-{{/newfrontpage}}
-
-{{#js}}
-require(['theme_remui/loader', 'theme_remui/slick'], function () {
+require(['jquery', 'theme_remui/loader', 'theme_remui/slick', 'theme_remui/breakpoints'], function ($) {
+    Breakpoints();
     // Slick Responsive Display
     // -----false-----------------------
-    jQuery('.slick-course-slider').slick({
+    $('.slick-course-slider').slick({
       dots: false,
       arrows: true,
       infinite: false,
       speed: 500,
       prevArrow: $(".available-courses.button-container .btn-prev"),
       nextArrow: $(".available-courses.button-container .btn-next"),
-      rtl: (jQuery("html").attr("dir") == "rtl") ? true : false,
+      rtl: ($("html").attr("dir") == "rtl") ? true : false,
       slidesToShow: 4,
       slidesToScroll: 4,
       responsive: [{
@@ -467,7 +372,30 @@ require(['theme_remui/loader', 'theme_remui/slick'], function () {
     })
     .on('setPosition', function (event, slick) {
       slick.$slides.css('height', slick.$slideTrack.height() + 'px');
-      jQuery('.slick-slide > div').css('height', '100%');
+      $('.slick-slide > div').css('height', '100%');
     });
 });
 {{/js}}
+{{^customhomepage}}
+{{#js}}
+require(['jquery'], function ($) {
+    $(document).ready(function() {
+        $(".carousel").on("touchstart", function(event){
+            var xClick = event.originalEvent.touches[0].pageX;
+            $(this).one("touchmove", function(event){
+                var xMove = event.originalEvent.touches[0].pageX;
+                if( Math.floor(xClick - xMove) > 5 ){
+                    $(".carousel").carousel('next');
+                }
+                else if( Math.floor(xClick - xMove) < -5 ){
+                    $(".carousel").carousel('prev');
+                }
+            });
+            $(".carousel").on("touchend", function(){
+                    $(this).off("touchmove");
+            });
+        });
+    });
+});
+{{/js}}
+{{/customhomepage}}

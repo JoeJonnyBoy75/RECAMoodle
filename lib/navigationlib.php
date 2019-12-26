@@ -4530,13 +4530,6 @@ class settings_navigation extends navigation_node {
             $coursenode->add(get_string('import'), $url, self::TYPE_SETTING, null, 'import', new pix_icon('i/import', ''));
         }
 
-        // Publish course on a hub
-        if ($adminoptions->publish) {
-            $url = new moodle_url('/course/publish/index.php', array('id'=>$course->id));
-            $coursenode->add(get_string('publish', 'core_hub'), $url, self::TYPE_SETTING, null, 'publish',
-                new pix_icon('i/publish', ''));
-        }
-
         // Reset this course
         if ($adminoptions->reset) {
             $url = new moodle_url('/course/reset.php', array('id'=>$course->id));
@@ -5018,6 +5011,16 @@ class settings_navigation extends navigation_node {
                 $passwordchangeurl = new moodle_url('/login/change_password.php', array('id'=>$course->id));
             }
             $useraccount->add(get_string("changepassword"), $passwordchangeurl, self::TYPE_SETTING, null, 'changepassword');
+        }
+
+        // Default homepage.
+        $defaulthomepageuser = (!empty($CFG->defaulthomepage) && ($CFG->defaulthomepage == HOMEPAGE_USER));
+        if (isloggedin() && !isguestuser($user) && $defaulthomepageuser) {
+            if ($currentuser && has_capability('moodle/user:editownprofile', $systemcontext) ||
+                    has_capability('moodle/user:editprofile', $usercontext)) {
+                $url = new moodle_url('/user/defaulthomepage.php', ['id' => $user->id]);
+                $useraccount->add(get_string('defaulthomepageuser'), $url, self::TYPE_SETTING, null, 'defaulthomepageuser');
+            }
         }
 
         if (isloggedin() && !isguestuser($user) && !is_mnet_remote_user($user)) {

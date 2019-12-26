@@ -340,7 +340,9 @@ class core_accesslib_testcase extends advanced_testcase {
 
         $user = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course();
-        role_assign($CFG->coursecontact, $user->id, context_course::instance($course->id));
+        $contactroles = preg_split('/,/', $CFG->coursecontact);
+        $roleid = reset($contactroles);
+        role_assign($roleid, $user->id, context_course::instance($course->id));
         $this->assertTrue(has_coursecontact_role($user->id));
     }
 
@@ -366,7 +368,7 @@ class core_accesslib_testcase extends advanced_testcase {
      * Test adding of capabilities to roles.
      */
     public function test_assign_capability() {
-        global $DB;
+        global $DB, $USER;
 
         $this->resetAfterTest();
 
@@ -406,34 +408,40 @@ class core_accesslib_testcase extends advanced_testcase {
         $permission = $DB->get_record('role_capabilities', array('contextid'=>$frontcontext->id, 'roleid'=>$student->id, 'capability'=>'moodle/backup:backupcourse'));
         $this->assertEmpty($permission);
 
-        // Test event trigger.
-        $rolecapabilityevent = \core\event\role_capabilities_updated::create(array('context' => $syscontext,
-                                                                                  'objectid' => $student->id,
-                                                                                  'other' => array('name' => $student->shortname)
-                                                                                 ));
-        $expectedlegacylog = array(SITEID, 'role', 'view', 'admin/roles/define.php?action=view&roleid=' . $student->id,
-                            $student->shortname, '', $user->id);
-        $rolecapabilityevent->set_legacy_logdata($expectedlegacylog);
-        $rolecapabilityevent->add_record_snapshot('role', $student);
-
+        // Test event triggered.
         $sink = $this->redirectEvents();
-        $rolecapabilityevent->trigger();
+        $capability = 'moodle/backup:backupcourse';
+        assign_capability($capability, CAP_ALLOW, $student->id, $syscontext);
         $events = $sink->get_events();
         $sink->close();
-        $event = array_pop($events);
+        $this->assertCount(1, $events);
+        $event = $events[0];
+        $this->assertInstanceOf('\core\event\capability_assigned', $event);
+        $this->assertSame('role_capabilities', $event->objecttable);
+        $this->assertEquals($student->id, $event->objectid);
+        $this->assertEquals($syscontext->id, $event->contextid);
+        $other = ['capability' => $capability, 'oldpermission' => CAP_INHERIT, 'permission' => CAP_ALLOW];
+        $this->assertEquals($other, $event->other);
+        $description = "The user id '$USER->id' assigned the '$capability' capability for " .
+            "role '$student->id' with 'Allow' permission";
+        $this->assertEquals($description, $event->get_description());
 
-        $this->assertInstanceOf('\core\event\role_capabilities_updated', $event);
-        $expectedurl = new moodle_url('/admin/roles/define.php', array('action' => 'view', 'roleid' => $student->id));
-        $this->assertEquals($expectedurl, $event->get_url());
-        $this->assertEventLegacyLogData($expectedlegacylog, $event);
-        $this->assertEventContextNotUsed($event);
+        // Test if the event has different description when updating the capability permission.
+        $sink = $this->redirectEvents();
+        assign_capability($capability, CAP_PROHIBIT, $student->id, $syscontext, true);
+        $events = $sink->get_events();
+        $sink->close();
+        $event = $events[0];
+        $description = "The user id '$USER->id' changed the '$capability' capability permission for " .
+            "role '$student->id' from 'Allow' to 'Prohibit'";
+        $this->assertEquals($description, $event->get_description());
     }
 
     /**
      * Test removing of capabilities from roles.
      */
     public function test_unassign_capability() {
-        global $DB;
+        global $DB, $USER;
 
         $this->resetAfterTest();
 
@@ -461,6 +469,22 @@ class core_accesslib_testcase extends advanced_testcase {
         $this->assertTrue($result);
         $this->assertFalse($DB->record_exists('role_capabilities', array('contextid'=>$syscontext->id, 'roleid'=>$manager->id, 'capability'=>'moodle/backup:backupcourse')));
         $this->assertFalse($DB->record_exists('role_capabilities', array('contextid'=>$frontcontext->id, 'roleid'=>$manager->id, 'capability'=>'moodle/backup:backupcourse')));
+
+        // Test event triggered.
+        $sink = $this->redirectEvents();
+        $capability = 'moodle/backup:backupcourse';
+        unassign_capability($capability, CAP_ALLOW, $manager->id);
+        $events = $sink->get_events();
+        $sink->close();
+        $this->assertCount(1, $events);
+        $event = $events[0];
+        $this->assertInstanceOf('\core\event\capability_unassigned', $event);
+        $this->assertSame('role_capabilities', $event->objecttable);
+        $this->assertEquals($manager->id, $event->objectid);
+        $this->assertEquals($syscontext->id, $event->contextid);
+        $this->assertEquals($capability, $event->other['capability']);
+        $description = "The user id id '$USER->id' has unassigned the '$capability' capability for role '$manager->id'";
+        $this->assertEquals($description, $event->get_description());
     }
 
     /**
@@ -727,8 +751,13 @@ class core_accesslib_testcase extends advanced_testcase {
         $this->resetAfterTest();
 
         $allroles = get_all_roles();
-        $this->assertInternalType('array', $allroles);
-        $this->assertCount(8, $allroles); // There are 8 roles is standard install.
+        $this->assertIsArray($allroles);
+        $initialrolescount = count($allroles);
+        $this->assertTrue($initialrolescount >= 8); // There are 8 roles is standard install.
+        $rolenames = array_column($allroles, 'shortname');
+        foreach (get_role_archetypes() as $archetype) {
+            $this->assertContains($archetype, $rolenames);
+        }
 
         $role = reset($allroles);
         $role = (array)$role;
@@ -750,8 +779,8 @@ class core_accesslib_testcase extends advanced_testcase {
         $renames = $DB->get_records_menu('role_names', array('contextid'=>$coursecontext->id), '', 'roleid, name');
 
         $allroles = get_all_roles($coursecontext);
-        $this->assertInternalType('array', $allroles);
-        $this->assertCount(9, $allroles);
+        $this->assertIsArray($allroles);
+        $this->assertCount($initialrolescount + 1, $allroles);
         $role = reset($allroles);
         $role = (array)$role;
 
@@ -784,18 +813,18 @@ class core_accesslib_testcase extends advanced_testcase {
     public function test_get_archetype_roles() {
         $this->resetAfterTest();
 
-        // New install should have 1 role for each archetype.
+        // New install should have at least 1 role for each archetype.
         $archetypes = get_role_archetypes();
         foreach ($archetypes as $archetype) {
             $roles = get_archetype_roles($archetype);
-            $this->assertCount(1, $roles);
+            $this->assertGreaterThanOrEqual(1, count($roles));
             $role = reset($roles);
             $this->assertSame($archetype, $role->archetype);
         }
 
         create_role('New student role', 'student2', 'New student description', 'student');
         $roles = get_archetype_roles('student');
-        $this->assertCount(2, $roles);
+        $this->assertGreaterThanOrEqual(2, count($roles));
     }
 
     /**
@@ -818,8 +847,11 @@ class core_accesslib_testcase extends advanced_testcase {
         $renames = $DB->get_records_menu('role_names', array('contextid'=>$coursecontext->id), '', 'roleid, name');
 
         foreach ($allroles as $role) {
+            if (in_array($role->shortname, get_role_archetypes())) {
+                // Standard roles do not have a set name.
+                $this->assertSame('', $role->name);
+            }
             // Get localised name from lang pack.
-            $this->assertSame('', $role->name);
             $name = role_get_name($role, null, ROLENAME_ORIGINAL);
             $this->assertNotEmpty($name);
             $this->assertNotEquals($role->shortname, $name);
@@ -967,7 +999,11 @@ class core_accesslib_testcase extends advanced_testcase {
         $this->assertTrue($DB->record_exists('role_allow_assign', array('roleid'=>$otherid, 'allowassign'=>$student->id)));
 
         // Test event trigger.
-        $allowroleassignevent = \core\event\role_allow_assign_updated::create(array('context' => context_system::instance()));
+        $allowroleassignevent = \core\event\role_allow_assign_updated::create([
+            'context' => context_system::instance(),
+            'objectid' => $otherid,
+            'other' => ['targetroleid' => $student->id]
+        ]);
         $sink = $this->redirectEvents();
         $allowroleassignevent->trigger();
         $events = $sink->get_events();
@@ -996,7 +1032,11 @@ class core_accesslib_testcase extends advanced_testcase {
         $this->assertTrue($DB->record_exists('role_allow_override', array('roleid'=>$otherid, 'allowoverride'=>$student->id)));
 
         // Test event trigger.
-        $allowroleassignevent = \core\event\role_allow_override_updated::create(array('context' => context_system::instance()));
+        $allowroleassignevent = \core\event\role_allow_override_updated::create([
+            'context' => context_system::instance(),
+            'objectid' => $otherid,
+            'other' => ['targetroleid' => $student->id]
+        ]);
         $sink = $this->redirectEvents();
         $allowroleassignevent->trigger();
         $events = $sink->get_events();
@@ -1025,7 +1065,11 @@ class core_accesslib_testcase extends advanced_testcase {
         $this->assertTrue($DB->record_exists('role_allow_switch', array('roleid'=>$otherid, 'allowswitch'=>$student->id)));
 
         // Test event trigger.
-        $allowroleassignevent = \core\event\role_allow_switch_updated::create(array('context' => context_system::instance()));
+        $allowroleassignevent = \core\event\role_allow_switch_updated::create([
+            'context' => context_system::instance(),
+            'objectid' => $otherid,
+            'other' => ['targetroleid' => $student->id]
+        ]);
         $sink = $this->redirectEvents();
         $allowroleassignevent->trigger();
         $events = $sink->get_events();
@@ -1054,7 +1098,11 @@ class core_accesslib_testcase extends advanced_testcase {
         $this->assertTrue($DB->record_exists('role_allow_view', array('roleid' => $otherid, 'allowview' => $student->id)));
 
         // Test event trigger.
-        $allowroleassignevent = \core\event\role_allow_view_updated::create(array('context' => context_system::instance()));
+        $allowroleassignevent = \core\event\role_allow_view_updated::create([
+            'context' => context_system::instance(),
+            'objectid' => $otherid,
+            'other' => ['targetroleid' => $student->id]
+        ]);
         $sink = $this->redirectEvents();
         $allowroleassignevent->trigger();
         $events = $sink->get_events();
@@ -1500,14 +1548,8 @@ class core_accesslib_testcase extends advanced_testcase {
         $allroles = get_all_roles();
         $expected = array($id2=>$allroles[$id2]);
 
-        foreach (get_role_archetypes() as $archetype) {
-            $defaults = get_default_contextlevels($archetype);
-            if (in_array(CONTEXT_COURSE, $defaults)) {
-                $roles = get_archetype_roles($archetype);
-                foreach ($roles as $role) {
-                    $expected[$role->id] = $role;
-                }
-            }
+        foreach (get_roles_for_contextlevels(CONTEXT_COURSE) as $roleid) {
+            $expected[$roleid] = $roleid;
         }
 
         $roles = get_default_enrol_roles($coursecontext);
@@ -2686,7 +2728,7 @@ class core_accesslib_testcase extends advanced_testcase {
         $testcourses = array();
         $testpages = array();
         $testblocks = array();
-        $allroles = $DB->get_records_menu('role', array(), 'id', 'archetype, id');
+        $allroles = $DB->get_records_menu('role', array(), 'id', 'shortname, id');
 
         $systemcontext = context_system::instance();
         $frontpagecontext = context_course::instance(SITEID);
@@ -3608,8 +3650,8 @@ class core_accesslib_testcase extends advanced_testcase {
         $this->resetAfterTest(true);
 
         $froncontext = context_course::instance($SITE->id);
-        $student = $DB->get_record('role', array('archetype'=>'student'));
-        $teacher = $DB->get_record('role', array('archetype'=>'teacher'));
+        $student = $DB->get_record('role', array('shortname'=>'student'));
+        $teacher = $DB->get_record('role', array('shortname'=>'teacher'));
 
         $existingcaps = $DB->get_records('capabilities', array(), 'id', 'name, captype, contextlevel, component, riskbitmask');
 

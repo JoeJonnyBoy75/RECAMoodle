@@ -1,24 +1,10 @@
 Change Log:
 ===========
 
-Version 3.7.1
+Version 3.8.0
 
-Fix - get_courses() function updated, exception handled when categories array is blank
-Fix - Activity Menu issue when folded, icons were not visible.
-Fix - Fixed course loading issue on course archive page for unicode course summary.
-Fix - Course archive page pagination problem when clicked above 10 number.
-Fix - Module Forum Width Issue.
-Fix - Module Assign page was not loading.
+Edwiser RemUI now compatible with Moodle version 3.8
+Initial Release of Edwiser RemUI 3.8
 
-Version 3.7.0
-
-Edwiser RemUI now compatible with Moodle version 3.7
-Initial Release of Edwiser RemUI 3.7
-
-Fix - Made compatible with new messaging page design and styling.
-Fix - Question review page background color issue.
-Fix - Hidden category and courses issue on course archieve page with all roles except admin.
-Tweak - Course archive page Load more removed and added pagination instead.
-Feature - New Cards design for Course archive page.
-Feature - Brand New Home Page Builder, to create your own frontpage.
-Feature - Share your newly created frontpage design with social media by capturing the screenshot.
+Tweak - Bootstrap updated to 4.3.1
+Tweak - Google Fonts link Added in Language files.

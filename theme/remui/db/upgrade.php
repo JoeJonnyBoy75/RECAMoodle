@@ -35,7 +35,7 @@ function xmldb_theme_remui_upgrade($oldversion) {
     // return true;
     $dbman = $DB->get_manager();
 
-    if ($oldversion < 2019052300) {
+    if ($oldversion < 2019070203) {
 
         // Creating theme_remui_section_instance
         $table = new xmldb_table('theme_remui_section_instance');
@@ -56,7 +56,7 @@ function xmldb_theme_remui_upgrade($oldversion) {
 
         set_config('createfrontpagesections', true, 'theme_remui');
 
-        upgrade_plugin_savepoint(true, 2019052300, 'theme', 'remui');
+        upgrade_plugin_savepoint(true, 2019070203, 'theme', 'remui');
     }
     return true;
 }

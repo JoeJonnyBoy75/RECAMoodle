@@ -98,6 +98,8 @@ $string['attemptincomplete'] = 'That attempt (by {$a}) is not yet completed.';
 $string['attemptlast'] = 'Last attempt';
 $string['attemptnumber'] = 'Attempt';
 $string['attemptquiznow'] = 'Attempt quiz now';
+$string['attemptreviewtitle'] = '{$a}: Attempt review';
+$string['attemptreviewtitlepaged'] = '{$a->name}: Attempt review (page {$a->currentpage} of {$a->totalpages})';
 $string['attempts'] = 'Attempts';
 $string['attempts_help'] = 'The total number of attempts allowed (not the number of extra attempts).';
 $string['attemptsallowed'] = 'Attempts allowed';
@@ -110,7 +112,10 @@ $string['attemptsnumyourgroups'] = 'Attempts: {$a->total} ({$a->group} from your
 $string['attemptsonly'] = 'Show only students with attempts';
 $string['attemptstate'] = 'State';
 $string['attemptstillinprogress'] = 'Attempt still in progress';
+$string['attemptsummarytitle'] = '{$a}: Attempt summary';
 $string['attemptsunlimited'] = 'Unlimited attempts';
+$string['attempttitle'] = '{$a}';
+$string['attempttitlepaged'] = '{$a->name} (page {$a->currentpage} of {$a->totalpages})';
 $string['autosaveperiod'] = 'Auto-save delay';
 $string['autosaveperiod_desc'] = 'Responses can be saved automatically during quiz attempts. The responses are saved whenever one is changed, and then after this delay. There is a trade-off: a shorter delay increases the server load, but reduces the chance that students lose their work. If you are going to make this delay much shorter, you should change the value gradually and monitor the server load. If the load gets too high, make the delay longer again. Setting the delay to 0 turns off auto-saving.';
 $string['back'] = 'Back to preview question';
@@ -151,12 +156,12 @@ $string['cannotstartmissingquestion'] = 'Cannot start an attempt at this quiz. T
 $string['cannotstartnoquestions'] = 'Cannot start an attempt at this quiz. The quiz has not been set up yet. No questions have been added.';
 $string['cannotwrite'] = 'Cannot write to export file ({$a})';
 $string['canredoquestions'] = 'Allow redo within an attempt';
-$string['canredoquestions_desc'] = 'If enabled, then when students have finished attempting particular question, they will see a Redo question button. This allows them to attempt another version of the same question, without having to submit the entire quiz attempt and start another one. This option is mainly useful for practice quizzes.
+$string['canredoquestions_desc'] = 'If enabled, when a student has finished attempting a question, they will see a Redo question button. This allows them to attempt another version of the same question, without having to submit the entire quiz attempt and start another attempt. This option is useful for practice quizzes.
 
-This setting only affects questions (for example not Essay questions) and behaviours (for example Immediate feedback, or Interactive with multiple tries) where it is possible for student to finish the question before the attempt is submitted.';
-$string['canredoquestions_help'] = 'If enabled, then when students have finished attempting particular question, they will see a Redo question button. This allows them to attempt another version of the same question, without having to submit the entire quiz attempt and start another one. This option is mainly useful for practice quizzes.
+This setting only affects questions and behaviours (such as immediate feedback or interactive with multiple tries) where it is possible for student to finish the question before the attempt is submitted.';
+$string['canredoquestions_help'] = 'If enabled, when a student has finished attempting a question, they will see a Redo question button. This allows them to attempt another version of the same question, without having to submit the entire quiz attempt and start another attempt. This option is useful for practice quizzes.
 
-This setting only affects questions (for example not Essay questions) and behaviours (for example Immediate feedback, or Interactive with multiple tries) where it is possible for student to finish the question before the attempt is submitted.';
+This setting only affects questions and behaviours (such as immediate feedback or interactive with multiple tries) where it is possible for student to finish the question before the attempt is submitted.';
 $string['canredoquestionsyes'] = 'Students may redo another version of any finished question';
 $string['caseno'] = 'No, case is unimportant';
 $string['casesensitive'] = 'Case sensitivity';
@@ -405,7 +410,7 @@ $string['gradingdetailszeropenalty'] = 'You were not penalized for this submissi
 $string['gradingmethod'] = 'Grading method: {$a}';
 $string['groupoverrides'] = 'Group overrides';
 $string['groupoverridesdeleted'] = 'Group overrides deleted';
-$string['groupsnone'] = 'There are no groups in this course';
+$string['groupsnone'] = 'No groups you can access.';
 $string['guestsno'] = 'Sorry, guests cannot see or attempt quizzes';
 $string['hidebreaks'] = 'Hide page breaks';
 $string['hidereordertool'] = 'Hide the reordering tool';
@@ -431,8 +436,14 @@ $string['inactiveoverridehelp'] = '* Student does not have the correct group or 
 $string['incorrect'] = 'Incorrect';
 $string['indicator:cognitivedepth'] = 'Quiz cognitive';
 $string['indicator:cognitivedepth_help'] = 'This indicator is based on the cognitive depth reached by the student in a Quiz activity.';
+$string['indicator:cognitivedepthdef'] = 'Quiz cognitive';
+$string['indicator:cognitivedepthdef_help'] = 'The participant has reached this percentage of the cognitive engagement offered by the Quiz activities during this analysis interval (Levels = No view, View, Submit, View feedback, Comment on feedback, Resubmit after viewing feedback)';
+$string['indicator:cognitivedepthdef_link'] = 'Learning_analytics_indicators#Cognitive_depth';
 $string['indicator:socialbreadth'] = 'Quiz social';
 $string['indicator:socialbreadth_help'] = 'This indicator is based on the social breadth reached by the student in a Quiz activity.';
+$string['indicator:socialbreadthdef'] = 'Quiz social';
+$string['indicator:socialbreadthdef_help'] = 'The participant has reached this percentage of the social engagement offered by the Quiz activities during this analysis interval (Levels = No participation, Participant alone, Participant with others)';
+$string['indicator:socialbreadthdef_link'] = 'Learning_analytics_indicators#Social_breadth';
 $string['indivresp'] = 'Responses of individuals to each item';
 $string['info'] = 'Info';
 $string['infoshort'] = 'i';
@@ -558,7 +569,6 @@ $string['notyetviewed'] = 'Not yet viewed';
 $string['notyourattempt'] = 'This is not your attempt!';
 $string['noview'] = 'Logged-in user is not allowed to view this quiz';
 $string['numattempts'] = '{$a->studentnum} {$a->studentstring} have made {$a->attemptnum} attempts';
-$string['numattemptsmade'] = '{$a} attempts made on this quiz';
 $string['numberabbr'] = '#';
 $string['numerical'] = 'Numerical';
 $string['numquestionsx'] = 'Questions: {$a}';
@@ -587,7 +597,7 @@ $string['overallfeedback_help'] = 'Overall feedback is text that is shown after 
 $string['overdue'] = 'Overdue';
 $string['overduehandling'] = 'When time expires';
 $string['overduehandling_desc'] = 'What should happen by default if a student does not submit the quiz before time expires.';
-$string['overduehandling_help'] = 'This setting controls what happens if the Student fails to submit their quiz attempt before time expires. If the student is actively working on the quiz at the time, then the countdown timer will always automatically submit the attempt for them, but if they have logged out, then this setting controls what happens.';
+$string['overduehandling_help'] = 'This setting controls what happens if a student fails to submit their quiz attempt before the time expires. If the student is actively working on the quiz at the time, then the countdown timer will always automatically submit the attempt for them, but if they have logged out, then this setting controls what happens.';
 $string['overduehandling_link'] = 'mod/quiz/timing';
 $string['overduehandlingautosubmit'] = 'Open attempts are submitted automatically';
 $string['overduehandlinggraceperiod'] = 'There is a grace period when open attempts can be submitted, but no more questions answered';
@@ -666,7 +676,7 @@ $string['questionbank'] = 'from question bank';
 $string['questionbankmanagement'] = 'Question bank management';
 $string['questionbehaviour'] = 'Question behaviour';
 $string['questioncats'] = 'Question categories';
-$string['questiondeleted'] = 'This question has been deleted. Please contact your teacher';
+$string['questiondeleted'] = 'This question has been deleted. Please contact your teacher.';
 $string['questiondependencyadd'] = 'No restriction on when question {$a->thisq} can be attempted • Click to change';
 $string['questiondependencyfree'] = 'No restriction on this question';
 $string['questiondependencyremove'] = 'Question {$a->thisq} cannot be attempted until the previous question {$a->previousq} has been completed • Click to change';
@@ -818,8 +828,6 @@ $string['reviewclosed'] = 'After the quiz is closed';
 $string['reviewduring'] = 'During the attempt';
 $string['reviewimmediately'] = 'Immediately after the attempt';
 $string['reviewnever'] = 'Never allow review';
-$string['reviewofattempt'] = 'Review of attempt {$a}';
-$string['reviewofpreview'] = 'Review of preview';
 $string['reviewofquestion'] = 'Review of question {$a->question} in {$a->quiz} by {$a->user}';
 $string['reviewopen'] = 'Later, while the quiz is still open';
 $string['reviewoptions'] = 'Students may review';
@@ -861,6 +869,7 @@ $string['sectionheadingremove'] = 'Remove heading \'{$a}\'';
 $string['seequestions'] = '(See questions)';
 $string['select'] = 'Select';
 $string['selectall'] = 'Select all';
+$string['selectattempt'] = 'Select attempt';
 $string['selectcategory'] = 'Select category';
 $string['selectedattempts'] = 'Selected attempts...';
 $string['selectmultipleitems'] = 'Select multiple items';
@@ -893,14 +902,14 @@ $string['showreport'] = 'Show report';
 $string['showsmallimage'] = 'Small image';
 $string['showteacherattempts'] = 'Show teacher attempts';
 $string['showuserpicture'] = 'Show the user\'s picture';
-$string['showuserpicture_help'] = 'If enabled, the student\'s name and picture will be shown on-screen during the attempt, and on the review screen, making it easier to check that the student is logged in as themself in an invigilated (proctored) exam.';
+$string['showuserpicture_help'] = 'If enabled, a student\'s name and picture will be shown on-screen during the attempt, and on the review screen, making it easier to check that the student is logged in as themselves in an invigilated (proctored) exam.';
 $string['shuffle'] = 'Shuffle';
 $string['shuffleanswers'] = 'Shuffle answers';
 $string['shuffledrandomly'] = 'Shuffled randomly';
 $string['shufflequestions'] = 'Shuffle';
-$string['shufflequestions_help'] = 'If you turn this on, then every time the quiz is attempted, the order of the questions in this section will be shuffled into a different random order.
+$string['shufflequestions_help'] = 'If enabled, every time the quiz is attempted, the order of the questions in this section will be shuffled into a different random order.
 
-This can make it harder for students to share answers, but it also makes it harder for students discuss a particular question with you.';
+This can make it harder for students to share answers, but it also makes it harder for students to discuss a particular question with the teacher.';
 $string['shufflewithin'] = 'Shuffle within questions';
 $string['shufflewithin_help'] = 'If enabled, the parts making up each question will be randomly shuffled each time a student attempts the quiz, provided the option is also enabled in the question settings. This setting only applies to questions that have multiple parts, such as multiple choice or matching questions.';
 $string['singleanswer'] = 'Choose one answer.';
@@ -989,3 +998,8 @@ $string['wronguse'] = 'You can not use this page like that';
 $string['xhtml'] = 'XHTML';
 $string['youneedtoenrol'] = 'You need to enrol in this course before you can attempt this quiz';
 $string['yourfinalgradeis'] = 'Your final grade for this quiz is {$a}.';
+
+// Deprecated since Moodle 3.8.
+$string['numattemptsmade'] = '{$a} attempts made on this quiz';
+$string['reviewofattempt'] = 'Review of attempt {$a}';
+$string['reviewofpreview'] = 'Review of preview';

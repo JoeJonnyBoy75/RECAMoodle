@@ -25,6 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['addcomment'] = 'Add frequently used comment';
+$string['additionalcomments'] = 'Additional comments';
 $string['addcriterion'] = 'Add criterion';
 $string['alwaysshowdefinition'] = 'Show guide definition to students';
 $string['backtoediting'] = 'Back to editing';
@@ -49,7 +50,7 @@ $string['criterionremark'] = '{$a} criterion remark';
 $string['definemarkingguide'] = 'Define marking guide';
 $string['description'] = 'Description';
 $string['descriptionmarkers'] = 'Description for Markers';
-$string['descriptionstudents'] = 'Description for Students';
+$string['descriptionstudents'] = 'Description for students';
 $string['err_maxscoreisnegative'] = 'The max score is not valid, negative values are not allowed';
 $string['err_maxscorenotnumeric'] = 'Criterion max score must be numeric';
 $string['err_nocomment'] = 'Comment can not be empty';
@@ -73,6 +74,7 @@ $string['insertcomment'] = 'Insert frequently used comment';
 $string['maxscore'] = 'Maximum score';
 $string['name'] = 'Name';
 $string['needregrademessage'] = 'The marking guide definition was changed after this student had been graded. The student can not see this marking guide until you check the marking guide and update the grade.';
+$string['outof'] = 'Out of {$a}';
 $string['pluginname'] = 'Marking guide';
 $string['previewmarkingguide'] = 'Preview marking guide';
 $string['privacy:metadata:criterionid'] = 'An identifier to a criterion for advanced marking.';

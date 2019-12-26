@@ -15,25 +15,20 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Edwiser RemUI
- * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * A maintenance layout for the remui theme.
+ *
+ * @package   theme_remui
+ * @copyright 2016 Damyon Wiese
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
-
-$extraclasses = [];
-$extraclasses[] = 'page-maintenance layout-full';
-$bodyattributes = $OUTPUT->body_attributes($extraclasses);
 
 $templatecontext = [
     // We cannot pass the context to format_string, this layout can be used during
     // installation. At that stage database tables do not exist yet.
     'sitename' => format_string($SITE->shortname, true, ["escape" => false]),
-    'output' => $OUTPUT,
-    'bodyattributes' => $bodyattributes,
-    'footerdata' => \theme_remui\utility::get_footer_data(1)
+    'output' => $OUTPUT
 ];
 
 echo $OUTPUT->render_from_template('theme_remui/maintenance', $templatecontext);

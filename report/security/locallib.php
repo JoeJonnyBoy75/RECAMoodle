@@ -47,7 +47,7 @@ function report_security_get_issue_list() {
         'report_security_check_embed',
         'report_security_check_mediafilterswf',
         'report_security_check_openprofiles',
-        'report_security_check_google',
+        'report_security_check_crawlers',
         'report_security_check_passwordpolicy',
         'report_security_check_emailchangeconfirmation',
         'report_security_check_cookiesecure',
@@ -308,35 +308,35 @@ function report_security_check_openprofiles($detailed=false) {
 }
 
 /**
- * Verifies google access not combined with disabled guest access
+ * Verifies web crawler (search engine) access not combined with disabled guest access
  * because attackers might gain guest access by modifying browser signature.
  * @param bool $detailed
  * @return object result
  */
-function report_security_check_google($detailed=false) {
+function report_security_check_crawlers($detailed=false) {
     global $CFG;
 
     $result = new stdClass();
-    $result->issue   = 'report_security_check_google';
-    $result->name    = get_string('check_google_name', 'report_security');
+    $result->issue   = 'report_security_check_crawlers';
+    $result->name    = get_string('check_crawlers_name', 'report_security');
     $result->info    = null;
     $result->details = null;
     $result->status  = null;
     $result->link    = "<a href=\"$CFG->wwwroot/$CFG->admin/settings.php?section=sitepolicies\">".get_string('sitepolicies', 'admin').'</a>';
 
-    if (empty($CFG->opentogoogle)) {
+    if (empty($CFG->opentowebcrawlers)) {
         $result->status = REPORT_SECURITY_OK;
-        $result->info   = get_string('check_google_ok', 'report_security');
+        $result->info   = get_string('check_crawlers_ok', 'report_security');
     } else if (!empty($CFG->guestloginbutton)) {
         $result->status = REPORT_SECURITY_INFO;
-        $result->info   = get_string('check_google_info', 'report_security');
+        $result->info   = get_string('check_crawlers_info', 'report_security');
     } else {
         $result->status = REPORT_SECURITY_SERIOUS;
-        $result->info   = get_string('check_google_error', 'report_security');
+        $result->info   = get_string('check_crawlers_error', 'report_security');
     }
 
     if ($detailed) {
-        $result->details = get_string('check_google_details', 'report_security');
+        $result->details = get_string('check_crawlers_details', 'report_security');
     }
 
     return $result;
@@ -698,7 +698,7 @@ function report_security_check_riskadmin($detailed=false) {
     if ($detailed) {
         foreach ($admins as $uid=>$user) {
             $url = "$CFG->wwwroot/user/view.php?id=$user->id";
-            $admins[$uid] = '<li><a href="'.$url.'">'.fullname($user).' ('.$user->email.')</a></li>';
+            $admins[$uid] = '<li><a href="'.$url.'">' . fullname($user, true) . ' (' . s($user->email) . ')</a></li>';
         }
         $admins = '<ul>'.implode('', $admins).'</ul>';
     }
@@ -824,7 +824,7 @@ function report_security_check_riskbackup($detailed=false) {
         foreach ($rs as $user) {
             $context = context::instance_by_id($user->contextid);
             $url = "$CFG->wwwroot/$CFG->admin/roles/assign.php?contextid=$user->contextid&amp;roleid=$user->roleid";
-            $a = (object)array('fullname'=>fullname($user), 'url'=>$url, 'email'=>$user->email,
+            $a = (object)array('fullname'=>fullname($user), 'url'=>$url, 'email'=>s($user->email),
                                'contextname'=>$context->get_context_name());
             $users[] = '<li>'.get_string('check_riskbackup_unassign', 'report_security', $a).'</li>';
         }

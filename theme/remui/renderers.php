@@ -43,8 +43,8 @@ class theme_remui_core_backup_renderer extends core_backup_renderer {
                 $item = '<div class="step " >';
             }
             $item .= '<span class="step-number">'.$num.'</span>';
-            $item .= '<div class="step-desc d-flex">';
-            $item .= '<span class="step-title">'.$text.'</span></div></div>';
+            $item .= '<div class="step-desc d-flex align-items-center">';
+            $item .= '<span class="step-title font-size-14">'.$text.'</span></div></div>';
         }
         return html_writer::tag('div', join('', $items), array('class' => 'steps row m-0 mb-10'));
     }

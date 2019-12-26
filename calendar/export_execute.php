@@ -76,7 +76,7 @@ if(!empty($what) && !empty($time)) {
         if ($what == 'all') {
             $users = $user->id;
             $courses[SITEID] = new stdClass;
-            $courses[SITEID]->shortname = get_string('globalevents', 'calendar');
+            $courses[SITEID]->shortname = get_string('siteevents', 'calendar');
             $paramcourses[SITEID] = $courses[SITEID];
             $paramcategory = true;
         } else if ($what == 'groups') {
@@ -186,9 +186,9 @@ if(!empty($what) && !empty($time)) {
         die();
     }
 }
-
+$limitnum = 0;
 $events = calendar_get_legacy_events($timestart, $timeend, $users, $groups, array_keys($paramcourses), false, true,
-        $paramcategory);
+        $paramcategory, $limitnum);
 
 $ical = new iCalendar;
 $ical->add_property('method', 'PUBLISH');

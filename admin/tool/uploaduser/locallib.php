@@ -204,7 +204,7 @@ function uu_validate_user_upload_columns(csv_import_reader $cir, $stdfields, $pr
             // hack: somebody wrote uppercase in csv file, but the system knows only lowercase profile field
             $newfield = $lcfield;
 
-        } else if (preg_match('/^(sysrole|cohort|course|group|type|role|enrolperiod|enrolstatus)\d+$/', $lcfield)) {
+        } else if (preg_match('/^(sysrole|cohort|course|group|type|role|enrolperiod|enrolstatus|enroltimestart)\d+$/', $lcfield)) {
             // special fields for enrolments
             $newfield = $lcfield;
 
@@ -360,6 +360,7 @@ function uu_allowed_roles() {
  */
 function uu_allowed_roles_cache() {
     $allowedroles = get_assignable_roles(context_course::instance(SITEID), ROLENAME_SHORT);
+    $rolecache = [];
     foreach ($allowedroles as $rid=>$rname) {
         $rolecache[$rid] = new stdClass();
         $rolecache[$rid]->id   = $rid;
@@ -379,6 +380,7 @@ function uu_allowed_roles_cache() {
  */
 function uu_allowed_sysroles_cache() {
     $allowedroles = get_assignable_roles(context_system::instance(), ROLENAME_SHORT);
+    $rolecache = [];
     foreach ($allowedroles as $rid => $rname) {
         $rolecache[$rid] = new stdClass();
         $rolecache[$rid]->id   = $rid;

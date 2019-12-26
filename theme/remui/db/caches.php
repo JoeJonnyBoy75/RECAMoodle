@@ -26,8 +26,12 @@
 defined('MOODLE_INTERNAL') || die();
 
 $definitions = array(
-    'frontpage' => array(
+    'courses' => array(
+        'mode' => cache_store::MODE_SESSION,
+        'ttl' => 600, // Ten minutes.
+    ),
+    'guestcourses' => array(
         'mode' => cache_store::MODE_APPLICATION,
-        'ttl' => 3600, // One hour.
+        'ttl' => 600, // Ten minutes.
     )
 );

@@ -1011,6 +1011,68 @@ class search_solr_engine_testcase extends advanced_testcase {
     }
 
     /**
+     * Tests searching for results containing words in italic text. (This used to fail.)
+     */
+    public function test_italics() {
+        global $USER;
+
+        // Use real search areas.
+        $this->search->clear_static();
+        $this->search->add_core_search_areas();
+
+        // Create a course and a forum.
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $forum = $generator->create_module('forum', ['course' => $course->id]);
+
+        // As admin user, create forum discussions with various words in italics or with underlines.
+        $this->setAdminUser();
+        $forumgen = $generator->get_plugin_generator('mod_forum');
+        $forumgen->create_discussion(['course' => $course->id, 'forum' => $forum->id,
+                'userid' => $USER->id, 'name' => 'Post1',
+                'message' => '<p>This is a post about <i>frogs</i>.</p>']);
+        $forumgen->create_discussion(['course' => $course->id, 'forum' => $forum->id,
+                'userid' => $USER->id, 'name' => 'Post2',
+                'message' => '<p>This is a post about <i>toads and zombies</i>.</p>']);
+        $forumgen->create_discussion(['course' => $course->id, 'forum' => $forum->id,
+                'userid' => $USER->id, 'name' => 'Post3',
+                'message' => '<p>This is a post about toads_and_zombies.</p>']);
+        $forumgen->create_discussion(['course' => $course->id, 'forum' => $forum->id,
+                'userid' => $USER->id, 'name' => 'Post4',
+                'message' => '<p>This is a post about _leading and trailing_ underlines.</p>']);
+
+        // Index the data.
+        $this->search->index();
+
+        // Search for 'frogs' should find the post.
+        $querydata = new stdClass();
+        $querydata->q = 'frogs';
+        $results = $this->search->search($querydata);
+        $this->assert_result_titles(['Post1'], $results);
+
+        // Search for 'toads' or 'zombies' should find post 2 (and not 3)...
+        $querydata->q = 'toads';
+        $results = $this->search->search($querydata);
+        $this->assert_result_titles(['Post2'], $results);
+        $querydata->q = 'zombies';
+        $results = $this->search->search($querydata);
+        $this->assert_result_titles(['Post2'], $results);
+
+        // Search for 'toads_and_zombies' should find post 3.
+        $querydata->q = 'toads_and_zombies';
+        $results = $this->search->search($querydata);
+        $this->assert_result_titles(['Post3'], $results);
+
+        // Search for '_leading' or 'trailing_' should find post 4.
+        $querydata->q = '_leading';
+        $results = $this->search->search($querydata);
+        $this->assert_result_titles(['Post4'], $results);
+        $querydata->q = 'trailing_';
+        $results = $this->search->search($querydata);
+        $this->assert_result_titles(['Post4'], $results);
+    }
+
+    /**
      * Asserts that the returned documents have the expected titles (regardless of order).
      *
      * @param string[] $expected List of expected document titles
@@ -1187,5 +1249,74 @@ class search_solr_engine_testcase extends advanced_testcase {
         $record->courseid = $courseid;
         $record->contextid = $contextid;
         $this->generator->create_record($record);
+    }
+
+    /**
+     * Tries out deleting data for a context or a course.
+     *
+     * @throws coding_exception
+     * @throws moodle_exception
+     */
+    public function test_deleted_contexts_and_courses() {
+        // Create some courses and activities.
+        $generator = $this->getDataGenerator();
+        $course1 = $generator->create_course(['fullname' => 'Course 1']);
+        $course1context = \context_course::instance($course1->id);
+        $course1page1 = $generator->create_module('page', ['course' => $course1]);
+        $course1page1context = \context_module::instance($course1page1->cmid);
+        $course1page2 = $generator->create_module('page', ['course' => $course1]);
+        $course1page2context = \context_module::instance($course1page2->cmid);
+        $course2 = $generator->create_course(['fullname' => 'Course 2']);
+        $course2context = \context_course::instance($course2->id);
+        $course2page = $generator->create_module('page', ['course' => $course2]);
+        $course2pagecontext = \context_module::instance($course2page->cmid);
+
+        // Create one search record in each activity and course.
+        $this->create_search_record($course1->id, $course1context->id, 'C1', 'Xyzzy');
+        $this->create_search_record($course1->id, $course1page1context->id, 'C1P1', 'Xyzzy');
+        $this->create_search_record($course1->id, $course1page2context->id, 'C1P2', 'Xyzzy');
+        $this->create_search_record($course2->id, $course2context->id, 'C2', 'Xyzzy');
+        $this->create_search_record($course2->id, $course2pagecontext->id, 'C2P', 'Xyzzy plugh');
+        $this->search->index();
+
+        // By default we have all results.
+        $this->assert_raw_solr_query_result('content:xyzzy', ['C1', 'C1P1', 'C1P2', 'C2', 'C2P']);
+
+        // Say we delete the course2pagecontext...
+        $this->engine->delete_index_for_context($course2pagecontext->id);
+        $this->assert_raw_solr_query_result('content:xyzzy', ['C1', 'C1P1', 'C1P2', 'C2']);
+
+        // Now delete the second course...
+        $this->engine->delete_index_for_course($course2->id);
+        $this->assert_raw_solr_query_result('content:xyzzy', ['C1', 'C1P1', 'C1P2']);
+
+        // Finally let's delete using Moodle functions to check that works. Single context first.
+        course_delete_module($course1page1->cmid);
+        $this->assert_raw_solr_query_result('content:xyzzy', ['C1', 'C1P2']);
+        delete_course($course1, false);
+        $this->assert_raw_solr_query_result('content:xyzzy', []);
+    }
+
+    /**
+     * Carries out a raw Solr query using the Solr basic query syntax.
+     *
+     * This is used to test data contained in the index without going through Moodle processing.
+     *
+     * @param string $q Search query
+     * @param string[] $expected Expected titles of results, in alphabetical order
+     */
+    protected function assert_raw_solr_query_result(string $q, array $expected) {
+        $solr = $this->engine->get_search_client_public();
+        $query = new SolrQuery($q);
+        $results = $solr->query($query)->getResponse()->response->docs;
+        if ($results) {
+            $titles = array_map(function($x) {
+                return $x->title;
+            }, $results);
+            sort($titles);
+        } else {
+            $titles = [];
+        }
+        $this->assertEquals($expected, $titles);
     }
 }

@@ -15,10 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Edwiser RemUI
- * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Course layout for the remui theme.
+ *
+ * @package   theme_remui
+ * @copyright 2016 Damyon Wiese
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
@@ -26,18 +27,13 @@ require_once('common.php');
 
 global $COURSE, $USER;
 $completion = new \completion_info($COURSE);
-
 $templatecontext['issinglecoursepage'] = true;
+$templatecontext['completion'] = $completion->is_enabled();
 $templatecontext['iscoursestatsshow'] = \theme_remui\toolbox::get_setting('enablecoursestats');
-
-$course = get_course($COURSE->id);
-if ($templatecontext['iscoursestatsshow'] && strpos($bodyattributes, 'path-course') !== false) {
-    $templatecontext['completion'] = $completion->is_enabled();
-    $coursecontext = context_course::instance($COURSE->id);
-
-    if (has_capability('moodle/course:ignoreavailabilityrestrictions', $coursecontext)) {
-        $templatecontext['notstudent'] = true;
-    }
+$roles = get_user_roles(context_course::instance($COURSE->id), $USER->id);
+$key = array_search('student', array_column($roles, 'shortname'));
+if ($key === false || is_siteadmin()) {
+    $templatecontext['notstudent'] = true;
 }
-echo $OUTPUT->render_from_template('theme_remui/course', $templatecontext);
 
+echo $OUTPUT->render_from_template('theme_remui/course', $templatecontext);

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Edwiser RemUI 
+ * Edwiser RemUI
  * This is built using the bootstrapbase template to allow for new theme's using
  * Moodle's new Bootstrap theme engine
  * @package    theme_remui
@@ -44,7 +44,7 @@ class toolbox {
      * the settings are correct.
      * @param class core_renderer $core Child object of core_renderer class.
      */
-    static public function set_core_renderer($core) {
+    public static function set_core_renderer($core) {
         $us = self::get_instance();
         // Set only once from the initial calling lib.php process_css function so that subsequent parent calls do not override it.
         // Must happen before parents.
@@ -52,19 +52,45 @@ class toolbox {
             $us->corerenderer = $core;
         }
     }
-      /**
+
+    public static function get_theme_setting($setting) {
+        $us = self::check_corerenderer();
+        $themeconfig = $us->get_theme_config();
+        $tcr = array_reverse(themeconfig, true);
+
+        $settingvalue = false;
+        foreach ($tcr as $tconfig) {
+            if (property_exists($tconfig->settings, $setting)) {
+                $settingvalue = $tconfig->settings->$setting;
+                break;
+            }
+        }
+        return $settingvalue;
+    }
+
+    /**
      * Finds the given setting in the theme from the themes' configuration object.
      * @param string $setting Setting name.
      * @param string $format false|'format_text'|'format_html'.
      * @param theme_config $theme null|theme_config object.
      * @return any false|value of setting.
      */
-    static public function get_setting($setting, $format = false) {
-        $us = self::check_corerenderer();
-
-        $settingvalue = $us->get_setting($setting);
-
+    public static function get_setting($setting, $format = false) {
         global $CFG;
+        $us = self::check_corerenderer();
+        $themeconfig = $us->get_theme_config();
+        $tcr = array_reverse($themeconfig, true);
+        $settingvalue = false;
+        foreach ($tcr as $tconfig) {
+            if (property_exists($tconfig->settings, $setting)) {
+                $settingvalue = $tconfig->settings->$setting;
+                break;
+            }
+        }
+        if (!$settingvalue) {
+            return false;
+        }
+
         require_once($CFG->dirroot . '/lib/weblib.php');
         if (empty($settingvalue)) {
             return false;
@@ -80,17 +106,47 @@ class toolbox {
             return format_string($settingvalue);
         }
     }
-    static public function setting_file_url($setting, $filearea) {
-        $us = self::check_corerenderer();
 
-        return $us->setting_file_url($setting, $filearea);
+    /**
+     * Get file url from settings
+     * @param  String $setting  Settings name
+     * @param  String $filearea Filearea
+     * @return String           String
+     */
+    public static function setting_file_url($setting, $filearea) {
+        $us = self::check_corerenderer();
+        $themeconfig = $us->get_theme_config();
+        $tcr = array_reverse($themeconfig, true);
+        $settingconfig = null;
+        foreach ($tcr as $tconfig) {
+            if (property_exists($tconfig->settings, $setting)) {
+                $settingconfig = $tconfig;
+                break;
+            }
+        }
+        if ($settingconfig) {
+            return $settingconfig->setting_file_url($setting, $filearea);
+        }
+        return null;
     }
 
-    static public function image_url($imagename, $component) {
+    /**
+     * Fetch image url
+     *
+     * @param  String $imagename Image name
+     * @param  String $component Image component
+     *
+     * @return String            Image url
+     */
+    public static function image_url($imagename, $component) {
         $us = self::check_corerenderer();
         return $us->image_url($imagename, $component);
     }
 
+    /**
+     * Get renderer
+     * @return object Renderer object
+     */
     static private function check_corerenderer() {
         $us = self::get_instance();
         if (empty($us->corerenderer)) {
@@ -134,34 +190,67 @@ class toolbox {
         return $us->corerenderer;
     }
 
-    static public function set_font($css, $fontname) {
+    /**
+     * Set font in css
+     *
+     * @param String  $css      Css content
+     * @param String  $fontname Font name
+     *
+     * @return String           Css content
+     */
+    public static function set_font($css, $fontname) {
         $fontfamilytag = '[[setting:fontfamily]]';
         $familyreplacement = $fontname;
-        
-        $css = str_replace($fontfamilytag, $familyreplacement, $css);        
+
+        $css = str_replace($fontfamilytag, $familyreplacement, $css);
 
         return $css;
     }
 
-    static public function set_color($css, $themecolor, $tag, $defaultcolour) {
+    /**
+     * Set color in the css
+     *
+     * @param String  $css           Css content
+     * @param String  $themecolor    Color
+     * @param String  $tag           Css content
+     * @param String  $defaultcolour Color
+     *
+     * @return String                Css content
+     */
+    public static function set_color($css, $themecolor, $tag, $defaultcolour) {
         if (!($themecolor)) {
             $replacement = $defaultcolour;
         } else {
             $replacement = $themecolor;
         }
-        
+
         $css = str_replace($tag, $replacement, $css);
         return $css;
     }
 
-    static public function set_customcss($css, $customcss) {
+    /**
+     * Set custom css
+     * @param String  $css       Css content
+     * @param String  $customcss Css content
+     *
+     * @return String            Css content
+     */
+    public static function set_customcss($css, $customcss) {
         $tag = '[[setting:customcss]]';
         $replacement = $customcss;
         $css = str_replace($tag, $replacement, $css);
         return $css;
     }
 
-    static public function set_logo($css, $logo) {
+    /**
+     * Set logo in the css
+     *
+     * @param String  $css  Css content
+     * @param String  $logo Logo url
+     *
+     * @return String       Css content
+     */
+    public static function set_logo($css, $logo) {
         $tag = '[[setting:logo]]';
         if (!($logo)) {
             $replacement = 'none';
@@ -172,7 +261,15 @@ class toolbox {
         return $css;
     }
 
-    static public function set_logoheight($css, $logoheight) {
+    /**
+     * Set logo height in the css
+     *
+     * @param String  $css        Css content
+     * @param String  $logoheight Logo height
+     *
+     * @return String             Css content
+     */
+    public static function set_logoheight($css, $logoheight) {
         $tag = '[[setting:logoheight]]';
         if (!($logoheight)) {
             $replacement = '65px';
@@ -182,42 +279,4 @@ class toolbox {
         $css = str_replace($tag, $replacement, $css);
         return $css;
     }
-
-   
-
-    // /**
-    //  * States if the browser is not IE9 or less.
-    //  */
-    // static public function not_lte_ie9() {
-    //     $properties = self::ie_properties();
-    //     if (!is_array($properties)) {
-    //         return true;
-    //     }
-    //     // We have properties, it is a version of IE, so is it greater than 9?
-    //     return ($properties['version'] > 9.0);
-    // }
-
-    // /**
-    //  * States if the browser is IE9 or less.
-    //  */
-    // static public function lte_ie9() {
-    //     $properties = self::ie_properties();
-    //     if (!is_array($properties)) {
-    //         return false;
-    //     }
-    //     // We have properties, it is a version of IE, so is it greater than 9?
-    //     return ($properties['version'] <= 9.0);
-    // }
-
-    // /**
-    //  * States if the browser is IE by returning properties, otherwise false.
-    //  */
-    // static protected function ie_properties() {
-    //     $properties = \core_useragent::check_ie_properties(); // In /lib/classes/useragent.php.
-    //     if (!is_array($properties)) {
-    //         return false;
-    //     } else {
-    //         return $properties;
-    //     }
-    // }
 }

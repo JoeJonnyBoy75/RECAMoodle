@@ -194,9 +194,13 @@ if (! class_exists('license_controller')) {
                     )
                 ));
 
-                // Send the request & save response to $resp
-                $resp = curl_exec($curl);
+                if (defined('CURLOPT_IPRESOLVE') && defined('CURL_IPRESOLVE_V4')) {
+                    curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+                }
 
+                // Send the request & save response to $resp.
+                $resp = curl_exec($curl);
+                error_log("REMUI LICENSE :: ACTIVATION :: ".print_r($resp, 1));
                 $current_response_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
                 // Close request to clear up some resources
@@ -329,10 +333,12 @@ if (! class_exists('license_controller')) {
                         'url' => urlencode($CFG->wwwroot),
                     )
                 ));
-
+                if (defined('CURLOPT_IPRESOLVE') && defined('CURL_IPRESOLVE_V4')) {
+                    curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+                }
                 // Send the request & save response to $resp
                 $resp = curl_exec($curl);
-
+                error_log("REMUI LICENSE :: DEACTIVATION :: ".print_r($resp, 1));
                 $current_response_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
                 // Close request to clear up some resources
@@ -381,11 +387,10 @@ if (! class_exists('license_controller')) {
             }
         }
 
-        public function addData()
-        {
+        public function addData() {
             if (is_siteadmin()) {
-                
-                // return if did not come from license page
+
+                // return if did not come from license page.
                 if(!isset($_POST['onLicensePage']) || $_POST['onLicensePage'] == 0) {
                     return;
                 }
@@ -468,9 +473,12 @@ if (! class_exists('license_controller')) {
                             'url' => urlencode($CFG->wwwroot),
                         )
                     ));
-                    // Send the request & save response to $resp
+                    if (defined('CURLOPT_IPRESOLVE') && defined('CURL_IPRESOLVE_V4')) {
+                        curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+                    }
+                    // Send the request & save response to $resp.
                     $resp = curl_exec($curl);
-
+                    error_log("REMUI LICENSE :: TRANSEXPIRED :: ".print_r($resp, 1));
                     $current_response_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
                     // Close request to clear up some resources

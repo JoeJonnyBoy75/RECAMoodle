@@ -15,10 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Edwiser RemUI
- * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * A one column layout for the remui theme.
+ *
+ * @package   theme_remui
+ * @copyright 2016 Damyon Wiese
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
@@ -28,10 +29,7 @@ $bodyattributes = $OUTPUT->body_attributes([]);
 $templatecontext = [
     'sitename' => format_string($SITE->shortname, true, ['context' => context_course::instance(SITEID), "escape" => false]),
     'output' => $OUTPUT,
-    'bodyattributes' => $bodyattributes,
-    'cansignup' => !empty($CFG->registerauth),
-    'signupurl' => new moodle_url('/login/signup.php'),
-    'footerdata' => \theme_remui\utility::get_footer_data()
+    'bodyattributes' => $bodyattributes
 ];
 
 echo $OUTPUT->render_from_template('theme_remui/columns1', $templatecontext);

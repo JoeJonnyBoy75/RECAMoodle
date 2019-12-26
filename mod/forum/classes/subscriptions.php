@@ -272,6 +272,7 @@ class subscriptions {
         $sql = "SELECT $fields
                 FROM {user} u
                 JOIN ($esql) je ON je.id = u.id
+               WHERE u.auth <> 'nologin' AND u.suspended = 0 AND u.confirmed = 1
             ORDER BY $sort";
 
         return $DB->get_records_sql($sql, $params);
@@ -442,6 +443,7 @@ class subscriptions {
                         ) subscriptions
                         JOIN {user} u ON u.id = subscriptions.userid
                         JOIN ($esql) je ON je.id = u.id
+                        WHERE u.auth <> 'nologin' AND u.suspended = 0 AND u.confirmed = 1
                         ORDER BY u.email ASC";
 
             } else {
@@ -450,7 +452,7 @@ class subscriptions {
                         JOIN ($esql) je ON je.id = u.id
                         JOIN {forum_subscriptions} s ON s.userid = u.id
                         WHERE
-                          s.forum = :forumid
+                          s.forum = :forumid AND u.auth <> 'nologin' AND u.suspended = 0 AND u.confirmed = 1
                         ORDER BY u.email ASC";
             }
             $results = $DB->get_records_sql($sql, $params);
@@ -512,9 +514,12 @@ class subscriptions {
                         'userid' => $userid,
                         'forum' => $forumid,
                     ), null, 'id, discussion, preference');
+
+                    self::$forumdiscussioncache[$userid][$forumid] = array();
                     foreach ($subscriptions as $id => $data) {
                         self::add_to_discussion_cache($forumid, $userid, $data->discussion, $data->preference);
                     }
+
                     $subscriptions->close();
                 }
             } else {

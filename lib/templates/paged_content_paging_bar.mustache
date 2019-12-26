@@ -64,12 +64,13 @@
                         aria-label="{{.}}"
                     {{/arialabels.itemsperpage}}
                     {{^arialabels.itemsperpage}}
-                        aria-label="{{#str}} pagedcontentpagingbaritemsperpage, core, {{#itemsperpage}}{{#active}}{{value}}{{/active}}{{/itemsperpage}}{{/str}}"
+                        aria-label="{{#str}} pagedcontentpagingbaritemsperpage, core, {{#itemsperpage}}{{#active}}{{#value}}{{.}}{{/value}}{{^value}}{{#str}} all, core {{/str}}{{/value}}{{/active}}{{/itemsperpage}}{{/str}}"
                     {{/arialabels.itemsperpage}}
                 >
                     {{#itemsperpage}}
                         {{#active}}
-                            {{value}}
+                            {{#value}}{{.}}{{/value}}
+                            {{^value}}{{#str}} all, core {{/str}}{{/value}}
                         {{/active}}
                     {{/itemsperpage}}
                 </button>
@@ -101,7 +102,6 @@
     {{/showitemsperpageselector}}
 
     <nav
-        role="navigation"
         id="{{$pagingbarid}}paging-bar-{{uniqid}}{{/pagingbarid}}"
         class="{{#showitemsperpageselector}}ml-auto{{/showitemsperpageselector}}"
         data-region="paging-bar"
@@ -141,6 +141,9 @@
         {{^arialabels.paginationactivenavitemcomponents}}
             data-aria-label-components-pagination-active-item="pagedcontentnavigationactiveitem, core"
         {{/arialabels.paginationactivenavitemcomponents}}
+        {{#barsize}}
+            data-bar-size="{{.}}"
+        {{/barsize}}
     >
 
         <ul class="pagination mb-0">
@@ -161,11 +164,27 @@
                     {{$attributes}}data-control="first"{{/attributes}}
                 {{/ core/paged_content_paging_bar_item }}
             {{/first}}
+            {{#barsize}}
+                {{< core/paged_content_paging_bar_item }}
+                    {{$item-content}}
+                        <span aria-hidden="true">&hellip;</span>
+                    {{/item-content}}
+                    {{$attributes}}data-dots="beginning"{{/attributes}}
+                {{/ core/paged_content_paging_bar_item }}
+            {{/barsize}}
             {{#pages}}
                 {{< core/paged_content_paging_bar_item }}
                     {{$attributes}}data-page="true"{{/attributes}}
                 {{/ core/paged_content_paging_bar_item }}
             {{/pages}}
+            {{#barsize}}
+                {{< core/paged_content_paging_bar_item }}
+                    {{$item-content}}
+                        <span aria-hidden="true">&hellip;</span>
+                    {{/item-content}}
+                    {{$attributes}}data-dots="ending"{{/attributes}}
+                {{/ core/paged_content_paging_bar_item }}
+            {{/barsize}}
             {{#last}}
                 {{< core/paged_content_paging_bar_item }}
                     {{$item-content}}

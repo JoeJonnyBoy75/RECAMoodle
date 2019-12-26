@@ -14,18 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Edwiser RemUI
- * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 defined('MOODLE_INTERNAL') || die();
 
-$extraclasses = [];
-$extraclasses[] = 'page-login-v2 layout-full page-dark';
-
-$bodyattributes = $OUTPUT->body_attributes($extraclasses);
+$bodyattributes = $OUTPUT->body_attributes();
 
 $templatecontext = [
     'sitename' => format_string($SITE->shortname, true, ['context' => context_course::instance(SITEID), "escape" => false]),
@@ -34,3 +25,4 @@ $templatecontext = [
 ];
 
 echo $OUTPUT->render_from_template('theme_remui/login', $templatecontext);
+

@@ -23,7 +23,7 @@
  
 // include Moodle config
 if (!@include_once(__DIR__.'/../../config.php')) {
-    include_once('/var/www/remui.local/html/v37/config.php');
+    include_once('/var/www/remui.local/html/v38/config.php');
 }
 
 global $DB;
@@ -113,12 +113,12 @@ unset_config('licensekeydeactivate', 'theme_remui');
                 if ($status=="valid") {
                     ?>
 
-                    <div class="form-group has-success">
+                    <div class="form-group">
 
                       <label class="control-label text-black col-sm-3"><?php echo get_string('licensekey', 'theme_remui') ?>:</label>
 
                       <div class="col-sm-9">
-                        <?php echo "<input id='edd_{$plugin_slug}_license_key' class='form-control' name='edd_{$plugin_slug}_license_key' type='text' class='regular-text' value='{$license_key}' placeholder='Enter license key...' readonly/>"; ?>
+                        <?php echo "<input id='edd_{$plugin_slug}_license_key' class='form-control is-valid' name='edd_{$plugin_slug}_license_key' type='text' class='regular-text' value='{$license_key}' placeholder='Enter license key...' readonly/>"; ?>
                       </div>
                     </div>
 
@@ -126,12 +126,12 @@ unset_config('licensekeydeactivate', 'theme_remui');
                 } elseif ($status=="expired") {
                     ?>
 
-                    <div class="form-group has-error">
+                    <div class="form-group">
 
                         <label class="control-label text-black col-sm-3"><?php echo get_string('licensekey', 'theme_remui') ?>:</label>
 
                         <div class="col-sm-9">
-                        <?php echo "<input id='edd_{$plugin_slug}_license_key' class='form-control' name='edd_{$plugin_slug}_license_key' type='text' class='regular-text' value='{$license_key}' placeholder='Enter license key...' readonly/>"; ?>
+                        <?php echo "<input id='edd_{$plugin_slug}_license_key' class='form-control is-invalid' name='edd_{$plugin_slug}_license_key' type='text' class='regular-text' value='{$license_key}' placeholder='Enter license key...' readonly/>"; ?>
                         </div>
                     </div>
 
@@ -139,12 +139,12 @@ unset_config('licensekeydeactivate', 'theme_remui');
                 } else {
                     ?>
 
-                    <div class="form-group has-error">
+                    <div class="form-group">
 
                         <label class="control-label text-black col-sm-3"><?php echo get_string('licensekey', 'theme_remui') ?>:</label>
 
                         <div class="col-sm-9">
-                        <?php echo "<input id='edd_{$plugin_slug}_license_key' class='form-control'  name='edd_{$plugin_slug}_license_key' type='text' class='regular-text' value='{$license_key}' placeholder='Enter license key...' />"; ?>
+                        <?php echo "<input id='edd_{$plugin_slug}_license_key' class='form-control is-invalid'  name='edd_{$plugin_slug}_license_key' type='text' class='regular-text' value='{$license_key}' placeholder='Enter license key...' />"; ?>
                         </div>
                     </div>
 

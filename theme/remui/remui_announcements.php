@@ -23,7 +23,7 @@
  
 // include Moodle config
 if (!@include_once(__DIR__.'/../../config.php')) {
-    include_once('/var/www/remui.local/html/v37/config.php');
+    include_once('/var/www/remui.local/html/v38/config.php');
 }
 
 global $DB, $OUTPUT, $CFG, $USER;
@@ -146,13 +146,13 @@ echo "</div>
   <div class="col-12 col-md-12 ">
         <div class="timeline-content animation-slide-right">
             <div class="card card-shadow">
-            <div class="card-header cover">
+            <div class="card-header cover bg-light">
               <div class="cover-background py-30 px-10" style="background-image: url('../../../global/photos/placeholder.png');line-height: 3rem;">
                 <blockquote class="blockquote cover-quote  card-blockquote" style="margin-top: 15px;">
 
                 Hey there! <br>
-                Thank you for using Edwiser RemUI! Loved the theme?<br> Share your reviews on <a class="comment-author orange-600 bold" href="https://edwiser.org/remui/#reviews">Edwiser RemUI Site</a> <span class="bold">/</span>
-                <a class="comment-author orange-600 bold" href="https://www.facebook.com/EdwiserLMS/">Facebook</a> 
+                Thank you for using Edwiser RemUI! Loved the theme?<br> Share your reviews on <a class="comment-author orange-600 bold" href="https://edwiser.org/download_rating_review/remui/">Edwiser RemUI Site</a> <span class="bold">/</span>
+                <a class="comment-author orange-600 bold" href="https://www.facebook.com/pg/EdwiserLMS/reviews/">Facebook</a> 
                 <br>
                 It’d mean a lot to us!<br><br>
                 <p class="tab">We have a Facebook group of like-minded Moodlers where we have Productive discussions, Knowledge-sharing, and a lot more. It’s all happening in one place! </p>
