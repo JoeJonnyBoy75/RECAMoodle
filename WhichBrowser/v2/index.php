@@ -48,10 +48,14 @@ $_desktopinvalid = '<br><br><small>Your Internet browser does not meet the minim
 $_iosUseSafari = '<br><br><small>Your system meets the course requirements but does not support any course features. You should use Safari to access the course. See the Course System Requirements under Learner Support on the course homepage for more information.</small>';
 $_androidUseChrome = '<br><br><small>Your system does not meet the requirements to run this course. Please install Chrome from the Google Play store to access the course. See the Course System Requirements under Learner Support on the homepage for more information.</small>';
 $_androidold = '<br><br><small>Your system does not meet the requirements to run this course. Please update your version of Android through the System Update tool to meet the Course System Requirements, which are available under Learner Support on the course homepage.</small>';
+$_windowsold = '<br><br><small>Your system does not meet the requirements to run this course. Please update your version of Windows to meet the Course System Requirements, which are available under Learner Support on the course homepage.</small>';
 
 
 if ($result->isType("desktop")) {
-	if ($result->isBrowser("Chrome")) {
+	if ($result->isOs("Windows") && $result->os->version->is('<=', '6')) {
+		echo $_using . $_windowsold;
+	}
+	else if ($result->isBrowser("Chrome")) {
 		echo $_using . $_valid;
 	}
 	else if ($result->isBrowser("Edge")) {
