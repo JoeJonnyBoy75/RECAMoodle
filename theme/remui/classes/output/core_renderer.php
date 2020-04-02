@@ -769,7 +769,10 @@ class core_renderer extends \core_renderer {
         $activitylist = [];
         foreach ($modules as $module) {
             // Only add activities the user can access, aren't in stealth mode and have a url (eg. mod_label does not).
-            if (!$module->uservisible || $module->is_stealth() || empty($module->url)) {
+		
+	    // (gav) JCA 20200216 removed uservisible ccheck because it screwed with the next button.
+            //if (!$module->uservisible || $module->is_stealth() || empty($module->url)) {
+            if ($module->is_stealth() || empty($module->url)) {
                 continue;
             }
             $mods[$module->id] = $module;
