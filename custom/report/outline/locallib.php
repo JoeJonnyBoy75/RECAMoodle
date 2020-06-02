@@ -55,7 +55,7 @@ function report_outline_print_row($mod, $instance, $result) {
         echo "<td>&nbsp;</td>";
     }
     echo "<td valign=\"top\" style=\"white-space: nowrap\">";
-    if ($mod->modname == 'scorm') {
+    if ($mod->modname == 'scorm' || $mod->modname == 'quiz') {
 	echo "<div class=\"warning-button warning-button-small\"><a href=\"/custom/reset_student_scorm.php?reset=cm&user=" . $_GET['id'] . "&course=" . $COURSE->id . "&cm=" . $mod->id . "\">Reset Progress</a></div>";
     }
     echo "</td>";
