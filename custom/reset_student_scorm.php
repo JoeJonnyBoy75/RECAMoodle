@@ -5,6 +5,7 @@ if (!is_siteadmin()) {
     die('Not an admin');
 }
 
+use mod_quiz\privacy\provider;
 
 function reset_student_scorm_module($user_id, $course_id, $cm_id) {
 	global $DB;
@@ -56,10 +57,32 @@ function reset_student_scorm_module($user_id, $course_id, $cm_id) {
 	$DB->execute('DELETE FROM mdl_course_modules_completion where coursemoduleid = ? and userid = ?', array($cm_id, $user_id));
 }
 
+function reset_student_quiz_module($user_id, $cm_id) {
+	echo "CM: $cm_id\n";
+	echo "ATTEMPTING QUIZ RESET\n";
+
+	// $course_id = 103;
+	// $cm_quizs = $DB->get_records_sql('SELECT cm.* FROM mdl_course_modules cm WHERE cm.course = ? AND module = 16', array($course_id));
+
+        $contextmodule = context_module::instance($cm_id);
+
+        $approvedcontextlist = new \core_privacy\local\request\approved_contextlist(
+       	    \core_user::get_user($user_id),
+            'mod_quiz',
+            array($contextmodule->id)
+        );
+        print_r($approvedcontextlist);
+
+        provider::delete_data_for_user($approvedcontextlist);
+}
+
 function reset_student_scorm_course($user_id, $course_id) {
 	global $DB;
 	$cms = $DB->get_records_sql('SELECT cm.* FROM mdl_course_modules cm WHERE cm.course = ?', array($course_id));
 	foreach ($cms as $cm) {
+		if ($cm->module == 16) {
+			reset_student_quiz_module($user_id, $cm->id);
+		}
 		reset_student_scorm_module($user_id, $course_id, $cm->id);
 	}
 
@@ -84,6 +107,7 @@ function reset_student_scorm_course($user_id, $course_id) {
 echo '<pre>';
 // reset_student_scorm_module(446, 7, 324);
 if (!empty($_GET['reset']) && $_GET['reset'] == 'cm') {
+    reset_student_quiz_module($_GET['user'], $_GET['cm']);
     reset_student_scorm_module($_GET['user'], $_GET['course'], $_GET['cm']);
     //header('Location: /custom/user_reset_report.php?id=' . $_GET['user'] . '&course=' . $_GET['course'] . '&mode=outline');
 }
