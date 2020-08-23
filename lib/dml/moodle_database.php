@@ -2697,7 +2697,7 @@ abstract class moodle_database {
      * @throws dml_exception A DML specific exception is thrown for any errors.
      */
     public function get_session_lock($rowid, $timeout) {
-        $this->used_for_db_sessions = true;
+        //$this->used_for_db_sessions = true;
     }
 
     /**
