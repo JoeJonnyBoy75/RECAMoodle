@@ -16,8 +16,10 @@ Feature: Add h5ps to Atto
       | activity | name       | intro      | introformat | course | content  | contentformat | idnumber |
       | page     | PageName1  | PageDesc1  | 1           | C1     | H5Ptest  | 1             | 1        |
     And the "displayh5p" filter is "on"
+    And the following config values are set as admin:
+      | allowedsources | https://moodle.h5p.com/content/[id] | filter_displayh5p |
 
-  @javascript
+  @javascript @external
   Scenario: Insert an embedded h5p
     Given I log in as "admin"
     And I change window size to "large"
@@ -25,17 +27,20 @@ Feature: Add h5ps to Atto
     And I follow "PageName1"
     And I navigate to "Edit settings" in current page administration
     And I click on "Insert H5P" "button" in the "#fitem_id_page" "css_element"
-    And I set the field with xpath "//textarea[@data-region='h5purl']" to "https://h5p.org/h5p/embed/576651"
+    And I set the field with xpath "//input[@data-region='h5pfile']" to "https://moodle.h5p.com/content/1290772960722742119"
     And I click on "Insert H5P" "button" in the "Insert H5P" "dialogue"
     And I wait until the page is ready
     When I click on "Save and display" "button"
     Then ".h5p-placeholder" "css_element" should exist
+    And I wait until the page is ready
+    And I switch to "h5pcontent" iframe
+    And I should see "Lorum ipsum"
 
   @javascript
   Scenario: Insert an h5p file
     Given I log in as "admin"
     And I follow "Manage private files..."
-    And I upload "lib/editor/atto/tests/fixtures/guess-the-answer.h5p" file to "Files" filemanager
+    And I upload "h5p/tests/fixtures/guess-the-answer.h5p" file to "Files" filemanager
     And I click on "Save changes" "button"
     And I am on "Course 1" course homepage
     And I follow "PageName1"
@@ -58,7 +63,8 @@ Feature: Add h5ps to Atto
     And I follow "PageName1"
     And I navigate to "Edit settings" in current page administration
     And I click on "Insert H5P" "button" in the "#fitem_id_page" "css_element"
-    And I set the field with xpath "//textarea[@data-region='h5purl']" to "ftp://h5p.org/h5p/embed/576651"
+#   This is not a real external URL, so this scenario shouldn't be labeled as external.
+    And I set the field with xpath "//input[@data-region='h5pfile']" to "ftp://moodle.h5p.com/content/1290772960722742119"
     When I click on "Insert H5P" "button" in the "Insert H5P" "dialogue"
     And I wait until the page is ready
     Then I should see "Invalid URL" in the "Insert H5P" "dialogue"
@@ -85,7 +91,9 @@ Feature: Add h5ps to Atto
     And I follow "PageName1"
     When I navigate to "Edit settings" in current page administration
     And I click on "Insert H5P" "button"
-    Then I should not see "URL or embed code" in the "Insert H5P" "dialogue"
+    Then I should not see "H5P URL" in the "Insert H5P" "dialogue"
+    And I should see "H5P file upload" in the "Insert H5P" "dialogue"
+    And I should see "H5P options" in the "Insert H5P" "dialogue"
 
   @javascript
   Scenario: No upload h5p capabilities
@@ -98,8 +106,10 @@ Feature: Add h5ps to Atto
     When I navigate to "Edit settings" in current page administration
     And I click on "Insert H5P" "button"
     Then I should not see "H5P file upload" in the "Insert H5P" "dialogue"
+    And I should see "H5P URL" in the "Insert H5P" "dialogue"
+    And I should not see "H5P options" in the "Insert H5P" "dialogue"
 
-  @javascript
+  @javascript @external
   Scenario: Edit H5P content
     Given I log in as "admin"
     And I follow "Manage private files..."
@@ -126,10 +136,11 @@ Feature: Add h5ps to Atto
     And I click on ".h5p-placeholder" "css_element"
     And I click on "Insert H5P" "button" in the "#fitem_id_page" "css_element"
 #   External URL
-    And I set the field with xpath "//textarea[@data-region='h5purl']" to "https://h5p.org/h5p/embed/576651"
+    And I set the field with xpath "//input[@data-region='h5pfile']" to "https://moodle.h5p.com/content/1290772960722742119"
     And I click on "Insert H5P" "button" in the "Insert H5P" "dialogue"
     And I wait until the page is ready
     And I click on "Save and display" "button"
+    And I wait until the page is ready
     And I switch to "h5pcontent" iframe
     And I should see "Lorum ipsum"
     And I should not see "Cloudberries"
@@ -138,7 +149,7 @@ Feature: Add h5ps to Atto
   Scenario: Enable/disable H5P options
     Given I log in as "admin"
     And I follow "Manage private files..."
-    And I upload "lib/editor/atto/tests/fixtures/guess-the-answer.h5p" file to "Files" filemanager
+    And I upload "h5p/tests/fixtures/guess-the-answer.h5p" file to "Files" filemanager
     And I click on "Save changes" "button"
     And I am on "Course 1" course homepage
     And I follow "PageName1"
@@ -192,6 +203,32 @@ Feature: Add h5ps to Atto
     And I should see "Embed"
     And I should see "Rights of use"
 
+  @javascript @external
+  Scenario: H5P options are ignored for H5P URLs
+    Given I log in as "admin"
+    And I change window size to "large"
+    And I am on "Course 1" course homepage
+    And I follow "PageName1"
+    And I navigate to "Edit settings" in current page administration
+    And I click on "Insert H5P" "button" in the "#fitem_id_page" "css_element"
+    And I set the field with xpath "//input[@data-region='h5pfile']" to "https://moodle.h5p.com/content/1290752078589054689"
+    And I click on "H5P options" "link"
+    And I click on "Embed button" "checkbox"
+    And I click on "Insert H5P" "button" in the "Insert H5P" "dialogue"
+    And I wait until the page is ready
+    When I click on "Save and display" "button"
+    Then ".h5p-placeholder" "css_element" should exist
+    And I wait until the page is ready
+    And I switch to "h5pcontent" iframe
+    And I should see "History of strawberries"
+    And I should not see "Embed"
+    And I switch to the main frame
+    And I navigate to "Edit settings" in current page administration
+    And I click on ".h5p-placeholder" "css_element"
+    And I click on "Insert H5P" "button" in the "#fitem_id_page" "css_element"
+    And I click on "H5P options" "link"
+    And "input[aria-label=\"Embed button\"]:not([checked=checked])" "css_element" should exist
+
   @javascript
   Scenario: Private H5P files are shown to students
     Given the following "users" exist:
@@ -202,7 +239,7 @@ Feature: Add h5ps to Atto
       | student1 | C1 | student |
     And I log in as "admin"
     And I follow "Manage private files..."
-    And I upload "lib/editor/atto/tests/fixtures/guess-the-answer.h5p" file to "Files" filemanager
+    And I upload "h5p/tests/fixtures/guess-the-answer.h5p" file to "Files" filemanager
     And I click on "Save changes" "button"
     And I am on "Course 1" course homepage
     And I follow "PageName1"

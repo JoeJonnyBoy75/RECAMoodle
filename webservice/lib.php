@@ -370,7 +370,8 @@ class webservice {
                     $newtoken->contextid = context_system::instance()->id;
                     $newtoken->creatorid = $userid;
                     $newtoken->timecreated = time();
-                    $newtoken->privatetoken = null;
+                    // Generate the private token, it must be transmitted only via https.
+                    $newtoken->privatetoken = random_string(64);
 
                     $DB->insert_record('external_tokens', $newtoken);
                 }
@@ -1752,4 +1753,21 @@ $castingcode
 EOD;
         return $methodbody;
     }
+}
+
+/**
+ * Early WS exception handler.
+ * It handles exceptions during setup and returns the Exception text in the WS format.
+ * If a raise function is found nothing is returned. Throws Exception otherwise.
+ *
+ * @param  Exception $ex Raised exception.
+ * @throws Exception
+ */
+function early_ws_exception_handler(Exception $ex): void {
+    if (function_exists('raise_early_ws_exception')) {
+        raise_early_ws_exception($ex);
+        die;
+    }
+
+    throw $ex;
 }

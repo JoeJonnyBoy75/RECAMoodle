@@ -15,12 +15,39 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Theme settings
  * @package   theme_remui
- * @copyright 2019 WisdmLabs
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
+
+// License activation and deactivation handling
+if (optional_param('section', '', PARAM_TEXT) == 'themesettingremui') {
+    // Handle license status change on form submit.
+    $licensecontroller = new theme_remui\controller\LicenseController();
+    $licensecontroller->serve_license_data();
+}
+
+if (optional_param('action', '', PARAM_TEXT) == 'save-settings') {
+    set_config('activetab', optional_param('activetab', 'theme_remui_general', PARAM_TEXT), 'theme_remui');
+}
+
+// Form is submitted with changed settings. Do not want to execute when modifying a block.
+if ($data = data_submitted() and confirm_sesskey() and isset($data->action) and $data->action == 'save-settings') {
+    if (isset($data->s_theme_remui_announcementtext)){
+        $cfganouncetext = get_config('theme_remui', 'announcementtext');
+        $formanouncetext = $data->s_theme_remui_announcementtext;
+
+        $cfgdismisannounce = get_config('theme_remui', 'enabledismissannouncement');
+        $formdismisannounce = $data->s_theme_remui_enabledismissannouncement;
+
+        if ($cfganouncetext !== $formanouncetext || $cfgdismisannounce !== $formdismisannounce) {
+            \theme_remui\utility::remove_announcement_preferences();
+        }
+    }
+}
 
 $remuisettings = [];
 
@@ -35,12 +62,13 @@ if ($ADMIN->fulltree) {
     $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
+
     $remuisettings['enableannouncement'] = [[
         'value'  => true,
-        'show' => ['announcementtext', 'announcementtype'],
+        'show' => ['announcementtext', 'enabledismissannouncement', 'announcementtype'],
     ], [
         'value'  => false,
-        'hide' => ['announcementtext', 'announcementtype'],
+        'hide' => ['announcementtext', 'enabledismissannouncement', 'announcementtype'],
     ]];
     // Announcment text.
     $name = 'theme_remui/announcementtext';
@@ -48,6 +76,15 @@ if ($ADMIN->fulltree) {
     $description = get_string('announcementtextdesc', 'theme_remui');
     $default = '';
     $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
+
+
+    $name = 'theme_remui/enabledismissannouncement';
+    $title = get_string('enabledismissannouncement', 'theme_remui');
+    $description = get_string('enabledismissannouncementdesc', 'theme_remui');
+    $default = false;
+    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
 
@@ -305,11 +342,27 @@ if ($ADMIN->fulltree) {
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
 
-    // Setting for displaying edit on / off button addionally in course header.
-    $name = 'theme_remui/courseeditbutton';
-    $title = get_string('courseeditbuttonsetting', 'theme_remui', null, true);
-    $description = get_string('courseeditbuttonsetting_desc', 'theme_remui', null, true);
-    $setting = new admin_setting_configcheckbox($name, $title, $description, 0);
+    // Usage tracking GDPR setting.
+    $name = 'theme_remui/enableusagetracking';
+    $title = get_string('enableusagetracking', 'theme_remui');
+    $description = get_string('enableusagetrackingdesc', 'theme_remui');
+    $default = true;
+    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
+
+    // Focus Mode Settings
+    $page->add(new admin_setting_heading(
+        'theme_remui_focusmode',
+        get_string('focusmodesettings', 'theme_remui'),
+        format_text('', FORMAT_MARKDOWN)
+    ));
+
+    $name = 'theme_remui/enablefocusmode';
+    $title = get_string('enablefocusmode', 'theme_remui');
+    $description = get_string('enablefocusmodedesc', 'theme_remui');
+    $default = true;
+    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
 
@@ -667,9 +720,14 @@ if ($ADMIN->fulltree) {
             $name = 'theme_remui/frontpageblockimage' . $blockcount;
             $title = get_string('frontpageblockimage', 'theme_remui');
             $description = get_string('frontpageblockimagedesc', 'theme_remui');
-            $setting = new admin_setting_configstoredfile($name, $title, $description, 'frontpageblockimage' . $blockcount, 0, array(
-                'subdirs' => 0, 'accepted_types' => 'web_image'
-            ));
+            $setting = new admin_setting_configstoredfile(
+                $name,
+                $title,
+                $description,
+                'frontpageblockimage' . $blockcount,
+                0,
+                array('subdirs' => 0, 'accepted_types' => 'web_image')
+            );
             $setting->set_updatedcallback('theme_reset_all_caches');
             $page->add($setting);
         }
@@ -706,8 +764,8 @@ if ($ADMIN->fulltree) {
         // Frontpage Aboutus settings.
         $page->add(new admin_setting_heading(
             'theme_remui_frontpage_aboutus',
-            get_string('frontpageaboutus', 'theme_remui'),
-            format_text(get_string('frontpageaboutusdesc', 'theme_remui'), FORMAT_MARKDOWN)
+            get_string('frontpagetestimonial', 'theme_remui'),
+            format_text(get_string('frontpagetestimonialdesc', 'theme_remui'), FORMAT_MARKDOWN)
         ));
 
 
@@ -723,7 +781,7 @@ if ($ADMIN->fulltree) {
         $name = 'theme_remui/frontpageaboutusheading';
         $title = get_string('frontpageaboutusheading', 'theme_remui');
         $description = get_string('frontpageaboutusheadingdesc', 'theme_remui');
-        $default = "About us";
+        $default = "Testimonial Title";
         $setting = new admin_setting_configtext($name, $title, $description, $default);
         $setting->set_updatedcallback('theme_reset_all_caches');
         $page->add($setting);

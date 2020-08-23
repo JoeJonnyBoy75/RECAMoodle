@@ -11,11 +11,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    Edwiser RemUI 
-    @package    theme_remui
-    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
-    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- 
+    Edwiser RemUI
+    @package   theme_remui
+    @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/)
+    @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+
 }}
 {{!
     @template theme_remui/mypublic
@@ -129,7 +129,8 @@
                                             <h5 class="mt-0">{{# str }} interests, theme_remui {{/ str }}</h5>
                                             <div class="profile-brief mt-10">
                                                 {{# interests }}
-                                                    <span class="tag badge ">{{ rawname }}</span>
+                                                    <a href="{{{config.wwwroot}}}/tag/index.php?id={{id}}" class="badge badge-info">{{ rawname }}
+                                                    </a>
                                                 {{/ interests }}
                                             </div>
                                         </div>
@@ -243,12 +244,14 @@
                                 <li class="list-group-item">
                                     <div class="media">
                                         <div class="media-body">
+  {{/ user }}
                                             {{#hasregionmainsettingsmenu}}
                                                 <div id="region-main-settings-menu" class="hidden-print {{#hasblocks}}has-blocks{{/hasblocks}}">
                                                     <div> {{{ output.region_main_settings_menu }}} </div>
                                                 </div>
                                             {{/hasregionmainsettingsmenu}}
                                             <section id="region-main" {{#hasblocks}}class="has-blocks"{{/hasblocks}}>
+                                                <h2 class="d-none">Ignore-Placeholder</h2>
                                                 {{#hasregionmainsettingsmenu}}
                                                     <div class="region_main_settings_menu_proxy"></div>
                                                 {{/hasregionmainsettingsmenu}}
@@ -257,6 +260,7 @@
                                                 {{{ output.main_content }}}
                                                 {{{ output.course_content_footer }}}
                                             </section>
+  {{# user }}
                                         </div>
                                     </div>
                                 </li>

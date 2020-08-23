@@ -19,6 +19,7 @@
  *
  * @package   theme_remui
  * @copyright 2016 Frédéric Massart
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -47,7 +48,7 @@ $string['choosereadme'] = '
         <div class="text-center">
             <div class="btn-group text-center" role="group" aria-label="...">
               <div class="btn-group mr-1" role="group">
-                <a href="https://knowledgebase.edwiser.org/en/category/edwiser-remui-theme-5sxjyd/" target="_blank" class="btn btn-primary btn-round">FAQ</a>
+                <a href="https://edwiser.helpscoutdocs.com/collection/78-edwiser-remui-theme" target="_blank" class="btn btn-primary btn-round">FAQ</a>
               </div>
               <div class="btn-group mr-1" role="group">
                 <a href="https://edwiser.org/remui/documentation/" target="_blank" class="btn btn-primary btn-round">Documentation</a>
@@ -138,8 +139,8 @@ $string['viewCourseCategory_list'] = 'To display the courses in list format';
 
 /* Aside right view preference */
 $string['privacy:metadata:preference:aside_right_state'] = 'Whether the aside block on the right should be kept open or docked';
-$string['aside_right_state_'] = 'To display the aside block on right as open'; // blank value
-$string['aside_right_state_overrideaside'] = 'To display the aside block on right as docked'; // overrideaside
+$string['aside_right_state_'] = 'To display the aside block on right as open'; // Blank value.
+$string['aside_right_state_overrideaside'] = 'To display the aside block on right as docked'; // Overrideaside.
 
 /* Menu view preference */
 $string['privacy:metadata:preference:menubar_state'] = 'The type of display that the user prefers for the menu bar';
@@ -186,11 +187,28 @@ $string['sidebarpinned'] = 'Sidebar pinned.';
 $string['sidebarunpinned'] = 'Sidebar unpinned.';
 $string['pinsidebar'] = 'Pin sidebar';
 $string['unpinsidebar'] = 'Unpin sidebar';
+$string['primary'] = 'Primary';
+$string['brown'] = 'Brown';
+$string['cyan'] = 'Cyan';
+$string['green'] = 'Green';
+$string['grey'] = 'Grey';
+$string['indigo'] = 'Indigo';
+$string['orange'] = 'Orange';
+$string['pink'] = 'Pink';
+$string['purple'] = 'Purple';
+$string['red'] = 'Red';
+$string['teal'] = 'Teal';
+$string['custom-color'] = 'Custom Color';
+$string['dark'] = 'Dark';
+$string['light'] = 'Light';
 
 // General Settings.
 $string['generalsettings'] = 'General settings';
 $string['enableannouncement'] = "Enable Site Announcement";
 $string['enableannouncementdesc'] = "Enable a sitewide announcement for site visitors/students.";
+$string['enabledismissannouncement'] = "Enable Dismissable Site Announcement";
+$string['enabledismissannouncementdesc'] = "If Enabled, allow users to dismiss the announcement text.";
+
 $string['announcementtext'] = "Announcement";
 $string['announcementtextdesc'] = "Announcement message to be displayed sitewide.";
 $string['announcementtype'] = "Announcement type";
@@ -247,8 +265,6 @@ $string['googleanalytics'] = 'Google Analytics Tracking ID';
 $string['googleanalyticsdesc'] = 'Please enter your Google Analytics Tracking ID to enable analytics on your website. The  tracking ID format shold be like [UA-XXXXX-Y].<br/>Please be aware that by including this setting, you will be sending data to Google Analytics and you should make sure that your users are warned about this. Our product does not store any of the data being sent to Google Analytics.';
 $string['enablecoursestats'] = 'Enable Course Stats';
 $string['enablecoursestatsdesc'] = 'If enabled, Administrator, Managers and teacher will see the stats related to course on course page.';
-$string['courseeditbuttonsetting'] = 'Course edit button';
-$string['courseeditbuttonsetting_desc'] = 'With this setting you can add an additional course edit on / off button to the course header for faster accessibility.';
 $string['enabledictionary'] = 'Enable Dictionary';
 $string['enabledictionarydesc'] = 'If enabled, Dictionary feature will be activated and which will show the meaning of selected text in popup.';
 $string['more'] = 'More...';
@@ -355,14 +371,16 @@ $string['frontpageblockiconsection4'] = 'Font-Awesome icon for 4th Section';
 $string['sectionbuttontext4'] = 'Button text for 4th Section';
 $string['sectionbuttonlink4'] = 'URL link for 4th Section';
 $string['defaultdescriptionsection'] = 'Holisticly harness just in time technologies via corporate scenarios.';
-$string['frontpageaboutus'] = 'Frontpage About us';
-$string['frontpageaboutusdesc'] = 'This section is for front page About us';
-$string['enablefrontpageaboutus'] = 'Enable About us section';
-$string['enablefrontpageaboutusdesc'] = 'Enable the About us section in front page.';
-$string['frontpageaboutusheading'] = 'About us Heading';
+// $string['frontpageaboutus'] = 'Frontpage About us';
+// $string['frontpageaboutusdesc'] = 'This section is for front page About us';
+$string['frontpagetestimonial'] = 'Frontpage Testimonial';
+$string['frontpagetestimonialdesc'] = 'Frontpage Testimonial Section';
+$string['enablefrontpageaboutus'] = 'Enable Testimonial section';
+$string['enablefrontpageaboutusdesc'] = 'Enable the Testimonial section in front page.';
+$string['frontpageaboutusheading'] = 'Testimonial Heading';
 $string['frontpageaboutusheadingdesc'] = 'Heading for the default heading text for section';
-$string['frontpageaboutustext'] = 'About us text';
-$string['frontpageaboutustextdesc'] = 'Enter about us text for frontpage.';
+$string['frontpageaboutustext'] = 'Testimonial text';
+$string['frontpageaboutustextdesc'] = 'Enter testimonial text for frontpage.';
 $string['frontpageaboutusdefault'] = '<p class="lead">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
               Ut enim ad minim veniam.</p>';
 $string['testimonialcount'] = 'Testimonial Count';
@@ -454,24 +472,28 @@ $string['licensenotactiveadmin'] = '<strong>Alert!</strong> License is not activ
 $string['activatelicense'] = 'Activate License';
 $string['deactivatelicense'] = 'Deactivate License';
 $string['renewlicense'] = 'Renew License';
+$string['deactivated'] = 'Deactivated';
 $string['active'] = 'Active';
 $string['notactive'] = 'Not Active';
 $string['expired'] = 'Expired';
 $string['licensekey'] = 'License key';
 $string['licensestatus'] = 'License Status';
+$string['no_activations_left'] = 'Limit exceeded';
+$string['activationfailed'] = 'License Key activation failed. Please try again later.';
 $string['noresponsereceived'] = 'No response received from the server. Please try again later.';
 $string['licensekeydeactivated'] = 'License Key is deactivated.';
 $string['siteinactive'] = 'Site inactive (Press Activate license to activate plugin).';
 $string['entervalidlicensekey'] = 'Please enter valid license key.';
+$string['nolicenselimitleft'] = 'Maximum activation limit reached, No activations left.';
 $string['licensekeyisdisabled'] = 'Your license key is Disabled.';
 $string['licensekeyhasexpired'] = "Your license key has Expired. Please, Renew it.";
 $string['licensekeyactivated'] = "Your license key is activated.";
-$string['enterlicensekey'] = "Please enter correct license key.";
+$string['entervalidlicensekey'] = "Please enter correct license key.";
 $string['edwiserremuilicenseactivation'] = 'Edwiser RemUI License Activation';
 
 // News And Updates Page.
 $string['newsandupdates'] = 'News & Updates';
-$string['newupdatemessage'] = 'New Update Available for RemUI.';
+$string['newupdatemessage'] = 'New Update Available for RemUI. <a class="text-white" href="{$a}"><u>Click here</u></a> to see.';
 $string['currentversionmessage'] = 'Your current version is ';
 $string['downloadupdate'] = 'Download Update';
 $string['latestversionmessage'] = 'You are using the latest version of RemUI.';
@@ -535,3 +557,55 @@ $string['viewcourse'] = "VIEW COURSE";
 $string['searchcourses'] = "Search courses";
 
 $string['hiddencourse'] = 'Hidden Course';
+
+// Usage tracking.
+$string['enableusagetracking'] = "Enable Usage Trakcing";
+$string['enableusagetrackingdesc'] = "<strong>USAGE TRACKING NOTICE</strong>
+
+<hr class='text-muted' />
+
+<p>Edwiser from now on will collect anonymous data to generate product usage statistics.</p>
+
+<p>This information will help us guide the development in right direction and the Edwiser community prosper.</p>
+
+<p>Having said that we don't gather your personal data or of your students during this process. You can disable this from the plugin whenever you wish to opt out of this service.</p>
+
+<p>An overview of the data collected is available <strong><a href='https://forums.edwiser.org/topic/67/anonymously-tracking-the-usage-of-edwiser-products' target='_blank'>here</a></strong>.</p>";
+
+$string['curlconnectionerror'] = 'Curl - Connection Error !';
+$string['purchasecodeinvalid'] = 'The Purchase Code is Invalid!';
+$string['validatecodefail'] = 'Failed to validate code due to an error: HTTP';
+$string['errorparsingresponse'] = 'Error parsing response';
+$string['enterlicensekey'] = "Enter license key...";
+$string['invalid'] = "Invalid";
+
+$string['focusmodesettings'] = 'Focus Mode Settings';
+$string['enablefocusmode'] = 'Enable Focus Mode';
+$string['enablefocusmodedesc'] = 'Enabling this setting will open the course and activity page such a way so that students will not lose focus of main Course content';
+$string['focusmodeenabled'] = 'Focus Mode Enabled';
+$string['focusmodedisabled'] = 'Focus Mode Disabled';
+$string['coursedata'] = 'Course data';
+
+$string['prev'] = 'Previous';
+$string['next'] = 'Next';
+
+// RemUI one-click update
+$string['errors'] = 'Errors';
+$string['invalidzip'] = 'Invalid zip file. <b>{$a}</b>';
+$string['errorfetching'] = 'Error fetching plugin ZIP. <b>{$a}</b>';
+$string['errorfetchingexist'] = 'Error fetching plugin ZIP: target location exists. <b>{$a}</b>';
+$string['unabletounzip'] = 'Unable to unzip <b>{$a}</b>';
+$string['unabletoloadplugindetails'] = 'Unable to load Plugin details <b>{$a}</b>';
+$string['requirehigherversion'] = 'Requires Moodle version: <b>{$a}</b>';
+$string['noupdates'] = 'Everything is up to date.';
+$string['invalidjsonfile'] = 'Invalid Edwiser product list.';
+$string['recommendation'] = 'Recommended Plugins';
+$string['comeswith'] = 'Comes with: {$a}';
+$string['changelog'] = 'Changelog';
+$string['currentrelease'] = 'Current release: {$a}';
+$string['updateavailable'] = 'Update available: {$a}';
+
+// Information center
+$string['informationcenter'] = 'Information Center';
+
+$string['nocoursefound'] = 'No Course Found';

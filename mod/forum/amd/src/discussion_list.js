@@ -46,11 +46,13 @@ define([
         PubSub.subscribe(ForumEvents.SUBSCRIPTION_TOGGLED, function(data) {
             var discussionId = data.discussionId;
             var subscribed = data.subscriptionState;
-            var subscribedLabel = root.find(Selectors.discussion.item + '[data-discussionid= ' + discussionId + '] '
-                + Selectors.discussion.subscribedLabel);
+            var discussionListItem = root.find(Selectors.discussion.item + '[data-discussionid= ' + discussionId + ']');
+            var subscribedLabel = discussionListItem.find(Selectors.discussion.subscribedLabel);
             if (subscribed) {
+                discussionListItem.addClass('subscribed');
                 subscribedLabel.removeAttr('hidden');
             } else {
+                discussionListItem.removeClass('subscribed');
                 subscribedLabel.attr('hidden', true);
             }
         });
@@ -131,7 +133,7 @@ define([
                 var stringKey = context.userstate.subscribed ? 'unsubscribediscussion' : 'subscribediscussion';
                 return Str.get_string(stringKey, 'mod_forum')
                     .then(function(string) {
-                        toggleElement.closest('td').find('label[for="' + toggleId + '"]').text(string);
+                        toggleElement.closest('td').find('label[for="' + toggleId + '"]').find('span').text(string);
                         return string;
                     });
             });

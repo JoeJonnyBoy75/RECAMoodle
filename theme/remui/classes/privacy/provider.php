@@ -17,9 +17,10 @@
 /**
  * Privacy Subsystem implementation for theme_remui.
  *
- * @package    theme_remui
- * @copyright  2018 Andrew Nicols <andrew@nicols.co.uk>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   theme_remui
+ * @copyright 2018 Andrew Nicols <andrew@nicols.co.uk>
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace theme_remui\privacy;

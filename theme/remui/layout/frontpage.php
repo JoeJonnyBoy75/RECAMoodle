@@ -16,9 +16,9 @@
 
 /**
  * Edwiser RemUI
- * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
@@ -42,15 +42,15 @@ if ($templatecontext['customhomepage']) {
     $templatecontext['remui_lite'] = true;
     $templatecontext = $homepage->layout($templatecontext);
 } else {
-    // This Block will add "has-slider and animate-header class to body tag
-    // will add only when first section is slider otherwiser won't add it
+    // This Block will add "has-slider and animate-header class to body tag.
+    // Will add only when first section is slider otherwiser won't add it.
 
     $templatecontext['bodyattributes'] = str_replace("class=\"", "class=\"old-frontpage ", $templatecontext['bodyattributes']);
-    // frontpage context
-    // slider
-    $templatecontext['slider'] = \theme_remui\utility::get_slider_data();
+    // Frontpage context.
+    // Slider.
+    $templatecontext['slider'] = \theme_remui\sitehomehandler::get_slider_data();
 
-    // marketing spots data
+    // Marketing spots data.
     $enablesectionbutton = \theme_remui\toolbox::get_setting('enablesectionbutton');
 
     $displayaboutus = \theme_remui\toolbox::get_setting('frontpageblockdisplay');
@@ -98,7 +98,7 @@ if ($templatecontext['customhomepage']) {
                 'image' => \theme_remui\toolbox::setting_file_url('frontpageblockimage4', 'frontpageblockimage4')
                 )
     );
-    // only if buttons are enabled
+    // Only if buttons are enabled.
     if ($enablesectionbutton) {
         foreach ($templatecontext['marketing_spots'] as $key => $spot) {
             $spot['button'] = \theme_remui\toolbox::get_setting('sectionbuttontext'.($key + 1));
@@ -107,12 +107,12 @@ if ($templatecontext['customhomepage']) {
         }
     }
 
-    // testimonial section data
-    $templatecontext['testimoniallist'] = \theme_remui\utility::get_testimonial_data();
+    // Testimonial section data.
+    $templatecontext['testimoniallist'] = \theme_remui\sitehomehandler::get_testimonial_data();
 
-    // blogs data
+    // Blogs data.
     $hasblogs = false;
-    $recentblogs = \theme_remui\utility::get_recent_blogs(0, 3);
+    $recentblogs = \theme_remui\sitehomehandler::get_recent_blogs(0, 3);
     if (!empty($CFG->enableblogs) && is_array($recentblogs) && !empty($recentblogs)) {
         $hasblogs = true;
     }

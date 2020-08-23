@@ -53,16 +53,17 @@
 <body {{{ bodyattributes }}}>
 {{> core/local/toast/wrapper}}
 
-<div id="page-wrapper">
+<div id="page-wrapper" class="d-print-block">
 
     {{{ output.standard_top_of_body_html }}}
 
     {{> theme_boost/navbar }}
+    {{> theme_boost/nav-drawer }}
 
-    <div id="page" class="container-fluid">
+    <div id="page" class="container-fluid d-print-block">
         {{{ output.full_header }}}
 
-        <div id="page-content" class="row pb-3">
+        <div id="page-content" class="row pb-3 d-print-block">
             <div id="region-main-box" class="col-12">
                 {{#hasregionmainsettingsmenu}}
                 <div id="region-main-settings-menu" class="d-print-none {{#hasblocks}}has-blocks{{/hasblocks}}">
@@ -89,7 +90,6 @@
         </div>
     </div>
     {{{ output.standard_after_main_region_html }}}
-    {{> theme_boost/nav-drawer }}
     {{> theme_boost/footer }}
 </div>
 
@@ -98,11 +98,12 @@
 {{#js}}
 M.util.js_pending('theme_boost/loader');
 require(['theme_boost/loader'], function() {
-  M.util.js_complete('theme_boost/loader');
+    M.util.js_complete('theme_boost/loader');
 });
+
 M.util.js_pending('theme_boost/drawer');
-require(['theme_boost/drawer'], function(mod) {
-    mod.init();
-  M.util.js_complete('theme_boost/drawer');
+require(['theme_boost/drawer'], function(drawer) {
+    drawer.init();
+    M.util.js_complete('theme_boost/drawer');
 });
 {{/js}}

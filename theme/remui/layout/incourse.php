@@ -16,9 +16,9 @@
 
 /**
  * Edwiser RemUI
- * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
@@ -32,7 +32,7 @@ if (isset($PAGE->cm->id) && $COURSE->id != 1 && $COURSE->format != 'singleactivi
 }
 $templatecontext['isactivitypage'] = $isactivitypage;
 $templatecontext['courseurl'] = course_get_url($COURSE->id);
-$templatecontext['activitysections'] = \theme_remui\utility::get_activity_list();
+$templatecontext['activitysections'] = \theme_remui_coursehandler::get_activity_list();
 
 $flatnavigation = $PAGE->flatnav;
 foreach ($flatnavigation as $navs) {
@@ -41,5 +41,19 @@ foreach ($flatnavigation as $navs) {
         break;
     }
 }
-
+if (isset($templatecontext['focusdata']['enabled']) && $templatecontext['focusdata']['enabled']) {
+    if (isset($PAGE->cm->id)) {
+        list(
+            $templatecontext['focusdata']['sections'],
+            $templatecontext['focusdata']['active'],
+            $templatecontext['focusdata']['previous'],
+            $templatecontext['focusdata']['next']
+        ) = \theme_remui\utility::get_focus_mode_sections($COURSE, $PAGE->cm->id);
+    } else {
+        list(
+            $templatecontext['focusdata']['sections'],
+            $templatecontext['focusdata']['active']
+        ) = \theme_remui\utility::get_focus_mode_sections($COURSE);
+    }
+}
 echo $OUTPUT->render_from_template('theme_remui/incourse', $templatecontext);

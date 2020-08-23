@@ -797,19 +797,20 @@ class core_calendar_external extends external_api {
         self::validate_context($context);
         $warnings = array();
 
-        $legacyevent = calendar_event::load($eventid);
-        // Must check we can see this event.
-        if (!calendar_view_event_allowed($legacyevent)) {
+        $eventvault = event_container::get_event_vault();
+        if ($event = $eventvault->get_event_by_id($eventid)) {
+            $mapper = event_container::get_event_mapper();
+            if (!calendar_view_event_allowed($mapper->from_event_to_legacy_event($event))) {
+                $event = null;
+            }
+        }
+
+        if (!$event) {
             // We can't return a warning in this case because the event is not optional.
             // We don't know the context for the event and it's not worth loading it.
             $syscontext = context_system::instance();
             throw new \required_capability_exception($syscontext, 'moodle/course:view', 'nopermission', '');
         }
-
-        $legacyevent->count_repeats();
-
-        $eventmapper = event_container::get_event_mapper();
-        $event = $eventmapper->from_legacy_event_to_event($legacyevent);
 
         $cache = new events_related_objects_cache([$event]);
         $relatedobjects = [
@@ -988,10 +989,11 @@ class core_calendar_external extends external_api {
      * @param   int     $categoryid The category to be included
      * @param   bool    $includenavigation Whether to include navigation
      * @param   bool    $mini Whether to return the mini month view or not
+     * @param   int     $day The day we want to keep as the current day
      * @return  array
      */
-    public static function get_calendar_monthly_view($year, $month, $courseid, $categoryid, $includenavigation, $mini) {
-        global $DB, $USER, $PAGE;
+    public static function get_calendar_monthly_view($year, $month, $courseid, $categoryid, $includenavigation, $mini, $day) {
+        global $USER, $PAGE;
 
         // Parameter validation.
         $params = self::validate_parameters(self::get_calendar_monthly_view_parameters(), [
@@ -1001,6 +1003,7 @@ class core_calendar_external extends external_api {
             'categoryid' => $categoryid,
             'includenavigation' => $includenavigation,
             'mini' => $mini,
+            'day' => $day,
         ]);
 
         $context = \context_user::instance($USER->id);
@@ -1009,7 +1012,7 @@ class core_calendar_external extends external_api {
 
         $type = \core_calendar\type_factory::get_calendar_instance();
 
-        $time = $type->convert_to_timestamp($params['year'], $params['month'], 1);
+        $time = $type->convert_to_timestamp($params['year'], $params['month'], $params['day']);
         $calendar = \calendar_information::create($time, $params['courseid'], $params['categoryid']);
         self::validate_context($calendar->context);
 
@@ -1045,6 +1048,7 @@ class core_calendar_external extends external_api {
                     false,
                     NULL_ALLOWED
                 ),
+                'day' => new external_value(PARAM_INT, 'Day to be viewed', VALUE_DEFAULT, 1),
             ]
         );
     }

@@ -49,17 +49,20 @@
     margin-bottom: $spacer / 2;
     border-bottom: $border-width solid $table-border-color;
 }
-.mform > .form-group {
-    margin-left: $spacer * 1.5;
+
+@include media-breakpoint-up(sm) {
+    .mform > .form-group {
+        margin-left: $spacer * 1.5;
+    }
 }
 
-.editor_atto_content.form-control {
-    width: 100%;
-}
+// .editor_atto_content.form-control {
+//     width: 100%;
+// }
 
-#adminsettings .form-control[size] {
-    width: 100%;
-}
+// #adminsettings .form-control[size] {
+//    width: auto%;
+// }
 
 .jsenabled .mform .collapsed .fcontainer {
     display: none;
@@ -90,7 +93,7 @@ input#id_externalurl {
 
 .form-defaultinfo,
 .form-label .form-shortname {
-    @extend .text-muted;
+    color: $text-muted;
 }
 
 .form-label .form-shortname {
@@ -107,7 +110,7 @@ input#id_externalurl {
 }
 
 .formsettingheading .form-horizontal {
-    @extend .text-muted;
+    color: $text-muted;
 }
 
 // Moodle doesn't differentiate between what Bootstrap calls
@@ -115,21 +118,12 @@ input#id_externalurl {
 // uneditable looks ugly, styling both as form help is fairly
 // subtle in it's impact. Going for the latter as the best option.
 .no-felement.fstatic {
-    @extend .text-muted;
+    color: $text-muted;
     padding-top: 5px;
 }
 
 .no-fitem .fstaticlabel {
     font-weight: bold;
-}
-
-// Pale grey container for submit buttons.
-.form-buttons,
-.path-admin .buttons,
-.fp-content-center form + div,
-div.backup-section + form {
-    @extend .form-group;
-    padding-left: 0;
 }
 
 .form-item .form-setting .defaultsnext > input {
@@ -327,11 +321,9 @@ fieldset.coursesearchbox label {
 
 .form-autocomplete-downarrow {
     color: $body-color;
-    position: relative;
-    top: 0.2em;
-    right: 0.5em;
+    // top: 0.2rem;
+    // right: 0.5rem;
     cursor: pointer;
-
     .loading-icon {
         position: absolute;
         top: 0;
@@ -466,6 +458,16 @@ textarea[data-auto-rows] {
         /*rtl:remove*/
         background-image: url([[pix:t/collapsed]]);
     }
+
+    .mform {
+        .form-inline {
+            .fdefaultcustom {
+                label {
+                    justify-content: initial;
+                }
+            }
+        }
+    }
 }
 
 // Form inset on the left/right.
@@ -473,20 +475,20 @@ textarea[data-auto-rows] {
 .input-group {
     &.form-inset {
         .form-inset-item {
-            @extend .position-absolute;
+            position: absolute;
             padding-top: calc(#{$input-padding-y} + #{$input-border-width});
             z-index: 3;
         }
 
         &.form-inset-left {
             .form-control {
-                @extend .pl-4;
+                padding-left: $spacer * 1.5;
             }
         }
 
         &.form-inset-right {
             .form-control {
-                @extend .pr-4;
+                padding-right: $spacer * 1.5;
             }
             .form-inset-item {
                 right: 0;

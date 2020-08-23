@@ -52,16 +52,24 @@
 </div>
 
 {{#js}}
-    require([], function () {
-        // hide save cahnges buttons on custom tabs made for remui
-        jQuery('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-          if(jQuery(this).hasClass('remuitab')) {
-            jQuery('button[type="submit"]').hide();
-            jQuery('#onLicensePage').val(1);
-          } else {
-            jQuery('button[type="submit"]').show();
-            jQuery('#onLicensePage').val(0);
-          }
+
+    require(['jquery'], function ($) {
+        function activeTab(tab) {
+            var tabname = $(tab).attr('href').substr(1);
+            $('[name="activetab"]').val(tabname);
+            if(tab.hasClass('remuitab')) {
+                $('button[type="submit"]').hide();
+                $('#onLicensePage').val(1);
+            } else {
+                $('button[type="submit"]').show();
+                $('#onLicensePage').val(0);
+            }
+        }
+        $(document).ready(function() {
+            activeTab($('.settingsform .nav-tabs .nav-link.active'));
+        });
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            activeTab($(this));
         });
     });
 {{/js}}

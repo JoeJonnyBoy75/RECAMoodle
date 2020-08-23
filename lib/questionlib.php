@@ -119,34 +119,35 @@ function question_save_qtype_order($neworder, $config = null) {
  * @return boolean whether any of these questions are being used by any part of Moodle.
  */
 function questions_in_use($questionids) {
-    global $CFG;
 
+    // Are they used by the core question system?
     if (question_engine::questions_in_use($questionids)) {
         return true;
     }
 
-    foreach (core_component::get_plugin_list('mod') as $module => $path) {
-        $lib = $path . '/lib.php';
-        if (is_readable($lib)) {
-            include_once($lib);
+    // Check if any plugins are using these questions.
+    $callbacksbytype = get_plugins_with_function('questions_in_use');
+    foreach ($callbacksbytype as $callbacks) {
+        foreach ($callbacks as $function) {
+            if ($function($questionids)) {
+                return true;
+            }
+        }
+    }
 
-            $fn = $module . '_questions_in_use';
-            if (function_exists($fn)) {
-                if ($fn($questionids)) {
-                    return true;
-                }
-            } else {
+    // Finally check legacy callback.
+    $legacycallbacks = get_plugin_list_with_function('mod', 'question_list_instances');
+    foreach ($legacycallbacks as $plugin => $function) {
+        debugging($plugin . ' implements deprecated method ' . $function .
+                '. ' . $plugin . '_questions_in_use should be implemented instead.', DEBUG_DEVELOPER);
 
-                // Fallback for legacy modules.
-                $fn = $module . '_question_list_instances';
-                if (function_exists($fn)) {
-                    foreach ($questionids as $questionid) {
-                        $instances = $fn($questionid);
-                        if (!empty($instances)) {
-                            return true;
-                        }
-                    }
-                }
+        if (isset($callbacksbytype['mod'][substr($plugin, 4)])) {
+            continue; // Already done.
+        }
+
+        foreach ($questionids as $questionid) {
+            if (!empty($function($questionid))) {
+                return true;
             }
         }
     }
@@ -334,16 +335,18 @@ function question_category_in_use($categoryid, $recursive = false) {
 /**
  * Deletes question and all associated data from the database
  *
- * It will not delete a question if it is used by an activity module
+ * It will not delete a question if it is used somewhere.
+ *
  * @param object $question  The question being deleted
  */
 function question_delete_question($questionid) {
     global $DB;
 
     $question = $DB->get_record_sql('
-            SELECT q.*, qc.contextid
+            SELECT q.*, ctx.id AS contextid
             FROM {question} q
-            JOIN {question_categories} qc ON qc.id = q.category
+            LEFT JOIN {question_categories} qc ON qc.id = q.category
+            LEFT JOIN {context} ctx ON ctx.id = qc.contextid
             WHERE q.id = ?', array($questionid));
     if (!$question) {
         // In some situations, for example if this was a child of a
@@ -357,6 +360,15 @@ function question_delete_question($questionid) {
         return;
     }
 
+    // This sometimes happens in old sites with bad data.
+    if (!$question->contextid) {
+        debugging('Deleting question ' . $question->id . ' which is no longer linked to a context. ' .
+                'Assuming system context to avoid errors, but this may mean that some data like files, ' .
+                'tags, are not cleaned up.');
+        $question->contextid = context_system::instance()->id;
+    }
+
+    // Delete previews of the question.
     $dm = new question_engine_data_mapper();
     $dm->delete_previews($questionid);
 
@@ -390,17 +402,12 @@ function question_delete_question($questionid) {
 /**
  * All question categories and their questions are deleted for this context id.
  *
- * @param object $contextid The contextid to delete question categories from
- * @return array Feedback from deletes (if any)
+ * @param int $contextid The contextid to delete question categories from
+ * @return array only returns an empty array for backwards compatibility.
  */
 function question_delete_context($contextid) {
     global $DB;
 
-    //To store feedback to be showed at the end of the process
-    $feedbackdata   = array();
-
-    //Cache some strings
-    $strcatdeleted = get_string('unusedcategorydeleted', 'question');
     $fields = 'id, parent, name, contextid';
     if ($categories = $DB->get_records('question_categories', array('contextid' => $contextid), 'parent', $fields)) {
         //Sort categories following their tree (parent-child) relationships
@@ -409,32 +416,21 @@ function question_delete_context($contextid) {
 
         foreach ($categories as $category) {
             question_category_delete_safe($category);
-
-            //Fill feedback
-            $feedbackdata[] = array($category->name, $strcatdeleted);
         }
     }
-    return $feedbackdata;
+    return [];
 }
 
 /**
  * All question categories and their questions are deleted for this course.
  *
  * @param stdClass $course an object representing the activity
- * @param boolean $feedback to specify if the process must output a summary of its work
- * @return boolean
+ * @param bool $notused this argument is not used any more. Kept for backwards compatibility.
+ * @return bool always true.
  */
-function question_delete_course($course, $feedback=true) {
+function question_delete_course($course, $notused = false) {
     $coursecontext = context_course::instance($course->id);
-    $feedbackdata = question_delete_context($coursecontext->id, $feedback);
-
-    // Inform about changes performed if feedback is enabled.
-    if ($feedback && $feedbackdata) {
-        $table = new html_table();
-        $table->head = array(get_string('category', 'question'), get_string('action'));
-        $table->data = $feedbackdata;
-        echo html_writer::table($table);
-    }
+    question_delete_context($coursecontext->id);
     return true;
 }
 
@@ -443,26 +439,18 @@ function question_delete_course($course, $feedback=true) {
  * 1/ All question categories and their questions are deleted for this course category.
  * 2/ All questions are moved to new category
  *
- * @param object|core_course_category $category course category object
- * @param object|core_course_category $newcategory empty means everything deleted, otherwise id of
+ * @param stdClass|core_course_category $category course category object
+ * @param stdClass|core_course_category $newcategory empty means everything deleted, otherwise id of
  *      category where content moved
- * @param boolean $feedback to specify if the process must output a summary of its work
+ * @param bool $notused this argument is no longer used. Kept for backwards compatibility.
  * @return boolean
  */
-function question_delete_course_category($category, $newcategory, $feedback=true) {
-    global $DB, $OUTPUT;
+function question_delete_course_category($category, $newcategory, $notused=false) {
+    global $DB;
 
     $context = context_coursecat::instance($category->id);
     if (empty($newcategory)) {
-        $feedbackdata = question_delete_context($context->id, $feedback);
-
-        // Output feedback if requested.
-        if ($feedback && $feedbackdata) {
-            $table = new html_table();
-            $table->head = array(get_string('questioncategory', 'question'), get_string('action'));
-            $table->data = $feedbackdata;
-            echo html_writer::table($table);
-        }
+        question_delete_context($context->id);
 
     } else {
         // Move question categories to the new context.
@@ -478,14 +466,6 @@ function question_delete_course_category($category, $newcategory, $feedback=true
             $DB->set_field('question_categories', 'parent', $newtopcategory->id, array('parent' => $topcategory->id));
             // Now delete the top category.
             $DB->delete_records('question_categories', array('id' => $topcategory->id));
-        }
-
-        if ($feedback) {
-            $a = new stdClass();
-            $a->oldplace = $context->get_context_name();
-            $a->newplace = $newcontext->get_context_name();
-            echo $OUTPUT->notification(
-                    get_string('movedquestionsandcategories', 'question', $a), 'notifysuccess');
         }
     }
 
@@ -511,7 +491,8 @@ function question_save_from_deletion($questionids, $newcontextid, $oldplace,
         $newcategory = new stdClass();
         $newcategory->parent = question_get_top_category($newcontextid, true)->id;
         $newcategory->contextid = $newcontextid;
-        $newcategory->name = get_string('questionsrescuedfrom', 'question', $oldplace);
+        // Max length of column name in question_categories is 255.
+        $newcategory->name = shorten_text(get_string('questionsrescuedfrom', 'question', $oldplace), 255);
         $newcategory->info = get_string('questionsrescuedfrominfo', 'question', $oldplace);
         $newcategory->sortorder = 999;
         $newcategory->stamp = make_unique_id_code();
@@ -529,21 +510,14 @@ function question_save_from_deletion($questionids, $newcontextid, $oldplace,
  * All question categories and their questions are deleted for this activity.
  *
  * @param object $cm the course module object representing the activity
- * @param boolean $feedback to specify if the process must output a summary of its work
+ * @param bool $notused the argument is not used any more. Kept for backwards compatibility.
  * @return boolean
  */
-function question_delete_activity($cm, $feedback=true) {
+function question_delete_activity($cm, $notused = false) {
     global $DB;
 
     $modcontext = context_module::instance($cm->id);
-    $feedbackdata = question_delete_context($modcontext->id, $feedback);
-    // Inform about changes performed if feedback is enabled.
-    if ($feedback && $feedbackdata) {
-        $table = new html_table();
-        $table->head = array(get_string('category', 'question'), get_string('action'));
-        $table->data = $feedbackdata;
-        echo html_writer::table($table);
-    }
+    question_delete_context($modcontext->id);
     return true;
 }
 
@@ -586,7 +560,7 @@ function question_move_question_tags_to_new_context(array $questions, context $n
     $questionstagobjects = core_tag_tag::get_items_tags('core_question', 'question', $questionids);
 
     foreach ($questions as $question) {
-        $tagobjects = $questionstagobjects[$question->id];
+        $tagobjects = $questionstagobjects[$question->id] ?? [];
 
         foreach ($tagobjects as $tagobject) {
             $tagid = $tagobject->taginstanceid;
@@ -806,7 +780,7 @@ function question_preview_url($questionid, $preferredbehaviour = null,
     }
 
     if (!is_null($maxmark)) {
-        $params['maxmark'] = format_float($maxmark, strlen($maxmark), true, true);
+        $params['maxmark'] = format_float($maxmark, -1);
     }
 
     if (!is_null($displayoptions)) {
@@ -1356,7 +1330,8 @@ function question_make_default_categories($contexts) {
             // Otherwise, we need to make one
             $category = new stdClass();
             $contextname = $context->get_context_name(false, true);
-            $category->name = get_string('defaultfor', 'question', $contextname);
+            // Max length of name field is 255.
+            $category->name = shorten_text(get_string('defaultfor', 'question', $contextname), 255);
             $category->info = get_string('defaultinfofor', 'question', $contextname);
             $category->contextid = $context->id;
             $category->parent = $topcategory->id;
@@ -1420,7 +1395,7 @@ function question_category_options($contexts, $top = false, $currentcat = 0,
     foreach ($contexts as $context) {
         $pcontexts[] = $context->id;
     }
-    $contextslist = join($pcontexts, ', ');
+    $contextslist = join(', ', $pcontexts);
 
     $categories = get_categories_for_contexts($contextslist, 'parent, sortorder, name ASC', $top);
 
@@ -1680,7 +1655,8 @@ class context_to_string_translator{
 /**
  * Check capability on category
  *
- * @param int|stdClass $questionorid object or id. If an object is passed, it should include ->contextid and ->createdby.
+ * @param int|stdClass|question_definition $questionorid object or id.
+ *      If an object is passed, it should include ->contextid and ->createdby.
  * @param string $cap 'add', 'edit', 'view', 'use', 'move' or 'tag'.
  * @param int $notused no longer used.
  * @return bool this user has the capability $cap for this question $question?
@@ -1706,8 +1682,11 @@ function question_has_capability_on($questionorid, $cap, $notused = -1) {
         try {
             $question = question_bank::load_question_data($questionid);
         } catch (Exception $e) {
-            // Let's log the exception for future debugging.
-            debugging($e->getMessage(), DEBUG_NORMAL, $e->getTrace());
+            // Let's log the exception for future debugging,
+            // but not during Behat, or we can't test these cases.
+            if (!defined('BEHAT_SITE_RUNNING')) {
+                debugging($e->getMessage(), DEBUG_NORMAL, $e->getTrace());
+            }
 
             // Well, at least we tried. Seems that we really have to read from DB.
             $question = $DB->get_record_sql('SELECT q.id, q.createdby, qc.contextid
@@ -1834,6 +1813,8 @@ function question_get_question_capabilities() {
         'moodle/question:useall',
         'moodle/question:movemine',
         'moodle/question:moveall',
+        'moodle/question:tagmine',
+        'moodle/question:tagall',
     );
 }
 
@@ -2011,7 +1992,7 @@ class question_edit_contexts {
      */
     public function require_one_cap($caps) {
         if (!$this->have_one_cap($caps)) {
-            $capsstring = join($caps, ', ');
+            $capsstring = join(', ', $caps);
             print_error('nopermissions', '', '', $capsstring);
         }
     }
@@ -2367,4 +2348,42 @@ function question_module_uses_questions($modname) {
     }
 
     return false;
+}
+
+/**
+ * If $oldidnumber ends in some digits then return the next available idnumber of the same form.
+ *
+ * So idnum -> null (no digits at the end) idnum0099 -> idnum0100 (if that is unused,
+ * else whichever of idnum0101, idnume0102, ... is unused. idnum9 -> idnum10.
+ *
+ * @param string|null $oldidnumber a question idnumber, or can be null.
+ * @param int $categoryid a question category id.
+ * @return string|null suggested new idnumber for a question in that category, or null if one cannot be found.
+ */
+function core_question_find_next_unused_idnumber(?string $oldidnumber, int $categoryid): ?string {
+    global $DB;
+
+    // The the old idnumber is not of the right form, bail now.
+    if (!preg_match('~\d+$~', $oldidnumber, $matches)) {
+        return null;
+    }
+
+    // Find all used idnumbers in one DB query.
+    $usedidnumbers = $DB->get_records_select_menu('question', 'category = ? AND idnumber IS NOT NULL',
+            [$categoryid], '', 'idnumber, 1');
+
+    // Find the next unused idnumber.
+    $numberbit = 'X' . $matches[0]; // Need a string here so PHP does not do '0001' + 1 = 2.
+    $stem = substr($oldidnumber, 0, -strlen($matches[0]));
+    do {
+
+        // If we have got to something9999, insert an extra digit before incrementing.
+        if (preg_match('~^(.*[^0-9])(9+)$~', $numberbit, $matches)) {
+            $numberbit = $matches[1] . '0' . $matches[2];
+        }
+        $numberbit++;
+        $newidnumber = $stem . substr($numberbit, 1);
+    } while (isset($usedidnumbers[$newidnumber]));
+
+    return (string) $newidnumber;
 }

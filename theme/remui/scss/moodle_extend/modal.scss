@@ -1,0 +1,35 @@
+.modal-sidebar {
+    position: absolute;
+    right: 0;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    height: 100%;
+    margin: 0;
+    background-color: $white;
+    align-content: center;
+
+    .modal-content {
+        overflow-x: hidden;
+        overflow-y: auto;
+        background-color: transparent;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .modal-header {
+        border-bottom: none;
+    }
+
+    .modal-footer {
+        flex-wrap: wrap;
+        border-top: none;
+    }
+
+    button.close {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1;
+    }
+}

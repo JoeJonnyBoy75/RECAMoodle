@@ -2,3 +2,16 @@
 @import 'reboot';
 @import 'nav';
 @import 'breadcrumb';
+@import 'forms';
+@import 'buttons';
+@import 'modal';
+@import 'variables';
+@import 'card';
+@import 'question';
+@import 'badge';
+
+// Extended bootstrap utilities
+@import "utilities/responsive";
+@import "utilities/sizing";
+@import "utilities/spacing";
+@import "utilities/text";

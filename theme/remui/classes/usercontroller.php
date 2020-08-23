@@ -16,9 +16,9 @@
 
 /**
  * Edwiser RemUI
- * @package    theme_remui
- * @copyright  (c) 2019 WisdmLabs (https://wisdmlabs.com/)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace theme_remui;
@@ -30,6 +30,11 @@ use core_completion\progress;
 
 require_once($CFG->dirroot.'/mod/forum/lib.php');
 
+/**
+ * User controller class
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class usercontroller {
     /**
      * Get post count of forums in which user is made post or courses in which user is enrolled
@@ -171,11 +176,13 @@ class usercontroller {
     }
 
     /**
-     * Update the User Profile details using ajax call.
-     *
-     * @param $fname, $lname, $emailid, $description, $city, $country
-     *
-     * @return boolean, weather result are updated or not.
+     * Save user profile information
+     * @param  string $fname       User firstname
+     * @param  string $lname       User lastname
+     * @param  string $description User description
+     * @param  string $city        City name
+     * @param  string $country     Country name
+     * @return object              Weather result are updated or not
      */
     public static function save_user_profile_info($fname, $lname, $description, $city, $country) {
         global $USER, $DB;
@@ -188,12 +195,29 @@ class usercontroller {
         $user->country = $country;
         $result = $DB->update_record('user', $user);
 
-        // Update Global Variable
+        // Update Global Variable.
         $USER->firstname = $fname;
         $USER->lastname = $lname;
         $USER->city = $city;
         $USER->country = $country;
 
         return $result;
+    }
+
+    /**
+     * This function will return the messaging panel html only.
+     * In latest Moodle they have removed the core_message_render_navbar_output function
+     * and Now returns two panels in same function
+     * Following code is from same function message_popup_render_navbar_output but excluding the notification
+     */
+    public static function render_navbar_output() {
+        global $USER, $OUTPUT;
+        $unreadcount = \core_message\api::count_unread_conversations($USER);
+        $requestcount = \core_message\api::get_received_contact_requests_count($USER->id);
+        $msgcontext = [
+            'userid' => $USER->id,
+            'unreadcount' => $unreadcount + $requestcount
+        ];
+        return $OUTPUT->render_from_template('core_message/message_popover', $msgcontext);
     }
 }

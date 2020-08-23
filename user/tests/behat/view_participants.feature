@@ -105,6 +105,7 @@ Feature: View course participants
     And the field "Select 'Student 17x'" matches value "0"
     And the field "Select 'Student 18x'" matches value "0"
 
+  @javascript
   Scenario: Sort and paginate the list of users
     Given I log in as "teacher1x"
     And the following "course enrolments" exist:
@@ -113,12 +114,12 @@ Feature: View course participants
     And I am on "Course 1" course homepage
     And I navigate to course participants
     And I follow "Email address"
-    When I follow "2"
+    When I click on "2" "link" in the "//nav[@aria-label='Page']" "xpath_element"
     Then I should not see "student0x@example.com"
     And I should not see "student19x@example.com"
     And I should see "teacher1x@example.com"
     And I follow "Email address"
-    And I follow "2"
+    And I click on "2" "link" in the "//nav[@aria-label='Page']" "xpath_element"
     And I should not see "teacher1x@example.com"
     And I should not see "student19x@example.com"
     And I should not see "student1x@example.com"
@@ -132,7 +133,6 @@ Feature: View course participants
     When I log in as "teacher1x"
     And I am on "Course 1" course homepage
     And I navigate to course participants
-    And I follow "Surname"
     And I click on "Select all" "checkbox"
     Then I should not see "Student 9x"
     And the field "Select 'Teacher 1x'" matches value "1"

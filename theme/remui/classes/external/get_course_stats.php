@@ -15,9 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package theme_remui
- * @author  2019 wisdmlabs
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Get course stats service
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\external;
 
@@ -28,6 +29,11 @@ use external_value;
 
 require_once($CFG->libdir . '/completionlib.php');
 
+/**
+ * Get course stats trait
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 trait get_course_stats {
     /**
      * Describes the parameters for get_course_stats
@@ -43,7 +49,8 @@ trait get_course_stats {
 
     /**
      * Save order of sections in array of configuration format
-     * @return boolean true
+     * @param  int $courseid Course id
+     * @return boolean       true
      */
     public static function get_course_stats($courseid) {
         global $PAGE;
@@ -51,7 +58,7 @@ trait get_course_stats {
         $context = \context_course::instance($courseid);
         self::validate_context($context);
         $course = get_course($courseid);
-        $stats = \theme_remui\utility::get_course_stats($course);
+        $stats = \theme_remui_coursehandler::get_course_stats($course);
         return $stats;
     }
 

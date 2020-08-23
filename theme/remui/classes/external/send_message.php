@@ -15,9 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package theme_remui
- * @author  2019 wisdmlabs
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Send message service
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\external;
 
@@ -27,6 +28,11 @@ use external_function_parameters;
 use external_value;
 use context_system;
 
+/**
+ * Send message trait
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 trait send_message {
     /**
      * Describes the parameters for send_message
@@ -43,7 +49,9 @@ trait send_message {
 
     /**
      * Save order of sections in array of configuration format
-     * @return boolean true
+     * @param  int    $studentid   Student id
+     * @param  string $messagetext Message text
+     * @return boolean             true
      */
     public static function send_message($studentid, $messagetext) {
         global $USER, $DB, $SITE, $PAGE;

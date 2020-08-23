@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Edwiser RemUI 
- * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Edwiser RemUI
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace theme_remui\output;
@@ -63,19 +63,31 @@ class core_renderer_maintenance extends core_renderer {
 
         $output = parent::standard_head_html();
 
-        // Get the theme font from setting
+        // Get the theme font from setting.
         $fontname = ucwords(\theme_remui\toolbox::get_setting('fontname', 'Roboto'));
-        if(empty($fontname)) {
+        if (empty($fontname)) {
             $fontname = 'Roboto';
         }
-        $output .= "<link href='https://fonts.googleapis.com/css?family=$fontname:300,400,500,300italic' rel='stylesheet' type='text/css'>";
-        
-        // add google analytics code
-        $ga_js_async = "<!-- Google Analytics --><script>window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create', 'UA-CODE-X', 'auto');ga('send', 'pageview');</script><script async src='https://www.google-analytics.com/analytics.js'></script><!-- End Google Analytics -->";
+        $output .= "<link
+            href='https://fonts.googleapis.com/css?family=$fontname:300,400,500,300italic'
+            rel='stylesheet'
+            type='text/css'
+        >";
 
-        $ga_tracking_code = trim(\theme_remui\toolbox::get_setting('googleanalytics'));
-        if (!empty($ga_tracking_code)) {
-            $output .= str_replace("UA-CODE-X", $ga_tracking_code, $ga_js_async);
+        // Add google analytics code.
+        $gajsasync = "<!-- Google Analytics --><script>
+            window.ga = window.ga || function() {
+                (ga.q = ga.q || []).push(arguments)
+            };
+            ga.l =+ new Date;
+            ga('create', 'UA-CODE-X', 'auto');
+            ga('send', 'pageview');
+        </script>
+        <script async src='https://www.google-analytics.com/analytics.js'></script><!-- End Google Analytics -->";
+
+        $gatrackingcode = trim(\theme_remui\toolbox::get_setting('googleanalytics'));
+        if (!empty($gatrackingcode)) {
+            $output .= str_replace("UA-CODE-X", $gatrackingcode, $gajsasync);
         }
 
         return $output;

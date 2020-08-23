@@ -226,7 +226,7 @@ if (!core_tables_exist()) {
     }
     if (empty($confirmrelease)) {
         require_once($CFG->libdir.'/environmentlib.php');
-        list($envstatus, $environment_results) = check_moodle_environment(normalize_version($release), ENV_SELECT_RELEASE);
+        list($envstatus, $environmentresults) = check_moodle_environment(normalize_version($release), ENV_SELECT_RELEASE);
         $strcurrentrelease = get_string('currentrelease');
 
         $PAGE->navbar->add($strcurrentrelease);
@@ -235,13 +235,13 @@ if (!core_tables_exist()) {
         $PAGE->set_cacheable(false);
 
         $output = $PAGE->get_renderer('core', 'admin');
-        echo $output->install_environment_page($maturity, $envstatus, $environment_results, $release);
+        echo $output->install_environment_page($maturity, $envstatus, $environmentresults, $release);
         die();
     }
 
     // check plugin dependencies
     $failed = array();
-    if (!core_plugin_manager::instance()->all_plugins_ok($version, $failed)) {
+    if (!core_plugin_manager::instance()->all_plugins_ok($version, $failed, $CFG->branch)) {
         $PAGE->navbar->add(get_string('pluginscheck', 'admin'));
         $PAGE->set_title($strinstallation);
         $PAGE->set_heading($strinstallation . ' - Moodle ' . $CFG->target_release);
@@ -358,9 +358,9 @@ if (!$cache and $version > $CFG->version) {  // upgrade
         echo $output->upgrade_confirm_page($a->newversion, $maturity, $testsite);
         die();
 
-    } else if (empty($confirmrelease)){
+    } else if (empty($confirmrelease)) {
         require_once($CFG->libdir.'/environmentlib.php');
-        list($envstatus, $environment_results) = check_moodle_environment($release, ENV_SELECT_RELEASE);
+        list($envstatus, $environmentresults) = check_moodle_environment($release, ENV_SELECT_RELEASE);
         $strcurrentrelease = get_string('currentrelease');
 
         $PAGE->navbar->add($strcurrentrelease);
@@ -368,7 +368,7 @@ if (!$cache and $version > $CFG->version) {  // upgrade
         $PAGE->set_heading($strcurrentrelease);
         $PAGE->set_cacheable(false);
 
-        echo $output->upgrade_environment_page($release, $envstatus, $environment_results);
+        echo $output->upgrade_environment_page($release, $envstatus, $environmentresults);
         die();
 
     } else if (empty($confirmplugins)) {
@@ -508,7 +508,7 @@ if (!$cache and $version > $CFG->version) {  // upgrade
     } else {
         // Always verify plugin dependencies!
         $failed = array();
-        if (!core_plugin_manager::instance()->all_plugins_ok($version, $failed)) {
+        if (!core_plugin_manager::instance()->all_plugins_ok($version, $failed, $CFG->branch)) {
             echo $output->unsatisfied_dependencies_page($version, $failed, $PAGE->url);
             die();
         }
@@ -533,7 +533,10 @@ if (!$cache and $branch <> $CFG->branch) {  // Update the branch
 
 if (!$cache and moodle_needs_upgrading()) {
 
-    $PAGE->set_url(new moodle_url($PAGE->url, array('confirmplugincheck' => $confirmplugins)));
+    $PAGE->set_url(new moodle_url($PAGE->url, array(
+        'confirmrelease' => $confirmrelease,
+        'confirmplugincheck' => $confirmplugins,
+    )));
 
     check_upgrade_key($upgradekeyhash);
 
@@ -543,7 +546,21 @@ if (!$cache and moodle_needs_upgrading()) {
         $pluginman = core_plugin_manager::instance();
         $output = $PAGE->get_renderer('core', 'admin');
 
-        if (!$confirmplugins) {
+        if (empty($confirmrelease)) {
+            require_once($CFG->libdir . '/environmentlib.php');
+
+            list($envstatus, $environmentresults) = check_moodle_environment($release, ENV_SELECT_RELEASE);
+            $strcurrentrelease = get_string('currentrelease');
+
+            $PAGE->navbar->add($strcurrentrelease);
+            $PAGE->set_title($strcurrentrelease);
+            $PAGE->set_heading($strcurrentrelease);
+            $PAGE->set_cacheable(false);
+
+            echo $output->upgrade_environment_page($release, $envstatus, $environmentresults);
+            die();
+
+        } else if (!$confirmplugins) {
             $strplugincheck = get_string('plugincheck');
 
             $PAGE->navbar->add($strplugincheck);
@@ -682,7 +699,7 @@ if (!$cache and moodle_needs_upgrading()) {
 
         // Make sure plugin dependencies are always checked.
         $failed = array();
-        if (!$pluginman->all_plugins_ok($version, $failed)) {
+        if (!$pluginman->all_plugins_ok($version, $failed, $CFG->branch)) {
             $output = $PAGE->get_renderer('core', 'admin');
             echo $output->unsatisfied_dependencies_page($version, $failed, $PAGE->url);
             die();
@@ -802,7 +819,7 @@ $SESSION->admin_critical_warning = ($insecuredataroot==INSECURE_DATAROOT_ERROR);
 $adminroot = admin_get_root();
 
 // Check if there are any new admin settings which have still yet to be set
-if (any_new_admin_settings($adminroot)){
+if (any_new_admin_settings($adminroot)) {
     redirect('upgradesettings.php');
 }
 
@@ -826,8 +843,9 @@ $errorsdisplayed = defined('WARN_DISPLAY_ERRORS_ENABLED');
 $lastcron = get_config('tool_task', 'lastcronstart');
 $cronoverdue = ($lastcron < time() - 3600 * 24);
 $lastcroninterval = get_config('tool_task', 'lastcroninterval');
-$expectedfrequency = $CFG->expectedcronfrequency ?? 200;
-$croninfrequent = !$cronoverdue && ($lastcroninterval > $expectedfrequency || $lastcron < time() - $expectedfrequency);
+
+$expectedfrequency = $CFG->expectedcronfrequency ?? MINSECS;
+$croninfrequent = !$cronoverdue && ($lastcroninterval > ($expectedfrequency + MINSECS) || $lastcron < time() - $expectedfrequency);
 $dbproblems = $DB->diagnose();
 $maintenancemode = !empty($CFG->maintenance_enabled);
 
@@ -881,6 +899,12 @@ if (empty($CFG->disabledevlibdirscheck) && (is_dir($CFG->dirroot.'/vendor') || i
 // Check if the site is being foced onto ssl.
 $overridetossl = !empty($CFG->overridetossl);
 
+// Check if moodle campaign content setting is enabled or not.
+$showcampaigncontent = !isset($CFG->showcampaigncontent) || $CFG->showcampaigncontent;
+
+// Encourage admins to enable the user feedback feature if it is not enabled already.
+$showfeedbackencouragement = empty($CFG->enableuserfeedback);
+
 admin_externalpage_setup('adminnotifications');
 
 $output = $PAGE->get_renderer('core', 'admin');
@@ -888,4 +912,5 @@ $output = $PAGE->get_renderer('core', 'admin');
 echo $output->admin_notifications_page($maturity, $insecuredataroot, $errorsdisplayed, $cronoverdue, $dbproblems,
                                        $maintenancemode, $availableupdates, $availableupdatesfetch, $buggyiconvnomb,
                                        $registered, $cachewarnings, $eventshandlers, $themedesignermode, $devlibdir,
-                                       $mobileconfigured, $overridetossl, $invalidforgottenpasswordurl, $croninfrequent);
+                                       $mobileconfigured, $overridetossl, $invalidforgottenpasswordurl, $croninfrequent,
+                                       $showcampaigncontent, $showfeedbackencouragement);

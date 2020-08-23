@@ -27,7 +27,9 @@ JavaScript
 
 Sass
 ----
-* A number of variables are no longer available in Bootstrap 4 Stable. For now a bs4alpha compatibility file has been added, see scss/bs4alphacompat.scss which translates veriable names from the Alpha version to the stable version.
+* A number of variables are no longer available in Bootstrap 4 Stable.
+  For now a bs4alpha compatibility file has been added, see scss/bs4alphacompat.scss
+  which translates veriable names from the Alpha version to the stable version.
 
 * m-t-* and other spacing utilities should be replaced with mt-*.
 
@@ -54,7 +56,9 @@ All usage of '*-xs-*' have been dropped. So what used to be col-xs-6 should now 
 
 Typography
 ----------
-remuirap 4 uses a native font stack that selects the best font-family for each OS and device. For font sizing the browser default root font-size (typically 16px) is used. this variable can be changed using the variable '$font-size-base'.
+Remuirap 4 uses a native font stack that selects the best font-family for each OS and device.
+For font sizing the browser default root font-size (typically 16px) is used. this variable can
+be changed using the variable '$font-size-base'.
 In the default remui preset we use: "0.9375rem" which computes to 15px on most browser.
 
 Presets
@@ -80,7 +84,8 @@ $font-size-base: 0.9375rem
 
 Bootswatches
 ------------
-Bootstrap 4 bootswatches can be imported using the theme/remui/cli/import-bootswatch.php script. Generated bootswatches can be added in the theme remui settings page.
+Bootstrap 4 bootswatches can be imported using the theme/remui/cli/import-bootswatch.php script.
+Generated bootswatches can be added in the theme remui settings page.
 
 Changed Components
 ------------------

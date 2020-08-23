@@ -15,9 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package theme_remui
- * @author  2018 wisdmlabs
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Theme external services list
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
 
@@ -57,6 +58,14 @@ $functions = array(
         'type'          => 'write',
         'ajax'          => true,
         'loginrequired' => false
+    ),
+    'theme_remui_hide_update' => array(
+        'classname'     => 'theme_remui\external\api',
+        'methodname'    => 'hide_update',
+        'description'   => 'Hide update nag',
+        'type'          => 'write',
+        'ajax'          => true,
+        'loginrequired' => true
     )
 );
 

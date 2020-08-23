@@ -1,3 +1,4 @@
+"use strict";
 define(['jquery'], function($) {
     var SELECTORS = {
         CONTAINER: '.edwiser-notice'
@@ -10,21 +11,21 @@ define(['jquery'], function($) {
      * @param  {Number} time    For how long notice will appear. Default 1500
      */
     var show = function(message, type, time) {
-        // Reinitialize type and time if is not set
+        // Reinitialize type and time if is not set.
         type = type || 'success';
         time = time || 1500;
 
-        // Create notice alert
+        // Create notice alert.
         var notice = $('<div></div>');
         $(SELECTORS.CONTAINER).show().append(notice);
         notice.text(message)
-        .addClass('alert alert-'+type)
+        .addClass('alert alert-' + type)
         .css({
             width: 'fit-content',
             'margin-left': 'auto',
             'margin-right': 'auto'
         })
-        // Show notice alert
+        // Show notice alert.
         .fadeIn('slow');
         setTimeout(function() {
             notice.fadeOut('slow', function() {

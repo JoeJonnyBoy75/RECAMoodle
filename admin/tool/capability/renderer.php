@@ -72,9 +72,11 @@ class tool_capability_renderer extends plugin_renderer_base {
      * @param array $capabilities An array of capabilities to show comparison for.
      * @param int $contextid The context we are displaying for.
      * @param array $roles An array of roles to show comparison for.
+     * @param bool $onlydiff show only different permissions
      * @return string
      */
-    public function capability_comparison_table(array $capabilities, $contextid, array $roles) {
+    public function capability_comparison_table(array $capabilities, $contextid, array $roles, $onlydiff=false) {
+        static $capabilitycontexts = array();
 
         $strpermissions = $this->get_permission_strings();
         $permissionclasses = $this->get_permission_classes();
@@ -92,25 +94,39 @@ class tool_capability_renderer extends plugin_renderer_base {
         }
         $table->data = array();
 
+        $childcontextsids = [];
         foreach ($capabilities as $capability) {
-            $contexts = tool_capability_calculate_role_data($capability, $roles);
+            if (empty($capabilitycontexts[$capability])) {
+                $capabilitycontexts[$capability] = tool_capability_calculate_role_data($capability, $roles);
+            }
+            $contexts = $capabilitycontexts[$capability];
+
             $captitle = new html_table_cell(get_capability_string($capability) . html_writer::span($capability));
             $captitle->header = true;
 
             $row = new html_table_row(array($captitle));
 
+            $permissiontypes = array();
             foreach ($roles as $role) {
                 if (isset($contexts[$contextid]->rolecapabilities[$role->id])) {
                     $permission = $contexts[$contextid]->rolecapabilities[$role->id];
                 } else {
                     $permission = CAP_INHERIT;
                 }
+                if (!in_array($permission, $permissiontypes)) {
+                    $permissiontypes[] = $permission;
+                }
                 $cell = new html_table_cell($strpermissions[$permission]);
                 $cell->attributes['class'] = $permissionclasses[$permission];
                 $row->cells[] = $cell;
             }
-
-            $table->data[] = $row;
+            if (!$onlydiff || count($permissiontypes) > 1) {
+                $table->data[] = $row;
+            }
+            if (!empty($contexts[$contextid]->children)) {
+                $childcontextsids = array_merge($childcontextsids, $contexts[$contextid]->children);
+                $childcontextsids = array_unique($childcontextsids);
+            }
         }
 
         // Start the list item, and print the context name as a link to the place to make changes.
@@ -125,11 +141,15 @@ class tool_capability_renderer extends plugin_renderer_base {
         $title = get_string('permissionsincontext', 'core_role', $context->get_context_name());
 
         $html = $this->output->heading(html_writer::link($url, $title), 3);
-        $html .= html_writer::table($table);
+        if (!empty($table->data)) {
+            $html .= html_writer::table($table);
+        } else {
+            $html .= html_writer::tag('p', get_string('nodifferences', 'tool_capability'));
+        }
         // If there are any child contexts, print them recursively.
-        if (!empty($contexts[$contextid]->children)) {
-            foreach ($contexts[$contextid]->children as $childcontextid) {
-                $html .= $this->capability_comparison_table($capabilities, $childcontextid, $roles, true);
+        if (!empty($childcontextsids)) {
+            foreach ($childcontextsids as $childcontextid) {
+                $html .= $this->capability_comparison_table($capabilities, $childcontextid, $roles, $onlydiff);
             }
         }
         return $html;

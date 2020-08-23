@@ -12,10 +12,12 @@ $breadcrumb-divider-rtl: "◀" !default;
 @import "moodle/icons";
 @import "moodle/admin";
 @import "moodle/blocks";
-@import "moodle/bootswatch";
+// @import "moodle/bootswatch"; // => This file is deleted from moodle direcctory, instead added in extended folder.
 @import "moodle/calendar";
+@import "moodle/contentbank";
 @import "moodle/course";
-@import "moodle/drawer";
+// @import "moodle/drawer"; // => This file is deleted from moodle directory, instead added in extended folder.
+@import "moodle_extend/drawer"; // => this is extended file... adding in this group because it contains some variables required in tool_usertours.
 @import "moodle/dashboard";
 @import "moodle/filemanager";
 @import "moodle/message";
@@ -23,7 +25,7 @@ $breadcrumb-divider-rtl: "◀" !default;
 @import "moodle/user";
 @import "moodle/search";
 @import "moodle/forms";
-@import "moodle/login";
+// @import "moodle/login"; // => This file is deleted from moodle directory, instead added in extended folder.
 @import "moodle/modules";
 @import "moodle/chat";
 @import "moodle/reports";
@@ -44,6 +46,20 @@ $breadcrumb-divider-rtl: "◀" !default;
 @import "moodle/layout";
 
 // Moodle extended
+@import "moodle_extend/admin";
+@import "moodle_extend/blocks";
+@import "moodle_extend/bootswatch";
+@import "moodle_extend/buttons";
+@import "moodle_extend/core";
+@import "moodle_extend/course";
+@import "moodle_extend/forms";
+@import "moodle_extend/grades";
+@import "moodle_extend/icons";
+@import "moodle_extend/login";
+@import "moodle_extend/modal";
+@import "moodle_extend/modules";
+@import "moodle_extend/popover-region";
+@import "moodle_extend/question.scss";
 @import "moodle_extend/user";
 
 // Custom Default Font
@@ -56,12 +72,14 @@ $breadcrumb-divider-rtl: "◀" !default;
 // Components
 @import 'components/avatar';
 @import 'components/chat';
+@import 'components/cover';
 @import 'components/profile';
 @import 'components/panels';
 @import 'components/animation';
 @import 'components/slick';
 @import 'components/overlay';
 @import 'components/steps';
+@import 'components/color-picker';
 
 // RemUI SCSS.
 @import 'remui/course';
@@ -77,6 +95,8 @@ $breadcrumb-divider-rtl: "◀" !default;
 @import "remui/usertour";
 @import "remui/frontpage";
 @import "remui/toolbar";
+@import "remui/focusmode";
+@import "remui/update";
 
 // Overrides
 @import 'remui/override';

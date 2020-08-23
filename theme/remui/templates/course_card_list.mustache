@@ -11,14 +11,14 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    Edwiser RemUI 
-    @package    theme_remui
-    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
-    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- 
+    Edwiser RemUI
+    @package   theme_remui
+    @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/)
+    @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+
 }}
 {{#old_card}}
-<div class=" col-lg-12  animation-{{animation}}" data-plugin="appear" data-animate="{{animation}}" course-id="{{id}}">
+<div class=" col-lg-12  animation-{{animation}}" data-plugin="appear" data-animate="{{animation}}" data-course-id="{{id}}">
     <div class="row no-space my-2 bg-white mx-0">
         <div class="col-lg-3 col-md-4 p-0">
             <a href="{{ courseurl }}">
@@ -34,11 +34,10 @@
         </div>
         <div class="col-lg-9 col-md-8 p-0">
             <div class="card-body h-full p-3"  title="{{{ coursename }}}">
-                <h4 class="card-title mt-1 ellipsis ellipsis-2"><a href="{{ courseurl }}" class="font-weight-400  font-size-18">{{{ coursename }}}</a></h4>
+                <h4 class="card-title mt-1 ellipsis ellipsis-2"><a href="{{ courseurl }}" class="font-weight-400 text-dark font-size-18">{{{ coursename }}}</a></h4>
                 <p class="card-text"><span class="text-muted">{{{ categoryname }}}</span></p>
                 <p class="card-text">{{{ coursesummary }}}</p>
 
-                
                 {{# mycourses}}
                     <div class="w-200 pull-right">
                         {{# coursecompleted }}

@@ -1,0 +1,104 @@
+<style>
+input.star {
+    display: none;
+}
+label.star {
+    float: right;
+    padding: 0 10px;
+    margin: 0;
+    font-size: 22px;
+    color: #999;
+    transition: all .2s;
+}
+
+input.star:checked ~ label.star:before {
+    content: '\f005';
+    color: #Fb4;
+    /* transition: all .2s; */
+}
+input.star-1:checked ~ label.star:before {
+    color: #F62;
+}
+input.star-2:checked ~ label.star:before {
+    color: #F92;
+}
+/* label.star:hover { transform: scale(1.1); } */
+label.star:before {
+    content: '\f006';
+    font-family: Font Awesome;
+}
+</style>
+{{# hasannouncements }}
+<div class="row">
+    <div class="col-12 col-md-12">
+        <h3 class='mb-25 border-0'>{{# str }} recentnews, theme_remui {{/ str }}</h3>
+        <div id="announcements_carousel_{{uniqid}}" class="carousel slide w-p100" data-ride="carousel">
+            <div class="carousel-inner w-p75 m-auto ">
+            {{# announcements }}
+                <div class="item carousel-item {{active}}">
+                    <div class='card mb-5' style='background: #f1f4f5;'>
+                    {{# image }}
+                            <img class='card-img-top w-full' src='{{{ image }}}' alt="{{title}}">
+                            <div class='card-block p-4'>
+                                {{# link }}
+                                    <h4 class='card-title'>
+                                        <a href='{{ link }}' target='_blank' class='grey-800'>
+                                        {{ title }}
+                                        </a>
+                                    </h4>
+                                {{/ link }}
+                                {{^ link }}
+                                    <h4 class='card-title text-center grey-800'>{{ title }}</h4>
+                                {{/ link }}
+                                {{# excerpt }}
+                                    <p class='card-text text-center'>{{ excerpt }}</p>
+                                {{/ excerpt }}
+                            </div>
+                    {{/ image }}
+                    {{^ image }}
+                        <div class='card-block card-inverse card-{{ type }} text-center p-15'>
+                            <blockquote class='blockquote cover-quote card-blockquote'>
+                                {{# excerpt }}
+                                    <p>{{ excerpt }}</p>
+                                {{/ excerpt }}
+                                {{# link }}
+                                    <footer>
+                                        <small>
+                                            Read more
+                                            <cite title='Here'>
+                                                <a href='{{link}}' target='_blank' class='text-white font-size-16 font-weight-600'>Here</a>
+                                            </cite>
+                                        </small>
+                                    </footer>
+                                {{/ link }}
+                            </blockquote>
+                        </div>
+                    {{/ image }}
+                    </div>
+                </div>
+            {{/ announcements }}
+            </div>
+            <ol class="carousel-indicators">
+                {{# announcements }}
+                <li data-slide-to="{{index}}" data-target="#announcements_carousel_{{uniqid}}" class="bg-dark {{active}}"></li>
+                {{/ announcements }}
+            </ol>
+            <a class="carousel-control left carousel-control-prev" href="#announcements_carousel_{{uniqid}}" data-slide="prev">
+                <i class="font-size-24 fa fa-chevron-left" style="color: #ccc;"></i>
+            </a>
+            <a class="carousel-control right carousel-control-next" href="#announcements_carousel_{{uniqid}}" data-slide="next">
+                <i class="font-size-24 fa fa-chevron-right" style="color: #ccc;"></i>
+            </a>
+        </div>
+    </div>
+</div>
+{{/ hasannouncements }}
+
+{{#js}}
+require(['jquery'], function($) {
+    $('#announcements_carousel_{{uniqid}}').carousel({
+        interval: 5000,
+        ride: 'carousel'
+    });
+});
+{{/js}}

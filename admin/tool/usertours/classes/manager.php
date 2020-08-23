@@ -762,6 +762,13 @@ class manager {
      * @param   int     $direction
      */
     protected static function _move_tour(tour $tour, $direction) {
+        // We can't move the first tour higher, nor the last tour any lower.
+        if (($tour->is_first_tour() && $direction == helper::MOVE_UP) ||
+                ($tour->is_last_tour() && $direction == helper::MOVE_DOWN)) {
+
+            return;
+        }
+
         $currentsortorder   = $tour->get_sortorder();
         $targetsortorder    = $currentsortorder + $direction;
 
@@ -838,21 +845,19 @@ class manager {
         // the format filename => version. The version value needs to
         // be increased if the tour has been updated.
         $shippedtours = [
-            '36_dashboard.json' => 3
         ];
 
         // These are tours that we used to ship but don't ship any longer.
         // We do not remove them, but we do disable them.
         $unshippedtours = [
+            // Formerly included in Moodle 3.2.0.
             'boost_administrator.json' => 1,
             'boost_course_view.json' => 1,
-        ];
 
-        if ($CFG->messaging) {
-            $shippedtours['36_messaging.json'] = 3;
-        } else {
-            $unshippedtours['36_messaging.json'] = 3;
-        }
+            // Formerly included in Moodle 3.6.0.
+            '36_dashboard.json' => 3,
+            '36_messaging.json' => 3,
+        ];
 
         $existingtourrecords = $DB->get_recordset('tool_usertours_tours');
 
@@ -889,6 +894,9 @@ class manager {
             }
         }
         $existingtourrecords->close();
+
+        // Ensure we correct the sortorder in any existing tours, prior to adding latest shipped tours.
+        helper::reset_tour_sortorder();
 
         foreach (array_reverse($shippedtours) as $filename => $version) {
             $filepath = $CFG->dirroot . "/{$CFG->admin}/tool/usertours/tours/" . $filename;

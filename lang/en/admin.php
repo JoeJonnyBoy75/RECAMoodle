@@ -61,7 +61,7 @@ $string['allowindexingexceptlogin'] = 'Everywhere except login and signup pages'
 $string['allowindexingnowhere'] = 'Nowhere';
 $string['allowusermailcharset'] = 'Allow user to select character set';
 $string['allowframembedding'] = 'Allow frame embedding';
-$string['allowframembedding_help'] = 'If enabled, this site may be embedded in a frame in a remote system, as recommended when using the \'Publish as LTI tool\' enrolment plugin. Otherwise, it is recommended to leave frame embedding disabled for security reasons.<br />Please, note also that for the mobile app this setting is ignored and frame embedding is always allowed.';
+$string['allowframembedding_help'] = 'If enabled, this site may be embedded in a frame in a remote system, as recommended when using the \'Publish as LTI tool\' enrolment plugin. Otherwise, it is recommended to leave frame embedding disabled for security reasons. Please note that for the mobile app this setting is ignored and frame embedding is always allowed.';
 $string['allowguestmymoodle'] = 'Allow guest access to Dashboard';
 $string['allowobjectembed'] = 'Allow EMBED and OBJECT tags';
 $string['allowthemechangeonurl'] = 'Allow theme changes in the URL';
@@ -81,7 +81,6 @@ $string['autolang'] = 'Language autodetect';
 $string['autologinguests'] = 'Auto-login guests';
 $string['searchareas'] = 'Search areas';
 $string['availableto'] = 'Available to';
-$string['availablelicenses'] = 'Available licences';
 $string['backgroundcolour'] = 'Transparent colour';
 $string['backups'] = 'Backups';
 $string['backup_shortname'] = 'Use course name in backup filename';
@@ -117,9 +116,12 @@ $string['cannotuninstall'] = '{$a} can not be uninstalled.';
 $string['categoryemail'] = 'Email';
 $string['cfgwwwrootslashwarning'] = '$CFG->wwwroot is defined incorrectly in the config.php file. It includes a \'/\' character at the end which must be removed.';
 $string['cfgwwwrootwarning'] = '$CFG->wwwroot is defined incorrectly in the config.php file. It should match the URL you are using to access this page.';
+$string['checkupgradepending'] = 'Upgrade';
 $string['cleanup'] = 'Cleanup';
 $string['clianswerno'] = 'n';
 $string['cliansweryes'] = 'y';
+$string['cliexitgraceful'] = 'Exiting gracefully, please wait ...';
+$string['cliexitnow'] = 'Exiting right NOW';
 $string['cliincorrectvalueerror'] = 'Error, incorrect value "{$a->value}" for "{$a->option}"';
 $string['cliincorrectvalueretry'] = 'Incorrect value, please retry';
 $string['clistatusdisabled'] = 'Status: disabled';
@@ -189,15 +191,15 @@ $string['configcourseswithsummarieslimit'] = 'The maximum number of courses to d
 $string['configcronclionly'] = 'Running the cron from a web browser can expose privileged information to anonymous users. Thus it is recommended to only run the cron from the command line or set a cron password for remote access.';
 $string['configcronremotepassword'] = 'This means that the cron.php script cannot be run from a web browser without supplying the password using the following form of URL:<pre> https://site.example.com/admin/cron.php?password=opensesame </pre>If this is left empty, no password is required.';
 $string['configcurlcache'] = 'Time-to-live for cURL cache, in seconds.';
-$string['configcustommenuitems'] = 'You can configure a custom menu here to be shown by themes. Each line consists of some menu text, a link URL (optional), a tooltip title (optional) and a language code or comma-separated list of codes (optional, for displaying the line to users of the specified language only), separated by pipe characters. Lines starting with a hyphen will appear as menu items in the previous top level menu, and dividers can be used by adding a line of one or more # characters where desired. For example:
+$string['configcustommenuitems'] = 'A custom menu may be configured here. Enter each menu item on a new line with format: menu text, a link URL (optional, not for a top menu item with sub-items), a tooltip title (optional) and a language code or comma-separated list of codes (optional, for displaying the line to users of the specified language only), separated by pipe characters. Lines starting with a hyphen will appear as menu items in the previous top level menu and ### makes a divider. For example:
 <pre>
-Moodle community|https://moodle.org
--Moodle free support|https://moodle.org/support
--Moodle Docs|https://docs.moodle.org|Moodle Docs
--German Moodle Docs|https://docs.moodle.org/de|Documentation in German|de
+Courses
+-All courses|/course/
+-Course search|/course/search.php
 -###
--Moodle development|https://moodle.org/development
-Moodle.com|https://moodle.com/
+-FAQ|https://someurl.xyz/faq
+-Preguntas más frecuentes|https://someurl.xyz/pmf||es
+Mobile app|https://someurl.xyz/app|Download our app
 </pre>';
 $string['configcustomusermenuitems'] = 'You can configure the contents of the user menu (with the exception of the log out link, which is automatically added). Each line is separated by pipe characters and consists of 1) a string in "langstringname, componentname" form or as plain text, 2) a URL, and 3) an icon either as a pix icon (in the folder pix with the structure [subfoldername]/[iconname], e.g. i/publish) or as a URL. Dividers can be used by adding a line of one or more # characters where desired.';
 $string['configdbsessions'] = 'If enabled, this setting will use the database to store information about current sessions. Note that changing this setting now will log out all current users (including you). If you are using MySQL please make sure that \'max_allowed_packet\' in my.cnf (or my.ini) is at least 4M. Other session drivers can be configured directly in config.php, see config-dist.php for more information. This option disappears if you specify session driver in config.php file.';
@@ -233,19 +235,18 @@ $string['configenablemobilewebservice'] = 'Enable mobile service for the officia
 $string['configenablerssfeeds'] = 'If enabled, RSS feeds are generated by various features across the site, such as blogs, forums, database activities and glossaries. Note that RSS feeds also need to be enabled for the particular activity modules.';
 $string['configenablerssfeedsdisabled'] = 'It is not available because RSS feeds are disabled in all the Site. To enable them, go to the Variables settings under Admin Configuration.';
 $string['configenablerssfeedsdisabled2'] = 'RSS feeds are currently disabled at site level. They may be enabled in Advanced features in the Site administration.';
-$string['configenablesafebrowserintegration'] = 'This adds the choice \'Require Safe Exam Browser\' to the \'Browser security\' field on the quiz settings form. See https://www.safeexambrowser.org/ for more information.';
 $string['configenablestats'] = 'If you choose \'yes\' here, Moodle\'s cronjob will process the logs and gather some statistics.  Depending on the amount of traffic on your site, this can take awhile. If you enable this, you will be able to see some interesting graphs and statistics about each of your courses, or on a sitewide basis.';
 $string['configenabletrusttext'] = 'By default Moodle will always thoroughly clean text that comes from users to remove any possible bad scripts, media etc that could be a security risk.  The Trusted Content system is a way of giving particular users that you trust the ability to include these advanced features in their content without interference.  To enable this system, you need to first enable this setting, and then grant the Trusted Content permission to a specific Moodle role.  Texts created or uploaded by such users will be marked as trusted and will not be cleaned before display.';
-$string['configenablewebservices'] = 'Web services enable other systems to log in to this Moodle and perform operations.  For extra security this feature should be disabled unless you are really using it.';
+$string['configenablewebservices'] = 'Web services enable other systems, such as the Moodle app, to log in to the site and perform operations. For extra security, the setting should be disabled if you are not using the app, or an external tool/service that requires integration via web services.';
 $string['configenablewsdocumentation'] = 'Enable auto-generation of web services documentation. A user can access to his own documentation on his security keys page {$a}. It displays the documentation for the enabled protocols only.';
 $string['configerrorlevel'] = 'Choose the amount of PHP warnings that you want to be displayed.  Normal is usually the best choice.';
 $string['configexportlookahead'] = 'Days to look ahead during export';
 $string['configexportlookback'] = 'Days to look back during export';
-$string['configextendedusernamechars'] = 'Enable this setting to allow students to use any characters in their usernames (note this does not affect their actual names).  The default is "false" which restricts usernames to be alphanumeric lowercase characters, underscore (_), hyphen (-), period (.) or at symbol (@).';
+$string['configextendedusernamechars'] = 'If enabled, usernames may include any characters except uppercase letters.  Otherwise, only alphanumeric characters with lowercase letters, underscore (_), hyphen (-), period (.) and at symbol (@) are allowed.';
 $string['configextramemorylimit'] = 'Some scripts like search, backup/restore or cron require more memory. Set higher values for large sites.';
 $string['configfilterall'] = 'Filter all strings, including headings, titles, navigation bar and so on.  This is mostly useful when using the multilang filter, otherwise it will just create extra load on your site for little gain.';
 $string['configfiltermatchoneperpage'] = 'Automatic linking filters will only generate a single link for the first matching text instance found on the complete page. All others are ignored.';
-$string['configfiltermatchonepertext'] = 'Automatic linking filters will only generate a single link for the first matching text instance found in each item of text (e.g., resource, block) on the page. All others are ignored. This setting is ignored if the one per page setting is <i>yes</i>.';
+$string['configfiltermatchonepertext'] = 'Automatic linking filters will only generate a single link for the first matching text instance found in each item of text on the page. All others are ignored. This setting has no effect if \'Filter match once per page\' is enabled.';
 $string['configfilteruploadedfiles'] = 'Process all uploaded HTML and text files with the filters before displaying them, only uploaded HTML files or none at all.';
 $string['configforcelogin'] = 'Normally, the front page of the site and the course listings (but not courses) can be read by people without logging in to the site.  If you want to force people to log in before they do ANYTHING on the site, then you should enable this setting.';
 $string['configforceloginforprofiles'] = 'This setting forces people to log in as a real (non-guest) account before viewing any user\'s profile. If you disabled this setting, you may find that some users post advertising (spam) or other inappropriate content in their profiles, which is then visible to the whole world.';
@@ -256,7 +257,7 @@ $string['configfrontpageloggedin'] = 'The items selected above will be displayed
 $string['configfullnamedisplay'] = 'This defines how names are shown when they are displayed in full. The default value, "language", leaves it to the string "fullnamedisplay" in the current language pack to decide. Some languages have different name display conventions.
 
 For most mono-lingual sites the most efficient setting is "firstname lastname", but you may choose to hide surnames altogether. Placeholders that can be used are: firstname, lastname, firstnamephonetic, lastnamephonetic, middlename, and alternatename.';
-$string['configgeoipfile'] = 'Location of GeoLite2 City binary data file. This file is not part of Moodle distribution and must be obtained separately from <a href="https://www.maxmind.com/">MaxMind</a>. You can either buy a commercial version or use the free version. Simply download <a href="https://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz" >https://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz</a> and extract it into "{$a}" directory on your server.';
+$string['configgeoipfile'] = 'Location of GeoLite2 City binary data file. This file is not part of Moodle distribution and must be obtained separately from <a href="https://www.maxmind.com/">MaxMind</a>. You can either buy a commercial version or use the free version. You\'ll need to register to download the City database file, which you can do at <a href="https://dev.maxmind.com/geoip/geoip2/geolite2/" >https://dev.maxmind.com/geoip/geoip2/geolite2/</a>. Once you\'ve registered and downloaded the file, extract it into "{$a}" directory on your server.';
 $string['configgetremoteaddrconf'] = 'If your server is behind a reverse proxy, you can use this setting to specify which HTTP headers can be trusted to contain the remote IP address. The headers are read in order, using the first one that is available.';
 $string['configgradebookroles'] = 'This setting allows you to control who appears on the gradebook.  Users need to have at least one of these roles in a course to be shown in the gradebook for that course.';
 $string['configgradeexport'] = 'Choose which gradebook export formats are your primary methods for exporting grades.  Chosen plugins will then set and use a "last exported" field for every grade.  For example, this might result in exported records being identified as being "new" or "updated".  If you are not sure about this then leave everything unchecked.';
@@ -305,7 +306,9 @@ $string['confignotifyloginthreshold'] = 'If notifications about failed logins ar
 $string['confignotloggedinroleid'] = 'Users who are not logged in to the site will be treated as if they have this role granted to them at the site context.  Guest is almost always what you want here, but you might want to create roles that are less or more restrictive.  Things like creating posts still require the user to log in properly.';
 $string['configopentowebcrawlers'] = 'If you enable this setting, then search engines will be allowed to enter your site as a guest.  In addition, people coming in to your site via a search engine will automatically be logged in as a guest.  Note that this only provides transparent access to courses that already allow guest access.';
 $string['configoverride'] = 'Defined in config.php';
-$string['configpasswordpolicy'] = 'If enabled, user passwords will be checked against the password policy as specified in the settings below. Enabling the password policy will not affect existing users until they decide to, or are required to, change their password.';
+$string['configpasswordpolicy'] = 'If enabled, user passwords will be checked against the password policy as specified in the settings below. Enabling the password policy will not affect existing users until they decide to, or are required to, change their password, or the \'Check password on login\' setting is enabled.';
+$string['configpasswordpolicycheckonlogin'] = 'If enabled, user passwords will be checked against the password policy each time users log in. If the check fails, the user will be required to change their password before proceeding.
+It is useful to enable this setting after updating the password policy.';
 $string['configpasswordresettime'] = 'This specifies the amount of time people have to validate a password reset request before it expires. Usually 30 minutes is a good value.';
 $string['configpathtodu'] = 'Path to du. Probably something like /usr/bin/du. If you enter this, pages that display directory contents will run much faster for directories with a lot of files.';
 $string['configpathtophp'] = 'Path to PHP CLI. Probably something like /usr/bin/php. If you enter this, cron scripts can be executed from admin web interface.';
@@ -325,6 +328,7 @@ $string['configrequestedstudentname'] = 'Word for student used in requested cour
 $string['configrequestedstudentsname'] = 'Word for students used in requested courses';
 $string['configrequestedteachername'] = 'Word for teacher used in requested courses';
 $string['configrequestedteachersname'] = 'Word for teachers used in requested courses';
+$string['configreverseproxyignore'] = 'If your server is behind multiple reverse proxies that append to the X-Forwarded-For header, then specify a comma-separated list of IP addresses or subnets of the reverse proxies to be ignored in order to find the user\'s correct IP address.';
 $string['configsectioninterface'] = 'Interface';
 $string['configsectionmail'] = 'Mail';
 $string['configsectionmaintenance'] = 'Maintenance';
@@ -393,6 +397,7 @@ $string['contextlockappliestoadmin'] = 'Context freezing applies to administrato
 $string['contextlockappliestoadmin_desc'] = 'If disabled, administrators remain with write access to any frozen contexts.';
 $string['cookiehttponly'] = 'Only http cookies';
 $string['cookiesecure'] = 'Secure cookies only';
+$string['contenttypeuninstalling'] = 'There are {$a->count} contents supported by {$a->type}. They will be deleted. Are you sure you want to proceed?';
 $string['country'] = 'Default country';
 $string['course_customfield'] = 'Course custom fields';
 $string['coursecolor'] = 'Colour {$a}';
@@ -423,10 +428,12 @@ $string['cron_link'] = 'admin/cron';
 $string['cronclionly'] = 'Cron execution via command line only';
 $string['cronerrorclionly'] = 'Sorry, internet access to this page has been disabled by the administrator.';
 $string['cronerrorpassword'] = 'Sorry, you have not provided a valid password to access this page';
-$string['croninfrequent'] = 'The time between the last two runs of the cron maintenance script was over {$a} seconds. We recommend configuring it to run more frequently.';
+$string['croninfrequent'] = 'There was {$a->actual} between the last two runs of the cron maintenance script and it should run every {$a->expected}. We recommend configuring it to run more frequently.';
 $string['cronremotepassword'] = 'Cron password for remote access';
-$string['cronwarning'] = 'The <a href="{$a}">cron.php maintenance script</a> has not been run for at least 24 hours.';
-$string['cronwarningcli'] = 'The cli/cron.php maintenance script has not been run for at least 24 hours.';
+$string['cronwarning'] = 'The <a href="{$a->url}">admin/cron.php script</a> has not been run for {$a->actual} and should run every {$a->expected}.';
+$string['cronwarningcli'] = 'The <code>admin/cli/cron.php</code> script has not been run for {$a->actual} and should run every {$a->expected}.';
+$string['cronwarningnever'] = 'The <code>admin/cli/cron.php</code> script has never been run and should run every {$a->expected}.';
+$string['cronwarningneverweb'] = 'The <a href="{$a->url}">admin/cron.php script</a> has never been run and should run every {$a->expected}.';
 $string['ctyperequired'] = 'The ctype PHP extension is now required by Moodle, in order to improve site performance and to offer multilingual compatibility.';
 $string['curlsecurityallowedport'] = 'cURL allowed ports list';
 $string['curlsecurityallowedportsyntax'] = 'List of port numbers that cURL can connect to. Valid entries are integer numbers only. Put each entry on a new line. If left empty, then all ports are allowed. If set, in almost all cases, both 443 and 80 should be specified for cURL to connect to standard HTTPS and HTTP ports.';
@@ -478,6 +485,7 @@ $string['devicedetectregex_desc'] = '<p>By default, Moodle can detect devices of
 $string['devicedetectregexexpression'] = 'Regular expression';
 $string['devicedetectregexvalue'] = 'Return value';
 $string['devicetype'] = 'Device type';
+$string['disabled'] = 'Disabled';
 $string['disableuserimages'] = 'Disable user profile images';
 $string['displayerrorswarning'] = 'Enabling the PHP setting <em>display_errors</em> is not recommended on production sites because some error messages may reveal sensitive information about your server.';
 $string['displayloginfailures'] = 'Display login failures';
@@ -534,10 +542,11 @@ $string['enablegravatar_help'] = 'When enabled Moodle will attempt to fetch a us
 $string['enablemobilewebservice'] = 'Enable web services for mobile devices';
 $string['enablerecordcache'] = 'Enable record cache';
 $string['enablerssfeeds'] = 'Enable RSS feeds';
-$string['enablesafebrowserintegration'] = 'Enable Safe Exam Browser integration';
 $string['enablesearchareas'] = 'Enable search areas';
 $string['enablestats'] = 'Enable statistics';
 $string['enabletrusttext'] = 'Enable trusted content';
+$string['enableuserfeedback'] = 'Enable feedback about this software';
+$string['enableuserfeedback_desc'] = 'If enabled, a \'Give feedback about this software\' link is displayed in the footer for users to give feedback about the Moodle software to Moodle HQ. If the \'Next feedback reminder\' option is set, the user is also shown a reminder on the Dashboard at the specified interval. Setting \'Next feedback reminder\' to \'Never\' disables the Dashboard reminder, while leaving the \'Give feedback about this software\' link in the footer.';
 $string['enablewebservices'] = 'Enable web services';
 $string['enablewsdocumentation'] = 'Web services documentation';
 $string['enrolinstancedefaults'] = 'Enrolment instance defaults';
@@ -570,6 +579,7 @@ $string['experimentalsettings'] = 'Experimental settings';
 $string['extendedusernamechars'] = 'Allow extended characters in usernames';
 $string['extramemorylimit'] = 'Extra PHP memory limit';
 $string['fatalsessionautostart'] = '<p>Serious configuration error detected, please notify server administrator.</p><p> To operate properly, Moodle requires that administrator changes PHP settings.</p><p><code>session.auto_start</code> must be set to <code>off</code>.</p><p>This setting is controlled by editing <code>php.ini</code>, Apache/IIS <br />configuration or <code>.htaccess</code> file on the server.</p>';
+$string['feedbacksettings'] = 'Feedback settings';
 $string['filescleanupperiod'] = 'Clean up trash pool files';
 $string['filescleanupperiod_help'] = 'How often trash pool files are deleted. These are files that are associated with a context that no longer exists, for example when a course is deleted. Please note: This setting can result in missing files in a course which is backed up, deleted and then restored if the setting \'Include files\' (backup_auto_files) in \'Automated backup settings\' is disabled.';
 $string['fileconversioncleanuptask'] = 'Cleanup of temporary records for file conversions.';
@@ -660,6 +670,7 @@ $string['intlrecommended'] = 'Intl extension is used to improve internationaliza
 $string['intlrequired'] = 'Intl extension is required to improve internationalization support, such as locale aware sorting and international domain names.';
 $string['invalidagedigitalconsent'] = 'The digital age of consent is not valid: {$a}';
 $string['invalidforgottenpasswordurl'] = 'The forgotten password URL is not a valid URL.';
+$string['invalidthemepreset'] = 'The chosen preset file is not compatible with this theme. The SCSS compile error was: "{$a}"';
 $string['invalidsection'] = 'Invalid section.';
 $string['invaliduserchangeme'] = 'Username "changeme" is reserved -- you cannot create an account with it.';
 $string['ipblocked'] = 'This site is not available currently.';
@@ -678,6 +689,8 @@ $string['langcache'] = 'Cache language menu';
 $string['langcache_desc'] = 'Cache the language menu. If enabled, the list of available translations is cached. The cache is automatically refreshed when you install or delete a language pack via the in-built language packs management tool. If you install a new language pack manually, you have to use Purge all caches feature to refresh the cached list.';
 $string['langlist'] = 'Languages on language menu';
 $string['langmenu'] = 'Display language menu';
+$string['langmenuinsecurelayout'] = 'Display language menu in secure layout';
+$string['langmenuinsecurelayout_desc'] = 'If enabled, a user will be able to change their language when attempting a quiz or other activity using secure layout.';
 $string['langpackwillbeupdated'] = 'NOTE: Moodle will try to download updates for your language packs during the upgrade.';
 $string['langstringcache'] = 'Cache all language strings';
 $string['languagesettings'] = 'Language settings';
@@ -724,6 +737,8 @@ $string['lockrequestcategory'] = 'Prevent category selection';
 $string['log'] = 'Logs';
 $string['logguests'] = 'Log guest access';
 $string['logguests_help'] = 'This setting enables logging of actions by guest account and not logged in users. High profile sites may want to disable this logging for performance reasons. It is recommended to keep this setting enabled on production sites.';
+$string['logininfoinsecurelayout'] = 'Display logged-in user in secure layout';
+$string['logininfoinsecurelayout_desc'] = 'If enabled, the logged-in user\'s full name will be displayed in the navigation bar when attempting a quiz or other activity using secure layout.';
 $string['loginpageautofocus'] = 'Autofocus login page form';
 $string['loginpageautofocus_help'] = 'Enabling this option improves usability of the login page, but automatically focusing fields may be considered an accessibility issue.';
 $string['loglifetime'] = 'Keep logs for';
@@ -749,7 +764,6 @@ $string['managecustomfields'] = 'Manage custom field types';
 $string['manageformats'] = 'Manage course formats';
 $string['manageformatsgotosettings'] = 'Default format can be changed in {$a}';
 $string['managelang'] = 'Manage';
-$string['managelicenses'] = 'Manage licences';
 $string['manageqbehaviours'] = 'Manage question behaviours';
 $string['manageqtypes'] = 'Manage question types';
 $string['maturity50'] = 'Alpha';
@@ -768,6 +782,7 @@ $string['maxeditingtime'] = 'Maximum time to edit posts';
 $string['maxusersperpage'] = ' Maximum users per page';
 $string['configmaxusersperpage'] = 'Maximum number of users displayed within user selector in course, group, cohort, webservice etc.';
 $string['mbstringrecommended'] = 'Installing the optional MBSTRING library is highly recommended in order to improve site performance, particularly if your site is supporting non-Latin languages.';
+$string['mbstringrequired'] = 'Installing the MBSTRING library is required in order to improve site performance, particularly if your site is supporting non-Latin languages.';
 $string['mediapluginavi'] = 'Enable .avi filter';
 $string['mediapluginflv'] = 'Enable .flv filter';
 $string['mediapluginimg'] = 'Enable auto-embedding of linked images';
@@ -847,8 +862,9 @@ $string['nosupportedlogstore'] = 'No supported logstore found';
 $string['maxtimelimit'] = 'Maximum time limit';
 $string['maxtimelimit_desc'] = 'To restrict the maximum PHP execution time that Moodle will allow without any output being displayed, enter a value in seconds here. 0 means that Moodle default restrictions are used. If you have a front-end server with its own time limit, set this value lower to receive PHP errors in logs. Does not apply to CLI scripts.';
 $string['moodleapp'] = 'Moodle app';
-$string['moodleapp_help'] = '<p>If you have an account on a Moodle site, you can access all your courses on your mobile devices with our free mobile app for Moodle.</p>
-<a href="https://moodle.com/mobile-app">Get the Moodle app</a>';
+$string['moodleapp_help'] = '<p>The free Moodle app enables users to access their courses on mobile devices. Additional app features are available with a Pro or Premium app plan.</p>
+<a href="https://moodle.com/mobile-app">Get the Moodle app</a><br />
+<a href="https://apps.moodle.com">Moodle Apps Portal</a>';
 $string['moodlebrandedapp'] = 'Branded Moodle app';
 $string['moodlebrandedapp_help'] = '<p>The Branded Moodle app has all the functionality of our free mobile app for Moodle combined with your own custom branding.</p>
 <a href="https://moodle.com/branded-app">About the Branded Moodle app</a>';
@@ -890,6 +906,7 @@ $string['passwordchangelogout_desc'] = 'If enabled, when a password is changed, 
 $string['passwordchangetokendeletion'] = 'Remove web service access tokens after password change';
 $string['passwordchangetokendeletion_desc'] = 'If enabled, when a password is changed, all the user web service access tokens are deleted.';
 $string['passwordpolicy'] = 'Password policy';
+$string['passwordpolicycheckonlogin'] = 'Check password on login';
 $string['passwordresettime'] = 'Maximum time to validate password reset request';
 $string['passwordreuselimit'] = 'Password rotation limit';
 $string['passwordreuselimit_desc'] = 'Number of times a user must change their password before they are allowed to reuse a password. Hashes of previously used passwords are stored in local database table. This feature might not be compatible with some external authentication plugins.';
@@ -1029,12 +1046,15 @@ $string['registration_help'] = 'By registering:
 $string['registrationwarning'] = 'Your site is not yet registered.';
 $string['registrationwarningcontactadmin'] = 'Your site is not yet registered. Please notify your administrator.';
 $string['releasenoteslink'] = 'For information about this version of Moodle, please see the online <a target="_blank" href="{$a}">Release Notes</a>';
+$string['rememberuserlicensepref'] = 'Remember user licence preference';
+$string['rememberuserlicensepref_help'] = 'If enabled, the last licence selected by the user is preselected when uploading a file in the file picker. Otherwise, the default site licence is preselected.';
 $string['rememberusername'] = 'Remember username';
 $string['rememberusername_desc'] = 'Enable if you want to store permanent cookies with usernames during user login. Permanent cookies may be considered a privacy issue if used without consent.';
 $string['reportsmanage'] = 'Manage reports';
 $string['requiredentrieschanged'] = 'Note: After upgrading, the setting \'Required entries before viewing\' is now enforced in the following database activities:<br/>{$a->text}<br/>';
 $string['requiremodintro'] = 'Require activity description';
 $string['requiremodintro_desc'] = 'If enabled, users will be forced to enter a description for each activity.';
+$string['required'] = 'Required';
 $string['requires'] = 'Requires';
 $string['purgecaches'] = 'Purge all caches';
 $string['purgecachesconfirm'] = 'Moodle can cache themes, javascript, language strings, filtered text, rss feeds and many other pieces of calculated data.  Purging these caches will delete that data from the server and force browsers to refetch data, so that you can be sure you are seeing the most up-to-date values produced by the current code.  There is no danger in purging caches, but your site may appear slower for a while until the server and clients calculate new information and cache it.';
@@ -1055,6 +1075,7 @@ $string['restorernewroleid'] = 'Restorers\' role in courses';
 $string['restorernewroleid_help'] = 'If the user does not already have the permission to manage the newly restored course, the user is automatically assigned this role and enrolled if necessary. Select "None" if you do not want restorers to be able to manage every restored course.';
 $string['resultfilter'] = 'Filter by result';
 $string['reverseproxy'] = 'Reverse proxy';
+$string['reverseproxyignore'] = 'Ignore reverse proxies';
 $string['riskconfig'] = 'Users could change site configuration and behaviour';
 $string['riskconfigshort'] = 'Configuration risk';
 $string['riskdataloss'] = 'Users could destroy large amounts of content or information';
@@ -1204,10 +1225,10 @@ $string['task_scheduled_concurrency_limit'] = 'Scheduled task concurrency limit'
 $string['task_scheduled_concurrency_limit_desc'] = 'The number of scheduled task runners allowed to run concurrently. If the limit is high then the server may experience high load which affects performance. A setting of 0 will disable processing of scheduled tasks completely.';
 $string['task_scheduled_max_runtime'] = 'Scheduled task runner lifetime';
 $string['task_scheduled_max_runtime_desc'] = 'The age of a scheduled task runner before it is freed.';
-$string['task_adhoc_concurrency_limit'] = 'Adhoc task concurrency limit';
-$string['task_adhoc_concurrency_limit_desc'] = 'The number of adhoc task runners allowed to run concurrently. If the limit is high then scheduled tasks may not run regularly when there are lots of adhoc tasks. A setting of 0 will disable processing of adhoc tasks completely.';
-$string['task_adhoc_max_runtime'] = 'Adhoc task runner lifetime';
-$string['task_adhoc_max_runtime_desc'] = 'The age of an adhoc task runner before it is freed. A low duration is recommended as there is no limit to the number of adhoc tasks queued. If this number is too high and you have a large adhoc task queue then scheduled tasks may not be run regularly.';
+$string['task_adhoc_concurrency_limit'] = 'Ad hoc task concurrency limit';
+$string['task_adhoc_concurrency_limit_desc'] = 'The number of ad hoc task runners allowed to run concurrently. If the limit is high then scheduled tasks may not run regularly when there are lots of ad hoc tasks. A setting of 0 will disable processing of ad hoc tasks completely.';
+$string['task_adhoc_max_runtime'] = 'Ad hoc task runner lifetime';
+$string['task_adhoc_max_runtime_desc'] = 'The age of an ad hoc task runner before it is freed. A low duration is recommended as there is no limit to the number of ad hoc tasks queued. If this number is too high and you have a large ad hoc task queue then scheduled tasks may not be run regularly.';
 $string['task_logmode'] = 'When to log';
 $string['task_logmode_desc'] = 'You can choose when you wish task logging to take place. By default logs are always captured. You can disable logging entirely, or change to only log tasks which fail.';
 $string['task_logmode_none'] = 'Do not log anything';
@@ -1394,6 +1415,15 @@ $string['useexternalyui'] = 'Use online YUI libraries';
 $string['user'] = 'User';
 $string['userbulk'] = 'Bulk user actions';
 $string['userbulkdownload'] = 'Export users as';
+$string['userfeedbackafterupgrade'] = 'After every major upgrade';
+$string['userfeedbackencouragement'] = '<p>Moodle 3.9 includes a new feature that gives users the option to provide feedback about the Moodle software to Moodle HQ via an external survey site hosted by Moodle HQ. No user-identifying information is forwarded to the survey site.</p>
+<p>Moodle HQ strives to be open and transparent about its data collection practices. Thus, we want to make sure that you are aware and in control of this functionality.</p>
+<p>Feedback from users will greatly assist Moodle HQ in improving the Moodle software. To enable this feature, please go to <a href="{$a}">Feedback settings</a>.</p>';
+$string['userfeedbacknextreminder'] = 'Next feedback reminder';
+$string['userfeedbacknextreminder_desc'] = 'When should we ask the user to give feedback again?';
+$string['userfeedbackperiodically'] = 'Periodically';
+$string['userfeedbackremindafter'] = 'Show reminder after';
+$string['userfeedbackremindafter_desc'] = 'Remind users again to give feedback after the given number of days.';
 $string['userimagesdisabled'] = 'Profile user images are disabled';
 $string['userlist'] = 'Browse list of users';
 $string['userdefaultpreferences'] = 'User default preferences';
@@ -1442,3 +1472,7 @@ $string['registermoodleorgli2'] = 'Statistics about your site will be added to t
 $string['registerwithmoodleorg'] = 'Register your site';
 $string['configrequestcategoryselection'] = 'Allow the selection of a category when requesting a course.';
 $string['requestcategoryselection'] = 'Enable category selection';
+
+// Deprecated since Moodle 3.9.
+$string['availablelicenses'] = 'Available licences';
+$string['managelicenses'] = 'Manage licences';

@@ -14,6 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Renderers to align Moodle's HTML with that expected by Bootstrap
+ *
+ * @package   theme_remui
+ * @copyright 2012 Bas Brands, www.basbrands.nl
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace theme_remui\output;
 
 use moodle_url;
@@ -34,21 +43,13 @@ defined('MOODLE_INTERNAL') || die;
  * @copyright  2012 Bas Brands, www.basbrands.nl
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class core_renderer extends \core_renderer {
 
-    protected $themeconfig;
-
     /**
-     * We don't like these...
-     *
+     * Theme configuration
+     * @var object
      */
-    public function edit_button(moodle_url $url) {
-        if (get_config('theme_remui', 'courseeditbutton') == '1') {
-            return \core_renderer::edit_button($url);
-        }
-        return '';
-    }
+    protected $themeconfig;
 
     /**
      * Constructor
@@ -61,6 +62,10 @@ class core_renderer extends \core_renderer {
         $this->themeconfig = array(\theme_config::load('remui'));
     }
 
+    /**
+     * Get theme configuration
+     * @return object Theme configuration
+     */
     public function get_theme_config() {
         return $this->themeconfig;
     }
@@ -84,50 +89,17 @@ class core_renderer extends \core_renderer {
     }
 
     /**
-     * Allow plugins to provide some content to be rendered in the navbar.
-     * The plugin must define a PLUGIN_render_navbar_output function that returns
-     * the HTML they wish to add to the navbar.
-     *
-     * @return string HTML for the navbar
-     */
-    public function navbar_plugin_output() {
-        $output = '';
-        // Merge messaging panel into right sidebar or not.
-        $mergemessagingsidebar = \theme_remui\toolbox::get_setting('mergemessagingsidebar');
-        // Give subsystems an opportunity to inject extra html content. The callback
-        // must always return a string containing valid html.
-        foreach (\core_component::get_core_subsystems() as $name => $path) {
-            if ($path) {
-                // Remui, because messages are in sidebar, so skip here.
-                if ($mergemessagingsidebar && $name == 'message') {
-                    continue;
-                }
-                $output .= component_callback($name, 'render_navbar_output', [$this], '');
-            }
-        }
-
-        if ($pluginsfunction = get_plugins_with_function('render_navbar_output')) {
-            foreach ($pluginsfunction as $plugintype => $plugins) {
-                foreach ($plugins as $pluginfunction) {
-                    $output .= $pluginfunction($this);
-                }
-            }
-        }
-        return $output;
-    }
-
-    /**
      * Show license or update notice
      *
      * @return HTML for license notice.
      */
     public function show_license_notice() {
         // Get license data from license controller.
-        $lcontroller = new \theme_remui\controller\license_controller();
-        $getlidatafromdb = $lcontroller->getDataFromDb();
+        $lcontroller = new \theme_remui\controller\LicenseController();
+        $getlidatafromdb = $lcontroller->get_data_from_db();
         if (isloggedin() && !isguestuser()) {
             $content = '';
-            $classes = ['alert', 'alert-danger', 'text-center', 'text-white'];
+            $classes = ['alert', 'text-center', 'text-white'];
             if ('available' != $getlidatafromdb) {
                 $classes[] = 'bg-danger';
                 if (is_siteadmin()) {
@@ -136,17 +108,24 @@ class core_renderer extends \core_renderer {
                     $content .= get_string('licensenotactive', 'theme_remui');
                 }
             } else if ('available' == $getlidatafromdb) {
-                $licensekeyactivate = \theme_remui\toolbox::get_setting('licensekeyactivate');
+                $licensekeyactivate = \theme_remui\toolbox::get_setting(EDD_LICENSE_ACTION);
 
                 if (isset($licensekeyactivate) && !empty($licensekeyactivate)) {
                     $classes[] = 'bg-success';
                     $content .= get_string('licensekeyactivated', 'theme_remui');
                 } else {
-                    // Show update notice if license is active and update is available
-                    $available  = \theme_remui\utility::check_remui_update();
+                    // Show update notice if license is active and update is available.
+                    $available  = \theme_remui\controller\RemUIController::check_remui_update();
                     if (is_siteadmin() && $available == 'available') {
-                        $classes[] = 'update-nag bg-info';
-                        $content .= get_string('newupdatemessage', 'theme_remui');
+                        $classes[] = 'update-nag bg-info moodle-has-zindex';
+                        $url = new moodle_url(
+                            '/admin/settings.php',
+                            array(
+                                'section' => 'themesettingremui',
+                                'activetab' => 'informationcenter'
+                            )
+                        );
+                        $content .= get_string('newupdatemessage', 'theme_remui', $url->out());
                     }
                 }
             }
@@ -154,7 +133,14 @@ class core_renderer extends \core_renderer {
                 $content .= '<button type="button" class="close text-white" data-dismiss="alert" aria-hidden="true">×</button>';
                 return html_writer::tag('div', $content, array(
                     'class' => implode(' ', $classes),
-                    'style' => 'position: fixed; z-index: 9999; width: 100%; top: 60px; left: 0; right: 0; border: 0; border-radius: 0;'
+                    'style' => 'position: fixed;
+                                z-index: 9999;
+                                width: 100%;
+                                top: 60px;
+                                left: 0;
+                                right: 0;
+                                border: 0;
+                                border-radius: 0;'
                 ));
             }
         }
@@ -591,15 +577,20 @@ class core_renderer extends \core_renderer {
         type='text/css'>";
 
         // Add google analytics code.
-        $gajsasync = "<!-- Google Analytics --><script>window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new
-        Date;ga('create', 'UA-CODE-X', 'auto');ga('send', 'pageview');</script><script async src='https://www.google-analytics.com/
-        analytics.js'></script><!-- End Google Analytics -->";
-
         $gatrackingcode = trim(\theme_remui\toolbox::get_setting('googleanalytics'));
-        if (!empty($gatrackingcode)) {
-            $output .= str_replace("UA-CODE-X", $gatrackingcode, $gajsasync);
-        }
 
+        if (!empty($gatrackingcode)) {
+            $output .= "<!-- Global site tag (gtag.js) - Google Analytics -->";
+            $output .= "<script async src='https://www.googletagmanager.com/gtag/js?id=";
+            $output .= $gatrackingcode."'></script>
+            <script>
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+
+              gtag('config', '".$gatrackingcode."');
+            </script><!-- Google Analytics -->";
+        }
         return $output;
     }
 
@@ -631,11 +622,14 @@ class core_renderer extends \core_renderer {
         // Moved from full_header for proper remui html structure.
         $pageheadingbutton = $this->page_heading_button();
 
+        // $contextheader->headinglevel, before it was used instead $heading_level
+        $heading_level = 3;
+
         // Headings.
         if (!isset($contextheader->heading)) {
-            $headings = $this->heading($this->page->heading, $contextheader->headinglevel, 'page-title font-size-24 mb-0');
+            $headings = $this->heading($this->page->heading, $heading_level, 'page-title mb-0');
         } else {
-            $headings = $this->heading($contextheader->heading, $contextheader->headinglevel, 'page-title font-size-24 mb-0');
+            $headings = $this->heading($contextheader->heading, $heading_level, 'page-title mb-0');
         }
 
         $html .= "<div class='mr-2'>";
@@ -692,6 +686,7 @@ class core_renderer extends \core_renderer {
 
         // Page header actions.
         $html .= html_writer::start_div('page-header-actionss position-relative d-flex ml-1');
+
         $html .= $this->context_header_settings_menu();
 
         if ($overlay && strpos($PAGE->bodyclasses, 'path-mod-forum') || !$overlay) {
@@ -700,6 +695,20 @@ class core_renderer extends \core_renderer {
         if (!$overlay) {
             $html .= $htmltemp;
         }
+
+	// Extra Dropdown button, available on content bank page
+	// Do not move this code anywhere else in the function.
+	// This code must be in between !overlay and $overlay condition
+	// Here our setting for merging the action buttons in dropdown is satisfied.  
+	$headeractionbuttons = '';
+        $headeractionbuttons .= '<div class="header-actions-container flex-shrink-0" data-region="header-actions-container">';
+        foreach ($this->page->get_header_actions() as $key => $value) {
+            $headeractionbuttons .= '<div class="header-action ml-2">' .$value. '</div>';
+            
+        }
+        $headeractionbuttons .= '</div>';
+	
+	$html .= $headeractionbuttons;
 
         // Show overlay menu icon if overlay is enabled and there are menu items (in html temp).
         if ($overlay) {
@@ -769,10 +778,7 @@ class core_renderer extends \core_renderer {
         $activitylist = [];
         foreach ($modules as $module) {
             // Only add activities the user can access, aren't in stealth mode and have a url (eg. mod_label does not).
-		
-	    // (gav) JCA 20200216 removed uservisible ccheck because it screwed with the next button.
-            //if (!$module->uservisible || $module->is_stealth() || empty($module->url)) {
-            if ($module->is_stealth() || empty($module->url)) {
+            if (!$module->uservisible || $module->is_stealth() || empty($module->url)) {
                 continue;
             }
             $mods[$module->id] = $module;
@@ -846,11 +852,21 @@ class core_renderer extends \core_renderer {
     public function render_site_announcement() {
         $enableannouncement = \theme_remui\toolbox::get_setting('enableannouncement');
         $announcement = '';
-        if ($enableannouncement) {
+        if ($enableannouncement && !get_user_preferences('remui_dismised_announcement')) {
             $type = \theme_remui\toolbox::get_setting('announcementtype');
             $message = \theme_remui\toolbox::get_setting('announcementtext');
+            $dismissable = \theme_remui\toolbox::get_setting('enabledismissannouncement');
+            $extraclass = '';
+            $buttonhtml = '';
+            if ($dismissable) {
+                $buttonhtml .= '<button id="dismiss_announcement" type="button" class="close" data-dismiss="alert" aria-label="Close">';
+                $buttonhtml .= '<span aria-hidden="true">&times;</span>';
+                $buttonhtml .= '</button>';
+                $extraclass = 'alert-dismissible';
+            }
 
-            $announcement .= "<div class='alert alert-{$type} dark text-center rounded-0 site-announcement m-b-0'>";
+            $announcement .= "<div class='alert alert-{$type} dark text-center rounded-0 site-announcement m-b-0 $extraclass' role='alert'>";
+            $announcement .= $buttonhtml;
             $announcement .= $message;
             $announcement .= "</div>";
         }

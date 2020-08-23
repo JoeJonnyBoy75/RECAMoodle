@@ -16,9 +16,9 @@
 
 /**
  * Edwiser RemUI
- * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace theme_remui\output;
@@ -36,7 +36,9 @@ class mod_quiz_renderer extends \mod_quiz_renderer {
 
     /**
      * Return the HTML of the quiz timer.
-     * @return string HTML content.
+     * @param  quiz_attempt $attemptobj Attempt object
+     * @param  string $timenow    Time now
+     * @return string             HTML content
      */
     public function countdown_timer(\quiz_attempt $attemptobj, $timenow) {
 
@@ -61,6 +63,39 @@ class mod_quiz_renderer extends \mod_quiz_renderer {
         if (isset($timerstartvalue) && $timerstartvalue != null) {
             $output .= '<div id="quiztimer" class="quiztimer" data-timer="'.($timerstartvalue - 2).'"></div>';
         }
+
+        return $output;
+    }
+    /**
+     * Outputs the navigation block panel
+     *
+     * @param quiz_nav_panel_base $panel instance of quiz_nav_panel_base
+     */
+    public function navigation_panel(\quiz_nav_panel_base $panel) {
+        $output = '';
+        $userpicture = $panel->user_picture();
+        if ($userpicture) {
+            $fullname = fullname($userpicture->user);
+            if ($userpicture->size === true) {
+                $fullname = html_writer::div($fullname);
+            }
+            $output .= html_writer::tag('div', $this->render($userpicture) . $fullname,
+                    array('id' => 'user-picture', 'class' => 'clearfix'));
+        }
+        $output .= html_writer::tag('div', $panel->render_end_bits($this),
+                array('class' => 'othernav'));
+        $output .= $panel->render_before_button_bits($this);
+
+        $bcc = $panel->get_button_container_class();
+        $output .= html_writer::start_tag('div', array('class' => "qn_buttons clearfix $bcc"));
+        foreach ($panel->get_question_buttons() as $button) {
+            $output .= $this->render($button);
+        }
+        $output .= html_writer::end_tag('div');
+
+
+        $this->page->requires->js_init_call('M.mod_quiz.nav.init', null, false,
+                quiz_get_js_module());
 
         return $output;
     }

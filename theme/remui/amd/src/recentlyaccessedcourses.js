@@ -21,7 +21,7 @@
  * @copyright  2018 Victor Deniz <victor@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
+"use strict";
 define(
     [
         'jquery',
@@ -48,6 +48,7 @@ define(
         // Constants.
         var NUM_COURSES_TOTAL = 10;
         var SELECTORS = {
+            BLOCK_CONTAINER: '[data-region="recentlyaccessedcourses"]',
             CARD_CONTAINER: '[data-region="card-deck"]',
             COURSE_IS_FAVOURITE: '[data-region="is-favourite"]',
             CONTENT: '[data-region="view-content"]',
@@ -127,7 +128,9 @@ define(
          * @return {promise} Resolved with list of rendered courses as jQuery objects.
          */
         var renderAllCourses = function(courses) {
+            var showcoursecategory = $(SELECTORS.BLOCK_CONTAINER).data('displaycoursecategory');
             var promises = courses.map(function(course) {
+                course.showcoursecategory = showcoursecategory;
                 return Templates.render('block_recentlyaccessedcourses/course-card', course);
             });
 
@@ -173,6 +176,14 @@ define(
                 container.slick('unslick');
             }
             container.html(allCourses);
+            $('.block_recentlyaccessedcourses .dashboard-card-deck').css("overflow", "unset");
+
+            // TODO  make the colors global var, so can be used without duplication.
+            var colors = ['#f39f45', '#f95e5f', '#2fb0bf', '#2fb786', '#526069', '#46657d'];
+            $('.block_recentlyaccessedcourses .wdm-course-card-body').each(function(index, element) {
+                index = index >= colors.length ? index % colors.length : index;
+                $(element).css('background-color', colors[index]);
+            });
             container.slick({
                 dots: false,
                 arrows: true,
@@ -188,20 +199,19 @@ define(
                         slidesToShow: 3,
                         slidesToScroll: 3
                     }
-                    }, {
+                }, {
                     breakpoint: 800,
                     settings: {
                         slidesToShow: 2,
                         slidesToScroll: 2
                     }
-                    }, {
+                }, {
                     breakpoint: 480,
                     settings: {
                         slidesToShow: 1,
                         slidesToScroll: 1
                     }
-                    }
-                ]
+                }]
             });
         };
 
@@ -259,13 +269,13 @@ define(
                     return;
                 }
 
-                // Resize events fire rapidly so recalculating the visible courses each
-                // time can be expensive. Let's debounce them,
+                // Resize events fire rapidly so recalculating the visible courses each.
+                // Time can be expensive. Let's debounce them.
                 if (!resizeTimeout) {
                     resizeTimeout = setTimeout(function() {
                         resizeTimeout = null;
                         renderCourses(root);
-                    // The renderCourses function will execute at a rate of 15fps.
+                        // The renderCourses function will execute at a rate of 15fps.
                     }, 66);
                 }
             });

@@ -16,51 +16,59 @@
 
 /**
  * Edwiser RemUI
- * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG, $PAGE, $USER, $SITE, $COURSE;
 
-require_once('common.php');
 
+if (stripos($PAGE->url->get_path(), '/course/index.php') !== false) {
 
-// Generate page url.
-$pageurl = new moodle_url('/course/index.php');
-$mycourses  = optional_param('mycourses', 0, PARAM_INT);
+    require_once('common.php');
 
-// Get the filters first.
-$filterdata = \theme_remui\utility::get_course_filters_data();
-$templatecontext['categories'] = $filterdata['catdata'];
-$templatecontext['searchhtml'] = $filterdata['searchhtml'];
+    // Generate page url.
+    $pageurl = new moodle_url('/course/index.php');
+    $mycourses  = optional_param('mycourses', 0, PARAM_INT);
 
-$templatecontext['tabcontent'] = array();
+    // Get the filters first.
+    $filterdata = \theme_remui_coursehandler::get_course_filters_data();
 
-if (isloggedin()) {
-    // Tab creation Content.
-    $mycoursesobj = new stdClass();
-    $mycoursesobj->name = 'mycourses';
-    $mycoursesobj->text = get_string('mycourses', 'theme_remui');
-    if ($mycourses) {
-        $mycoursesobj->isActive = true;
+    $templatecontext['hasregionmainsettingsmenu'] = !$OUTPUT->region_main_settings_menu();
+
+    $templatecontext['categories'] = $filterdata['catdata'];
+    $templatecontext['searchhtml'] = $filterdata['searchhtml'];
+
+    $templatecontext['tabcontent'] = array();
+
+    if (isloggedin()) {
+        // Tab creation Content.
+        $mycoursesobj = new stdClass();
+        $mycoursesobj->name = 'mycourses';
+        $mycoursesobj->text = get_string('mycourses', 'theme_remui');
+        if ($mycourses) {
+            $mycoursesobj->isActive = true;
+        }
+        $templatecontext['tabcontent'][] = $mycoursesobj;
     }
-    $templatecontext['tabcontent'][] = $mycoursesobj;
-}
 
-$coursesobj = new stdClass();
-$coursesobj->name = 'courses';
-$coursesobj->text = get_string('courses', 'theme_remui');
-if (!$mycourses) {
-    $coursesobj->isActive = true;
-}
-$templatecontext['tabcontent'][] = $coursesobj;
+    $coursesobj = new stdClass();
+    $coursesobj->name = 'courses';
+    $coursesobj->text = get_string('courses', 'theme_remui');
+    if (!$mycourses) {
+        $coursesobj->isActive = true;
+    }
+    $templatecontext['tabcontent'][] = $coursesobj;
 
-$templatecontext['mycourses'] = $mycourses;
-if (\theme_remui\toolbox::get_setting('enablenewcoursecards')) {
-    $templatecontext['latest_card'] = true;
-}
+    $templatecontext['mycourses'] = $mycourses;
+    if (\theme_remui\toolbox::get_setting('enablenewcoursecards')) {
+        $templatecontext['latest_card'] = true;
+    }
 
-echo $OUTPUT->render_from_template('theme_remui/coursearchive', $templatecontext);
+    echo $OUTPUT->render_from_template('theme_remui/coursearchive', $templatecontext);
+} else {
+    require_once('columns2.php');
+}

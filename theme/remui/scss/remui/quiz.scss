@@ -19,9 +19,9 @@
 
     &.flagged {
         .thispageholder {
-            background-image: url([[pix:theme|flag]]) !important;
-            background-position-y: -10px !important;
-            background-repeat: repeat-x !important;
+    //         background-image: url([[pix:theme|flag]]) !important;
+            background-position-y: -4px !important;
+    //         background-repeat: repeat-x !important;
         }
     }
 
@@ -66,7 +66,7 @@
     display: none;
     border-radius: 2px;
 
-    @media (min-width: 34rem) {
+    @include media-breakpoint-up(md) {
         display: none !important;
     }
 }
@@ -98,7 +98,7 @@
     text-align: center;
     text-transform: uppercase;
     line-height: 1;
-}   
+}
 
 table.quizreviewsummary th.cell, table.quizreviewsummary td.cell {
     background: white;
@@ -106,9 +106,35 @@ table.quizreviewsummary th.cell, table.quizreviewsummary td.cell {
     vertical-align: middle;
     border-color: #f1f4f5;
 }
-#page-mod-quiz-edit ul.slots li.section li.activity {
-    margin: 25px 0px;
+#page-mod-quiz-edit {
+    ul.slots li.section li.activity {
+        margin: 25px 0px;
+    }
+    .section-heading form input {
+        display: inline-block !important;
+    }
+    .mod_quiz-edit-top-controls {
+        .selectmultiplecommand + [role="toolbar"] {
+            width: unset;
+            height: unset;
+            text-align: left;
+            background: unset;
+            padding: unset;
+        }
+    }
+    .last-add-menu {
+        height: 4em;
+    }
 }
 #mod_quiz_preflight_form #fgroup_id_buttonar {
     padding: 10px !important;
+}
+
+// Make the quiz time sticky in right sidebar.
+#page-mod-quiz-attempt .page-aside #mod_quiz_navblock .card-body .othernav{
+    position: sticky;
+    top: 0px;
+    z-index: 2;
+    padding-bottom: 10px;
+    background: #fff;
 }

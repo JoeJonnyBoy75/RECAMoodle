@@ -1,10 +1,29 @@
 Change Log:
 ===========
 
-Version 3.8.0
+Version 3.9.1
 
-Edwiser RemUI now compatible with Moodle version 3.8
-Initial Release of Edwiser RemUI 3.8
+Fix - "No Course Found" string on Course Archive page made translation ready.
+Fix - Course stats on course page were showing release without considering the completion criteria.
+Fix - Issue in activity icon size in the competencies page.
+Fix - Error with "Configurable Reports" plugin.
+Fix - Activity Navigation in Focus Mode not working properly with restricted activities.
+Fix - Course Name in Focus Mode, when too long styling issue with ellipsis.
+Fix - Activity Navigation in Focus Mode made translation ready.
+Fix - Left Sidebar Activity Navigation, List item styling issue with restricted activities.
+Fix - Clear Choice Button not available on Quiz page for Multiple choice questions.
+Fix - Bullets points are not visible in Topic Description.
+Fix - Date Picker from Restrict Access in activity edit setting was having style issue.
+Fix - Missing option to rename in content bank issue.
+Fix - Dropdown overlapping issue on Course activity page.
+Fix - Quiz Question flag issue.
+Fix - Grading page Action buttons position issue.
+Tweak - Site Wide announcements, Made dismissible.
+Tweak - Removed Unnecessary CSS from Theme.
+Tweak - Code Optimization.
 
-Tweak - Bootstrap updated to 4.3.1
-Tweak - Google Fonts link Added in Language files.
+Version 3.9.0
+
+Initial Version of Edwiser RemUI, made compatible with latest version of Moodle 3.9
+
+Fix - Admins could not edit the sidebar blocks when homepage is active.

@@ -15,14 +15,17 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Admin settings tab
  * @package   theme_remui
  * @copyright 2016 Ryan Wyllie
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 /**
+ * Admin settings tab
  * @package   theme_remui
  * @copyright 2016 Ryan Wyllie
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -34,8 +37,8 @@ class theme_remui_admin_settingspage_tabs extends admin_settingpage {
 
     /**
      * Add a tab.
-     *
      * @param admin_settingpage $tab A tab.
+     * @return bool Tab adding status
      */
     public function add_tab(admin_settingpage $tab) {
         foreach ($tab->settings as $setting) {
@@ -45,6 +48,11 @@ class theme_remui_admin_settingspage_tabs extends admin_settingpage {
         return true;
     }
 
+    /**
+     * Add tab in tab list
+     * @param admin_settingpage $tab Tab item
+     * @return bool Tab adding status
+     */
     public function add($tab) {
         return $this->add_tab($tab);
     }
@@ -66,7 +74,9 @@ class theme_remui_admin_settingspage_tabs extends admin_settingpage {
     public function output_html() {
         global $OUTPUT, $CFG;
 
-        $activetab = optional_param('activetab', '', PARAM_TEXT);
+        $activetab = optional_param('activetab', get_config('theme_remui', 'activetab'), PARAM_ALPHA);
+        unset_config('activetab', 'theme_remui');
+
         $context = array('tabs' => array());
         $havesetactive = false;
 
@@ -89,38 +99,16 @@ class theme_remui_admin_settingspage_tabs extends admin_settingpage {
             );
         }
 
-        // License tab content.
-        ob_start();
-        include_once($CFG->dirroot . '/theme/remui/remui_license.php');
-        $licensecontent = ob_get_clean();
-        // License tab.
-        $context['tabs'][] = array(
-            'name' => 'remuilicensestatus',
-            'displayname' => get_string('licensestatus', 'theme_remui'),
-            'html' => $licensecontent,
-            'active' => $active,
-            'customclass' => 'remuitab'
-        );
-
         // Announcements tab content.
         ob_start();
-        include_once($CFG->dirroot . '/theme/remui/remui_announcements.php');
-        $announcementscontent = ob_get_clean();
-        // Announcements tab.
+        include_once($CFG->dirroot . '/theme/remui/information_center.php');
+        $informationcenter = ob_get_clean();
+        // Information center.
         $context['tabs'][] = array(
-            'name' => 'remuinewsandupdates',
-            'displayname' => get_string('newsandupdates', 'theme_remui'),
-            'html' => $announcementscontent,
-            'active' => $active,
-            'customclass' => 'remuitab'
-        );
-
-        // About us.
-        $context['tabs'][] = array(
-            'name' => 'aboutemui',
-            'displayname' => get_string('aboutremui', 'theme_remui'),
-            'html' => get_string('choosereadme', 'theme_remui'),
-            'active' => $active,
+            'name' => 'informationcenter',
+            'displayname' => get_string('informationcenter', 'theme_remui'),
+            'html' => $informationcenter,
+            'active' => $activetab == 'informationcenter',
             'customclass' => 'remuitab'
         );
 

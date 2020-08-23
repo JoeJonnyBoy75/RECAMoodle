@@ -23,7 +23,8 @@
             }
         }
         li.section ul {
-            padding: 0;
+            // padding: 0;
+            padding-inline-start: 20px;
             li.activity {
                 padding: .3em;
             }
@@ -187,4 +188,33 @@
 #page-course-view-remuiformat.editing ul.remui-format-list h4.sectionname {
     padding: 10px 0px !important;
     clear: none !important;
+}
+
+// collapsibletopics padding fix
+.format-collapsibletopics .course-content li.section {
+    @extend .p-3;
+}
+// Course Page Bullets padding issue
+.pagelayout-course, .pagelayout-incourse {
+    #page-content {
+        .generalbox {
+            ul {
+                padding-left: 2rem !important;
+            }
+        }
+    }
+}
+
+// Competency Icons Problem
+div[data-region="coursecompetencyactivities"] .list-inline li.list-inline-item {
+    width: 75px;
+    vertical-align: top;
+    text-align: center;
+}
+.list-group-item {
+    &.activity {
+        .dimmed_text {
+            padding: 16px 32px;
+        }
+    }
 }

@@ -15,19 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Theme functions.
- *
- * @package    theme_remui
- * @copyright  2016 Frédéric Massart - FMCorz.net
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Edwiser RemUI them functions
+ * @package   theme_remui
+ * @copyright 2016 Frédéric Massart - FMCorz.net
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
-
-
-// Handle license status change on form submit.
-$lcontroller = new \theme_remui\controller\license_controller();
-$lcontroller->addData();
 
 /**
  * Reset all caches
@@ -99,14 +94,15 @@ function theme_remui_pluginfile($course, $cm, $context, $filearea, $args, $force
     $settings = [
         'frontpageloader',
         'staticimage',
-        'testimonialimage0',
         'testimonialimage1',
         'testimonialimage2',
+        'testimonialimage3',
         'slideimage0',
         'slideimage1',
         'slideimage2',
         'slideimage3',
         'slideimage4',
+        'slideimage5',
         'frontpageblockimage1',
         'frontpageblockimage2',
         'frontpageblockimage3',
@@ -268,8 +264,18 @@ function get_file_img_url($itemid, $component, $filearea) {
     return "";
 }
 
+/**
+ * Process CSS content. This function replace tags and primary colors.
+ * @param  string $css   CSS content passed by moodle
+ * @param  object $theme Theme object
+ * @return string        Processed CSS content
+ */
 function theme_remui_process_css($css, $theme) {
-    // Set login background.
+    global $PAGE, $OUTPUT;
+    $outputus = $PAGE->get_renderer('theme_remui', 'core');
+    \theme_remui\toolbox::set_core_renderer($outputus);
+
+    // set login background
     $tag = '[[setting:login_bg]]';
     $loginbg = \theme_remui\toolbox::setting_file_url('loginsettingpic', 'loginsettingpic');
     if (empty($loginbg)) {
@@ -277,7 +283,11 @@ function theme_remui_process_css($css, $theme) {
     }
     $css = str_replace($tag, $loginbg, $css);
 
-    // Get the theme font from setting and apply it in CSS.
+    // Set the signup panel text color
+    $signuptextcolor = \theme_remui\toolbox::get_setting('signuptextcolor');
+    $css = \theme_remui\toolbox::set_color($css, $signuptextcolor, "'[[setting:signuptextcolor]]'", '#fff');
+
+    // Get the theme font from setting and apply it in CSS
     if (\theme_remui\toolbox::get_setting('fontselect') === "2") {
         $fontname = ucwords(\theme_remui\toolbox::get_setting('fontname'));
     }
@@ -300,7 +310,7 @@ function theme_remui_process_css($css, $theme) {
         $css = str_replace('#1177d1', $colorhex, $css);
         $css = str_replace('#62a8ea', $colorhex, $css);
         $css = str_replace('#3e8ef7', $colorhex, $css);
-        $css = str_replace('#589ffc', '#'.$colorobj->darken(3), $css); // on hover
+        $css = str_replace('#589ffc', '#'.$colorobj->darken(3), $css); // On hover.
         $css = str_replace('#0e63ae', '#'.$colorobj->darken(3), $css);
         $css = str_replace('#55a1e8', '#'.$colorobj->darken(3), $css); // On Hover.
         $css = str_replace('#4c9ce7', '#'.$colorobj->darken(5), $css); // On Hover.

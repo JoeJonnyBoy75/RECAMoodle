@@ -19,6 +19,7 @@
  *
  * @package   theme_remui
  * @copyright 2016 Damyon Wiese
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -35,5 +36,10 @@ $key = array_search('student', array_column($roles, 'shortname'));
 if ($key === false || is_siteadmin()) {
     $templatecontext['notstudent'] = true;
 }
-
+if (isset($templatecontext['focusdata']['enabled']) && $templatecontext['focusdata']['enabled']) {
+    list(
+        $templatecontext['focusdata']['sections'],
+        $templatecontext['focusdata']['active']
+    ) = \theme_remui\utility::get_focus_mode_sections($COURSE);
+}
 echo $OUTPUT->render_from_template('theme_remui/course', $templatecontext);

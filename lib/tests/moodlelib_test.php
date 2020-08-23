@@ -523,7 +523,7 @@ class core_moodlelib_testcase extends advanced_testcase {
         $this->assertSame('', clean_param('mod__something', PARAM_COMPONENT));
         $this->assertSame('', clean_param('auth_xx-yy', PARAM_COMPONENT));
         $this->assertSame('', clean_param('_auth_xx', PARAM_COMPONENT));
-        $this->assertSame('', clean_param('a2uth_xx', PARAM_COMPONENT));
+        $this->assertSame('a2uth_xx', clean_param('a2uth_xx', PARAM_COMPONENT));
         $this->assertSame('', clean_param('auth_xx_', PARAM_COMPONENT));
         $this->assertSame('', clean_param('auth_xx.old', PARAM_COMPONENT));
         $this->assertSame('', clean_param('_user', PARAM_COMPONENT));
@@ -2249,6 +2249,14 @@ class core_moodlelib_testcase extends advanced_testcase {
         // Custom number of decimal places.
         $this->assertEquals('5.43000', format_float(5.43, 5));
 
+        // Auto detect the number of decimal places.
+        $this->assertEquals('5.43', format_float(5.43, -1));
+        $this->assertEquals('5.43', format_float(5.43000, -1));
+        $this->assertEquals('5', format_float(5, -1));
+        $this->assertEquals('5', format_float(5.0, -1));
+        $this->assertEquals('0.543', format_float('5.43e-1', -1));
+        $this->assertEquals('0.543', format_float('5.43000e-1', -1));
+
         // Option to strip ending zeros after rounding.
         $this->assertEquals('5.43', format_float(5.43, 5, true, true));
         $this->assertEquals('5', format_float(5.0001, 3, true, true));
@@ -2455,6 +2463,59 @@ class core_moodlelib_testcase extends advanced_testcase {
             $useremptyemail2after->username);
 
         $this->resetDebugging();
+    }
+
+    /**
+     * Test deletion of user with long username
+     */
+    public function test_delete_user_long_username() {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        // For users without an e-mail, one will be created during deletion using {$username}.{$id}@unknownemail.invalid format.
+        $user = $this->getDataGenerator()->create_user([
+            'username' => str_repeat('a', 75),
+            'email' => '',
+        ]);
+
+        delete_user($user);
+
+        // The username for the deleted user shouldn't exceed 100 characters.
+        $usernamedeleted = $DB->get_field('user', 'username', ['id' => $user->id]);
+        $this->assertEquals(100, core_text::strlen($usernamedeleted));
+
+        $timestrlength = core_text::strlen((string) time());
+
+        // It should start with the user name, and end with the current time.
+        $this->assertStringStartsWith("{$user->username}.{$user->id}@", $usernamedeleted);
+        $this->assertRegExp('/\.\d{' . $timestrlength . '}$/', $usernamedeleted);
+    }
+
+    /**
+     * Test deletion of user with long email address
+     */
+    public function test_delete_user_long_email() {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        // Create user with 90 character email address.
+        $user = $this->getDataGenerator()->create_user([
+            'email' => str_repeat('a', 78) . '@example.com',
+        ]);
+
+        delete_user($user);
+
+        // The username for the deleted user shouldn't exceed 100 characters.
+        $usernamedeleted = $DB->get_field('user', 'username', ['id' => $user->id]);
+        $this->assertEquals(100, core_text::strlen($usernamedeleted));
+
+        $timestrlength = core_text::strlen((string) time());
+
+        // Max username length is 100 chars. Select up to limit - (length of current time + 1 [period character]) from users email.
+        $expectedemail = core_text::substr($user->email, 0, 100 - ($timestrlength + 1));
+        $this->assertRegExp('/^' . preg_quote($expectedemail) . '\.\d{' . $timestrlength . '}$/', $usernamedeleted);
     }
 
     /**
@@ -2801,10 +2862,12 @@ class core_moodlelib_testcase extends advanced_testcase {
      * the user table and fire event.
      */
     public function test_update_internal_user_password_no_cache() {
+        global $DB;
         $this->resetAfterTest();
 
         $user = $this->getDataGenerator()->create_user(array('auth' => 'cas'));
-        $this->assertEquals(AUTH_PASSWORD_NOT_CACHED, $user->password);
+        $DB->update_record('user', ['id' => $user->id, 'password' => AUTH_PASSWORD_NOT_CACHED]);
+        $user->password = AUTH_PASSWORD_NOT_CACHED;
 
         $sink = $this->redirectEvents();
         update_internal_user_password($user, 'wonkawonka');
@@ -3325,6 +3388,90 @@ class core_moodlelib_testcase extends advanced_testcase {
     }
 
     /**
+     * Data provider for {@see test_email_to_user_attachment}
+     *
+     * @return array
+     */
+    public function email_to_user_attachment_provider(): array {
+        global $CFG;
+
+        // Return all paths that can be used to send attachments from.
+        return [
+            'cachedir' => [$CFG->cachedir],
+            'dataroot' => [$CFG->dataroot],
+            'dirroot' => [$CFG->dirroot],
+            'localcachedir' => [$CFG->localcachedir],
+            'tempdir' => [$CFG->tempdir],
+            // Pass null to indicate we want to test a path relative to $CFG->dataroot.
+            'relative' => [null]
+        ];
+    }
+
+    /**
+     * Test sending attachments with email_to_user
+     *
+     * @param string|null $filedir
+     *
+     * @dataProvider email_to_user_attachment_provider
+     */
+    public function test_email_to_user_attachment(?string $filedir): void {
+        global $CFG;
+
+        // If $filedir is null, then write our test file to $CFG->dataroot.
+        $filepath = ($filedir ?: $CFG->dataroot) . '/hello.txt';
+        file_put_contents($filepath, 'Hello');
+
+        $user = core_user::get_support_user();
+        $message = 'Test attachment path';
+
+        // Create sink to catch all sent e-mails.
+        $sink = $this->redirectEmails();
+
+        // Attachment path will be that of the test file if $filedir was passed, otherwise the relative path from $CFG->dataroot.
+        $filename = basename($filepath);
+        $attachmentpath = $filedir ? $filepath : $filename;
+        email_to_user($user, $user, $message, $message, $message, $attachmentpath, $filename);
+
+        $messages = $sink->get_messages();
+        $sink->close();
+
+        $this->assertCount(1, $messages);
+
+        // Verify attachment in message body (attachment is in MIME format, but we can detect some Content fields).
+        $messagebody = reset($messages)->body;
+        $this->assertContains('Content-Type: text/plain; name="' . $filename . '"', $messagebody);
+        $this->assertContains('Content-Disposition: attachment; filename=' . $filename, $messagebody);
+
+        // Cleanup.
+        unlink($filepath);
+    }
+
+    /**
+     * Test sending an attachment that doesn't exist to email_to_user
+     */
+    public function test_email_to_user_attachment_missing(): void {
+        $user = core_user::get_support_user();
+        $message = 'Test attachment path';
+
+        // Create sink to catch all sent e-mails.
+        $sink = $this->redirectEmails();
+
+        $attachmentpath = '/hola/hello.txt';
+        $filename = basename($attachmentpath);
+        email_to_user($user, $user, $message, $message, $message, $attachmentpath, $filename);
+
+        $messages = $sink->get_messages();
+        $sink->close();
+
+        $this->assertCount(1, $messages);
+
+        // Verify attachment not in message body (attachment is in MIME format, but we can detect some Content fields).
+        $messagebody = reset($messages)->body;
+        $this->assertNotContains('Content-Type: text/plain; name="' . $filename . '"', $messagebody);
+        $this->assertNotContains('Content-Disposition: attachment; filename=' . $filename, $messagebody);
+    }
+
+    /**
      * Test setnew_password_and_mail.
      */
     public function test_setnew_password_and_mail() {
@@ -3449,7 +3596,7 @@ class core_moodlelib_testcase extends advanced_testcase {
         $user = $this->getDataGenerator()->create_user(
             [
                 "username" => $username,
-                "confirmed" => false,
+                "confirmed" => 0,
                 "email" => 'test@example.com',
             ]
         );
@@ -3478,7 +3625,7 @@ class core_moodlelib_testcase extends advanced_testcase {
         $user = $this->getDataGenerator()->create_user(
             [
                 "username" => "many_-.@characters@_@-..-..",
-                "confirmed" => false,
+                "confirmed" => 0,
                 "email" => 'test@example.com',
             ]
         );
@@ -3635,6 +3782,10 @@ class core_moodlelib_testcase extends advanced_testcase {
      * Tests the getremoteaddr() function.
      */
     public function test_getremoteaddr() {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->getremoteaddrconf = GETREMOTEADDR_SKIP_HTTP_CLIENT_IP;
         $xforwardedfor = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : null;
 
         $_SERVER['HTTP_X_FORWARDED_FOR'] = '';
@@ -3651,27 +3802,27 @@ class core_moodlelib_testcase extends advanced_testcase {
 
         $_SERVER['HTTP_X_FORWARDED_FOR'] = '127.0.0.1,127.0.0.2';
         $twoip = getremoteaddr();
-        $this->assertEquals('127.0.0.1', $twoip);
+        $this->assertEquals('127.0.0.2', $twoip);
 
-        $_SERVER['HTTP_X_FORWARDED_FOR'] = '127.0.0.1,127.0.0.2, 127.0.0.3';
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = '127.0.0.1,127.0.0.2,127.0.0.3';
         $threeip = getremoteaddr();
-        $this->assertEquals('127.0.0.1', $threeip);
+        $this->assertEquals('127.0.0.3', $threeip);
 
-        $_SERVER['HTTP_X_FORWARDED_FOR'] = '127.0.0.1:65535,127.0.0.2';
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = '127.0.0.1,127.0.0.2:65535';
         $portip = getremoteaddr();
-        $this->assertEquals('127.0.0.1', $portip);
+        $this->assertEquals('127.0.0.2', $portip);
 
-        $_SERVER['HTTP_X_FORWARDED_FOR'] = '0:0:0:0:0:0:0:1,127.0.0.2';
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = '127.0.0.1,0:0:0:0:0:0:0:2';
         $portip = getremoteaddr();
-        $this->assertEquals('0:0:0:0:0:0:0:1', $portip);
+        $this->assertEquals('0:0:0:0:0:0:0:2', $portip);
 
-        $_SERVER['HTTP_X_FORWARDED_FOR'] = '0::1,127.0.0.2';
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = '127.0.0.1,0::2';
         $portip = getremoteaddr();
-        $this->assertEquals('0:0:0:0:0:0:0:1', $portip);
+        $this->assertEquals('0:0:0:0:0:0:0:2', $portip);
 
-        $_SERVER['HTTP_X_FORWARDED_FOR'] = '[0:0:0:0:0:0:0:1]:65535,127.0.0.2';
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = '127.0.0.1,[0:0:0:0:0:0:0:2]:65535';
         $portip = getremoteaddr();
-        $this->assertEquals('0:0:0:0:0:0:0:1', $portip);
+        $this->assertEquals('0:0:0:0:0:0:0:2', $portip);
 
         $_SERVER['HTTP_X_FORWARDED_FOR'] = $xforwardedfor;
 

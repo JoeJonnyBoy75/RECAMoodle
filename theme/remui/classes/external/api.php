@@ -15,9 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package theme_remui
- * @author  2019 wisdmlabs
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Theme external services
+ *
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\external;
 
@@ -31,6 +33,8 @@ use external_api;
 
 /**
  * Uses all moodle webservices trait defined in external folder
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class api extends external_api {
     use set_setting;
@@ -38,4 +42,5 @@ class api extends external_api {
     use send_message;
     use get_course_stats;
     use get_courses;
+    use hide_update;
 }

@@ -15,34 +15,56 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Edwiser RemUI
- * This is built using the bootstrapbase template to allow for new theme's using
- * Moodle's new Bootstrap theme engine
- * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * This is built using the bootstrapbase template to allow for new theme's using Moodle's new Bootstrap theme engine
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 namespace theme_remui;
 
+defined('MOODLE_INTERNAL') || die();
+
+define("THEMEREMUI", "theme_remui");
+/**
+ * This is built using the bootstrapbase template to allow for new theme's using.
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class toolbox {
 
+    /**
+     * Core renderer object
+     * @var null
+     */
     protected $corerenderer = null;
+
+    /**
+     * Toolbox instance
+     * @var toolbox
+     */
     protected static $instance;
 
+    /**
+     * Private constructor for singletone class.
+     */
     private function __construct() {
     }
 
+    /**
+     * Get singletone instance of toolbox
+     * @return toolbox Class instance
+     */
     public static function get_instance() {
         if (!is_object(self::$instance)) {
             self::$instance = new self();
         }
         return self::$instance;
     }
+
     /**
      * Sets the core_renderer class instance so that when purging all caches and 'theme_xxx_process_css' etc.
      * the settings are correct.
-     * @param class core_renderer $core Child object of core_renderer class.
+     * @param core_renderer $core Child object of core_renderer class.
      */
     public static function set_core_renderer($core) {
         $us = self::get_instance();
@@ -53,10 +75,15 @@ class toolbox {
         }
     }
 
+    /**
+     * Get theme settings
+     * @param  object $setting Theme settings
+     * @return string          Settings value
+     */
     public static function get_theme_setting($setting) {
         $us = self::check_corerenderer();
         $themeconfig = $us->get_theme_config();
-        $tcr = array_reverse(themeconfig, true);
+        $tcr = array_reverse($themeconfig, true);
 
         $settingvalue = false;
         foreach ($tcr as $tconfig) {
@@ -70,10 +97,9 @@ class toolbox {
 
     /**
      * Finds the given setting in the theme from the themes' configuration object.
-     * @param string $setting Setting name.
-     * @param string $format false|'format_text'|'format_html'.
-     * @param theme_config $theme null|theme_config object.
-     * @return any false|value of setting.
+     * @param  string $setting Setting name.
+     * @param  string $format  false|'format_text'|'format_html'.
+     * @return any             false|value of setting.
      */
     public static function get_setting($setting, $format = false) {
         global $CFG;
@@ -278,5 +304,48 @@ class toolbox {
         }
         $css = str_replace($tag, $replacement, $css);
         return $css;
+    }
+
+    /**
+     * Set single plugin config
+     * @param string $configname Config name
+     * @param string $configdata Config data
+     */
+    public static function set_plugin_config($configname, $configdata) {
+        set_config($configname, $configdata, THEMEREMUI);
+    }
+
+    /**
+     * Set plugin config data of multiple config names
+     * @param array $configdata Plugin config data array
+     */
+    public static function set_plugin_configs($configdata = array()) {
+        foreach ($configdata as $configname => $value) {
+            self::set_plugin_config($configname, $value);
+        }
+    }
+
+    /**
+     * Get plugin config from config name
+     * @param  string $configname Plugin config name
+     * @return string             Config data from db
+     */
+    public static function get_plugin_config($configname) {
+        return get_config(THEMEREMUI, $configname);
+    }
+
+    /**
+     * This function Requires array of confignames
+     * Unset the Plugin Configs
+     * @param string|array $confignames Plugin config names
+     */
+    public static function remove_plugin_config($confignames) {
+        if (!is_array($confignames)) {
+            $confignames = array($confignames);
+        }
+
+        foreach ($confignames as $value) {
+            unset_config($value, THEMEREMUI);
+        }
     }
 }

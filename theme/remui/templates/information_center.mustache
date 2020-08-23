@@ -1,0 +1,23 @@
+<div class="row">
+	<div class="
+	{{#announcements}}
+		col-6
+	{{/announcements}}
+	{{^announcements}}
+		col-12
+	{{/announcements}}
+	">
+		{{#license}}
+		    {{> theme_remui/license_form }}
+		{{/license}}
+		<hr>
+		{{#plugins}}
+		    {{> theme_remui/plugins }}
+		{{/plugins}}
+	</div>
+	{{#announcements}}
+		<div class="col-6">
+		    {{> theme_remui/remui_announcements }}
+		</div>
+	{{/announcements}}
+</div>

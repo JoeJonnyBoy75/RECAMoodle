@@ -17,9 +17,9 @@
 /**
  * Defines the cache usage
  *
- * @package theme_remui
- * @author  2019 WisdmLabs
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 // This line protects the file from being accessed by a URL directly.
@@ -33,5 +33,9 @@ $definitions = array(
     'guestcourses' => array(
         'mode' => cache_store::MODE_APPLICATION,
         'ttl' => 600, // Ten minutes.
+    ),
+    'updates' => array(
+    	'mode' => cache_store::MODE_APPLICATION,
+    	'ttl' => 10080 // 7 days.
     )
 );

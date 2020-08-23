@@ -12,7 +12,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
+"use strict";
 define([
     'jquery',
     'core/ajax'
@@ -20,7 +20,7 @@ define([
     $,
     Ajax,
 ) {
-    const DEFAULTHEX = '1177d1';
+    const DEFAULTHEX = '62a8ea';
     let colorhex;
     const COLORTOHEX = [
         {color: 'primary', hex: '62a8ea'},
@@ -35,14 +35,39 @@ define([
         {color: 'red', hex: 'f96868'},
         {color: 'teal', hex: '3aa99e'}
     ];
-    $('#skintoolsSiteColor input[type="radio"][name="skintoolsNavbar"]').on('change', function () {
+
+    /**
+     * Set live color to element having primary color
+     * @param {String} color Color hex
+     */
+    function setLiveColor(color) {
+        if ($('#livecolor').length == 0) {
+            $('body').append('<style id="livecolor"></style>');
+        }
+        $('#livecolor').html(
+            '.navbar-brand, .nav-inverse, #page-footer, .bg-primary, .btn-primary, .td.today, .form-submit, ' +
+            '.page-aside-switch, table.dataTable thead th, table.dataTable tfoot th, .page-item.active .page-link {' +
+            ' background-color: #' + color + ' !important;' +
+            '}' +
+            '.btn-primary, .nav-tabs .nav-link.active, .checkbox-custom input[type=checkbox]:checked+label::before, ' +
+            '.radio-custom input[type=radio]:checked+label::before, .page-item.active .page-link {' +
+            ' border-color: #' + color + ' !important;' +
+            '}' +
+            '.text-primary, .nav-tabs .nav-link.active, .nav-tabs .nav-link.active .fa, [data-region="drawer"]:not(.dark) ' +
+            '.list-group-item.active, [data-region="drawer"]:not(.dark) .list-group-item.active .icon {' +
+            ' color: #' + color + ' !important' +
+            '}'
+        );
+    }
+
+    $('body').on('change', '#skintoolsSiteColor input[type="radio"][name="skintoolsNavbar"]', function() {
         let color = this.value;
         if (color == 'customcolor') {
-            $('.site-colorpicker').show();
+            $('.site-colorpicker-custom').removeClass('d-none');
+            colorhex = $('[name="customcolor"]').val().split('#')[1];
         } else {
-            $('.site-colorpicker').hide();
+            $('.site-colorpicker-custom').addClass('d-none');
             // Update sitecolor.
-            updateSetting('sitecolor', color);
             // Update sitecolor hex.
             colorhex = COLORTOHEX.filter(el => el.color == color);
             if (colorhex.length) {
@@ -50,30 +75,36 @@ define([
             } else {
                 colorhex = DEFAULTHEX;
             }
-            updateSetting('sitecolorhex', colorhex);
-            $('.navbar-brand').attr('style', `background-color: #${colorhex} !important`);
-            $('.nav-inverse').attr('style', `background-color: #${colorhex} !important`);
-            $('#page-footer').attr('style', `background-color: #${colorhex} !important`);
         }
+        updateSetting('sitecolor', color);
+        updateSetting('sitecolorhex', colorhex);
+        setLiveColor(colorhex);
     });
 
+    /**
+     * Update setting in database
+     * @param  {String} configname  Configuration name
+     * @param  {String} configvalue Configuration value
+     */
     function updateSetting(configname, configvalue) {
-        let service_name = 'theme_remui_set_setting';
-        Ajax.call([
-            {
-                methodname: service_name,
-                args: { configname : configname, configvalue: configvalue }
+        let serviceName = 'theme_remui_set_setting';
+        Ajax.call([{
+            methodname: serviceName,
+            args: {
+                configname: configname,
+                configvalue: configvalue
             }
-        ]);
+        }]);
     }
 
     $(document).on('change', '.site-colorpicker', function() {
         let color = this.value.split('#')[1];
         updateSetting('sitecolor', 'customcolor');
         updateSetting('sitecolorhex', color);
+        setLiveColor(color);
     });
 
-    $('#skintoolsNavbar-inverse').on('change', function () {
+    $('#skintoolsNavbar-inverse').on('change', function() {
         let inverse = this.value;
         let color;
         if (!this.checked) {
@@ -85,11 +116,11 @@ define([
         updateSetting('navbarinverse', inverse);
         $('.navbar').toggleClass('nav-inverse');
         if (colorhex != undefined) {
-            $('.navbar').attr('style', `background-color: #${color} !important`);
+            $('.navbar').css('background-color', '#' + color + ' !important');
         }
     });
 
-    $('#skintoolsSidebar input[type="radio"][name="skintoolsSidebar"]').on('change', function () {
+    $('#skintoolsSidebar input[type="radio"][name="skintoolsSidebar"]').on('change', function() {
         let color = this.value;
         if (color == 'site-menubar-light') {
             $('#nav-drawer').removeClass('dark');

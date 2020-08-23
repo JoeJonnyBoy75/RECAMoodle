@@ -1,0 +1,16 @@
+.path-mod-assign {
+    [data-region="grade-panel"] {
+        .fitem > .col-md-3 > .pull-xs-right { 
+            float: none !important; /* stylelint-disable-line declaration-no-important */
+        }       
+    }    
+    [data-region="user-info"] {
+        height: auto !important;
+        h4 {
+            font-size: 1.2rem;
+        }
+        .img-rounded {
+            border-radius: 50%;        
+        }
+    }
+}

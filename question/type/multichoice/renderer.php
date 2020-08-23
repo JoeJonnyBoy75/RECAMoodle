@@ -105,10 +105,12 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedb
             $radiobuttons[] = $hidden . html_writer::empty_tag('input', $inputattributes) .
                     html_writer::tag('label',
                         html_writer::span($this->number_in_style($value, $question->answernumbering), 'answernumber') .
-                        $question->make_html_inline($question->format_text(
-                                $ans->answer, $ans->answerformat,
-                                $qa, 'question', 'answer', $ansid)),
-                        array('for' => $inputattributes['id'], 'class' => 'ml-1'));
+                        html_writer::tag('div',
+                        $question->format_text(
+                                    $ans->answer, $ans->answerformat,
+                                    $qa, 'question', 'answer', $ansid),
+                        array('class' => 'flex-fill ml-1')),
+                        array('for' => $inputattributes['id'], 'class' => 'd-flex w-100'));
 
             // Param $options->suppresschoicefeedback is a hack specific to the
             // oumultiresponse question type. It would be good to refactor to
@@ -138,7 +140,9 @@ abstract class qtype_multichoice_renderer_base extends qtype_with_combined_feedb
                 array('class' => 'qtext'));
 
         $result .= html_writer::start_tag('div', array('class' => 'ablock'));
-        $result .= html_writer::tag('div', $this->prompt(), array('class' => 'prompt'));
+        if ($question->showstandardinstruction == 1) {
+            $result .= html_writer::tag('div', $this->prompt(), array('class' => 'prompt'));
+        }
 
         $result .= html_writer::start_tag('div', array('class' => 'answer'));
         foreach ($radiobuttons as $key => $radio) {
@@ -294,14 +298,17 @@ class qtype_multichoice_single_renderer extends qtype_multichoice_renderer_base 
 
         $cssclass = 'qtype_multichoice_clearchoice';
         // When no choice selected during rendering, then hide the clear choice option.
+        $linktabindex = 0;
         if (!$hascheckedchoice && $response == -1) {
             $cssclass .= ' sr-only';
             $clearchoiceradioattrs['checked'] = 'checked';
+            $linktabindex = -1;
         }
         // Adds an hidden radio that will be checked to give the impression the choice has been cleared.
         $clearchoiceradio = html_writer::empty_tag('input', $clearchoiceradioattrs);
         $clearchoiceradio .= html_writer::link('', get_string('clearchoice', 'qtype_multichoice'),
-            ['for' => $clearchoiceid, 'role' => 'button']);
+            ['for' => $clearchoiceid, 'role' => 'button', 'tabindex' => $linktabindex,
+            'class' => 'btn btn-link ml-4 pl-1 mt-2']);
 
         // Now wrap the radio and label inside a div.
         $result = html_writer::tag('div', $clearchoiceradio, ['id' => $clearchoicefieldname, 'class' => $cssclass]);

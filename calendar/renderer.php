@@ -135,12 +135,15 @@ class core_calendar_renderer extends plugin_renderer_base {
     /**
      * Displays an event
      *
+     * @deprecated since 3.9
+     *
      * @param calendar_event $event
      * @param bool $showactions
      * @return string
      */
     public function event(calendar_event $event, $showactions=true) {
         global $CFG;
+        debugging('This function is no longer used', DEBUG_DEVELOPER);
 
         $event = calendar_add_event_metadata($event);
         $context = $event->context;
@@ -292,13 +295,15 @@ class core_calendar_renderer extends plugin_renderer_base {
         $courseurl = new moodle_url($returnurl);
         $courseurl->remove_params('course');
 
-        if ($label === null) {
+        $labelattributes = [];
+        if (empty($label)) {
             $label = get_string('listofcourses');
+            $labelattributes['class'] = 'sr-only';
         }
 
-        $select = html_writer::label($label, 'course', false, ['class' => 'mr-1']);
+        $select = html_writer::label($label, 'course', false, $labelattributes);
         $select .= html_writer::select($courseoptions, 'course', $selected, false,
-                ['class' => 'cal_courses_flt mr-auto']);
+                ['class' => 'cal_courses_flt ml-1 mr-auto', 'id' => 'course']);
 
         return $select;
     }

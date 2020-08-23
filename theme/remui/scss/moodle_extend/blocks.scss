@@ -1,0 +1,128 @@
+$blocks-column-width: 280px !default;
+$blocks-plus-gutter: 0px;
+[data-region="blocks-column"] {
+    width: $blocks-column-width !important;
+    position: fixed;
+    top: 66px;
+    z-index: 1000;
+    background: white;
+    right: -$blocks-column-width;
+    height: calc(100% - 66px);
+    overflow-y: visible;
+    box-shadow: 0 0px 10px rgba(0, 0, 0, 0.1);
+    -webkit-transition: right 0.5s ease, left 0.5s ease;
+    -moz-transition: right 0.5s ease, left 0.5s ease;
+    transition: right 0.5s ease, left 0.5s ease;
+    .page-aside-switch {
+        position: fixed;
+        top: calc(50% - 44px);
+        right: 0px;
+        width: 25px;
+        height: 44px;
+        border-top-left-radius: 100px;
+        border-bottom-left-radius: 100px;
+        background: $primary;
+        z-index: 1;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        -webkit-transition: right 0.5s ease, left 0.5s ease;
+        -moz-transition: right 0.5s ease, left 0.5s ease;
+        transition: right 0.5s ease, left 0.5s ease;
+        .icon {
+            cursor: pointer;
+            // position: absolute; Causing issue in IE and working even if removed
+            width: 25px;
+            height: 44px;
+            border-top-left-radius: 100px;
+            border-bottom-left-radius: 100px;
+            &.fa-angle-left {
+                font-size: 24px;
+                -webkit-transition: transform 0.5s ease;
+                -moz-transition: transform 0.5s ease;
+                transition: transform 0.5s ease;
+            }
+            &.fa-thumb-tack {
+                transform: rotate(45deg);
+            }
+            color: white !important;
+        }
+    }
+}
+
+body {
+    transition: all 500ms ease;
+    &.sidebar-open, &.sidebar-pinned {
+        [data-region="blocks-column"] {
+            right: 0;
+            .page-aside-switch {
+                right: $blocks-column-width;
+                .icon {
+                    &.fa-angle-left {
+                        @include media-breakpoint-down(md) {
+                            display: flex !important;
+                            transform: rotate(180deg);
+                        }
+                        display: none !important;
+                    }
+                    &.fa-thumb-tack {
+                        @include media-breakpoint-down(md) {
+                            display: none !important;
+                        }
+                        display: flex !important;
+                    }
+                }
+            }
+        }
+    }
+    &.sidebar-pinned {
+        .page-aside-switch {
+            .fa-thumb-tack {
+                transform: rotate(0deg) !important;
+            }
+        }
+    }
+    &.sidebar-pinned {
+        margin-right: $blocks-column-width;
+    }
+    @include media-breakpoint-up(lg) {    
+        &.editing {
+            &:not(.pagelayout-frontpage){
+                .page-aside-switch {
+                    display: none !important;
+                }
+            }
+        }
+        &.path-mod-quiz {
+            .page-aside-switch {
+                display: none !important;
+            }
+        }
+        &.path-mod-book {
+            .page-aside-switch {
+                display: none !important;
+            }
+        }
+    }
+}
+@include media-breakpoint-up(sm) {
+
+    #region-main-settings-menu > div {
+        right: 16px;
+    }
+    .region_main_settings_menu_proxy {
+        background-color: $card-bg;
+    }
+}
+
+.block .block-cards {
+    // height: 0.35rem;
+    border-radius: .215rem;
+}
+.block_settings,  .block_navigation {
+    .block_tree {
+        [aria-expanded="false"], [aria-expanded="true"] {
+            &:before{
+                @extend .fa;        
+            }
+        }
+    }
+}

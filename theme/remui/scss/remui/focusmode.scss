@@ -1,0 +1,203 @@
+$navigation-width: 100px;
+$navigation-width-md: 70px;
+$navigation-item-height: 5rem;
+$navigation-large-width: 3.5rem;
+$navigation-activity-width: 2.5rem;
+$navigation-activity-icon-width: 2rem;
+$border-width: 2px;
+$border-default-color: #d0d6d8;
+$border-done-color: green;
+$border-current-color: #000000;
+$title-font-weight: 600;
+$disable-color: #d4d4d4;
+$disable-bgcolor: #f9f9f9;
+$text-color: #263238;
+$navbar-top-pos: -70px;
+$animate-time: 0.5s;
+body {
+    @include media-breakpoint-up(sm) {
+        &.focusmode {
+            #page {
+                background: #FFFFFF;
+            }
+            margin-left: 0 !important;
+        
+            #nav-drawer,
+            #page-footer .container-fluid,
+            #wdm_course-stats,
+            #page-header,
+            .action-menu.moodle-actionmenu, 
+            .page-aside-switch {
+                display: none !important;
+            }
+            .navbar {
+                &:not(.fm-navbar) {
+                    top: $navbar-top-pos !important;
+                    transition: all $animate-time ease;
+                }
+                &.fm-navbar {
+                    display: flex !important;
+                    transition: all $animate-time ease $animate-time;
+                    top: 0px !important;   
+                    color: $primary !important;
+                    .courseheaderbar{
+                        width: 100% !important;
+                        @include media-breakpoint-only(md) {
+                            width: 90% !important;
+                        }
+                    }
+                    .nav-link {
+                        color: inherit !important;
+                        font-weight: $title-font-weight;
+                        width: 100%;
+                        &.disabled{
+                            color: $disable-color !important;
+                            background-color: $disable-bgcolor;
+                            font-style: normal;
+                        }
+                    }
+                }
+            }
+            .page-header-actionss {
+                align-items: center;
+            }
+            #course-progress-bar .progress {
+                width: 150px !important;
+                border: 1px solid $border-default-color;
+            }
+            #page-footer {
+                background-color: transparent !important;
+            }
+            .floating-buttons {
+                display: block !important;
+            }
+            #page-content {
+                #region-main{
+                    font-size: 18px;
+                }
+                .section.main {
+                    margin: 2rem 0;
+                    border: 1px solid $border-default-color;
+                }
+            }
+            .btn, .custom-select {
+                font-size: 1rem;
+            }
+            &.pagelayout-course {
+                .course-content .sectionname{
+                    font-size: 1.286rem;
+                    .wdm-sectionname {
+                        font-size: 1.6rem;
+                    }
+                }
+            }
+            &.pagelayout-incourse{
+                #region-main{
+                    &> .card{
+                        margin: 2rem 0;
+                        border: 1px solid $border-default-color;
+                    }
+                    .activity-navigation{
+                        display: none;
+                    }
+                }
+            }
+            #wdm-courseheader {
+                width: 65% !important;
+                .title{
+                    a {
+                        color: $primary !important;
+                        margin-bottom: 0.7rem;
+                        font-weight: $title-font-weight;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        width: 100%;
+                        display: inline-block;
+                        margin: 0;
+                    }
+                }
+            }
+            .activity-navigation {
+                font-size: 1rem;
+                @include media-breakpoint-only(md) {
+                    .nav-item{
+                        .nav-link{
+                            i {
+                                font-size: 30px;
+                            }
+                        }
+                    }
+                }
+                .focus-dropdown {
+                    .dropdown-toggle span, .activity-item h5 {
+                        display: block;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                    }
+                    .focus-dropdown-menu {
+                        width: 400px;
+                        position: absolute;
+                        top: $navbar-height;
+                        overflow-y: auto;
+                        bottom: auto;
+                        z-index: $zindex-dropdown;
+                        max-height: 450px;
+                        margin-top: 5px !important;
+                        display: none;
+                        min-width: 160px;
+                        font-size: 14px;
+                        color: #526069;
+                        text-align: left;
+                        list-style: none;
+                        background-color: #fff;
+                        background-clip: padding-box;
+                        border: 1px solid $border-default-color;
+                        border-radius: .21428571rem;
+                        -webkit-box-shadow: 0 3px 12px rgba(0,0,0,.05);
+                        box-shadow: 0 3px 12px rgba(0,0,0,.05);
+
+                    }
+                }
+            }
+            .accordion {
+                .card{
+                    .card-header {
+                        a {
+                            h5{
+                                color: $text-color !important;
+                            }
+                            &:hover{
+                                text-decoration: none !important;
+                            }   
+                        }
+                    }
+                }
+            }
+        }
+        &:not(.focusmode) {
+            .navbar {
+                &:not(.fm-navbar) {
+                    top: 0px !important;
+                    transition: all $animate-time ease;
+                }
+                &.fm-navbar {
+                    top: $navbar-top-pos !important;
+                    transition: all $animate-time ease $animate-time;
+                    .activity-navigation {
+                        display: none;
+                    }
+                }
+            }
+        }
+    }
+    @include media-breakpoint-down(sm) {
+        .fm-navbar, #focusmode {
+            display: none;
+        }
+        #focusmodebutton{
+            display: none !important;
+        }
+    }
+}

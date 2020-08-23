@@ -1,4 +1,4 @@
-.bg-purple-500 {
+ellipsis-2.bg-purple-500 {
     background-color: #a57afa!important;
 }
 .bg-purple-400 {
@@ -78,9 +78,6 @@
         text-decoration: none;
     }
 
-    h1 {
-        font-weight: 300;
-    }
     .card {
         background-color: transparent;
         .menu-content {
@@ -177,15 +174,10 @@
 
         .title {
             margin-top: 10px;
-            font-size : 1.2em;
             a
             {
+                height: 68px;
                 display: -webkit-box;
-                overflow: hidden;
-                text-overflow : ellipsis;
-                -webkit-box-orient: vertical;
-                height: 60px;
-                -webkit-line-clamp: 3;
             }
         }
         .text {
@@ -202,6 +194,11 @@
     }
 
     .course_card {
+        .card-link {
+            position: absolute;
+            height: 100%;
+            width: 100%;
+        }
         .date {
             position: absolute;
             top: 0;
@@ -276,10 +273,12 @@
         bottom: 120px;
     }
 }
-
-#page-course-index-category #region-main-settings-menu,
-#page-course-index-category .region_main_settings_menu_proxy {
-    display: none;
+#page-course-index-category {
+    .coursesearchbox .input-group-append a,
+    #region-main-settings-menu,
+    .region_main_settings_menu_proxy {
+        display: none;
+    }
 }
 
 .ellipsis {
@@ -288,8 +287,7 @@
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    text-align: justify;
-    word-break: break-all;
+    word-break: break-word;
     &.ellipsis-1 {
        -webkit-line-clamp: 1;
     }
@@ -300,4 +298,7 @@
        -webkit-line-clamp: 3;
     }
 }
-  
+
+/*Course category dropdown issue on Course archive page*/
+.bootstrap-select.show .dropdown-menu{max-height: 300px !important;}
+.bootstrap-select.btn-group .dropdown-menu.inner { max-height : 230px !important; }

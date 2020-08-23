@@ -20,10 +20,10 @@
  * @copyright  2016 Damyon Wiese
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/custom_interaction_events', 'core/log', 'core/pubsub'],
-     function($, CustomEvents, Log, PubSub) {
+"use strict";
+define(['jquery', 'core/custom_interaction_events', 'core/log', 'core/pubsub'], function($, CustomEvents, Log, PubSub) {
 
-    window['drawerInitialized'] = false;
+    window.drawerInitialized = false;
     var SELECTORS = {
         TOGGLE_REGION: '[data-region="drawer-toggle"]',
         TOGGLE_ACTION: '[data-action="toggle-drawer"]',
@@ -51,8 +51,6 @@ define(['jquery', 'core/custom_interaction_events', 'core/log', 'core/pubsub'],
         }
         $(SELECTORS.TOGGLE_REGION).each(function(index, ele) {
             var trigger = $(ele).find(SELECTORS.TOGGLE_ACTION);
-            var drawerid = trigger.attr('aria-controls');
-            var drawer = $(document.getElementById(drawerid));
             var hidden = trigger.attr('aria-expanded') == 'false';
             var side = trigger.attr('data-side');
             var body = $(SELECTORS.BODY);
@@ -61,15 +59,13 @@ define(['jquery', 'core/custom_interaction_events', 'core/log', 'core/pubsub'],
                 M.util.set_user_preference(preference, 'false');
             }
 
-            // drawer.on('mousewheel DOMMouseScroll', this.preventPageScroll);
-
             if (!hidden) {
                 body.addClass('drawer-open-' + side);
                 trigger.attr('aria-expanded', 'true');
             } else {
                 trigger.attr('aria-expanded', 'false');
             }
-        }.bind(this));
+        });
 
         this.registerEventListeners();
         if (small) {
@@ -190,8 +186,8 @@ define(['jquery', 'core/custom_interaction_events', 'core/log', 'core/pubsub'],
 
     return {
         'init': function() {
-            if (window['drawerInitialized'] == false) {
-                window['drawerInitialized'] = true;
+            if (window.drawerInitialized == false) {
+                window.drawerInitialized = true;
                 return new Drawer();
             }
             return false;

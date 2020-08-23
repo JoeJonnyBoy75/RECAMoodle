@@ -42,6 +42,9 @@
                 <span class="sr-only">{{#str}}aria:courseimage, core_course{{/str}}</span>
             </div>
             <div id="course-info-container-{{id}}-{{uniqid}}" class="card-body overlay-figure overlay-scale text-white font-weight-bold wdm-course-card-body" style="background-color: {{ color }};">
+                <div class="d-flex mb-1 flex-wrap font-size-13" style="letter-spacing: 0.4px;">
+                    {{$coursecategory}}{{/coursecategory}}
+                </div>
                 <div class="d-flex align-items-start" >
                     <a href = "{{ viewurl }}"  class="text-white text-truncate">
                         <span class="sr-only">
@@ -56,7 +59,7 @@
                         <span class="sr-only">
                             {{#str}}aria:coursename, core_course{{/str}}
                         </span>
-                        {{$coursename}}{{/coursename}}
+                        <span class="coursename">{{$coursename}}{{/coursename}}</span>
                     </a>
                 </div>
                 <div class="wdm-course-card-progress">

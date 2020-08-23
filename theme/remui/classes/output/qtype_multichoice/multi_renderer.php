@@ -16,9 +16,9 @@
 
 /**
  * Edwiser RemUI
- * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\output\qtype_multichoice;
 use question_attempt;
@@ -28,13 +28,23 @@ use question_state;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Subclass for generating the bits of output specific to multiple choice
- * single questions.
+ * Subclass for generating the bits of output specific to multiple choice single questions.
  *
  * @copyright  2009 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class multi_renderer extends \qtype_multichoice_multi_renderer {
+
+    /**
+     * Generate the display of the formulation part of the question. This is the
+     * area that contains the quetsion text, and the controls for students to
+     * input their answers. Some question types also embed bits of feedback, for
+     * example ticks and crosses, in this area.
+     *
+     * @param question_attempt $qa the question attempt to display.
+     * @param question_display_options $options controls what should and should not be displayed.
+     * @return string HTML fragment.
+     */
     public function formulation_and_controls(question_attempt $qa,
         question_display_options $options) {
         $question = $qa->get_question();

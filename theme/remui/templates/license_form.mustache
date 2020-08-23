@@ -1,0 +1,55 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    License Form
+}}
+
+<div class="license-box box box-warning">
+    <div class="box-header">
+        <h3 class="box-title px-3 border-0">{{#str}}edwiserremuilicenseactivation, theme_remui{{/str}}
+        </h3>
+    </div>
+    <div>
+        {{#alert}}
+        <div class="alert {{classes}} form-group">
+           <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+           <h4><i class="icon fa {{icon}}"></i> {{subtext}}</h4>{{text}}.
+        </div>
+        {{/alert}}
+        <input type="hidden" name="activetab" value="remuilicensestatus">
+        <div class="form-group">
+            <label class="control-label text-black col-12">{{#str}}licensekey, theme_remui{{/str}}</label>
+            <div class="col-12">
+                <input id="edd_{{pluginslug}}_license_key" class="form-control {{#isvalid}}is-valid{{/isvalid}} {{^isvalid}}is-invalid{{/isvalid}}" name="edd_{{pluginslug}}_license_key" type="text" value="{{licensekey}}" placeholder="{{#str}}enterlicensekey, theme_remui{{/str}}" {{#readonly}}readonly{{/readonly}}>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label col-12">{{#str}}licensestatus, theme_remui{{/str}}</label>
+            <div class="col-12">
+                <p style="{{licensestatuscolor}}">{{licensestatus}}</p>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-12">
+                <input type="hidden" id="onLicensePage" name="onLicensePage" value="1">
+                {{#buttons}}
+                <input type="submit" class="btn {{classes}} text-white" name="{{name}}" value="{{value}}" {{#extra}}{{extra}}{{/extra}}>
+                {{/buttons}}
+            </div>
+        </div>
+    </div>
+</div>

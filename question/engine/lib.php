@@ -453,6 +453,8 @@ abstract class question_engine {
 
     /**
      * Initialise the JavaScript required on pages where questions will be displayed.
+     *
+     * @return string
      */
     public static function initialise_js() {
         return question_flags::initialise_js();
@@ -582,7 +584,7 @@ class question_display_options {
     /**
      * Used in places like the question history table, to show a link to review
      * this question in a certain state. If blank, a link is not shown.
-     * @var string base URL for a review question script.
+     * @var moodle_url base URL for a review question script.
      */
     public $questionreviewlink = null;
 
@@ -694,7 +696,7 @@ abstract class question_flags {
     public static function get_postdata(question_attempt $qa) {
         $qaid = $qa->get_database_id();
         $qubaid = $qa->get_usage_id();
-        $qid = $qa->get_question()->id;
+        $qid = $qa->get_question_id();
         $slot = $qa->get_slot();
         $checksum = self::get_toggle_checksum($qubaid, $qid, $qaid, $slot);
         return "qaid={$qaid}&qubaid={$qubaid}&qid={$qid}&slot={$slot}&checksum={$checksum}&sesskey=" .

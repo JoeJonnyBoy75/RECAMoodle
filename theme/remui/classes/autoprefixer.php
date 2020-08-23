@@ -21,9 +21,10 @@
  * theme remui when working with Bootstrap 4 alpha. We do not recommend
  * that this tool is shared, nor used outside of this theme.
  *
- * @package    theme_remui
- * @copyright  2016 Frédéric Massart - FMCorz.net
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   theme_remui
+ * @copyright 2016 Frédéric Massart - FMCorz.net
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace theme_remui;
@@ -118,7 +119,9 @@ class autoprefixer {
      * @param array $rules The rules.
      * @return New array of rules.
      */
+    // @codingStandardsIgnoreStart
     protected function manipulateRuleValues(array $rules) {
+    // @codingStandardsIgnoreEnd
         $finalrules = [];
 
         foreach ($rules as $rule) {
@@ -160,9 +163,10 @@ class autoprefixer {
      * Process block.
      *
      * @param object $block A block.
-     * @param object $parent The parent of the block.
      */
+    // @codingStandardsIgnoreStart
     protected function processBlock($block) {
+    // @codingStandardsIgnoreEnd
         foreach ($block->getContents() as $node) {
             if ($node instanceof AtRule) {
 
@@ -198,7 +202,9 @@ class autoprefixer {
      * @param object $node The declaration block.
      * @param object $parent The parent.
      */
+    // @codingStandardsIgnoreStart
     protected function processDeclaration($node, $parent) {
+    // @codingStandardsIgnoreEnd
         $rules = [];
 
         foreach ($node->getRules() as $key => $rule) {

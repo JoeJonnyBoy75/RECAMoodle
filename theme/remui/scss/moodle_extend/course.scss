@@ -1,0 +1,27 @@
+.section{
+    .filler {
+        width: 14px;
+    }
+}
+
+.course-content .section-summary {
+    border-bottom: 1px solid $table-border-color;
+}
+span.editinstructions {
+    background-color: #f0f8ff;
+}
+
+#coursesearch {
+    margin-top: 1em;
+    text-align: center;
+}
+.listing-actions {
+    > .moodle-actionmenu {
+        display: inline-block;
+    }
+}
+
+.view-mode-selector {
+    display: inline !important;
+    margin: 0;
+}

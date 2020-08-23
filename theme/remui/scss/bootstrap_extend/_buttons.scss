@@ -1,0 +1,68 @@
+.btn-inverse {
+    @include button-variant(#ced4da, #ced4da);
+}
+.btn-block{
+  white-space: normal;
+}
+.btn-icon {
+    padding: .572rem;
+    font-size: 1px;
+  .icon {
+    margin: -1px 0 0;
+  }
+}
+
+$shadow-5-bottom : 0 6px 10px rgba($black, .15);
+$btn-floating-size: pxToRem(56px) !default;
+$btn-floating-padding: pxToRem(14px) !default;
+$btn-floating-font-size: pxToRem(24px) !default;
+$btn-floating-shadow: $shadow-5-bottom !default;
+$btn-floating-xs-size: pxToRem(30px) !default;
+/*$btn-floating-xs-padding:                10px !default;*/
+$btn-floating-xs-font-size: pxToRem(13px) !default;
+$btn-floating-sm-size: pxToRem(40px) !default;
+/*$btn-floating-sm-padding:                13px !default;*/
+$btn-floating-sm-font-size: pxToRem(15px) !default;
+$btn-floating-lg-size: pxToRem(70px) !default;
+/*$btn-floating-lg-padding:                15px !default;*/
+$btn-floating-lg-font-size: pxToRem(30px) !default;
+
+// Modifier: `btn-floating`
+// ========================================================================
+
+.btn-floating {
+  width: $btn-floating-size;
+  height: $btn-floating-size;
+  padding: 0;
+  margin: 0;
+  font-size: $btn-floating-font-size;
+  text-align: center;
+  border-radius: 100% !important;
+  box-shadow: $btn-floating-shadow;
+
+  &.btn-xs {
+    width: $btn-floating-xs-size;
+    height: $btn-floating-xs-size;
+    padding: 0;
+    font-size: $btn-floating-xs-font-size;
+  }
+
+  &.btn-sm {
+    width: $btn-floating-sm-size;
+    height: $btn-floating-sm-size;
+    padding: 0;
+    font-size: $btn-floating-sm-font-size;
+  }
+
+  &.btn-lg {
+    width: $btn-floating-lg-size;
+    height: $btn-floating-lg-size;
+    padding: 0;
+    font-size: $btn-floating-lg-font-size;
+  }
+
+  i {
+    position: relative;
+    top: 0;
+  }
+}

@@ -11,15 +11,15 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    Edwiser RemUI 
-    @package    theme_remui
-    @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
-    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- 
+    Edwiser RemUI
+    @package   theme_remui
+    @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/)
+    @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+
 }}
 
 {{#old_card}}
-<div class=" {{widthclasses}} d-flex animation-{{animation}}" data-plugin="appear" data-animate="{{animation}}" course-id="{{id}}" >
+<div class=" {{widthclasses}} d-flex animation-{{animation}}" data-plugin="appear" data-animate="{{animation}}" data-course-id="{{id}}" >
     <div class="card my-3 w-full {{^shadowless}}border{{/shadowless}} rounded bg-white" style="{{#shadowless}}box-shadow: 0 2px 5px {{sectionproperties.shadowcolor}};{{/shadowless}}">
         <div class="img-container position-relative">
             <a href="{{ courseurl }}">
@@ -34,15 +34,15 @@
             {{/ instructors }}
         </div>
         <div class="card-body" title="{{{ coursename }}}">
-            <h4 class="card-title my-1 ellipsis ellipsis-2" style="-webkit-box-orient: vertical;"><a href="{{ courseurl }}" class="font-weight-400 blue-grey-600 font-size-18">{{{ coursename }}}</a></h4>
-            <p class="card-text m-0"><span class="text-muted ellipsis ellipsis-1" style="-webkit-box-orient: vertical;">{{{ categoryname }}}</span></p>
-            <p class="card-text ellipsis ellipsis-3 m-0" style="-webkit-box-orient: vertical;">{{{ coursesummary }}}</p>
+            <h4 class="card-title my-1 ellipsis ellipsis-3" style="-webkit-box-orient: vertical;"><a href="{{ courseurl }}" class="font-weight-400 text-dark font-size-18">{{{ coursename }}}</a></h4>
+            <span class="text-muted ellipsis ellipsis-2" style="-webkit-box-orient: vertical;">{{{ categoryname }}}</span>
+            <p class="card-text ellipsis ellipsis-3 m-0 pt-2" style="-webkit-box-orient: vertical;">{{{ coursesummary }}}</p>
         </div>
-        
+
         {{# mycourses}}
             {{# coursecompleted }}
                 <div class="card-footer bg-transparent border-0 p-0 activity-btn {{listbuttons}}">
-                    <a href="{{ courseurl }}" class="btn btn-success btn-block p-10 bg-green-500 border-0 rounded-0 text-white font-weight-800" href="">
+                    <a href="{{ courseurl }}" class="btn btn-success btn-block p-10 bg-green-500 border-0 rounded-0 text-white font-weight-800">
                     <i class="fa fa-check" aria-hidden="true"></i>
                     {{coursecompleted}}</a>
                 </div>
@@ -54,14 +54,14 @@
                     </div>
                 </div>
                 <div class="card-footer bg-transparent border-0 p-0 activity-btn {{listbuttons}}">
-                    <a href="{{# lastaccessactivity}} {{lastaccessactivity}} {{/ lastaccessactivity}}{{^ lastaccessactivity}} {{ courseurl }} {{/ lastaccessactivity}}" class="btn btn-default btn-block p-10 bg-purple-500 border-0 rounded-0 text-white font-weight-800" href=""><i class="fa fa-refresh" aria-hidden="true"></i>
+                    <a href="{{# lastaccessactivity}} {{lastaccessactivity}} {{/ lastaccessactivity}}{{^ lastaccessactivity}} {{ courseurl }} {{/ lastaccessactivity}}" class="btn btn-default btn-block p-10 bg-purple-500 border-0 rounded-0 text-white font-weight-800"><i class="fa fa-refresh" aria-hidden="true"></i>
                     {{courseinprogress}}</a>
                 </div>
             {{/ courseinprogress }}
 
             {{# coursetostart }}
                 <div class="card-footer bg-transparent border-0 p-0 activity-btn {{listbuttons}}">
-                    <a href="{{ courseurl }}" class="btn btn-info btn-block p-10 border-0 rounded-0 text-white font-weight-800" href=""><i class="fa fa-play-circle" aria-hidden="true"></i>
+                    <a href="{{ courseurl }}" class="btn btn-info btn-block p-10 border-0 rounded-0 text-white font-weight-800"><i class="fa fa-play-circle" aria-hidden="true"></i>
                     {{coursetostart}}</a>
                 </div>
             {{/ coursetostart }}
@@ -106,9 +106,10 @@
 
 
 {{^old_card}}
-<div class=" {{widthclasses}} course_card my-3 card animation-{{animation}}" data-plugin="appear" data-animate="{{animation}}" course-id="{{id}}">
+<div class=" {{widthclasses}} course_card my-3 card animation-{{animation}}" data-plugin="appear" data-animate="{{animation}}" data-course-id="{{id}}">
     <div class="wrapper" style="background-image: url('{{ courseimage }}');background-size: cover;background-position: center; position: relative;
     {{#shadowless}}box-shadow: -1px 4px 6px -1px {{sectionproperties.shadowcolor}};{{/shadowless}}">
+        <a href="{{ courseurl }}" class="card-link"> </a>
         {{#startdate}}
         <div class="date btn-primary">
         <span class="day">{{day}}</span>
@@ -116,33 +117,27 @@
         <span class="year">{{year}}</span>
         </div>
         {{/startdate}}
-        {{^visible}}<i class="hidden-icon fa fa-eye-slash visible text-white" aria-hidden="true" title="{{#str}} hiddencourse, theme_remui {{/str}}"></i>{{/visible}}
+        {{^visible}}
+            <i class="hidden-icon fa fa-eye-slash visible text-white" aria-hidden="true" title="{{#str}} hiddencourse, theme_remui {{/str}}"></i>
+        {{/visible}}
         {{# usercanmanage }}
         <div class="menu-picker-select">
             <div class="menu-picker btn-group " role="group">
               <label for="show-menu" class="menu-button"><span></span></label>
             </div>
             <div class="menu-content btn-group btn-group-vertical" aria-label="Vertical button group">
-                <button type="button" class="btn btn-primary">
-                    <a href="{{ enrollusers }}" title="{{# str }} enroluser, theme_remui {{/ str }}">
-                        <i class="m-0 icon fa fa-users text-white" aria-hidden="true"></i>
-                    </a>
-                </button>
-                <button type="button" class="btn btn-primary">
-                    <a href="{{ grader }}" title="{{# str }} graderreport, theme_remui {{/ str }}">
-                        <i class="m-0 icon fa fa-star text-white" aria-hidden="true"></i>
-                    </a>
-                </button>
-                <button type="button" class="btn btn-primary">
-                    <a href="{{ activity }}" title="{{# str }} activityeport, theme_remui {{/ str }}">
-                        <i class="m-0 icon fa fa-pie-chart text-white" aria-hidden="true"></i>
-                    </a>
-                </button>
-                <button type="button" class="btn btn-primary">
-                    <a href="{{ editcourse }}" title="{{# str }} editcourse, theme_remui {{/ str }}">
-                        <i class="m-0 icon  fa fa-edit text-white" aria-hidden="true"></i>
-                    </a>
-                </button>
+                <a href="{{ enrollusers }}" title="{{# str }} enroluser, theme_remui {{/ str }}" class="btn btn-primary d-block py-2 px-2">
+                    <i class="m-0 icon fa fa-users text-white" aria-hidden="true"></i>
+                </a>
+                <a href="{{ grader }}" title="{{# str }} graderreport, theme_remui {{/ str }}" class="btn btn-primary d-block py-2 px-2">
+                    <i class="m-0 icon fa fa-star text-white" aria-hidden="true"></i>
+                </a>
+                <a href="{{ activity }}" title="{{# str }} activityeport, theme_remui {{/ str }}" class="btn btn-primary d-block py-2 px-2">
+                    <i class="m-0 icon fa fa-pie-chart text-white" aria-hidden="true"></i>
+                </a>
+                <a href="{{ editcourse }}" title="{{# str }} editcourse, theme_remui {{/ str }}" class="btn btn-primary d-block py-2 px-2">
+                    <i class="m-0 icon  fa fa-edit text-white" aria-hidden="true"></i>
+                </a>
             </div>
         </div>
         {{/ usercanmanage }}
@@ -160,7 +155,7 @@
                     </div>
                 </div>
                 <div class="card-footer bg-transparent border-0 p-0 activity-btn {{listbuttons}}">
-                    <a href="{{ courseurl }}" class="btn btn-success btn-block p-10 bg-success border-0 rounded-0 text-white font-weight-800" href="">
+                    <a href="{{ courseurl }}" class="btn btn-success btn-block p-10 bg-success border-0 rounded-0 text-white font-weight-800">
                     <i class="fa fa-check" aria-hidden="true"></i>
                     {{coursecompleted}}</a>
                 </div>
@@ -172,23 +167,23 @@
                     </div>
                 </div>
                 <div class="card-footer bg-transparent border-0 p-0 activity-btn {{listbuttons}}">
-                    <a href="{{# lastaccessactivity}} {{lastaccessactivity}} {{/ lastaccessactivity}}{{^ lastaccessactivity}} {{ courseurl }} {{/ lastaccessactivity}}" class="btn btn-default btn-block p-10 bg-purple-500 border-0 rounded-0 text-white font-weight-800" href=""><i class="fa fa-refresh" aria-hidden="true"></i>
+                    <a href="{{# lastaccessactivity}} {{lastaccessactivity}} {{/ lastaccessactivity}}{{^ lastaccessactivity}} {{ courseurl }} {{/ lastaccessactivity}}" class="btn btn-default btn-block p-10 bg-purple-500 border-0 rounded-0 text-white font-weight-800"><i class="fa fa-refresh" aria-hidden="true"></i>
                     {{courseinprogress}}</a>
                 </div>
                 {{/ courseinprogress }}
 
                 {{# coursetostart }}
                 <div class="card-footer bg-transparent border-0 p-0 activity-btn {{listbuttons}}">
-                    <a href="{{ courseurl }}" class="btn btn-info btn-block p-10 border-0 rounded-0 text-white font-weight-800" href=""><i class="fa fa-play-circle" aria-hidden="true"></i>
+                    <a href="{{ courseurl }}" class="btn btn-info btn-block p-10 border-0 rounded-0 text-white font-weight-800"><i class="fa fa-play-circle" aria-hidden="true"></i>
                     {{coursetostart}}</a>
                 </div>
                 {{/ coursetostart }}
                 </div>
             {{/ mycourses}}
             <div class="content" title="{{{coursename}}}">
-                <span class="author">{{{categoryname}}}</span>
-                <h1 class="title"><a href="{{ courseurl }}" >{{{coursename}}}</a></h1>
-                <p class="text">{{{coursesummary}}}</p>
+                <span class="author ellipsis ellipsis-1" style="-webkit-box-orient: vertical;">{{{categoryname}}}</span>
+                <h4 class="card-title my-1 ellipsis ellipsis-3 title" style="-webkit-box-orient: vertical;"><a href="{{ courseurl }}" class="font-weight-400 text-dark font-size-18">{{{coursename}}}</a></h4>
+                <p class="text" style="-webkit-box-orient: vertical;">{{{coursesummary}}}</p>
             </div>
         </div>
     </div>

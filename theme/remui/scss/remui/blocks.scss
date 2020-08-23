@@ -10,15 +10,17 @@
 .block-myoverview {
     div[data-region=paged-content-page] ul.list-group li.list-group-item,
     .wdm-course-summary {
-        background: #edf5ff !important;
-        border: 0 !important;
-        border-radius: 5px;
+        border-bottom: 1px solid #ebebeb;
+    }
+
+    div[data-region=paged-content-page] ul.list-group li.list-group-item:last-of-type {
+        border-bottom: 0 !important;
     }
 }
 
 .block-timeline {
     div[data-region=event-list-item] {
-        background: #edf5ff !important;
+        background: #f8f8f8 !important;
         border: 0 !important;
         border-radius: 5px;
     }
@@ -28,7 +30,7 @@
         overflow: hidden;
         flex-flow: unset !important;
         .card-body {
-            background: #edf5ff;
+            background: #f8f8f8;
             border-radius: 5px !important;
         }
     }
@@ -53,6 +55,19 @@
     }
 }
 
+.block_recentlyaccessedcourses, .block_myoverview {
+    .dashboard-card-deck {
+        padding-left: map-get($spacers, 3);
+        padding-right: map-get($spacers, 3);
+    }
+    .slick-prev {
+        left: 0px !important;
+    }
+    .slick-next {
+        right: 0px !important;
+    }
+}
+
 .slick-prev {
     left: -10px !important;
     &::before {
@@ -72,6 +87,15 @@
 /**
  * Course Overview
  */
+
+ /* course title increase font size */
+ .wdm-course-card-body {
+     padding: 1.125rem;
+ }
+ .wdm-course-card-body .coursename {
+    font-size: 1.05rem;
+}
+
 .wdm-course-card-progress {
     position: absolute;
     top: 0;
@@ -80,7 +104,7 @@
     right: 0;
     .card-footer {
         background: transparent !important;
-        padding: 0 !important; 
+        padding: 0 !important;
         .progress {
             border: 0 !important;
             border-radius: 0 !important;
@@ -96,23 +120,20 @@
     top: 15px;
     right: 15px;
     button.btn-icon {
-        &::hover {
-            background: black !important;
-        }
-        background: black !important;
         color : white !important;
     }
     .coursemenubtn {
-        background-color: #0000008a !important;
-        .icon {
-            transform: rotate(90deg);
-            padding-top: 4px;
-        }
-        &::hover {
-            background-color: white !important;
-            color: black !important;
+        background-color: #000 !important;
+        opacity: 0.65;
+        &:hover {
+            opacity: 0.9;
         }
     }
+}
+
+
+[data-region="favourite-icon"] .fa-star {
+    color: #ffd700 !important;
 }
 
 /*rtl mode slick slider arrow issue*/
@@ -143,4 +164,17 @@ section.block_remuiblck {
     &.card {
         margin-bottom: 2.143rem;
     }
+}
+
+/**
+ * TODO: move later in misc scss
+ **/
+ .font-size-13 {
+    font-size: 13px;
+}
+
+// Text color issue
+.block_remuiblck .course-progress-block .panel-info .panel-action {
+    color: unset;
+    cursor: pointer;
 }

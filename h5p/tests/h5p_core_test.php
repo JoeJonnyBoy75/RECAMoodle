@@ -23,9 +23,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace core_h5p\local\tests;
+namespace core_h5p;
 
-use core_h5p\factory;
+use core_h5p\local\library\autoloader;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -38,13 +38,19 @@ defined('MOODLE_INTERNAL') || die();
  *
  * @runTestsInSeparateProcesses
  */
-class h5p_core_test extends \advanced_testcase {
+class h5p_core_testcase extends \advanced_testcase {
 
     protected function setup() {
+        global $CFG;
         parent::setUp();
 
-        $factory = new factory();
+        autoloader::register();
+
+        require_once($CFG->libdir . '/tests/fixtures/testable_core_h5p.php');
+
+        $factory = new h5p_test_factory();
         $this->core = $factory->get_core();
+        $this->core->set_endpoint($this->getExternalTestFileUrl(''));
     }
 
     /**
@@ -54,11 +60,11 @@ class h5p_core_test extends \advanced_testcase {
     public function test_fetch_content_type(): void {
         global $DB;
 
-        $this->resetAfterTest(true);
-
         if (!PHPUNIT_LONGTEST) {
             $this->markTestSkipped('PHPUNIT_LONGTEST is not defined');
         }
+
+        $this->resetAfterTest(true);
 
         // Get info of latest content types versions.
         $contenttypes = $this->core->get_latest_content_types()->contentTypes;
@@ -95,27 +101,27 @@ class h5p_core_test extends \advanced_testcase {
     public function test_fetch_latest_content_types(): void {
         global $DB;
 
-        $this->resetAfterTest(true);
-
         if (!PHPUNIT_LONGTEST) {
             $this->markTestSkipped('PHPUNIT_LONGTEST is not defined');
         }
+
+        $this->resetAfterTest(true);
 
         $contentfiles = $DB->count_records('h5p_libraries');
 
         // Initially there are no h5p records in database.
         $this->assertEquals(0, $contentfiles);
 
+        $contenttypespending = ['H5P.Accordion'];
+
         // Fetch generator.
         $generator = \testing_util::get_data_generator();
         $h5pgenerator = $generator->get_plugin_generator('core_h5p');
 
         // Get info of latest content types versions.
-        [$contenttypes, $contenttoinstall] = $h5pgenerator->create_content_types(1);
+        [$installedtypes, $typesnotinstalled] = $h5pgenerator->create_content_types($contenttypespending, $this->core);
         // Number of H5P content types.
-        $numcontenttypes = count($contenttypes) + count($contenttoinstall);
-
-        $contenttoinstall = $contenttoinstall[0];
+        $numcontenttypes = $installedtypes + $typesnotinstalled;
 
         // Content type libraries has runnable set to 1.
         $conditions = ['runnable' => 1];
@@ -123,7 +129,7 @@ class h5p_core_test extends \advanced_testcase {
 
         // There is a record for each installed content type, except the one that was hold for later.
         $this->assertEquals($numcontenttypes - 1, count($contentfiles));
-        $this->assertArrayNotHasKey($contenttoinstall->id, $contentfiles);
+        $this->assertArrayNotHasKey($contenttypespending[0], $contentfiles);
 
         $result = $this->core->fetch_latest_content_types();
 
@@ -131,9 +137,9 @@ class h5p_core_test extends \advanced_testcase {
 
         // There is a new record for the new installed content type.
         $this->assertCount($numcontenttypes, $contentfiles);
-        $this->assertArrayHasKey($contenttoinstall->id, $contentfiles);
+        $this->assertArrayHasKey($contenttypespending[0], $contentfiles);
         $this->assertCount(1, $result->typesinstalled);
-        $this->assertStringStartsWith($contenttoinstall->id, $result->typesinstalled[0]['name']);
+        $this->assertStringStartsWith($contenttypespending[0], $result->typesinstalled[0]['name']);
 
         // New execution doesn't install any content type.
         $result = $this->core->fetch_latest_content_types();
@@ -142,5 +148,49 @@ class h5p_core_test extends \advanced_testcase {
 
         $this->assertEquals($numcontenttypes, count($contentfiles));
         $this->assertCount(0, $result->typesinstalled);
+    }
+
+    /**
+     * Test that if site_uuid is not set, the site is registered and site_uuid is set.
+     *
+     */
+    public function test_get_site_uuid(): void {
+        $this->resetAfterTest(true);
+
+        if (!PHPUNIT_LONGTEST) {
+            $this->markTestSkipped('PHPUNIT_LONGTEST is not defined');
+        }
+
+        // Check that site_uuid does not have a value.
+        $this->assertFalse(get_config('core_h5p', 'site_uuid'));
+
+        $siteuuid = $this->core->get_site_uuid();
+
+        $this->assertSame($siteuuid, get_config('core_h5p', 'site_uuid'));
+
+        // Check that after a new request the site_uuid remains the same.
+        $siteuuid2 = $this->core->get_site_uuid();
+        $this->assertEquals( $siteuuid, $siteuuid2);
+    }
+
+    /**
+     * Test if no handler has been defined.
+     */
+    public function test_get_default_handler() {
+        global $CFG;
+
+        $this->resetAfterTest(true);
+        // Emtpy the h5plibraryhandler setting.
+        $CFG->h5plibraryhandler = '';
+
+        // Get the default habdler library to use in the settings h5p page.
+        // For instance, h5plib_v124.
+        $handlerlib = autoloader::get_default_handler_library();
+        $this->assertNotNull($handlerlib);
+        $this->assertStringNotContainsString($handlerlib, '\local\library\handler');
+        // Get the default handler class.
+        // For instance, \h5plib_v124\local\library\handler.
+        $handlerclass = autoloader::get_default_handler();
+        $this->assertStringEndsWith('\local\library\handler', $handlerclass);
     }
 }

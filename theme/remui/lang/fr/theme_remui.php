@@ -19,6 +19,7 @@
  *
  * @package   theme_remui
  * @copyright 2016 Frédéric Massart
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -47,7 +48,7 @@ $string['choosereadme'] = '
         <div class="text-center">
             <div class="btn-group text-center" role="group" aria-label="...">
               <div class="btn-group mr-1" role="group">
-                <a href="https://knowledgebase.edwiser.org/en/category/edwiser-remui-theme-5sxjyd/" target="_blank" class="btn btn-primary btn-round">FAQ</a>&nbsp;
+                <a href="https://edwiser.helpscoutdocs.com/collection/78-edwiser-remui-theme" target="_blank" class="btn btn-primary btn-round">FAQ</a>&nbsp;
               </div>
               <div class="btn-group mr-1" role="group">
                 <a href="https://edwiser.org/remui/documentation/" target="_blank" class="btn btn-primary btn-round">Documentation</a>&nbsp;
@@ -138,8 +139,8 @@ $string['viewCourseCategory_list'] = 'Pour afficher les cours en format de liste
 
 /* Aside right view preference */
 $string['privacy:metadata:preference:aside_right_state'] = 'Si le bloc de côté à droite doit rester ouvert ou amarré';
-$string['aside_right_state_'] = 'Pour afficher le bloc de côté à droite comme ouvert'; // blank value
-$string['aside_right_state_overrideaside'] = 'Pour afficher le bloc de côté à droite comme ancré'; // overrideaside
+$string['aside_right_state_'] = 'Pour afficher le bloc de côté à droite comme ouvert'; // Blank value.
+$string['aside_right_state_overrideaside'] = 'Pour afficher le bloc de côté à droite comme ancré'; // Overrideaside.
 
 /* Menu view preference */
 $string['privacy:metadata:preference:menubar_state'] = 'Le type d\'affichage que l\'utilisateur préfère pour la barre de menus';
@@ -186,11 +187,28 @@ $string['sidebarpinned'] = 'Barre latérale épinglée';
 $string['sidebarunpinned'] = 'Barre latérale non épinglée';
 $string['pinsidebar'] = 'Broche latérale';
 $string['unpinsidebar'] = 'Détacher la barre latérale';
+$string['primary'] = 'Primaire';
+$string['brown'] = 'marron';
+$string['cyan'] = 'Cyan';
+$string['green'] = 'vert';
+$string['grey'] = 'Gris';
+$string['indigo'] = 'Indigo';
+$string['orange'] = 'Orange';
+$string['pink'] = 'Rose';
+$string['purple'] = 'Violet';
+$string['red'] = 'rouge';
+$string['teal'] = 'Sarcelle';
+$string['custom-color'] = 'Couleur personnalisée';
+$string['dark'] = 'Foncé';
+$string['light'] = 'Lumière';
 
 // General Settings.
 $string['generalsettings' ] = 'Paramètres généraux';
 $string['enableannouncement'] = "Activer l'annonce du site";
 $string['enableannouncementdesc'] = "Activer une annonce à l'échelle du site pour les visiteurs / étudiants du site.";
+$string['enabledismissannouncement'] = "Activer congédiement Annonce du site";
+$string['enabledismissannouncementdesc'] = "Si activé, autoriser les utilisateurs à congédiement l' annonce texte.";
+
 $string['announcementtext'] = "Annonce";
 $string['announcementtextdesc'] = "Message d'annonce à afficher dans tout le site.";
 $string['announcementtype'] = "Type d'annonce";
@@ -248,8 +266,6 @@ $string['googleanalyticsdesc'] = 'Merci d\'entrer votre code de suivi Google Ana
 Sachez qu\'en incluant ce paramètre, vous enverrez des données à Google Analytics et assurez-vous que vos utilisateurs en sont avertis. Notre produit ne stocke aucune des données envoyées à Google Analytics.';
 $string['enablecoursestats'] = 'Activer les statistiques du cours';
 $string['enablecoursestatsdesc'] = "Si cette option est activée, l'administrateur, les gestionnaires et l'enseignant verront les statistiques relatives à la page du cours.";
-$string['courseeditbuttonsetting'] = "Bouton d\'édition de cours";
-$string['courseeditbuttonsetting_desc'] = "Avec ce paramètre, vous pouvez ajouter un bouton sur d\'édition de à l\'en-tête du cours pour un accès plus rapide.";
 $string['enabledictionary'] = 'Activer le dictionnaire';
 $string['enabledictionarydesc'] = "Si activé, la fonction Dictionnaire sera activée et affichera la signification du texte sélectionné dans l'info-bulle.";
 $string['more'] = 'Plus...';
@@ -461,11 +477,14 @@ $string['licensenotactiveadmin'] = '<strong>Attention !</strong> La licence n\'e
 $string['activatelicense'] = 'Activer la licence';
 $string['deactivatelicense'] = 'Désactiver la licence';
 $string['renewlicense'] = 'Renouveler la licence';
+$string['deactivated'] = 'Désactivée';
 $string['active'] = 'Activée';
 $string['notactive'] = 'N\'est pas activée';
 $string['expired'] = 'Expirée';
 $string['licensekey'] = 'Clef de licence';
 $string['licensestatus'] = 'Status de la licence';
+$string['no_activations_left'] = 'Limite dépassée';
+$string['activationfailed'] = 'L\'activation de la clé de licence a échoué. Veuillez réessayer plus tard.';
 $string['noresponsereceived'] = 'Aucune réponse reçue du serveur. Veuillez réessayer plus tard.';
 $string['licensekeydeactivated'] = 'La clef de la licence est désactivée.';
 $string['siteinactive'] = 'Site inactif (Appuyez sur <i>Activer la licence</i> pour activer le thème).';
@@ -475,6 +494,7 @@ $string['licensekeyhasexpired'] = "Votre clef de licence est expirée. Veuillez 
 $string['licensekeyactivated'] = "Votre clef de licence est activée.";
 $string['enterlicensekey'] = "Merci de d'entrer votre clef de licence.";
 $string['edwiserremuilicenseactivation'] = 'Activation de la licence Edwiser RemUI ';
+$string['nolicenselimitleft'] = "Limite d'activation maximale atteinte, aucune activation restante.";
 
 // News And Updates Page.
 $string['newsandupdates'] = 'Nouvelles mise à jour';
@@ -543,3 +563,30 @@ $string['viewcourse'] = "VUE COURS";
 $string['searchcourses'] = "Rechercher des cours";
 
 $string['hiddencourse'] = 'Cours caché';
+
+// Usage tracking.
+$string['enableusagetracking'] = "Activer le trakcing d'utilisation";
+
+$string['enableusagetrackingdesc'] = "<strong>AVIS DE SUIVI DE L'UTILISATION</strong>
+
+<hr class='text-muted' />
+
+<p>Edwiser collectera désormais des données anonymes pour générer des statistiques d'utilisation des produits.</p>
+
+<p>Ces informations nous aideront à guider le développement dans la bonne direction et à faire prospérer la communauté Edwiser.</p>
+
+<p>Cela dit, nous ne collectons pas vos données personnelles ni celles de vos étudiants au cours de ce processus. Vous pouvez désactiver cela à partir du plugin chaque fois que vous souhaitez vous désinscrire de ce service.</p>
+
+<p>Un aperçu des données collectées est disponible <strong><a href='https://forums.edwiser.org/topic/67/anonymously-tracking-the-usage-of-edwiser-products' target='_blank'>ici</a></strong>.</p>";
+
+$string['focusmodesettings'] = 'Focus Mode Settings';
+$string['enablefocusmode'] = 'Enable Focus Mode';
+$string['enablefocusmodedesc'] = 'Enabling this setting will open the course and activity page such a way so that students will not lose focus of main Course content';
+$string['focusmodeenabled'] = 'Mode de mise au point activé';
+$string['focusmodedisabled'] = 'Mode de mise au point désactivé';
+$string['coursedata'] = 'Données du cours';
+
+$string['prev'] = 'Précédent';
+$string['next'] = 'Prochain';
+
+$string['nocoursefound'] = 'Aucun cours trouvé';

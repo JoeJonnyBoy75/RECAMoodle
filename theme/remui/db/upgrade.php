@@ -15,10 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package     theme_remui
- * @copyright   (c) 2019 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @author      Yogesh Shirsath
+ * Theme remui upgrade hook
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author    Yogesh Shirsath
  */
 
 defined('MOODLE_INTERNAL') || die();
@@ -32,12 +33,12 @@ use theme_remui\frontpage\section_manager as section_manager;
  */
 function xmldb_theme_remui_upgrade($oldversion) {
     global $CFG, $DB;
-    // return true;
+
     $dbman = $DB->get_manager();
 
     if ($oldversion < 2019070203) {
 
-        // Creating theme_remui_section_instance
+        // Creating theme_remui_section_instance.
         $table = new xmldb_table('theme_remui_section_instance');
         $table->addField(new xmldb_field('id', XMLDB_TYPE_INTEGER, 10, null, true, true));
         $table->addField(new xmldb_field('sectid', XMLDB_TYPE_INTEGER, 10, null, true));

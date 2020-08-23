@@ -17,9 +17,10 @@
 /**
  * Renderers to align Moodle's HTML with that expected by Bootstrap
  *
- * @package    theme_boost
- * @copyright   2018 Bas Brands
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   theme_remui
+ * @copyright 2018 Bas Brands
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace theme_remui\output\core_course\management;
@@ -40,7 +41,7 @@ use action_menu_link_secondary;
 /**
  * Main renderer for the course management pages.
  *
- * @package theme_boost
+ * @package theme_remui
  * @copyright 2013 Sam Hemelryk
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -91,7 +92,10 @@ class renderer extends \core_course_management_renderer {
             $form = html_writer::start_div();
             if ($category) {
                 $selectoptions = array('thiscategory' => get_string('thiscategory')) + $selectoptions;
-                $form .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'currentcategoryid', 'value' => $category->id));
+                $form .= html_writer::empty_tag(
+                    'input',
+                    array('type' => 'hidden', 'name' => 'currentcategoryid', 'value' => $category->id)
+                );
             }
             $form .= html_writer::div(
                 html_writer::select(

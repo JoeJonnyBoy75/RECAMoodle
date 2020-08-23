@@ -48,7 +48,7 @@
 
             <div class="align-self-stretch d-flex flex-column w-p100">
                 <div class="d-flex mb-1">
-                    <a href="{{viewurl}}" class="coursename">
+                    <a href="{{viewurl}}" class="aalink coursename">
                         {{#showshortname}}
                             <span class="sr-only">
                                 {{#str}}aria:courseshortname, core_course{{/str}}
@@ -69,7 +69,7 @@
                     <span class="sr-only">{{#str}}aria:coursesummary, block_myoverview{{/str}}</span>
                     {{{summary}}}
                 </div>
-                <div class="ml-auto mt-auto w-p50 p-t-1">
+                <div class="ml-auto mt-auto w-50 p-t-1">
                     {{#hasprogress}}
                         {{> block_myoverview/progress-bar}}
                     {{/hasprogress}}

@@ -24,7 +24,7 @@
 
 // Disable moodle specific debug messages and any errors in output,
 // comment out when debugging or better look into error log!
-define('NO_DEBUG_DISPLAY', false);
+define('NO_DEBUG_DISPLAY', true);
 
 // We need just the values from config.php and minlib.php.
 define('ABORT_AFTER_CONFIG', true);
@@ -104,7 +104,7 @@ if ($rev > 0 and $rev < (time() + 60 * 60)) {
             $js = rtrim($js);
             $js .= "\n";
 
-            if (preg_match('/define\(\s*\[/', $js)) {
+            if (preg_match('/define\(\s*(\[|function)/', $js)) {
                 // If the JavaScript module has been defined without specifying a name then we'll
                 // add the Moodle module name now.
                 $replace = 'define(\'' . $modulename . '\', ';
@@ -157,7 +157,7 @@ if (!empty($jsfiles)) {
         $js = rtrim($js);
     }
 
-    if (preg_match('/define\(\s*\[/', $js)) {
+    if (preg_match('/define\(\s*(\[|function)/', $js)) {
         // If the JavaScript module has been defined without specifying a name then we'll
         // add the Moodle module name now.
         $replace = 'define(\'' . $modulename . '\', ';

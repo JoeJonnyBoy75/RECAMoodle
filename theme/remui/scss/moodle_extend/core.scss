@@ -1,0 +1,28 @@
+.context-header-settings-menu, #region-main-settings-menu {
+    .dropdown-toggle {
+        &> .icon{
+            height: 14px;
+            font-size: 14px;
+            width: auto;         
+        }
+    }
+}
+
+.pagelayout-mydashboard #region-main {
+    & > .card.card-body {
+        background: rgba(0, 0, 0, 0);
+    }
+}
+
+.moodle-dialogue-base {
+    .moodle-dialogue{
+        outline: none;
+    }
+    .moodle-dialogue-wrap { 
+        background-color: #fff;
+        border-radius: .285rem;
+        .moodle-dialogue-hd {
+            border-bottom: 0;
+        }
+    }
+}

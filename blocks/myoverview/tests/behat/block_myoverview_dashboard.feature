@@ -128,6 +128,20 @@ Feature: The my overview block allows users to easily access their courses
     And I should not see "Course 3" in the "Course overview" "block"
     And I should not see "Course 4" in the "Course overview" "block"
 
+  Scenario: View favourite courses - w/ persistence
+    Given I log in as "student1"
+    And I click on ".coursemenubtn" "css_element" in the "//div[@class='card dashboard-card' and contains(.,'Course 2')]" "xpath_element"
+    And I click on "Star this course" "link" in the "//div[@class='card dashboard-card' and contains(.,'Course 2')]" "xpath_element"
+    And I click on "All (except removed from view)" "button" in the "Course overview" "block"
+    When I click on "Starred" "link" in the "Course overview" "block"
+    And I reload the page
+    Then I should see "Starred" in the "Course overview" "block"
+    And I should see "Course 2" in the "Course overview" "block"
+    And I should not see "Course 1" in the "Course overview" "block"
+    And I should not see "Course 3" in the "Course overview" "block"
+    And I should not see "Course 4" in the "Course overview" "block"
+    And I should not see "Course 5" in the "Course overview" "block"
+
   Scenario: List display  persistence
     Given I log in as "student1"
     And I click on "Display drop-down menu" "button" in the "Course overview" "block"
@@ -167,6 +181,20 @@ Feature: The my overview block allows users to easily access their courses
     And I reload the page
     Then I should see "Last accessed" in the "Course overview" "block"
     And "[data-sort='ul.timeaccess desc']" "css_element" in the "Course overview" "block" should be visible
+
+  Scenario: Short name sort persistence
+    Given I log in as "student1"
+    When I click on "sortingdropdown" "button" in the "Course overview" "block"
+    Then I should not see "Short name" in the "Course overview" "block"
+    When the following config values are set as admin:
+      | config               | value |
+      | courselistshortnames | 1     |
+    And I reload the page
+    And I click on "sortingdropdown" "button" in the "Course overview" "block"
+    And I click on "Short name" "link" in the "Course overview" "block"
+    And I reload the page
+    Then I should see "Short name" in the "Course overview" "block"
+    And "[data-sort='shortname']" "css_element" in the "Course overview" "block" should be visible
 
   Scenario: View inprogress courses with hide persistent functionality
     Given I log in as "student1"

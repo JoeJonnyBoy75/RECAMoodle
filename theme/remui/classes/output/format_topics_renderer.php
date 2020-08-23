@@ -15,11 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Edwiser RemUI
  * Format topics renderer
- * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace theme_remui\output;
@@ -29,6 +28,11 @@ use context_course;
 use stdClass;
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Format topics renderer.
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class format_topics_renderer extends \format_topics_renderer {
 
     /**
@@ -60,16 +64,16 @@ class format_topics_renderer extends \format_topics_renderer {
             $section = $modinfo->get_section_info($section);
         }
 
-        // check if we are currently in the process of moving a module with JavaScript disabled
+        // Check if we are currently in the process of moving a module with JavaScript disabled.
         $ismoving = $this->page->user_is_editing() && ismoving($course->id);
 
-        // Get the list of modules visible to user (excluding the module being moved if there is one)
+        // Get the list of modules visible to user (excluding the module being moved if there is one).
         if (!empty($modinfo->sections[$section->section])) {
             foreach ($modinfo->sections[$section->section] as $modnumber) {
                 $mod = $modinfo->cms[$modnumber];
 
                 if ($ismoving and $mod->id == $USER->activitycopy) {
-                    // do not display moving mod
+                    // Do not display moving mod.
                     continue;
                 }
 

@@ -1,10 +1,5 @@
 /* course.less */
 /* COURSE CONTENT */
-.section-modchooser-link img {
-    margin-right: 0.5rem;
-    width: 16px;
-    height: 16px;
-}
 
 .section_add_menus {
     text-align: right;
@@ -49,10 +44,11 @@ body:not(.editing)  .sitetopic ul.section {
     }
 }
 
-.course-content ul.section {
-    margin: $spacer;
+@include media-breakpoint-up(sm) {
+    .course-content ul.section {
+        margin: $spacer;
+    }
 }
-
 .section {
     .side {
         &.left {
@@ -93,7 +89,7 @@ body:not(.editing)  .sitetopic ul.section {
             min-height: 2em;
 
             > a {
-                display: block;
+                display: inline-block;
                 text-indent: -31px;
                 padding-left: 31px;
             }
@@ -106,7 +102,7 @@ body:not(.editing)  .sitetopic ul.section {
         }
 
         .stealth {
-            @extend .text-muted;
+            color: $text-muted;
         }
         a.stealth,
         a.stealth:hover {
@@ -121,10 +117,11 @@ body:not(.editing)  .sitetopic ul.section {
             display: block;
             height: inherit;
         }
-
-        .mod-indent-outer {
-            padding-left: 24px;
-            display: block;
+        @include media-breakpoint-up(sm) {
+            .mod-indent-outer {
+                padding-left: 24px;
+                display: block;
+            }
         }
     }
 
@@ -259,7 +256,7 @@ body:not(.editing)  .sitetopic ul.section {
 }
 
 .course-content .section-summary .section-summary-activities .activity-count {
-    @extend .text-muted;
+    color: $text-muted;
     font-size: $font-size-sm;
     margin: 3px;
     white-space: nowrap;
@@ -323,31 +320,50 @@ body:not(.editing)  .sitetopic ul.section {
     .sectionname > span,
     .content > div.summary,
     .activity .activityinstance {
-        @extend .text-muted;
+        color: $text-muted;
     }
 }
 
 .course-content ul.topics,
 .course-content ul.weeks {
     padding: 0;
+    margin: 0;
+    list-style: none;
 
     li.section {
         margin-top: $spacer;
         padding-bottom: $spacer;
-
         .content {
             margin: 0;
             padding: 0;
         }
 
-        .summary,
-        .content > .availabilityinfo {
-            margin-left: 25px;
+        @include media-breakpoint-up(sm) {
+            .summary,
+            .content > .availabilityinfo {
+                margin-left: 25px;
+            }
         }
 
-        .left {
-            padding-top: 0;
+        .left,
+        .right {
+            padding: 0 6px 0;
             text-align: right;
+            width: auto;
+        }
+    }
+}
+
+@include media-breakpoint-down(sm) {
+    body:not(.editing) {
+        .course-content ul.topics,
+        .course-content ul.weeks {
+            li.section {
+                .left,
+                .right {
+                    display: none;
+                }
+            }
         }
     }
 }
@@ -362,6 +378,11 @@ body:not(.editing)  .sitetopic ul.section {
 
 .course-content li {
     &.section {
+        @include media-breakpoint-down(sm) {
+            ul {
+                padding-left: 0;
+            }
+        }
         ul {
             list-style: disc;
 
@@ -569,7 +590,7 @@ span.editinstructions {
 
 #coursesearch {
     margin-top: 1em;
-    text-align: center;
+    text-align: left;
 }
 
 #page-course-pending .pendingcourserequests {
@@ -849,10 +870,8 @@ span.editinstructions {
     .listitem {
 
         &[data-selected='1'] {
-            background-color: $table-bg-accent;
-            &:hover {
-                background-color: $table-bg-hover;
-            }
+            border-left: calc(#{$list-group-border-width} + 5px) solid map-get($theme-colors, 'info');
+            padding-left: calc(#{$list-group-item-padding-x} - 5px);
         }
     }
 
@@ -899,17 +918,16 @@ span.editinstructions {
             }
 
             .idnumber {
-                color: #a1a1a8;
                 margin-right: 2em;
             }
         }
         // The category or course is hidden.
         &[data-visible="0"] {
-            @extend .text-muted;
+            color: $text-muted;
 
             > div {
                 > a {
-                    @extend .text-muted;
+                    color: $text-muted;
                 }
 
                 .item-actions {
@@ -964,25 +982,6 @@ span.editinstructions {
         }
 
         .listitem {
-            > div {
-                > .ba-checkbox {
-                    width: 2.2em;
-                    text-align: center;
-                    margin: -1px 0.5em 0 0;
-                    padding-top: 2px;
-                }
-            }
-
-            &.highlight > div > .ba-checkbox {
-                background-color: $table-bg-hover;
-            }
-
-            &[data-selected='1'] > div > .ba-checkbox {
-                margin: 0 0.5em 0 0;
-                padding: 0;
-                background-color: inherit;
-            }
-
             &:first-child > div .item-actions .action-moveup,
             &:last-child > div .item-actions .action-movedown {
                 display: none;
@@ -1057,7 +1056,7 @@ span.editinstructions {
         text-align: center;
 
         &.dimmed {
-            @extend .text-muted;
+            color: $text-muted;
             margin: 0.4rem 1rem 0.45rem;
         }
     }

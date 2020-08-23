@@ -19,6 +19,7 @@
  *
  * @package   theme_remui
  * @copyright 2016 Damyon Wiese
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

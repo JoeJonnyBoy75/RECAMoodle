@@ -15,9 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package theme_remui
- * @author  2019 wisdmlabs
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Save user profile settings service
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\external;
 
@@ -26,6 +27,11 @@ defined('MOODLE_INTERNAL') || die;
 use external_function_parameters;
 use external_value;
 
+/**
+ * Save user profile settings trait
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 trait save_user_profile_settings {
     /**
      * Describes the parameters for save_user_profile_settings
@@ -45,12 +51,11 @@ trait save_user_profile_settings {
 
     /**
      * Save user profile settings submitted in the profile page
-     * @param  String $fname       Firstname
-     * @param  String $lname       Lastname
-     * @param  String $emailid     Email
-     * @param  String $description Description
-     * @param  String $city        City
-     * @param  String $country     Country
+     * @param  string $fname       Firstname
+     * @param  string $lname       Lastname
+     * @param  string $description Description
+     * @param  string $city        City
+     * @param  string $country     Country
      * @return mixxed              Result
      */
     public static function save_user_profile_settings($fname, $lname, $description, $city, $country) {

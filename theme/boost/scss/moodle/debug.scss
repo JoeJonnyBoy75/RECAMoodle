@@ -25,16 +25,27 @@ body.behat-site {
         transition: initial;
         position: absolute;
     }
+    .custom-control,
+    .custom-switch {
+        padding-left: 0;
+    }
+    .custom-control-input {
+        position: static;
+        z-index: 0;
+        opacity: 1;
+    }
+    .custom-control-label {
+        &::before,
+        &::after {
+            content: none;
+        }
+    }
 }
 
 .phpinfo table,
 .phpinfo th,
 .phpinfo h2 {
     margin: auto;
-}
-
-.phpinfo h2 {
-    width: 600px;
 }
 
 .phpinfo .e,

@@ -15,9 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package theme_remui
- * @author  2019 wisdmlabs
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Set settings service
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\external;
 
@@ -26,6 +27,11 @@ defined('MOODLE_INTERNAL') || die;
 use external_function_parameters;
 use external_value;
 
+/**
+ * Set settings trait
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 trait set_setting {
     /**
      * Describes the parameters for set_setting
@@ -42,7 +48,9 @@ trait set_setting {
 
     /**
      * Save order of sections in array of configuration format
-     * @return boolean true
+     * @param  string $configname  Configuration name
+     * @param  string $configvalue Configuration value
+     * @return bool                True
      */
     public static function set_setting($configname, $configvalue) {
         global $PAGE;

@@ -362,4 +362,84 @@ class core_adhoc_task_testcase extends advanced_testcase {
 
         $this->assertEquals($user->id, $task->get_userid());
     }
+
+    /**
+     * Test get_concurrency_limit() method to return 0 by default.
+     */
+    public function test_get_concurrency_limit() {
+        $this->resetAfterTest(true);
+        $task = new \core\task\adhoc_test_task();
+        $concurrencylimit = $task->get_concurrency_limit();
+        $this->assertEquals(0, $concurrencylimit);
+    }
+
+    /**
+     * Test get_concurrency_limit() method to return a default value set in config.
+     */
+    public function test_get_concurrency_limit_default() {
+        $this->resetAfterTest(true);
+        set_config('task_concurrency_limit_default', 10);
+        $task = new \core\task\adhoc_test_task();
+        $concurrencylimit = $task->get_concurrency_limit();
+        $this->assertEquals(10, $concurrencylimit);
+    }
+
+    /**
+     * Test get_concurrency_limit() method to return a value for specific task class.
+     */
+    public function test_get_concurrency_limit_for_task() {
+        global $CFG;
+        $this->resetAfterTest(true);
+        set_config('task_concurrency_limit_default', 10);
+        $CFG->task_concurrency_limit = array('core\task\adhoc_test_task' => 5);
+        $task = new \core\task\adhoc_test_task();
+        $concurrencylimit = $task->get_concurrency_limit();
+        $this->assertEquals(5, $concurrencylimit);
+    }
+
+    /**
+     * Test adhoc task sorting.
+     */
+    public function test_get_next_adhoc_task_sorting() {
+        $this->resetAfterTest(true);
+
+        // Create adhoc tasks.
+        $task1 = new \core\task\adhoc_test_task();
+        $task1->set_next_run_time(1510000000);
+        $task1->set_custom_data_as_string('Task 1');
+        \core\task\manager::queue_adhoc_task($task1);
+
+        $task2 = new \core\task\adhoc_test_task();
+        $task2->set_next_run_time(1520000000);
+        $task2->set_custom_data_as_string('Task 2');
+        \core\task\manager::queue_adhoc_task($task2);
+
+        $task3 = new \core\task\adhoc_test_task();
+        $task3->set_next_run_time(1520000000);
+        $task3->set_custom_data_as_string('Task 3');
+        \core\task\manager::queue_adhoc_task($task3);
+
+        // Shuffle tasks.
+        $task1->set_next_run_time(1540000000);
+        \core\task\manager::reschedule_or_queue_adhoc_task($task1);
+
+        $task3->set_next_run_time(1530000000);
+        \core\task\manager::reschedule_or_queue_adhoc_task($task3);
+
+        $task2->set_next_run_time(1530000000);
+        \core\task\manager::reschedule_or_queue_adhoc_task($task2);
+
+        // Confirm, that tasks are sorted by nextruntime and then by id (ascending).
+        $task = \core\task\manager::get_next_adhoc_task(time());
+        $this->assertEquals('Task 2', $task->get_custom_data_as_string());
+        \core\task\manager::adhoc_task_complete($task);
+
+        $task = \core\task\manager::get_next_adhoc_task(time());
+        $this->assertEquals('Task 3', $task->get_custom_data_as_string());
+        \core\task\manager::adhoc_task_complete($task);
+
+        $task = \core\task\manager::get_next_adhoc_task(time());
+        $this->assertEquals('Task 1', $task->get_custom_data_as_string());
+        \core\task\manager::adhoc_task_complete($task);
+    }
 }

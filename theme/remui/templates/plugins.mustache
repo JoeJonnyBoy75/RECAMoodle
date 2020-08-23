@@ -1,0 +1,87 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template theme_remui/plugins
+
+    This template renders live status tab
+
+    Example context (json):
+    {
+        "errors"         : "false"
+        "hasupdate"      : "true",
+        "overviewupdate" : 3,
+        "overviewall"    : 51,
+        "list": [{
+            "class"  : "type-block name-theme_remui status-uptodate extension",
+            "header" : [{
+                "header"      : false,
+                "icon"        : "plugin icon",
+                "displayname" : "plugin name",
+                "component"   : "plugin component",
+                "release"     : "plugin release number",
+                "versiondb"   : "plugin version in db",
+                "source"      : "source of plugin",
+                "actions"     : "actions supported with the plugin",
+                "msg"         : "message to display about update",
+                "requireby"   : "is this plugin required by another plugin",
+                "parent"      : "parent plugin name",
+                "update"      : "does this plugin have update"
+            }]
+        }]
+    }
+}}
+<div class="remui-plugins-update col-12">
+    {{#refresh-update}}
+        <a class="btn btn-secondary mb-2" href="{{{refresh-update}}}">{{#str}} taskcheckforupdates, core_admin {{/str}}</a>
+    {{/refresh-update}}
+    {{#lastcheck}}
+        <br>{{#str}} checkforupdateslast, core_plugin, {{#userdate}} {{lastcheck}}, %d %B %Y, %I:%M %p {{/userdate}} {{/str}}
+    {{/lastcheck}}
+    <br>
+    <br>
+{{#errors}}
+    {{{.}}}
+{{/errors}}
+{{^errors}}
+{{#list}}
+    <div class="panel">
+        <div class="panel-body">
+            <div class="row">
+                <h4>{{displayname}}</h4>
+            </div>
+            <div class="row h5">
+                {{#str}} currentrelease, theme_remui, {{release}} {{/str}} -
+                &nbsp;<strong>{{#str}} updateavailable, theme_remui, {{update}} {{/str}}</strong>
+            </div>
+            {{#msg}}
+                <div class="row">
+                    {{{#msg}}}
+                </div>
+            {{/msg}}
+            <div class="row">
+                {{{install}}}
+                <div class="changelog btn">
+                    <a class="showchangelog" target="_target" data-log="{{changelog}}" href="#">
+                        {{#str}} changelog, theme_remui {{/str}}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{{/list}}
+{{/errors}}
+</div>

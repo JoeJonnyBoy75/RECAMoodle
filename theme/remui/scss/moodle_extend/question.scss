@@ -1,0 +1,26 @@
+body.path-question-type {
+    .fitem_fgroup .accesshide {
+        font: inherit;
+        position: static;
+        padding-right: .3em;
+    }
+}
+.que {
+    .info{
+        width: 13em;
+    }
+    .content {
+        margin: 0 0 0 14.5em;
+        background: white;
+        padding: 10px 20px;
+    }
+    .formulation{
+        padding: 0;
+    }
+    .qtext{
+        font-size: 1rem;
+        padding: 5px 10px;
+        background: #f3f7f9;
+        border-radius: $border-radius;
+    }
+}

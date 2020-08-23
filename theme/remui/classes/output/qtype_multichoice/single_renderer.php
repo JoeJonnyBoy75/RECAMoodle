@@ -16,9 +16,9 @@
 
 /**
  * Edwiser RemUI
- * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\output\qtype_multichoice;
 use question_attempt;
@@ -28,15 +28,26 @@ use question_state;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Subclass for generating the bits of output specific to multiple choice
- * single questions.
+ * Subclass for generating the bits of output specific to multiple choice single questions.
  *
  * @copyright  2009 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class single_renderer extends \qtype_multichoice_single_renderer {
+
+    /**
+     * Generate the display of the formulation part of the question. This is the
+     * area that contains the quetsion text, and the controls for students to
+     * input their answers. Some question types also embed bits of feedback, for
+     * example ticks and crosses, in this area.
+     *
+     * @param question_attempt $qa the question attempt to display.
+     * @param question_display_options $options controls what should and should not be displayed.
+     * @return string HTML fragment.
+     */
     public function formulation_and_controls(question_attempt $qa,
         question_display_options $options) {
+
         $question = $qa->get_question();
         $response = $question->get_response($qa);
 
@@ -75,11 +86,13 @@ class single_renderer extends \qtype_multichoice_single_renderer {
             }
             $radiobuttons[] = $hidden . html_writer::empty_tag('input', $inputattributes) .
                     html_writer::tag('label',
-                        $this->number_in_style($value, $question->answernumbering) .
-                        $question->make_html_inline($question->format_text(
-                                $ans->answer, $ans->answerformat,
-                                $qa, 'question', 'answer', $ansid)),
-                    array('for' => $inputattributes['id'], 'class' => 'd-block ml-20 mr-25'));
+                        html_writer::span($this->number_in_style($value, $question->answernumbering), 'answernumber') .
+                        html_writer::tag('div',
+                        $question->format_text(
+                                    $ans->answer, $ans->answerformat,
+                                    $qa, 'question', 'answer', $ansid),
+                        array('class' => 'flex-fill ml-1')),
+                        array('for' => $inputattributes['id'], 'class' => 'd-flex w-100'));
 
             // Param $options->suppresschoicefeedback is a hack specific to the
             // oumultiresponse question type. It would be good to refactor to
@@ -94,7 +107,7 @@ class single_renderer extends \qtype_multichoice_single_renderer {
             } else {
                 $feedback[] = '';
             }
-            $class = 'radio-custom radio-primary my-2 r' . ($value % 2);
+            $class = 'r' . ($value % 2);
             if ($options->correctness && $isselected) {
                 $feedbackimg[] = $this->feedback_image($this->is_right($ans));
                 $class .= ' ' . $this->feedback_class($this->is_right($ans));
@@ -109,14 +122,18 @@ class single_renderer extends \qtype_multichoice_single_renderer {
                 array('class' => 'qtext'));
 
         $result .= html_writer::start_tag('div', array('class' => 'ablock'));
-        $result .= html_writer::tag('div', $this->prompt(), array('class' => 'prompt'));
+        if ($question->showstandardinstruction == 1) {
+            $result .= html_writer::tag('div', $this->prompt(), array('class' => 'prompt'));
+        }
 
         $result .= html_writer::start_tag('div', array('class' => 'answer'));
         foreach ($radiobuttons as $key => $radio) {
             $result .= html_writer::tag('div', $radio . ' ' . $feedbackimg[$key] . $feedback[$key],
-                    array('class' => $classes[$key].' radio-custom')) . "\n";
+                    array('class' => 'radio-custom ' . $classes[$key])) . "\n";
         }
         $result .= html_writer::end_tag('div'); // Answer.
+
+        $result .= $this->after_choices($qa, $options);
 
         $result .= html_writer::end_tag('div'); // Ablock.
 

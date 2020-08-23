@@ -11,7 +11,8 @@
 }
 
 body {
-    font-size: 14px;
+    // font-size: 14px;
+    font-size: 1rem;
     font-family: "[[setting:fontfamily]]",sans-serif;
     #sidebar-blocks {
         .dropdown-menu {
@@ -31,6 +32,7 @@ body {
 :not(.sidebar-open, .sidebar-pinned){
     .floating-buttons {
         position: fixed;
+        width: 50px;
         bottom: 50px;
         right: 2%;
         z-index: 5;
@@ -159,7 +161,7 @@ body {
     transform: scale(1,1);
 }
 
-.checkbox-custom input[type=checkbox]:checked+label::after{ 
+.checkbox-custom input[type=checkbox]:checked+label::after {
 	position: absolute;
 	display: inline-block;
 	content: "\f00c";
@@ -179,6 +181,9 @@ body {
     }
     #region-main {
         padding: 0px 20px;
+        @include media-breakpoint-down(md) {
+            padding: 0px;
+        }
         >.card {
             overflow: auto;
         }
@@ -255,6 +260,9 @@ fieldset {
         }
     }
 }
+.dropdown-toggle.btn-primary {
+    background: $primary;
+}
 .dropdown-toggle {
     background: white;
     border: 1px solid #e4eaec;
@@ -310,7 +318,7 @@ fieldset {
     a.dropdown-toggle {
         color: inherit !important;
     }
-} 
+}
 
 // Bootstrap Carousel.
 .carousel-control-prev-icon,
@@ -323,7 +331,7 @@ fieldset {
     background: $color-grey-200 !important;
 }
 
-// Progress XS. 
+// Progress XS.
 .progress-xs {
     height: 4px !important;
 }
@@ -363,7 +371,7 @@ fieldset {
     width: 100% !important;
 }
 
-// Container fluid. 
+// Container fluid.
 @media (min-width: 1600px) {
     .container {
         max-width: 1410px;
@@ -377,5 +385,44 @@ fieldset {
 #usercourses {
     .avatar {
         width: 75px;
+    }
+}
+
+[dir="rtl"] {
+    .popover {
+        left: auto !important;
+        right: 0 !important;
+    }
+}
+
+// Adding the color for bg-purple-500, its been used in course archive page.
+.bg-purple-500{
+    background-color: #A57AFA;
+}
+
+// H5P activity compatibility
+.editor_atto_content.form-control{
+    width: 100% !important;
+}
+#fitem_id_h5peditor {
+    .col-md-9.form-inline.felement, .form-control-static {
+        width: 100%;
+    }
+}
+
+/*Messaging panel chat width and chat selection radio icon issue*/
+.view-overview-body .section {
+     min-height: inherit !important;
+}
+
+span[data-region="selected-icon"] .fa-check-circle,
+span[data-region="not-selected-icon"] .fa-circle-o {
+    color: white !important;
+    margin: 0 5px;
+}
+.message .chat-content {
+    max-width:90%;
+    div{
+        margin-right: 10px !important;
     }
 }

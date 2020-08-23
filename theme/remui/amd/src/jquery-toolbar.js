@@ -1,1 +1,304 @@
-define([],function(){"use strict";var n,a,e;"function"!=typeof Object.create&&(Object.create=function(o){function t(){}return t.prototype=o,new t}),n=jQuery,a=window,document,e={init:function(o,t){var e=this;e.elem=t,e.$elem=n(t),e.options=n.extend({},n.fn.toolbar.options,o),e.metadata=e.$elem.data(),e.overrideOptions(),e.toolbar=n('<div class="tool-container" />').addClass("tool-"+e.options.position).addClass("toolbar-"+e.options.style).append('<div class="tool-items" />').append('<div class="arrow" />').appendTo("body").css("opacity",0).hide(),e.toolbar_arrow=e.toolbar.find(".arrow"),e.initializeToolbar()},overrideOptions:function(){var t=this;n.each(t.options,function(o){void 0!==t.$elem.data("toolbar-"+o)&&(t.options[o]=t.$elem.data("toolbar-"+o))})},initializeToolbar:function(){var o=this;o.populateContent(),o.setTrigger(),o.toolbarWidth=o.toolbar.width()},setTrigger:function(){var t=this;if("click"!=t.options.event){var e=function(){t.$elem.hasClass("pressed")?i=setTimeout(function(){t.hide()},150):clearTimeout(i)};t.$elem.on({mouseenter:function(o){t.$elem.hasClass("pressed")?clearTimeout(i):t.show()}}),t.$elem.parent().on({mouseleave:function(o){e()}}),n(".tool-container").on({mouseenter:function(o){clearTimeout(i)},mouseleave:function(o){e()}})}if("click"==t.options.event&&(t.$elem.on("click",function(o){o.preventDefault(),t.$elem.hasClass("pressed")?t.hide():t.show()}),t.options.hideOnClick&&n("html").on("click.toolbar",function(o){o.target!=t.elem&&0===t.$elem.has(o.target).length&&0===t.toolbar.has(o.target).length&&t.toolbar.is(":visible")&&t.hide()})),t.options.hover){var i,s=function(){t.$elem.hasClass("pressed")?i=setTimeout(function(){t.hide()},150):clearTimeout(i)};t.$elem.on({mouseenter:function(o){t.$elem.hasClass("pressed")?clearTimeout(i):t.show()}}),t.$elem.parent().on({mouseleave:function(o){s()}}),n(".tool-container").on({mouseenter:function(o){clearTimeout(i)},mouseleave:function(o){s()}})}n(a).resize(function(o){o.stopPropagation(),t.toolbar.is(":visible")&&(t.toolbarCss=t.getCoordinates(t.options.position,20),t.collisionDetection(),t.toolbar.css(t.toolbarCss),t.toolbar_arrow.css(t.arrowCss))})},populateContent:function(){var t=this,o=t.toolbar.find(".tool-items"),e=n(t.options.content).clone(!0).find("a").addClass("tool-item");o.html(e),o.find(".tool-item").on("click",function(o){o.preventDefault(),t.$elem.trigger("toolbarItemClick",this)})},calculatePosition:function(){var o=this;o.arrowCss={},o.toolbarCss=o.getCoordinates(o.options.position,o.options.adjustment),o.toolbarCss.position="absolute",o.toolbarCss.zIndex=o.options.zIndex,o.collisionDetection(),o.toolbar.css(o.toolbarCss),o.toolbar_arrow.css(o.arrowCss)},getCoordinates:function(o,t){var e=this;switch(e.coordinates=e.$elem.offset(),e.options.adjustment&&e.options.adjustment[e.options.position]&&(t=e.options.adjustment[e.options.position]+t),e.options.position){case"top":return{left:e.coordinates.left-e.toolbar.width()/2+e.$elem.outerWidth()/2,top:e.coordinates.top-e.$elem.outerHeight()-t,right:"auto"};case"left":return{left:e.coordinates.left-e.toolbar.width()/2-e.$elem.outerWidth()/2-t,top:e.coordinates.top-e.toolbar.height()/2+e.$elem.outerHeight()/2,right:"auto"};case"right":return{left:e.coordinates.left+e.toolbar.width()/2+e.$elem.outerWidth()/2+t,top:e.coordinates.top-e.toolbar.height()/2+e.$elem.outerHeight()/2,right:"auto"};case"bottom":return{left:e.coordinates.left-e.toolbar.width()/2+e.$elem.outerWidth()/2,top:e.coordinates.top+e.$elem.outerHeight()+t,right:"auto"}}},collisionDetection:function(){var o=this;"top"!=o.options.position&&"bottom"!=o.options.position||(o.arrowCss={left:"50%",right:"50%"},o.toolbarCss.left<20?(o.toolbarCss.left=20,o.arrowCss.left=o.$elem.offset().left+o.$elem.width()/2-20):n(a).width()-(o.toolbarCss.left+o.toolbarWidth)<20&&(o.toolbarCss.right=20,o.toolbarCss.left="auto",o.arrowCss.left="auto",o.arrowCss.right=n(a).width()-o.$elem.offset().left-o.$elem.width()/2-20-5))},show:function(){var o=this;o.$elem.addClass("pressed"),o.calculatePosition(),o.toolbar.show().css({opacity:1}).addClass("animate-"+o.options.animation),o.$elem.trigger("toolbarShown")},hide:function(){var o=this,t={opacity:0};switch(o.$elem.removeClass("pressed"),o.options.position){case"top":t.top="+=20";break;case"left":t.left="+=20";break;case"right":t.left="-=20";break;case"bottom":t.top="-=20"}o.toolbar.animate(t,200,function(){o.toolbar.hide()}),o.$elem.trigger("toolbarHidden")},getToolbarElement:function(){return this.toolbar.find(".tool-items")}},n.fn.toolbar=function(t){if(n.isPlainObject(t))return this.each(function(){var o=Object.create(e);o.init(t,this),n(this).data("toolbarObj",o)});if("string"==typeof t&&0!==t.indexOf("_")){var o=n(this).data("toolbarObj");return o[t].apply(o,n.makeArray(arguments).slice(1))}},n.fn.toolbar.options={content:"#myContent",position:"top",hideOnClick:!1,zIndex:120,hover:!1,style:"default",animation:"standard",adjustment:10}});
+/**
+ * Toolbar.js
+ *
+ * @fileoverview  jQuery plugin that creates tooltip style toolbars.
+ * @link          http://paulkinzett.github.com/toolbar/
+ * @author        Paul Kinzett (http://kinzett.co.nz/)
+ * @version       1.1.0
+ * @requires      jQuery 1.7+
+ *
+ * @license jQuery Toolbar Plugin v1.1.0
+ * http://paulkinzett.github.com/toolbar/
+ * Copyright 2013 - 2015 Paul Kinzett (http://kinzett.co.nz/)
+ * Released under the MIT license.
+ * <https://raw.github.com/paulkinzett/toolbar/master/LICENSE.txt>
+ */
+
+if ( typeof Object.create !== 'function' ) {
+    Object.create = function( obj ) {
+        function F() {}
+        F.prototype = obj;
+        return new F();
+    };
+}
+define(['jquery'], function($) {
+	var ToolBar = {
+        init: function( options, elem ) {
+            var self = this;
+            self.elem = elem;
+            self.$elem = $( elem );
+            self.options = $.extend( {}, $.fn.toolbar.options, options );
+            self.metadata = self.$elem.data();
+            self.overrideOptions();
+            self.toolbar = $('<div class="tool-container" />')
+                .addClass('tool-'+self.options.position)
+                .addClass('toolbar-'+self.options.style)
+                .append('<div class="tool-items" />')
+                .append('<div class="arrow" />')
+                .appendTo('body')
+                .css('opacity', 0)
+                .hide();
+            self.toolbar_arrow = self.toolbar.find('.arrow');
+            self.initializeToolbar();
+        },
+
+        overrideOptions: function() {
+            var self = this;
+            $.each( self.options, function( $option ) {
+                if (typeof(self.$elem.data('toolbar-'+$option)) != "undefined") {
+                    self.options[$option] = self.$elem.data('toolbar-'+$option);
+                }
+            });
+        },
+
+        initializeToolbar: function() {
+            var self = this;
+            self.populateContent();
+            self.setTrigger();
+            self.toolbarWidth = self.toolbar.width();
+        },
+
+        setTrigger: function() {
+            var self = this;
+
+            if (self.options.event != 'click') {
+
+                var moveTime;
+                function decideTimeout () {
+                    if (self.$elem.hasClass('pressed')) {
+                        moveTime = setTimeout(function() {
+                            self.hide();
+                        }, 150);
+                    } else {
+                        clearTimeout(moveTime);
+                    };
+                };
+
+                self.$elem.on({
+                    mouseenter: function(event) {
+                        if (self.$elem.hasClass('pressed')) {
+                            clearTimeout(moveTime);
+                        } else {
+                            self.show();
+                        }
+                    }
+                });
+
+                self.$elem.parent().on({
+                    mouseleave: function(event){ decideTimeout(); }
+                });
+
+                $('.tool-container').on({
+                    mouseenter: function(event){ clearTimeout(moveTime); },
+                    mouseleave: function(event){ decideTimeout(); }
+                });
+            }
+
+            if (self.options.event == 'click') {
+                self.$elem.on('click', function(event) {
+                    event.preventDefault();
+                    if(self.$elem.hasClass('pressed')) {
+                        self.hide();
+                    } else {
+                        self.show();
+                    }
+                });
+
+                if (self.options.hideOnClick) {
+                    $('html').on("click.toolbar", function ( event ) {
+                        if (event.target != self.elem &&
+                            self.$elem.has(event.target).length === 0 &&
+                            self.toolbar.has(event.target).length === 0 &&
+                            self.toolbar.is(":visible")) {
+                            self.hide();
+                        }
+                    });
+                }
+            }
+
+            if (self.options.hover) {
+                var moveTime;
+
+                function decideTimeout () {
+                    if (self.$elem.hasClass('pressed')) {
+                        moveTime = setTimeout(function() {
+                            self.hide();
+                        }, 150);
+                    } else {
+                        clearTimeout(moveTime);
+                    };
+                };
+
+                self.$elem.on({
+                    mouseenter: function(event) {
+                        if (self.$elem.hasClass('pressed')) {
+                            clearTimeout(moveTime);
+                        } else {
+                            self.show();
+                        }
+                    }
+                });
+
+                self.$elem.parent().on({
+                    mouseleave: function(event){ decideTimeout(); }
+                });
+
+                $('.tool-container').on({
+                    mouseenter: function(event){ clearTimeout(moveTime); },
+                    mouseleave: function(event){ decideTimeout(); }
+                });
+            }
+
+            $(window).resize(function( event ) {
+                event.stopPropagation();
+                if ( self.toolbar.is(":visible") ) {
+                    self.toolbarCss = self.getCoordinates(self.options.position, 20);
+                    self.collisionDetection();
+                    self.toolbar.css( self.toolbarCss );
+                    self.toolbar_arrow.css( self.arrowCss );
+                }
+            });
+        },
+
+        populateContent: function() {
+            var self = this;
+            var location = self.toolbar.find('.tool-items');
+            var content = $(self.options.content).clone( true ).find('a').addClass('tool-item');
+            location.html(content);
+            location.find('.tool-item').on('click', function(event) {
+                event.preventDefault();
+                self.$elem.trigger('toolbarItemClick', this);
+            });
+        },
+
+        calculatePosition: function() {
+            var self = this;
+                self.arrowCss = {};
+                self.toolbarCss = self.getCoordinates(self.options.position, self.options.adjustment);
+                self.toolbarCss.position = 'absolute';
+                self.toolbarCss.zIndex = self.options.zIndex;
+                self.collisionDetection();
+                self.toolbar.css(self.toolbarCss);
+                self.toolbar_arrow.css(self.arrowCss);
+        },
+
+        getCoordinates: function( position, adjustment ) {
+            var self = this;
+            self.coordinates = self.$elem.offset();
+
+            if (self.options.adjustment && self.options.adjustment[self.options.position]) {
+                adjustment = self.options.adjustment[self.options.position] + adjustment;
+            }
+
+            switch(self.options.position) {
+                case 'top':
+                    return {
+                        left: self.coordinates.left-(self.toolbar.width()/2)+(self.$elem.outerWidth()/2),
+                        top: self.coordinates.top-self.$elem.outerHeight()-adjustment,
+                        right: 'auto'
+                    };
+                case 'left':
+                    return {
+                        left: self.coordinates.left-(self.toolbar.width()/2)-(self.$elem.outerWidth()/2)-adjustment,
+                        top: self.coordinates.top-(self.toolbar.height()/2)+(self.$elem.outerHeight()/2),
+                        right: 'auto'
+                    };
+                case 'right':
+                    return {
+                        left: self.coordinates.left+(self.toolbar.width()/2)+(self.$elem.outerWidth()/2)+adjustment,
+                        top: self.coordinates.top-(self.toolbar.height()/2)+(self.$elem.outerHeight()/2),
+                        right: 'auto'
+                    };
+                case 'bottom':
+                    return {
+                        left: self.coordinates.left-(self.toolbar.width()/2)+(self.$elem.outerWidth()/2),
+                        top: self.coordinates.top+self.$elem.outerHeight()+adjustment,
+                        right: 'auto'
+                    };
+            }
+        },
+
+        collisionDetection: function() {
+            var self = this;
+            var edgeOffset = 20;
+            if(self.options.position == 'top' || self.options.position == 'bottom') {
+                self.arrowCss = {left: '50%', right: '50%'};
+                if( self.toolbarCss.left < edgeOffset ) {
+                    self.toolbarCss.left = edgeOffset;
+                    self.arrowCss.left = self.$elem.offset().left + self.$elem.width()/2-(edgeOffset);
+                }
+                else if(($(window).width() - (self.toolbarCss.left + self.toolbarWidth)) < edgeOffset) {
+                    self.toolbarCss.right = edgeOffset;
+                    self.toolbarCss.left = 'auto';
+                    self.arrowCss.left = 'auto';
+                    self.arrowCss.right = ($(window).width()-self.$elem.offset().left)-(self.$elem.width()/2)-(edgeOffset)-5;
+                }
+            }
+        },
+
+        show: function() {
+            var self = this;
+            self.$elem.addClass('pressed');
+            self.calculatePosition();
+            self.toolbar.show().css({'opacity': 1}).addClass('animate-'+self.options.animation);
+            self.$elem.trigger('toolbarShown');
+        },
+
+        hide: function() {
+            var self = this;
+            var animation = {'opacity': 0};
+
+            self.$elem.removeClass('pressed');
+
+            switch(self.options.position) {
+                case 'top':
+                    animation.top = '+=20';
+                    break;
+                case 'left':
+                    animation.left = '+=20';
+                    break;
+                case 'right':
+                    animation.left = '-=20';
+                    break;
+                case 'bottom':
+                    animation.top = '-=20';
+                    break;
+            }
+
+            self.toolbar.animate(animation, 200, function() {
+                self.toolbar.hide();
+            });
+
+            self.$elem.trigger('toolbarHidden');
+        },
+
+        getToolbarElement: function () {
+            return this.toolbar.find('.tool-items');
+        }
+    };
+
+    $.fn.toolbar = function( options ) {
+        if ($.isPlainObject( options )) {
+            return this.each(function() {
+                var toolbarObj = Object.create( ToolBar );
+                toolbarObj.init( options, this );
+                $(this).data('toolbarObj', toolbarObj);
+            });
+        } else if ( typeof options === 'string' && options.indexOf('_') !== 0 ) {
+            var toolbarObj = $(this).data('toolbarObj');
+            var method = toolbarObj[options];
+            return method.apply(toolbarObj, $.makeArray(arguments).slice(1));
+        }
+    };
+
+    $.fn.toolbar.options = {
+        content: '#myContent',
+        position: 'top',
+        hideOnClick: false,
+        zIndex: 120,
+        hover: false,
+        style: 'default',
+        animation: 'standard',
+        adjustment: 10
+    };
+});

@@ -1,8 +1,8 @@
 // Inline code
 code {
   @include font-size($code-font-size);
-  color: inherit;
-  word-break: break-word;
+  // color: $code-color;
+  word-wrap: break-word;
 
   // Streamline the style when inside anchors to avoid broken underline and more
   a > & {

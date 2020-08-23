@@ -17,17 +17,25 @@
 /**
  * Defines the cache usage
  *
- * @package theme_remui
- * @author  2019 WisdmLabs
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 // This line protects the file from being accessed by a URL directly.
 defined('MOODLE_INTERNAL') || die();
 
+define('COURSE_IDS', 'ids');
+define('MY_COURSE_IDS', 'myids');
+
 use theme_remui\utility as utility;
 use core_completion\progress as progress;
-
+/**
+ * Defines the cache usage
+ * @package theme_remui
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class theme_remui_coursehandler {
 
     /**
@@ -36,7 +44,7 @@ class theme_remui_coursehandler {
      */
     private function get_cache() {
         global $USER;
-        if (empty($USER->id) or isguestuser($USER->id)) {
+        if (!empty($USER->id) or isguestuser($USER->id)) {
             return cache::make('theme_remui', 'courses');
         }
         return cache::make('theme_remui', 'guestcourses');
@@ -48,9 +56,8 @@ class theme_remui_coursehandler {
      */
     private function get_course_ids() {
         global $DB;
-        $time = microtime(true);
         $cache = $this->get_cache();
-        $ids = $cache->get('ids');
+        $ids = $cache->get(COURSE_IDS);
         if (!$ids) {
             $where = 'c.id <> :siteid';
             $params = array('siteid' => SITEID);
@@ -76,7 +83,7 @@ class theme_remui_coursehandler {
                 }
             }
             $ids = array_keys($list);
-            $cache->set('ids', $ids);
+            $cache->set(COURSE_IDS, $ids);
         }
         return $ids;
     }
@@ -96,7 +103,7 @@ class theme_remui_coursehandler {
             } else {
                 $ids = array_keys($mycourses);
             }
-            $cache->set('myids', $ids);
+            $cache->set(MY_COURSE_IDS, $ids);
         }
         return $ids;
     }
@@ -105,19 +112,17 @@ class theme_remui_coursehandler {
      * Check if current user is admin or manager of site
      * @return boolean True if user is site admin/manager
      */
-    protected function is_admin_or_manager() {
+    public function is_admin_or_manager() {
         global $USER;
         if (is_siteadmin()) {
             return true;
         }
-        $roles = get_user_roles(context_system::instance());
-        if (empty($roles)) {
-            return false;
-        }
-        foreach ($roles as $role) {
-            if ($role->shortname == 'manager') {
-                return true;
-            }
+
+        $systemcontext = context_system::instance();
+        // Checking two capabilities here.
+        // As manager can manage the roles and manager the users too.
+        if (has_capability('moodle/role:manage', $systemcontext) || has_capability('moodle/user:create', $systemcontext)) {
+            return true;
         }
         return false;
     }
@@ -169,12 +174,11 @@ class theme_remui_coursehandler {
      *
      * Not all fields are retrieved. Records are ready for preloading context
      *
-     * @param string $whereclause
-     * @param array $params
-     * @param array $options may indicate that summary needs to be retrieved
-     * @param bool $checkvisibility if true, capability 'moodle/course:viewhiddencourses' will be checked
-     *     on not visible courses and 'moodle/category:viewcourselist' on all courses
-     * @return array array of stdClass objects
+     * @param  string $whereclause Where condition
+     * @param  string $join        Join statement
+     * @param  array  $params      sql parameters
+     * @param  array  $options     may indicate that summary needs to be retrieved
+     * @return array               array of stdClass objects
      */
     public function get_course_records($whereclause, $join, $params, $options) {
         global $DB, $CFG;
@@ -183,7 +187,7 @@ class theme_remui_coursehandler {
         $mycoursestable = 'mycids' . $sesskey;
         $ismanageroradmin = $this->is_admin_or_manager();
 
-        // Check for required options
+        // Check for required options.
         if (!isset($options['sort'])) {
             $options['sort'] = false;
         }
@@ -200,7 +204,7 @@ class theme_remui_coursehandler {
             $options['filtermodified'] = true;
         }
 
-        // Apply sorting order
+        // Apply sorting order.
         switch($options['sort']) {
             case 'ASC':
             case 'DESC':
@@ -215,7 +219,7 @@ class theme_remui_coursehandler {
                         'c.shortname', 'c.fullname', 'c.idnumber',
                         'c.startdate', 'c.enddate', 'c.visible', 'c.cacherev');
 
-        // Load summary data
+        // Load summary data.
         if (!empty($options['summary'])) {
             $fields[] = 'c.summary';
             $fields[] = 'c.summaryformat';
@@ -223,7 +227,7 @@ class theme_remui_coursehandler {
             $fields[] = $DB->sql_substr('c.summary', 1, 1). ' as hassummary';
         }
 
-        // If user is not admin then load viewvable course ids
+        // If user is not admin then load viewvable course ids.
         if (!$ismanageroradmin) {
             $ids = $this->get_course_ids();
             if (empty($ids)) {
@@ -233,7 +237,7 @@ class theme_remui_coursehandler {
             $join .= " INNER JOIN {$CFG->prefix}$coursestable cids ON c.id = cids.id";
         }
 
-        // Load enrolled courses if mycourses is enabled
+        // Load enrolled courses if mycourses is enabled.
         if ($options['mycourses'] == true) {
             $ids = $this->get_my_courses();
             if (empty($ids)) {
@@ -250,7 +254,7 @@ class theme_remui_coursehandler {
 
         $list = $DB->get_records_sql($sql, $params, $options['limitfrom'], $options['limitto']);
 
-        // Cache course count for upcoming request
+        // Cache course count for upcoming request.
         $cache = $this->get_cache();
         $count = $cache->get('count');
         if ((!$count || $options['filtermodified']) && $options['totalcount'] == true) {
@@ -260,12 +264,12 @@ class theme_remui_coursehandler {
             $cache->set('count', $count);
         }
 
-        // If user is not admin then load viewvable course ids
+        // If user is not admin then load viewvable course ids.
         if (!$ismanageroradmin) {
             $this->drop_table($coursestable);
         }
 
-        // Load enrolled courses if mycourses is enabled
+        // Load enrolled courses if mycourses is enabled.
         if ($options['mycourses'] == true) {
             $this->drop_table($mycoursestable);
         }
@@ -283,7 +287,8 @@ class theme_remui_coursehandler {
      * @param string $search course name to be search
      * @param int    $category ids to be search of courses.
      * @param int    $limitfrom course to be returned from these number onwards, like from course 5 .
-     * @param int    $limitto till this number course to be returned , like from course 10, then 5 course will be returned from 5 to 10.
+     * @param int    $limitto till this number course to be returned ,
+     *                        like from course 10, then 5 course will be returned from 5 to 10.
      * @param int    $mycourses to return user's course which he/she enrolled into.
      * @param bool   $categorysort if true the categories are sorted
      * @param array  $courses pass courses if would like to load more data for those courses
@@ -322,7 +327,7 @@ class theme_remui_coursehandler {
             $cattable = 'catids' . $sesskey;
 
             if (is_numeric($category) || is_array($category)) {
-                $categories = utility::get_allowed_categories($category);
+                $categories = self::get_allowed_categories($category);
                 if (!empty($categories)) {
                     $this->create_temp_table($cattable, $categories);
                     $join = " INNER JOIN {$CFG->prefix}$cattable catids ON c.category = catids.id";
@@ -353,24 +358,22 @@ class theme_remui_coursehandler {
                 $this->drop_table($cattable);
             }
         }
-        // return count of total courses by getting limited data
-        // if required
+        // Return count of total courses by getting limited data.
+        // If required.
         if ($totalcount === true) {
             return $coursecount;
         }
 
-        // prepare courses array
+        // Prepare courses array.
         $chelper = new \coursecat_helper();
         foreach ($courses as $k => $course) {
             $course = (object)$course;
-            $corecourselistelement = new core_course_list_element($course);
+            $corecourselistelement = new \core_course_list_element($course);
             $context = context_course::instance($course->id);
 
             if ($course->category == 0) {
                 continue;
             }
-            // if ($courseadmin || $course->visible
-                    // || has_capability('moodle/course:viewhiddencourses', $context) || !isloggedin()) {
 
             $coursesarray[$count]["courseid"] = $course->id;
             $coursesarray[$count]["coursename"] = strip_tags($chelper->get_course_formatted_name($course));
@@ -379,10 +382,13 @@ class theme_remui_coursehandler {
             $coursesarray[$count]["visible"] = $course->visible;
             $coursesarray[$count]["courseurl"] = $CFG->wwwroot."/course/view.php?id=".$course->id;
 
-            // This is to handle the version change
-            // User enrollment link has changed for moodle version 3.4
+            // This is to handle the version change.
+            // User enrollment link has changed for moodle version 3.4.
             $version33 = "2017092100";
-            $curversion = $DB->get_record_sql('SELECT * FROM {config_plugins} WHERE plugin = ? AND name = ?', array('theme_remui', 'version'));
+            $curversion = $DB->get_record_sql(
+                'SELECT * FROM {config_plugins} WHERE plugin = ? AND name = ?',
+                array('theme_remui', 'version')
+            );
             $userenrollink = "/enrol/users.php?id=";
             if ($curversion > $version33) {
                 $userenrollink = "/user/index.php?id=";
@@ -405,27 +411,27 @@ class theme_remui_coursehandler {
                 }
             }
 
-            // course enrollment icons
+            // Course enrollment icons.
             if ($icons = enrol_get_course_info_icons($course)) {
                 $iconhtml = '';
                 foreach ($icons as $pixicon) {
                     $iconhtml .= $OUTPUT->render($pixicon);
                 }
-                $coursesarray[$count]["enrollmenticons"] = $iconhtml; // add icons in context
+                $coursesarray[$count]["enrollmenticons"] = $iconhtml; // Add icons in context.
             }
 
-            // course instructors
+            // Course instructors.
             $instructors = $corecourselistelement->get_course_contacts();
             foreach ($instructors as $key => $instructor) {
                 $coursesarray[$count]["instructors"][] = array(
-                                                        'name' => $instructor['username'],
-                                                        'url'  => $CFG->wwwroot.'/user/profile.php?id='.$key,
-                                                        'picture' => utility::get_user_picture($DB->get_record('user', array('id' => $key)))
-                                                        );
+                    'name' => $instructor['username'],
+                    'url'  => $CFG->wwwroot.'/user/profile.php?id='.$key,
+                    'picture' => utility::get_user_picture($DB->get_record('user', array('id' => $key)))
+                );
                 break;
             }
 
-            // course image
+            // Course image.
             foreach ($corecourselistelement->get_course_overviewfiles() as $file) {
                 $isimage = $file->is_valid_image();
                 $courseimage = file_encode_url(
@@ -462,7 +468,6 @@ class theme_remui_coursehandler {
                             foreach ($modules as $module) {
                                 $data = $completion->get_data($module, false, $USER->id);
                                 if (!$data->completionstate) {
-                                    // $coursesarray[$count]["lastaccessactivity"] = $CFG->wwwroot."/mod/".$module->modname."/view.php?id=".$module->id;
                                     $coursesarray[$count]["lastaccessactivity"] = $CFG->wwwroot."/course/view.php?id=".$course->id
                                     ."#section-".$module->sectionnum;
                                     break;
@@ -479,11 +484,253 @@ class theme_remui_coursehandler {
 
             $count++;
 
-            // }
         }
         if ($totalcount === false) {
             return $coursesarray;
         }
         return array($coursecount, $coursesarray);
     }
+
+    /**
+     * Clear user cache
+     */
+    public function invalidate_course_cache() {
+        $cache = $this->get_cache();
+        $result = $cache->delete_many([COURSE_IDS, MY_COURSE_IDS]);
+
+        // Make the preference to false.
+        set_user_preference('course_cache_reset', false);
+
+        // Save the time at which cache was reset.
+        set_user_preference('course_reset_time', time());
+    }
+
+    /**
+     * Get course image.
+     * @param  array   $corecourselistelement Course list element
+     * @param  boolean $islist                Is list
+     * @return string                         Course image
+     */
+    public static function get_course_image($corecourselistelement, $islist = false) {
+        global $CFG, $OUTPUT;
+        if (!$islist) {
+            $corecourselistelement = new \core_course_list_element($corecourselistelement);
+        }
+
+        // Course image.
+        foreach ($corecourselistelement->get_course_overviewfiles() as $file) {
+            $isimage = $file->is_valid_image();
+            $courseimage = file_encode_url(
+                "$CFG->wwwroot/pluginfile.php",
+                '/'. $file->get_contextid(). '/'. $file->get_component(). '/'.
+                $file->get_filearea(). $file->get_filepath(). $file->get_filename(),
+                !$isimage
+            );
+            if ($isimage) {
+                break;
+            }
+        }
+        if (!empty($courseimage)) {
+            return $courseimage;
+        } else {
+            return $OUTPUT->get_generated_image_for_id($corecourselistelement->id);
+        }
+    }
+    /**
+     * Returns the data for course filter.
+     */
+    public static function get_course_filters_data() {
+        global $PAGE;
+        $filterdata = array();
+        $catdata = array();
+        $categories = \core_course_category::make_categories_list();
+        foreach ($categories as $key => $value) {
+            $category = new \stdClass();
+            $category->id = $key;
+            $category->title = $value;
+            array_push($catdata, $category);
+        }
+        $filterdata['catdata'] = $catdata;
+        $filterdata['searchhtml'] = $PAGE->get_renderer('core', 'course')->course_search_form('', '', '', 0);
+        return $filterdata;
+    }
+
+    /**
+     * Get Course Stats.
+     *
+     * @param Integer $course
+     * @return Array Course stats.
+     */
+    public static function get_course_stats($course) {
+        $stats = array();
+        $coursecontext = \context_course::instance($course->id);
+        // This capability is allowed to only students - 'moodle/course:isincompletionreports'.
+        $enrolledusers = get_enrolled_users($coursecontext, 'moodle/course:isincompletionreports');
+        $stats['enrolledusers'] = count($enrolledusers);
+        $stats['completed'] = 0;
+        $stats['inprogress'] = 0;
+        $stats['notstarted'] = 0;
+
+        $completion = new \completion_info($course);
+        if ($completion->is_enabled()) {
+            $inprogress = 0;
+            $completed = 0;
+            $notstarted = 0;
+            foreach ($enrolledusers as $user) {
+                $percentage = progress::get_course_progress_percentage($course, $user->id);
+
+                if (!is_null($percentage)) {
+                    $percentage = floor($percentage);
+                    if ($percentage == 100) {
+                       $completed++; 
+                    } else if ($percentage < 100 and $percentage > 0){
+                        $inprogress++;
+                    } else {
+                        $notstarted++;    
+                    }
+                } else {
+                    $notstarted++;
+                }
+            }
+
+            // First, let's make sure completion is enabled.
+            $stats['completed'] = $completed;
+            $stats['inprogress'] = $inprogress;
+            $stats['notstarted'] = $notstarted;
+            
+        }
+        return $stats;
+    }
+
+    /**
+     * Get recent courses accessed by user
+     *
+     * @param Integer $limit
+     * @return Array List of courses
+     */
+    public static function get_recent_accessed_courses($limit) {
+        global $USER, $DB;
+        $sql = 'SELECT ul.courseid, c.fullname
+            FROM {user_lastaccess} ul
+            JOIN {course} c ON c.id = ul.courseid
+            WHERE userid = ?
+            ORDER BY timeaccess
+            DESC';
+        $params = array ('userid' => $USER->id);
+        $courses = $DB->get_records_sql($sql, $params, 0, $limit);
+        if ($courses) {
+            return $courses;
+        }
+        return array();
+    }
+
+    /**
+     * Get allowed categories from category id
+     *
+     * @param  integer $categoryid Category id
+     * @return array               Category ids
+     */
+    public static function get_allowed_categories($categoryid) {
+        global $DB;
+
+        $allcats = array_keys(\core_course_category::make_categories_list());
+        $allowedcat = array();
+
+        if ($categoryid == 'all') {
+            return $allcats;
+        } else if ($categoryid !== null && is_numeric($categoryid)) {
+            $sql = "SELECT * FROM {course_categories} WHERE path LIKE ? OR path LIKE ?";
+            $categories = $DB->get_records_sql($sql, array('%/' . $categoryid, '%/' . $categoryid . '/%'));
+            $allowedcat = array_intersect($allcats, array_keys($categories));
+        }
+
+        return $allowedcat;
+    }
+
+    /**
+     * Returns the custom activity navigation content.
+     *
+     * @return void
+     */
+    public static function get_activity_list() {
+        global $COURSE, $PAGE;
+
+        // Return nothing if no cmid.
+        if (!isset($PAGE->cm->id)) {
+            return;
+        }
+
+        $modinfo = get_fast_modinfo($COURSE);
+        $sectionsdata = $modinfo->sections;
+        $excludedmods = array('label');
+        $count = 0; // To print section count in sidebar.
+        $courserenderer = $PAGE->get_renderer('core', 'course');
+        $sections = array();
+
+        foreach ($modinfo->get_section_info_all() as $mod => $value) {
+            // Return if sections does not have activities or section is hidden to current user.
+            if (!array_key_exists($mod, $modinfo->sections) || !$value->uservisible) {
+                continue;
+            }
+            $sectionname = get_section_name($COURSE, $value);
+
+            // Check if current section is being viewed.
+            $opensection = '';
+            if (in_array($PAGE->cm->id, $sectionsdata[$mod])) {
+                $opensection = 'show';
+            }
+
+            $sections[$count]['name'] = $sectionname;
+            $sections[$count]['open'] = $opensection;
+            $sections[$count]['count'] = $count + 1;
+
+            // Activities.
+            foreach ($sectionsdata[$mod] as $activityid) {
+                $activity = $modinfo->get_cm($activityid);
+
+                $classes = '';
+                $completioninfo = new \completion_info($COURSE);
+                $activitycompletion = $courserenderer->course_section_cm_completion($COURSE, $completioninfo, $activity, array());
+
+                if (!in_array($activity->modname, $excludedmods)) {
+                    // Check if current activity.
+                    $active = ' ';
+                    if ($PAGE->cm->id == $activityid) {
+                        $active = 'active ';
+                    }
+
+                    $completion = $completioninfo->is_enabled($activity);
+                    if ($completion == COMPLETION_TRACKING_NONE) {
+                        $classes = '';
+                    } else {
+                        $completiondata = $completioninfo->get_data($activity, true);
+                        switch ($completiondata->completionstate) {
+                            case COMPLETION_INCOMPLETE:
+                                $classes = 'incomplete';
+                                break;
+                            case COMPLETION_COMPLETE:
+                                $classes = 'complete';
+                                break;
+                            case COMPLETION_COMPLETE_PASS:
+                                $classes = 'complete';
+                                break;
+                            case COMPLETION_COMPLETE_FAIL:
+                                $classes = 'fail';
+                                break;
+                        }
+                    }
+                    $sections[$count]['activity_list'][] = array(
+                        'active' => $active,
+                        'name' => $activity->name,
+                        'title'  => $courserenderer->course_section_cm_name_title($activity, array()),
+                        'classes' => $classes
+                    );
+                }
+            }
+            $count++;
+        }
+
+        return $sections;
+    }
+
 }

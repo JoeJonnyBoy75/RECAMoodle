@@ -44,3 +44,8 @@ $hamburger-size: 13px;
 $step-title-font-size: 14px !default;
 $step-padding-horizontal: 10px !default;
 $step-padding-vertical: 5px !default;
+
+
+// override default line-height for headings, for better multiline headings - bharat
+// testing in this release, can be removed
+$headings-line-height:        1.3;

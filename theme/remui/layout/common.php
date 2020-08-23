@@ -19,18 +19,27 @@
  *
  * @package   theme_remui
  * @copyright 2016 Damyon Wiese
+ * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/behat/lib.php');
-
+require_once($CFG->libdir . '/completionlib.php');
 user_preference_allow_ajax_update('drawer-open-nav', PARAM_ALPHA);
 user_preference_allow_ajax_update('pin_aside', PARAM_ALPHA);
 user_preference_allow_ajax_update('course_view_state', PARAM_ALPHA);
+user_preference_allow_ajax_update('enable_focus_mode', PARAM_BOOL);
+user_preference_allow_ajax_update('remui_dismised_announcement', PARAM_BOOL);
 
-global $PAGE, $CFG;
-$PAGE->requires->strings_for_js(['sidebarpinned', 'sidebarunpinned', 'pinsidebar', 'unpinsidebar'], 'theme_remui');
+global $PAGE, $CFG, $COURSE;
+
+$PAGE->requires->strings_for_js(['sidebarpinned', 'sidebarunpinned', 'pinsidebar', 'unpinsidebar', 'changelog'], 'theme_remui');
+
+// RemUI Usage Tracking (RemUI Analytics).
+$ranalytics = new \theme_remui\usage_tracking();
+$ranalytics->send_usage_analytics();
+
 if (isloggedin()) {
     $navdraweropen = (get_user_preferences('drawer-open-nav', 'true') == 'true');
     $rightsidebar = (get_user_preferences('pin_aside', 'true') == 'true');
@@ -38,6 +47,7 @@ if (isloggedin()) {
     $activities = array("book", "quiz");
     if (isset($PAGE->cm->id) && in_array($PAGE->cm->modname, $activities) || $PAGE->user_is_editing()) {
         $rightsidebar = true;
+        $navdraweropen = false;
     }
 } else {
     $navdraweropen = false;
@@ -51,7 +61,7 @@ $messagedrawer = '';
 $messagetoggle = '';
 if ($mergemessagingsidebar) {
     $messagedrawer = core_message_standard_after_main_region_html();
-    $messagetoggle = core_message_render_navbar_output($OUTPUT);
+    $messagetoggle = \theme_remui\usercontroller::render_navbar_output();
 }
 $unreadrequestcount = 0;
 if ($messagetoggle) {
@@ -87,11 +97,48 @@ if ($hasblocks || $usercanmanage || $hasmessaging) {
     $initrightsidebar = true;
 }
 
+if ($mergemessagingsidebar) {
+    $extraclasses[] = 'mergemessagingsidebar';
+}
+
+// Focus Mode Code
+$focusdata = [];
+if ($PAGE->pagelayout === 'course' || $PAGE->pagelayout === 'incourse') {
+    $focusdata['enabled'] = \theme_remui\toolbox::get_setting('enablefocusmode');
+    $focusdata['on'] = get_user_preferences('enable_focus_mode', false) && $focusdata['enabled'];
+    if ($focusdata['on']) {
+        $extraclasses[] = 'focusmode';
+        $focusdata['btnbg'] = 'btn-danger';
+        $focusdata['btnicon'] = 'fa-compress';
+    } else {
+        $focusdata['btnbg'] = 'btn-primary';
+        $focusdata['btnicon'] = 'fa-expand';
+    }
+    $focusdata['coursename'] = $COURSE->fullname;
+    if ($PAGE->pagelayout === 'incourse') {
+        $focusdata['courseurl'] = $CFG->wwwroot . '/course/view.php?id=' . $COURSE->id;
+    }
+
+    $coursecontext = context_course::instance($COURSE->id);
+
+    if (is_enrolled($coursecontext, $USER->id)) {
+        $completion = new \completion_info($COURSE);
+        if ($completion->is_enabled()) {
+            $percentage = \core_completion\progress::get_course_progress_percentage($COURSE, $USER->id);
+            if ($percentage === null) {
+                $percentage = 0;
+            }
+            $focusdata['progress'] = (int)$percentage;
+        }
+    }
+}
+
 $bodyattributes = $OUTPUT->body_attributes($extraclasses);
 
 $regionmainsettingsmenu = $OUTPUT->region_main_settings_menu();
 $sitecolor = get_config('theme_remui', 'sitecolor');
 $sitecolor = ($sitecolor == "") ? 'primary' : $sitecolor;
+$sitecolorhex = get_config('theme_remui', 'sitecolorhex');
 $navbarinverse = get_config('theme_remui', 'navbarinverse');
 $sidebarcolor = get_config('theme_remui', 'sidebarcolor');
 $templatecontext = [
@@ -115,6 +162,8 @@ $templatecontext = [
     'unreadrequestcount' => $unreadrequestcount,
     'pinaside' => $rightsidebar,
     $sitecolor => true,
+    'sitecolorhex' => $sitecolorhex,
+    'focusdata' => $focusdata
 ];
 
 $flatnavigation = $PAGE->flatnav;
@@ -139,7 +188,7 @@ $templatecontext['firstcollectionlabel'] = $flatnavigation->get_collectionlabel(
 $templatecontext['navfootermenu'] = \theme_remui\utility::get_left_nav_footer_menus();
 
 if (isloggedin() && \theme_remui\toolbox::get_setting('enablerecentcourses')) {
-    $courses = \theme_remui\utility::get_recent_accessed_courses(5);
+    $courses = \theme_remui_coursehandler::get_recent_accessed_courses(5);
     $finalarr = array();
     foreach ($courses as $key => $course) {
         $templatecontext['hasrecent'] = true;
@@ -154,4 +203,12 @@ if (isloggedin() && \theme_remui\toolbox::get_setting('enablerecentcourses')) {
 $templatecontext['enabledictionary'] = \theme_remui\toolbox::get_setting('enabledictionary');
 if (strpos($bodyattributes, 'editing') !== false) {
     $templatecontext['editingenabled'] = true;
+}
+
+if (get_user_preferences('course_cache_reset')) {
+    $coursehandler = new \theme_remui_coursehandler();
+    $coursehandler->invalidate_course_cache();
+} else if (get_config('theme_remui', 'cache_reset_time') > get_user_preferences('cache_reset_time')) {
+    $coursehandler = new \theme_remui_coursehandler();
+    $coursehandler->invalidate_course_cache();
 }

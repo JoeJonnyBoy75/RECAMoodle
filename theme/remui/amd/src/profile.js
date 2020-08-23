@@ -1,5 +1,11 @@
-/* jshint ignore:start */
-define(['jquery', 'core/ajax', 'core/notification', 'theme_remui/jquery-asPieProgress', 'theme_remui/aspieprogress'], function($, Ajax) {
+"use strict";
+define([
+    'jquery',
+    'core/ajax',
+    'core/notification',
+    'theme_remui/jquery-asPieProgress',
+    'theme_remui/aspieprogress'
+], function($, Ajax) {
     $('#editprofile .form-horizontal #btn-save-changes').click(function() {
         var SELECTORS = {
             ERROR: 'div#error-message',
@@ -9,9 +15,9 @@ define(['jquery', 'core/ajax', 'core/notification', 'theme_remui/jquery-asPiePro
         $(SELECTORS.ERROR).show();
         $(SELECTORS.ERROR).removeClass(SELECTORS.DANGER).addClass(SELECTORS.SUCCESS);
         $(SELECTORS.ERROR).find('p').html("Saving...");
+
         var fname = $('#first_name').val();
         var lname = $('#surname').val();
-        //var emailid = $('#standard_email').val();
         var description = $.trim($('#description').val());
         var city = $.trim($('#city').val());
         var country = $('#editprofile .form-horizontal #country option:selected').val();
@@ -31,10 +37,6 @@ define(['jquery', 'core/ajax', 'core/notification', 'theme_remui/jquery-asPiePro
             return false;
         }
 
-        /*if (country === M.util.get_string('selectcountry', 'theme_remui')) {
-            countryname = '';
-            country = '';
-        }*/
         var promise = Ajax.call([{
             methodname: 'theme_remui_save_user_profile_settings',
             args: {
@@ -45,7 +47,7 @@ define(['jquery', 'core/ajax', 'core/notification', 'theme_remui/jquery-asPiePro
                 country
             }
         }])[0];
-        promise.done(function(response) {
+        promise.done(function() {
             $(SELECTORS.ERROR).show();
             $(SELECTORS.ERROR).removeClass(SELECTORS.DANGER).addClass(SELECTORS.SUCCESS);
             $(SELECTORS.ERROR).find('p').css('margin', '0').html(M.util.get_string('detailssavedsuccessfully', 'theme_remui'));
@@ -55,14 +57,17 @@ define(['jquery', 'core/ajax', 'core/notification', 'theme_remui/jquery-asPiePro
         })
         .fail(function(ex) {
             $(SELECTORS.ERROR).removeClass(SELECTORS.SUCCESS).addClass(SELECTORS.DANGER);
-            $(SELECTORS.ERROR).find('p').css('margin', '0').html(error + ' : ' + errorThrown + ', '+ M.util.get_string('actioncouldnotbeperformed', 'theme_remui'));
+            $(SELECTORS.ERROR).find('p')
+            .css('margin', '0')
+            .html(ex.errorcode + ' : ' + ex.error + ', ' + M.util.get_string('actioncouldnotbeperformed', 'theme_remui'));
             Notification.exception(ex);
         });
+
+        return false;
     });
 
-    // initiliaze coruse progress in profile
+    // Initiliaze coruse progress in profile.
     $('.remui-course-progress').asPieProgress({
         namespace: 'asPieProgress'
     });
 });
-/* jshint ignore:end */

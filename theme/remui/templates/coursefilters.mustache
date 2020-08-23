@@ -48,12 +48,12 @@
         "hasregionmainsettingsmenu": false
     }
 }}
-<div class="row category-filters pb-3">
+<div class="row category-filters pb-3 d-none">
     <div class="my-1 col-lg-3 col-md-6 col-sm-12">
         <select id="categoryfilter" class="selectpicker" data-live-search="true" data-style="custom-select form-control bg-white">
             <option value='all'>{{#str}} allcategories , theme_remui {{/str}}</option>
             {{#categories}}
-                <option value='{{ id }}'>{{ title }}</option>
+                <option value='{{ id }}'>{{{ title }}}</option>
             {{/categories}}
         </select>
     </div>
@@ -67,15 +67,7 @@
     </div>
 
     <div class="my-1 col-lg-4 col-md-9 col-sm-12">
-        <form id="coursesearch2" method="get" class="form-inline">
-            <div class="input-group d-flex">
-                <input id="coursesearchbox" type="text" class="form-control" name="search" placeholder="{{#str}} searchcourses, theme_remui {{/str}}" value="">
-                <span class="input-group-append">
-                <button type="submit" class="btn btn-primary">
-                    <i class="icon fa fa-search text-white m-0" aria-hidden="true"></i></button>
-                </span>
-            </div>
-        </form>
+        {{{searchhtml}}}
     </div>
     {{^latest_card}}
     <div class="my-1 col-lg-2 col-md-3 hidden-sm-down">

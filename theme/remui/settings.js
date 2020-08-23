@@ -1,5 +1,4 @@
-define('theme_remui/settings', ['jquery'], function($){
-    
+define('theme_remui/settings', ['jquery'], function($) {
 
     /**
      * Toggle visibility of element
@@ -72,7 +71,7 @@ define('theme_remui/settings', ['jquery'], function($){
     }
     return {
         init: function() {
-            attach_listener('');   
+            attach_listener('');
         }
     };
 });

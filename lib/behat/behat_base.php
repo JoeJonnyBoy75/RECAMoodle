@@ -119,6 +119,11 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
      * @return NodeElement
      */
     protected function find($selector, $locator, $exception = false, $node = false, $timeout = false) {
+        if ($selector === 'NodeElement' && is_a($locator, NodeElement::class)) {
+            // Support a NodeElement being passed in for use in step chaining.
+            return $locator;
+        }
+
         // Returns the first match.
         $items = $this->find_all($selector, $locator, $exception, $node, $timeout);
         return count($items) ? reset($items) : null;
@@ -338,20 +343,11 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
         if (!$timeout) {
             $timeout = self::get_timeout();
         }
-        if ($microsleep) {
-            // Will sleep 1/10th of a second by default for self::get_timeout() seconds.
-            $loops = $timeout * 10;
-        } else {
-            // Will sleep for self::get_timeout() seconds.
-            $loops = $timeout;
-        }
 
-        // DOM will never change on non-javascript case; do not wait or try again.
-        if (!$this->running_javascript()) {
-            $loops = 1;
-        }
+        $start = microtime(true);
+        $end = $start + $timeout;
 
-        for ($i = 0; $i < $loops; $i++) {
+        do {
             // We catch the exception thrown by the step definition to execute it again.
             try {
                 // We don't check with !== because most of the time closures will return
@@ -367,14 +363,13 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
                 }
             }
 
-            if ($this->running_javascript()) {
-                if ($microsleep) {
-                    usleep(100000);
-                } else {
-                    sleep(1);
-                }
+            if (!$this->running_javascript()) {
+                break;
             }
-        }
+
+            usleep(100000);
+
+        } while (microtime(true) < $end);
 
         // Using coding_exception as is a development issue if no exception has been provided.
         if (!$exception) {
@@ -827,8 +822,8 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
         // number of JS pending code and JS completed code will not match and we will reach this point.
         throw new \Exception('Javascript code and/or AJAX requests are not ready after ' .
                 self::get_extended_timeout() .
-                ' seconds. There is a Javascript error or the code is extremely slow. ' .
-                'If you are using a slow machine, consider setting $CFG->behat_increasetimeout.');
+                ' seconds. There is a Javascript error or the code is extremely slow (' . $pending .
+                '). If you are using a slow machine, consider setting $CFG->behat_increasetimeout.');
     }
 
     /**

@@ -64,7 +64,7 @@ class async_helper  {
     public function __construct($type, $id) {
         $this->type = $type;
         $this->backupid = $id;
-        $this->backuprec = $this->get_backup_record($id);
+        $this->backuprec = self::get_backup_record($id);
         $this->user = $this->get_user();
     }
 
@@ -76,7 +76,7 @@ class async_helper  {
      * @param int $id The backup id to get.
      * @return object $backuprec The backup controller record.
      */
-    private function get_backup_record($id) {
+    static public function get_backup_record($id) {
         global $DB;
 
         $backuprec = $DB->get_record('backup_controllers', array('backupid' => $id), '*', MUST_EXIST);
@@ -215,18 +215,21 @@ class async_helper  {
         require_once($CFG->dirroot . '/backup/util/interfaces/checksumable.class.php');
         require_once($CFG->dirroot . '/backup/backup.class.php');
 
-        if (self::is_async_enabled()) {
-            $select = 'userid = ? AND itemid = ? AND type = ? AND operation = ? AND execution = ? AND status < ? AND status > ?';
-            $params = array(
-                $USER->id,
-                $id,
-                $type,
-                $operation,
-                backup::EXECUTION_DELAYED,
-                backup::STATUS_FINISHED_ERR,
-                backup::STATUS_NEED_PRECHECK
-            );
-            $asyncpending = $DB->record_exists_select('backup_controllers', $select, $params);
+        $select = 'userid = ? AND itemid = ? AND type = ? AND operation = ? AND execution = ? AND status < ? AND status > ?';
+        $params = array(
+            $USER->id,
+            $id,
+            $type,
+            $operation,
+            backup::EXECUTION_DELAYED,
+            backup::STATUS_FINISHED_ERR,
+            backup::STATUS_NEED_PRECHECK
+        );
+
+        $asyncrecord= $DB->get_record_select('backup_controllers', $select, $params);
+
+        if ((self::is_async_enabled() && $asyncrecord) || ($asyncrecord && $asyncrecord->purpose == backup::MODE_COPY)) {
+            $asyncpending = true;
         }
         return $asyncpending;
     }
@@ -305,10 +308,17 @@ class async_helper  {
         $tabledata = array();
 
         // Get relevant backup ids based on context instance id.
-        $select = 'itemid = ? AND execution = ? AND status < ? AND status > ?';
-        $params = array($instanceid, backup::EXECUTION_DELAYED, backup::STATUS_FINISHED_ERR, backup::STATUS_NEED_PRECHECK);
-        $backups = $DB->get_records_select('backup_controllers', $select, $params, 'timecreated DESC', 'id, backupid, timecreated');
+        $select = 'itemid = :itemid AND execution = :execution AND status < :status1 AND status > :status2 ' .
+            'AND operation = :operation';
+        $params = [
+            'itemid' => $instanceid,
+            'execution' => backup::EXECUTION_DELAYED,
+            'status1' => backup::STATUS_FINISHED_ERR,
+            'status2' => backup::STATUS_NEED_PRECHECK,
+            'operation' => 'backup',
+        ];
 
+        $backups = $DB->get_records_select('backup_controllers', $select, $params, 'timecreated DESC', 'id, backupid, timecreated');
         foreach ($backups as $backup) {
             $bc = \backup_controller::load_controller($backup->backupid);  // Get the backup controller.
             $filename = $bc->get_plan()->get_setting('filename')->get_value();
