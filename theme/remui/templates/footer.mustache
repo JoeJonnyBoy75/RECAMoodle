@@ -149,7 +149,8 @@
         $(".nav-link:contains('New Here')").parent().find(".dropdown-item").attr("target", "_blank")
         // Return to Course Home, populate with correct URL.
         //$(".course-exitbutton").attr("href", $(".back-to-course a").attr("href"));
-        $(".course-exitbutton").on("click", function() { $(".backtocourse").parentsUntil("a").click(); });
+        //$(".course-exitbutton").on("click", function() { window.location.href = $(".backtocourse").parentsUntil("a").parent().attr("href")); /* $(".backtocourse").parentsUntil("a").parent().click(); */ });
+        $(".course-exitbutton").attr("href", $(".backtocourse").parentsUntil("a").parent().attr("href"));
         // For Flash courses
         $(".exitbutton a").attr("href", $(".backtocourse").parent().parent().parent().attr("href"));
     });
