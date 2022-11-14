@@ -1,0 +1,65 @@
+body {
+  scrollbar-color: rgba(0, 0, 0, 0.1) #fff;
+  scrollbar-width: thin;
+}
+body::-webkit-scrollbar {
+  width: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  -webkit-box-shadow: none;
+}
+body::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.05);
+}
+body::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.15);
+  outline: 1px solid slategrey;
+}
+
+[data-vvveb-disabled] {
+  pointer-events: none;
+  position: relative;
+}
+[data-vvveb-disabled]::after {
+  content: "";
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  height: 100%;
+}
+
+[data-vvveb-disabled-area] *:not([data-vvveb-edit-exception]) {
+  pointer-events: none;
+  position: relative;
+}
+[data-vvveb-disabled-area] *:not([data-vvveb-edit-exception])::after {
+  content: "";
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  height: 100%;
+}
+
+[data-component-video] > iframe {
+  pointer-events: none;
+}
+
+[contenteditable="true"] {
+  outline: none;
+}
+[contenteditable="true"]:focus-visible {
+  outline: none;
+}
+.ebpb-show-edit {
+  display: block;
+  opacity: 1 !important;
+  position: inherit;
+}
+
+/*Adding custom css for slider - */
+.block-content[data-editing="true"] .carousel.slide {
+  padding: 20px 20px 0 20px;
+}
+/*Adjust modal positioning*/
+.modal.fade .modal-dialog {
+  transform: none !important;
+}

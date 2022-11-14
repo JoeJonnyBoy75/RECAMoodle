@@ -14,24 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace core;
+
 /**
  * Unit tests for setuplib.php
  *
  * @package   core
- * @category  phpunit
+ * @category  test
  * @copyright 2012 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
-
-/**
- * Unit tests for setuplib.php
- *
- * @copyright 2012 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class core_setuplib_testcase extends advanced_testcase {
+class setuplib_test extends \advanced_testcase {
 
     /**
      * Test get_docs_url_standard in the normal case when we should link to Moodle docs.
@@ -43,8 +36,10 @@ class core_setuplib_testcase extends advanced_testcase {
         } else {
             $docroot = $CFG->docroot;
         }
-        $this->assertRegExp('~^' . preg_quote($docroot, '') . '/\d{2}/' . current_language() . '/course/editing$~',
-                get_docs_url('course/editing'));
+        $this->assertMatchesRegularExpression(
+            '~^' . preg_quote($docroot, '') . '/\d{2,3}/' . current_language() . '/course/editing$~',
+            get_docs_url('course/editing')
+        );
     }
 
     /**
@@ -89,11 +84,13 @@ class core_setuplib_testcase extends advanced_testcase {
                 $expected .= "[$cfgname] ";
             }
         }
-        $exception     = new moodle_exception('generalexceptionmessage', 'error', '', $fixture, $fixture);
+        $exception     = new \moodle_exception('generalexceptionmessage', 'error', '', $fixture, $fixture);
         $exceptioninfo = get_exception_info($exception);
 
-        $this->assertContains($expected, $exceptioninfo->message, 'Exception message does not contain system paths');
-        $this->assertContains($expected, $exceptioninfo->debuginfo, 'Exception debug info does not contain system paths');
+        $this->assertStringContainsString($expected, $exceptioninfo->message,
+            'Exception message does not contain system paths');
+        $this->assertStringContainsString($expected, $exceptioninfo->debuginfo,
+            'Exception debug info does not contain system paths');
     }
 
     public function test_localcachedir() {
@@ -112,7 +109,7 @@ class core_setuplib_testcase extends advanced_testcase {
         remove_dir($CFG->localcachedir, true);
         $dir = make_localcache_directory('', false);
         $this->assertSame($CFG->localcachedir, $dir);
-        $this->assertFileNotExists("$CFG->localcachedir/.htaccess");
+        $this->assertFileDoesNotExist("$CFG->localcachedir/.htaccess");
         $this->assertFileExists($timestampfile);
         $this->assertTimeCurrent(filemtime($timestampfile));
 
@@ -123,7 +120,7 @@ class core_setuplib_testcase extends advanced_testcase {
         $CFG->localcachedir = "$CFG->dataroot/testlocalcache";
         $this->setCurrentTimeStart();
         $timestampfile = "$CFG->localcachedir/.lastpurged";
-        $this->assertFileNotExists($timestampfile);
+        $this->assertFileDoesNotExist($timestampfile);
 
         $dir = make_localcache_directory('', false);
         $this->assertSame($CFG->localcachedir, $dir);
@@ -146,8 +143,8 @@ class core_setuplib_testcase extends advanced_testcase {
         $now = $this->setCurrentTimeStart();
         set_config('localcachedirpurged', $now - 2);
         purge_all_caches();
-        $this->assertFileNotExists($testfile);
-        $this->assertFileNotExists(dirname($testfile));
+        $this->assertFileDoesNotExist($testfile);
+        $this->assertFileDoesNotExist(dirname($testfile));
         $this->assertFileExists($timestampfile);
         $this->assertTimeCurrent(filemtime($timestampfile));
         $this->assertTimeCurrent($CFG->localcachedirpurged);
@@ -163,8 +160,8 @@ class core_setuplib_testcase extends advanced_testcase {
         $this->setCurrentTimeStart();
         $dir = make_localcache_directory('', false);
         $this->assertSame("$CFG->localcachedir", $dir);
-        $this->assertFileNotExists($testfile);
-        $this->assertFileNotExists(dirname($testfile));
+        $this->assertFileDoesNotExist($testfile);
+        $this->assertFileDoesNotExist(dirname($testfile));
         $this->assertFileExists($timestampfile);
         $this->assertTimeCurrent(filemtime($timestampfile));
     }
@@ -204,6 +201,8 @@ class core_setuplib_testcase extends advanced_testcase {
     }
 
     public function test_get_request_storage_directory() {
+        $this->resetAfterTest(true);
+
         // Making a call to get_request_storage_directory should always give the same result.
         $firstdir = get_request_storage_directory();
         $seconddir = get_request_storage_directory();
@@ -230,6 +229,11 @@ class core_setuplib_testcase extends advanced_testcase {
         $fourthdir = get_request_storage_directory();
         $this->assertTrue(is_dir($fourthdir));
         $this->assertNotEquals($thirddir, $fourthdir);
+
+        $now = $this->setCurrentTimeStart();
+        set_config('localcachedirpurged', $now - 2);
+        purge_all_caches();
+        $this->assertTrue(is_dir($fourthdir));
     }
 
 
@@ -360,73 +364,47 @@ class core_setuplib_testcase extends advanced_testcase {
 
         // Simple local URL.
         $url = $CFG->wwwroot . '/something/here?really=yes';
-        $exception = new moodle_exception('none', 'error', $url);
+        $exception = new \moodle_exception('none', 'error', $url);
         $infos = $this->get_exception_info($exception);
         $this->assertSame($url, $infos->link);
 
         // Relative local URL.
         $url = '/something/here?really=yes';
-        $exception = new moodle_exception('none', 'error', $url);
+        $exception = new \moodle_exception('none', 'error', $url);
         $infos = $this->get_exception_info($exception);
         $this->assertSame($CFG->wwwroot . '/', $infos->link);
 
         // HTTPS URL when login HTTPS is not enabled (default) and site is HTTP.
         $CFG->wwwroot = str_replace('https:', 'http:', $CFG->wwwroot);
         $url = $httpswwwroot . '/something/here?really=yes';
-        $exception = new moodle_exception('none', 'error', $url);
+        $exception = new \moodle_exception('none', 'error', $url);
         $infos = $this->get_exception_info($exception);
         $this->assertSame($CFG->wwwroot . '/', $infos->link);
 
         // HTTPS URL when login HTTPS is not enabled and site is HTTPS.
         $CFG->wwwroot = str_replace('http:', 'https:', $CFG->wwwroot);
         $url = $httpswwwroot . '/something/here?really=yes';
-        $exception = new moodle_exception('none', 'error', $url);
+        $exception = new \moodle_exception('none', 'error', $url);
         $infos = $this->get_exception_info($exception);
         $this->assertSame($url, $infos->link);
 
         // External HTTP URL.
         $url = 'http://moodle.org/something/here?really=yes';
-        $exception = new moodle_exception('none', 'error', $url);
+        $exception = new \moodle_exception('none', 'error', $url);
         $infos = $this->get_exception_info($exception);
         $this->assertSame($CFG->wwwroot . '/', $infos->link);
 
         // External HTTPS URL.
         $url = 'https://moodle.org/something/here?really=yes';
-        $exception = new moodle_exception('none', 'error', $url);
+        $exception = new \moodle_exception('none', 'error', $url);
         $infos = $this->get_exception_info($exception);
         $this->assertSame($CFG->wwwroot . '/', $infos->link);
 
         // External URL containing local URL.
         $url = 'http://moodle.org/something/here?' . $CFG->wwwroot;
-        $exception = new moodle_exception('none', 'error', $url);
+        $exception = new \moodle_exception('none', 'error', $url);
         $infos = $this->get_exception_info($exception);
         $this->assertSame($CFG->wwwroot . '/', $infos->link);
-
-        // Internal link from fromurl.
-        $SESSION->fromurl = $url = $CFG->wwwroot . '/something/here?really=yes';
-        $exception = new moodle_exception('none');
-        $infos = $this->get_exception_info($exception);
-        $this->assertSame($url, $infos->link);
-
-        // Internal HTTPS link from fromurl.
-        $SESSION->fromurl = $url = $httpswwwroot . '/something/here?really=yes';
-        $exception = new moodle_exception('none');
-        $infos = $this->get_exception_info($exception);
-        $this->assertSame($url, $infos->link);
-
-        // External link from fromurl.
-        $SESSION->fromurl = 'http://moodle.org/something/here?really=yes';
-        $exception = new moodle_exception('none');
-        $infos = $this->get_exception_info($exception);
-        $this->assertSame($CFG->wwwroot . '/', $infos->link);
-
-        // External HTTPS link from fromurl.
-        $SESSION->fromurl = 'https://moodle.org/something/here?really=yes';
-        $exception = new moodle_exception('none');
-        $infos = $this->get_exception_info($exception);
-        $this->assertSame($CFG->wwwroot . '/', $infos->link);
-
-        $SESSION->fromurl = '';
     }
 
     /**
@@ -438,7 +416,7 @@ class core_setuplib_testcase extends advanced_testcase {
     public function get_exception_info($ex) {
         try {
             throw $ex;
-        } catch (moodle_exception $e) {
+        } catch (\moodle_exception $e) {
             return get_exception_info($e);
         }
     }
@@ -450,17 +428,23 @@ class core_setuplib_testcase extends advanced_testcase {
      */
     public function data_for_test_get_real_size() {
         return array(
-            array('8KB', 8192),
-            array('8Kb', 8192),
-            array('8K', 8192),
-            array('8k', 8192),
-            array('50MB', 52428800),
-            array('50Mb', 52428800),
-            array('50M', 52428800),
-            array('50m', 52428800),
-            array('8Gb', 8589934592),
-            array('8GB', 8589934592),
-            array('8G', 8589934592),
+            array('8KB',    8192),
+            array('8Kb',    8192),
+            array('8K',     8192),
+            array('8k',     8192),
+            array('50MB',   52428800),
+            array('50Mb',   52428800),
+            array('50M',    52428800),
+            array('50m',    52428800),
+            array('8GB',    8589934592),
+            array('8Gb',    8589934592),
+            array('8G',     8589934592),
+            array('7T',     7696581394432),
+            array('7TB',    7696581394432),
+            array('7Tb',    7696581394432),
+            array('6P',     6755399441055744),
+            array('6PB',    6755399441055744),
+            array('6Pb',    6755399441055744),
         );
     }
 
@@ -506,7 +490,7 @@ class core_setuplib_testcase extends advanced_testcase {
         }
 
         // The \core\uuid::generate_uuid_via_pecl_uuid_extension static method is protected. Use Reflection to call the method.
-        $method = new ReflectionMethod('\core\uuid', 'generate_uuid_via_pecl_uuid_extension');
+        $method = new \ReflectionMethod('\core\uuid', 'generate_uuid_via_pecl_uuid_extension');
         $method->setAccessible(true);
         $uuid = $method->invoke(null);
         $this->assertTrue(self::is_valid_uuid_v4($uuid), "Invalid v4 uuid: '$uuid'");
@@ -518,12 +502,12 @@ class core_setuplib_testcase extends advanced_testcase {
     public function test_core_uuid_generate_uuid_via_random_bytes() {
         try {
             random_bytes(1);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->markTestSkipped('No source of entropy for random_bytes. ' . $e->getMessage());
         }
 
         // The \core\uuid::generate_uuid_via_random_bytes static method is protected. Use Reflection to call the method.
-        $method = new ReflectionMethod('\core\uuid', 'generate_uuid_via_random_bytes');
+        $method = new \ReflectionMethod('\core\uuid', 'generate_uuid_via_random_bytes');
         $method->setAccessible(true);
         $uuid = $method->invoke(null);
         $this->assertTrue(self::is_valid_uuid_v4($uuid), "Invalid v4 uuid: '$uuid'");

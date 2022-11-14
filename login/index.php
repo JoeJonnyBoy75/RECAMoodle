@@ -82,7 +82,7 @@ if (!empty($SESSION->has_timed_out)) {
 $frm  = false;
 $user = false;
 
-$authsequence = get_enabled_auth_plugins(true); // auths, in sequence
+$authsequence = get_enabled_auth_plugins(); // Auths, in sequence.
 foreach($authsequence as $authname) {
     $authplugin = get_auth_plugin($authname);
     // The auth plugin's loginpage_hook() can eventually set $frm and/or $user.
@@ -198,7 +198,8 @@ if ($frm and isset($frm->username)) {                             // Login WITH 
                 [
                     'username' => $frm->username,
                     'password' => $frm->password,
-                    'resendconfirmemail' => true
+                    'resendconfirmemail' => true,
+                    'logintoken' => \core\session\manager::get_login_token()
                 ]
             );
             echo $OUTPUT->single_button($resendconfirmurl, get_string('emailconfirmationresend'));
@@ -217,7 +218,7 @@ if ($frm and isset($frm->username)) {                             // Login WITH 
             // auth plugins can temporarily override this from loginpage_hook()
             // do not save $CFG->nolastloggedin in database!
 
-        } else if (empty($CFG->rememberusername) or ($CFG->rememberusername == 2 and empty($frm->rememberusername))) {
+        } else if (empty($CFG->rememberusername)) {
             // no permanent cookies, delete old one if exists
             set_moodle_cookie('');
 

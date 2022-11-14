@@ -1,0 +1,39 @@
+<div class="showmorepagereviewbody ">
+     <div class="actionables d-md-flex justify-content-between my-4">
+          {{#canapprovelink}}
+          <div class="approval-page-link mr-2">
+               <a href="{{canapprovelink}}" class="btn btn-outline-secondary" role="button">{{#str}}approvalpage, block_edwiserratingreview{{/str}}</a>
+          </div>
+          {{/canapprovelink}}
+          <div class="reviewheader">
+               <select class="form-control ernr_showmorepagecoursemenu js-example-basic-single custom-select" name="state" style="width: 300px;max-width: 100%; ">
+               </select>
+
+               <Select class="showmorepagereviewselector max-content custom-select ">
+                    <option value="0" selected>{{#str}}allratings,block_edwiserratingreview{{/str}}</option>
+                    <option value="5">{{#str}}fivestars,block_edwiserratingreview{{/str}}</option>
+                    <option value="4">{{#str}}fourstars,block_edwiserratingreview{{/str}}</option>
+                    <option value="3">{{#str}}threestars,block_edwiserratingreview{{/str}}</option>
+                    <option value="2">{{#str}}twostars,block_edwiserratingreview{{/str}}</option>
+                    <option value="1">{{#str}}onestar,block_edwiserratingreview{{/str}}</option>
+               </Select>
+          </div>
+     </div>
+     <div class="mainpagereview reviewdata" data-start='0' data-end='10'></div>
+</div>
+
+
+{{#js}}
+require([
+'jquery',
+'block_edwiserratingreview/showmorepagereview',
+'block_edwiserratingreview/famehandler',
+'block_edwiserratingreview/select2'
+], function($, PageReview, FameHandler){
+     PageReview.init({{filter}}, {{start}}, {{limit}}, {{contextid}});
+     FameHandler.init();
+     $(document).ready(function() {
+         $('.js-example-basic-single').select2();
+     });
+});
+{{/js}}

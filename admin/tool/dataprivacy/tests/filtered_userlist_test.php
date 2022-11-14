@@ -14,13 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Unit tests for the filtered_userlist.
- *
- * @package    tool_dataprivacy
- * @copyright  2018 Andrew Nicols <andrew@nicols.co.uk>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace tool_dataprivacy;
 
 /**
  * Unit tests for the filtered_userlist.
@@ -29,7 +23,7 @@
  * @copyright  2018 Andrew Nicols <andrew@nicols.co.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class tool_dataprivacy_filtered_userlist_testcase extends advanced_testcase {
+class filtered_userlist_test extends \advanced_testcase {
     /**
      * Test the apply_expired_contexts_filters function with arange of options.
      *
@@ -42,7 +36,7 @@ class tool_dataprivacy_filtered_userlist_testcase extends advanced_testcase {
     public function test_apply_expired_contexts_filters(array $initial, array $expired, array $unexpired, array $expected) {
         $userlist = $this->getMockBuilder(\tool_dataprivacy\filtered_userlist::class)
             ->disableOriginalConstructor()
-            ->setMethods(null)
+            ->onlyMethods([])
             ->getMock();
 
         $rc = new \ReflectionClass(\tool_dataprivacy\filtered_userlist::class);

@@ -114,7 +114,8 @@ class block_blog_recent extends block_base {
 
             foreach ($entries as $entryid => $entry) {
                 $viewblogurl->param('entryid', $entryid);
-                $entrylink = html_writer::link($viewblogurl, shorten_text($entry->subject));
+                $entrylink = html_writer::link($viewblogurl, shorten_text(format_string($entry->subject, true,
+                    ['context' => $context])));
                 $entrieslist[] = $entrylink;
             }
 
@@ -140,5 +141,17 @@ class block_blog_recent extends block_base {
             'instance' => $configs,
             'plugin' => new stdClass(),
         ];
+    }
+
+    /**
+     * This block shouldn't be added to a page if the blogs advanced feature is disabled.
+     *
+     * @param moodle_page $page
+     * @return bool
+     */
+    public function can_block_be_added(moodle_page $page): bool {
+        global $CFG;
+
+        return $CFG->enableblogs;
     }
 }

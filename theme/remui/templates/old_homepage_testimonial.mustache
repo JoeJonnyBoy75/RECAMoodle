@@ -1,0 +1,49 @@
+{{#testimoniallist}}
+<div id="edwiser-testimonials" class="py-6" role="main">
+    <div class="heading text-center">
+        {{# aboutus_heading }}<h4>{{{ aboutus_heading }}}</h4>{{/ aboutus_heading }}
+        {{# aboutus_desc }} {{{ aboutus_desc }}} {{/ aboutus_desc }}
+    </div>
+    <div class="testimonials">
+        <div id="testimonialCarousel" class="carousel slide" data-ride="carousel" data-interval="4000">
+          <ol class="carousel-indicators">
+            {{# testimonials }}
+                <li data-target="#testimonialCarousel" data-slide-to="{{count}}" class="{{#active}}active{{/active}}"></li>
+            {{/ testimonials }}
+          </ol>
+          <div class="carousel-inner">
+            {{# testimonials }}
+            <div class="carousel-item {{#active}}active{{/active}}">
+                <div class="carousel-item-wrapper">
+                    {{# image }}
+                    <a class="avatar avatar-100 bg-white mb-2 m-xs-0 img-bordered" href="javascript:void(0)">
+                    <img src="{{ image }}" alt="">
+                    </a>
+                    {{/ image }}
+                    {{# name }}
+                        <div class="font-size-20 text-muted">{{ name }}</div>
+                    {{/ name }}
+                    {{# designation }} 
+                        <div class="font-size-14 text-dark">{{ designation }}</div> 
+                    {{/ designation }}
+                    {{# text }}
+                        <div class="font-size-14 text-muted pt-2 text-center">
+                            {{#shortentext}} 250, {{{ text }}} {{/shortentext}}
+                        </div>
+                    {{/ text }}
+                </div>
+            </div>
+            {{/ testimonials }}
+          </div>
+          <a class="carousel-control-prev" href="#testimonialCarousel" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon fa fa-chevron-left" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+          </a>
+          <a class="carousel-control-next" href="#testimonialCarousel" role="button" data-slide="next">
+            <span class="carousel-control-next-icon fa fa-chevron-right" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+          </a>
+        </div>
+    </div>
+</div>
+{{/testimoniallist}}

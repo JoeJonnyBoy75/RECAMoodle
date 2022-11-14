@@ -51,7 +51,7 @@ class editor extends edit_content {
      * Defines the form fields.
      */
     protected function definition() {
-        global $DB;
+        global $DB, $OUTPUT;
 
         $mform = $this->_form;
         $errors = [];
@@ -68,6 +68,9 @@ class editor extends edit_content {
         }
 
         $this->h5peditor = new h5peditor();
+
+        $this->set_display_vertical();
+        $mform->addElement('html', $OUTPUT->heading($this->_customdata['heading'], 2));
 
         if ($id) {
             // The H5P editor needs the H5P content id (h5p table).
@@ -112,7 +115,6 @@ class editor extends edit_content {
             }
             $mform->addElement('cancel', 'cancel', get_string('back'));
         } else {
-            $this->add_action_buttons();
             $this->h5peditor->add_editor_to_form($mform);
             $this->add_action_buttons();
         }
@@ -129,7 +131,7 @@ class editor extends edit_content {
         global $DB;
 
         // The H5P libraries expect data->id as the H5P content id.
-        // The method \H5PCore::saveContent throws an error if id is set but empty.
+        // The method H5PCore::saveContent throws an error if id is set but empty.
         if (empty($data->id)) {
             unset($data->id);
         } else {

@@ -14,14 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Unit tests for parts of adminlib.php.
- *
- * @package    core
- * @subpackage admin
- * @copyright  2020 Brendan Heywood <brendan@catalyst-au.net>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace core;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -31,10 +24,11 @@ require_once($CFG->libdir.'/adminlib.php');
 /**
  * Unit tests for parts of adminlib.php.
  *
+ * @package    core
  * @copyright  2020 Brendan Heywood <brendan@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_adminlib_testcase extends advanced_testcase {
+class adminlib_test extends \advanced_testcase {
 
     /**
      * Data provider of serialized string.
@@ -76,6 +70,7 @@ class core_adminlib_testcase extends advanced_testcase {
      * Test which tables and column should be replaced.
      *
      * @dataProvider db_should_replace_dataprovider
+     * @covers ::db_should_replace
      * @param string $table name
      * @param string $column name
      * @param bool $expected whether it should be replaced
@@ -85,5 +80,50 @@ class core_adminlib_testcase extends advanced_testcase {
         $this->assertSame($actual, $expected);
     }
 
-}
+    /**
+     * Data provider for additional skip tables.
+     *
+     * @covers ::db_should_replace
+     * @return array
+     */
+    public function db_should_replace_additional_skip_tables_dataprovider() {
+        return [
+            // Skipped tables.
+            ['block_instances', '', false],
+            ['config',          '', false],
+            ['config_plugins',  '', false],
+            ['config_log',      '', false],
+            ['events_queue',    '', false],
+            ['filter_config',   '', false],
+            ['log',             '', false],
+            ['repository_instance_config', '', false],
+            ['sessions',        '', false],
+            ['upgrade_log',     '', false],
 
+            // Additional skipped tables.
+            ['context',      '', false],
+            ['quiz_attempts',     '', false],
+            ['role_assignments',     '', false],
+
+            // Normal tables.
+            ['assign',          '', true],
+            ['book',          '', true],
+        ];
+    }
+
+    /**
+     * Test additional skip tables.
+     *
+     * @dataProvider db_should_replace_additional_skip_tables_dataprovider
+     * @covers ::db_should_replace
+     * @param string $table name
+     * @param string $column name
+     * @param bool $expected whether it should be replaced
+     */
+    public function test_db_should_replace_additional_skip_tables(string $table, string $column, bool $expected) {
+        $this->resetAfterTest();
+        $additionalskiptables = 'context, quiz_attempts, role_assignments ';
+        $actual = db_should_replace($table, $column, $additionalskiptables);
+        $this->assertSame($actual, $expected);
+    }
+}

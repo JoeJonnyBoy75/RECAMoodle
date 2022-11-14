@@ -38,12 +38,10 @@ use Behat\Testwork\Hook\Scope\BeforeSuiteScope,
     Behat\Behat\Hook\Scope\BeforeStepScope,
     Behat\Behat\Hook\Scope\AfterStepScope,
     Behat\Mink\Exception\ExpectationException,
-    Behat\Mink\Exception\DriverException as DriverException,
-    WebDriver\Exception\NoSuchWindow as NoSuchWindow,
-    WebDriver\Exception\UnexpectedAlertOpen as UnexpectedAlertOpen,
-    WebDriver\Exception\UnknownError as UnknownError,
-    WebDriver\Exception\CurlExec as CurlExec,
-    WebDriver\Exception\NoAlertOpenError as NoAlertOpenError;
+    Behat\Mink\Exception\DriverException,
+    Facebook\WebDriver\Exception\UnexpectedAlertOpenException,
+    Facebook\WebDriver\Exception\WebDriverCurlException,
+    Facebook\WebDriver\Exception\UnknownErrorException;
 
 /**
  * Hooks to the behat process.
@@ -82,9 +80,20 @@ class behat_hooks extends behat_base {
      * failure, but we can store them here to fail the step in i_look_for_exceptions()
      * which result will be parsed by the framework as the last step result.
      *
-     * @var Null or the exception last step throw in the before or after hook.
+     * @var ?Exception Null or the exception last step throw in the before or after hook.
      */
     protected static $currentstepexception = null;
+
+    /**
+     * If an Exception is thrown in the BeforeScenario hook it will cause the Scenario to be skipped, and the exit code
+     * to be non-zero triggering a potential rerun.
+     *
+     * To combat this the exception is stored and re-thrown when looking for exceptions.
+     * This allows the test to instead be failed and re-run correctly.
+     *
+     * @var null|Exception
+     */
+    protected static $currentscenarioexception = null;
 
     /**
      * If we are saving any kind of dump on failure we should use the same parent dir during a run.
@@ -173,7 +182,7 @@ class behat_hooks extends behat_base {
             $message = <<<EOF
 Your behat test site is outdated, please run the following command from your Moodle dirroot to drop, and reinstall the Behat test site.
 
-    {$comandpath}
+    {$commandpath}
 
 EOF;
             self::log_and_stop($message);
@@ -279,11 +288,20 @@ EOF;
         if ($session->isStarted()) {
             $session->restart();
         } else {
-            $session->start();
+            $this->start_session();
         }
         if ($this->running_javascript() && $this->getSession()->getDriver()->getWebDriverSessionId() === 'session') {
             throw new DriverException('Unable to create a valid session');
         }
+    }
+
+    /**
+     * Start the Session, applying any initial configuratino required.
+     */
+    protected function start_session(): void {
+        $this->getSession()->start();
+
+        $this->set_test_timeout_factor(1);
     }
 
     /**
@@ -317,7 +335,6 @@ EOF;
             // The `before_subsequent_scenario_start_session` function will restart the session instead.
             return;
         }
-        self::$firstjavascriptscenarioseen = true;
 
         $docsurl = behat_command::DOCS_URL;
         $driverexceptionmsg = <<<EOF
@@ -329,17 +346,16 @@ The following debugging information is available:
 
 EOF;
 
-
         try {
             $this->restart_session();
-        } catch (CurlExec | DriverException $e) {
-            // The CurlExec Exception is thrown by WebDriver.
+        } catch (WebDriverCurlException | DriverException $e) {
+            // Thrown by WebDriver.
             self::log_and_stop(
                 $driverexceptionmsg . '. ' .
                 $e->getMessage() . "\n\n" .
                 format_backtrace($e->getTrace(), true)
             );
-        } catch (UnknownError $e) {
+        } catch (UnknownErrorException $e) {
             // Generic 'I have no idea' Selenium error. Custom exception to provide more feedback about possible solutions.
             self::log_and_stop(
                 $e->getMessage() . "\n\n" .
@@ -362,8 +378,13 @@ EOF;
             // The `before_first_scenario_start_session` function will have started the session instead.
             return;
         }
+        self::$currentscenarioexception = null;
 
-        $this->restart_session();
+        try {
+            $this->restart_session();
+        } catch (Exception $e) {
+            self::$currentscenarioexception = $e;
+        }
     }
 
     /**
@@ -374,6 +395,12 @@ EOF;
      */
     public function before_scenario_hook(BeforeScenarioScope $scope) {
         global $DB;
+        if (self::$currentscenarioexception) {
+            // A BeforeScenario hook triggered an exception and marked this test as failed.
+            // Skip this hook as it will likely fail.
+            return;
+        }
+
         $suitename = $scope->getSuite()->getName();
 
         // Register behat selectors for theme, if suite is changed. We do it for every suite change.
@@ -454,6 +481,16 @@ EOF;
     }
 
     /**
+     * Mark the first Javascript Scenario as have been seen.
+     *
+     * @BeforeScenario
+     * @param BeforeScenarioScope $scope scope passed by event fired before scenario.
+     */
+    public function mark_first_js_scenario_as_seen(BeforeScenarioScope $scope) {
+        self::$firstjavascriptscenarioseen = true;
+    }
+
+    /**
      * Hook to open the site root before the first step in the suite.
      * Yes, this is in a strange location and should be in the BeforeScenario hook, but failures in the test setUp lead
      * to the test being incorrectly marked as skipped with no way to force the test to be failed.
@@ -474,7 +511,7 @@ EOF;
             // Again, this would be better in the BeforeSuite hook, but that does not have access to the selectors in
             // order to perform the necessary searches.
             $session = $this->getSession();
-            $session->visit($this->locate_path('/'));
+            $this->execute('behat_general::i_visit', ['/']);
 
             // Checking that the root path is a Moodle test site.
             if (self::is_first_scenario()) {
@@ -526,6 +563,12 @@ EOF;
      * @BeforeStep
      */
     public function before_step_javascript(BeforeStepScope $scope) {
+        if (self::$currentscenarioexception) {
+            // A BeforeScenario hook triggered an exception and marked this test as failed.
+            // Skip this hook as it will likely fail.
+            return;
+        }
+
         self::$currentstepexception = null;
 
         // Only run if JS.
@@ -600,14 +643,14 @@ EOF;
         try {
             $this->wait_for_pending_js();
             self::$currentstepexception = null;
-        } catch (UnexpectedAlertOpen $e) {
+        } catch (UnexpectedAlertOpenException $e) {
             self::$currentstepexception = $e;
 
             // Accepting the alert so the framework can continue properly running
             // the following scenarios. Some browsers already closes the alert, so
             // wrapping in a try & catch.
             try {
-                $this->getSession()->getDriver()->getWebDriverSession()->accept_alert();
+                $this->getSession()->getDriver()->getWebDriver()->switchTo()->alert()->accept();
             } catch (Exception $e) {
                 // Catching the generic one as we never know how drivers reacts here.
             }
@@ -623,7 +666,24 @@ EOF;
      * @AfterScenario
      */
     public function reset_webdriver_between_scenarios(AfterScenarioScope $scope) {
-        $this->getSession()->stop();
+        try {
+            $this->getSession()->stop();
+        } catch (Exception $e) {
+            $error = <<<EOF
+
+Error while stopping WebDriver: %s (%d) '%s'
+Attempting to continue with test run. Stacktrace follows:
+
+%s
+EOF;
+            error_log(sprintf(
+                $error,
+                get_class($e),
+                $e->getCode(),
+                $e->getMessage(),
+                format_backtrace($e->getTrace(), true)
+            ));
+        }
     }
 
     /**
@@ -742,6 +802,11 @@ EOF;
      * @see Moodle\BehatExtension\EventDispatcher\Tester\ChainedStepTester
      */
     public function i_look_for_exceptions() {
+        // If the scenario already failed in a hook throw the exception.
+        if (!is_null(self::$currentscenarioexception)) {
+            throw self::$currentscenarioexception;
+        }
+
         // If the step already failed in a hook throw the exception.
         if (!is_null(self::$currentstepexception)) {
             throw self::$currentstepexception;

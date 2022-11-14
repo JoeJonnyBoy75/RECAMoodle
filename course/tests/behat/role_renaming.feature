@@ -20,15 +20,23 @@ Feature: Rename roles in a course
   Scenario: Teacher can rename roles
     Given I log in as "teacher1"
     And I am on "Course 1" course homepage
-    And I navigate to "Edit settings" in current page administration
+    And I navigate to "Settings" in current page administration
     And I should see "Role renaming"
     When I set the following fields to these values:
       | Your word for 'Teacher' | Lecturer |
       | Your word for 'Student' | Learner  |
     And I press "Save and display"
-    And I navigate to "Users > Enrolled users" in current page administration
-    Then I should see "Lecturer" in the "Teacher 1" "table_row"
+    And I navigate to course participants
+    Then I should see "Lecturer (Teacher)" in the "Teacher 1" "table_row"
+    And I should see "Learner (Student)" in the "Student 1" "table_row"
+    And I log out
+    And I log in as "student1"
+    And I am on "Course 1" course homepage
+    And I navigate to course participants
+    And I should see "Lecturer" in the "Teacher 1" "table_row"
     And I should see "Learner" in the "Student 1" "table_row"
+    And I should not see "Lecturer (Teacher)" in the "Teacher 1" "table_row"
+    And I should not see "Learner (Student)" in the "Student 1" "table_row"
 
   Scenario: Ability to rename roles can be prevented
     Given I log in as "admin"
@@ -38,6 +46,6 @@ Feature: Rename roles in a course
     And I follow "Log out"
     When I log in as "teacher1"
     And I am on "Course 1" course homepage
-    And I navigate to "Edit settings" in current page administration
+    And I navigate to "Settings" in current page administration
     Then I should not see "Role renaming"
     And I should not see "Your word for 'Teacher'"

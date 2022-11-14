@@ -20,6 +20,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_forum\local\entities\forum as forum_entity;
+
 defined('MOODLE_INTERNAL') || die();
 
 /** Include required files */
@@ -352,7 +354,7 @@ function forum_delete_instance($id) {
  * @uses FEATURE_GRADE_HAS_GRADE
  * @uses FEATURE_GRADE_OUTCOMES
  * @param string $feature
- * @return mixed True if yes (some features may use other values)
+ * @return mixed True if module supports feature, false if not, null if doesn't know or string for the module purpose.
  */
 function forum_supports($feature) {
     switch($feature) {
@@ -368,72 +370,10 @@ function forum_supports($feature) {
         case FEATURE_SHOW_DESCRIPTION:        return true;
         case FEATURE_PLAGIARISM:              return true;
         case FEATURE_ADVANCED_GRADING:        return true;
+        case FEATURE_MOD_PURPOSE:             return MOD_PURPOSE_COLLABORATION;
 
         default: return null;
     }
-}
-
-/**
- * Obtains the automatic completion state for this forum based on any conditions
- * in forum settings.
- *
- * @global object
- * @global object
- * @param object $course Course
- * @param object $cm Course-module
- * @param int $userid User ID
- * @param bool $type Type of comparison (or/and; can be used as return value if no conditions)
- * @return bool True if completed, false if not. (If no conditions, then return
- *   value depends on comparison type)
- */
-function forum_get_completion_state($course,$cm,$userid,$type) {
-    global $CFG,$DB;
-
-    // Get forum details
-    if (!($forum=$DB->get_record('forum',array('id'=>$cm->instance)))) {
-        throw new Exception("Can't find forum {$cm->instance}");
-    }
-
-    $result=$type; // Default return value
-
-    $postcountparams=array('userid'=>$userid,'forumid'=>$forum->id);
-    $postcountsql="
-SELECT
-    COUNT(1)
-FROM
-    {forum_posts} fp
-    INNER JOIN {forum_discussions} fd ON fp.discussion=fd.id
-WHERE
-    fp.userid=:userid AND fd.forum=:forumid";
-
-    if ($forum->completiondiscussions) {
-        $value = $forum->completiondiscussions <=
-                 $DB->count_records('forum_discussions',array('forum'=>$forum->id,'userid'=>$userid));
-        if ($type == COMPLETION_AND) {
-            $result = $result && $value;
-        } else {
-            $result = $result || $value;
-        }
-    }
-    if ($forum->completionreplies) {
-        $value = $forum->completionreplies <=
-                 $DB->get_field_sql( $postcountsql.' AND fp.parent<>0',$postcountparams);
-        if ($type==COMPLETION_AND) {
-            $result = $result && $value;
-        } else {
-            $result = $result || $value;
-        }
-    }
-    if ($forum->completionposts) {
-        $value = $forum->completionposts <= $DB->get_field_sql($postcountsql,$postcountparams);
-        if ($type == COMPLETION_AND) {
-            $result = $result && $value;
-        } else {
-            $result = $result || $value;
-        }
-    }
-
-    return $result;
 }
 
 /**
@@ -644,7 +584,8 @@ function forum_print_recent_activity($course, $viewfullnames, $timestart) {
 
     // do not use log table if possible, it may be huge and is expensive to join with other tables
 
-    $allnamefields = user_picture::fields('u', null, 'duserid');
+    $userfieldsapi = \core_user\fields::for_userpic();
+    $allnamefields = $userfieldsapi->get_sql('u', false, '', 'duserid', false)->selects;
     if (!$posts = $DB->get_records_sql("SELECT p.*,
                                               f.course, f.type AS forumtype, f.name AS forumname, f.intro, f.introformat, f.duedate,
                                               f.cutoffdate, f.assessed AS forumassessed, f.assesstimestart, f.assesstimefinish,
@@ -808,12 +749,12 @@ function forum_print_recent_activity($course, $viewfullnames, $timestart) {
 function forum_update_grades($forum, $userid = 0): void {
     global $CFG, $DB;
     require_once($CFG->libdir.'/gradelib.php');
-    $cm = get_coursemodule_from_instance('forum', $forum->id);
-    $forum->cmidnumber = $cm->idnumber;
 
     $ratings = null;
     if ($forum->assessed) {
         require_once($CFG->dirroot.'/rating/lib.php');
+
+        $cm = get_coursemodule_from_instance('forum', $forum->id);
 
         $rm = new rating_manager();
         $ratings = $rm->get_user_grades((object) [
@@ -954,7 +895,7 @@ function forum_scale_used_anywhere(int $scaleid): bool {
         return false;
     }
 
-    return $DB->record_exists('forum', ['scale' => $scaleid * -1]);
+    return $DB->record_exists_select('forum', "scale = ? and assessed > 0", [$scaleid * -1]);
 }
 
 // SQL FUNCTIONS ///////////////////////////////////////////////////////////
@@ -971,7 +912,8 @@ function forum_scale_used_anywhere(int $scaleid): bool {
 function forum_get_post_full($postid) {
     global $CFG, $DB;
 
-    $allnames = get_all_user_name_fields(true, 'u');
+    $userfieldsapi = \core_user\fields::for_name();
+    $allnames = $userfieldsapi->get_sql('u', false, '', '', false)->selects;
     return $DB->get_record_sql("SELECT p.*, d.forum, $allnames, u.email, u.picture, u.imagealt
                              FROM {forum_posts} p
                                   JOIN {forum_discussions} d ON p.discussion = d.id
@@ -1000,7 +942,8 @@ function forum_get_all_discussion_posts($discussionid, $sort, $tracking = false)
         $params[] = $USER->id;
     }
 
-    $allnames = get_all_user_name_fields(true, 'u');
+    $userfieldsapi = \core_user\fields::for_name();
+    $allnames = $userfieldsapi->get_sql('u', false, '', '', false)->selects;
     $params[] = $discussionid;
     if (!$posts = $DB->get_records_sql("SELECT p.*, $allnames, u.email, u.picture, u.imagealt $tr_sel
                                      FROM {forum_posts} p
@@ -1159,7 +1102,7 @@ function forum_get_readable_forums($userid, $courseid=0) {
  * @param string $extrasql
  * @return array|bool Array of posts found or false
  */
-function forum_search_posts($searchterms, $courseid=0, $limitfrom=0, $limitnum=50,
+function forum_search_posts($searchterms, $courseid, $limitfrom, $limitnum,
                             &$totalcount, $extrasql='') {
     global $CFG, $DB, $USER;
     require_once($CFG->libdir.'/searchlib.php');
@@ -1298,7 +1241,8 @@ function forum_search_posts($searchterms, $courseid=0, $limitfrom=0, $limitnum=5
                    FROM $fromsql
                   WHERE $selectsql";
 
-    $allnames = get_all_user_name_fields(true, 'u');
+    $userfieldsapi = \core_user\fields::for_name();
+    $allnames = $userfieldsapi->get_sql('u', false, '', '', false)->selects;
     $searchsql = "SELECT p.*,
                          d.forum,
                          $allnames,
@@ -1338,7 +1282,8 @@ function forum_get_user_posts($forumid, $userid) {
         }
     }
 
-    $allnames = get_all_user_name_fields(true, 'u');
+    $userfieldsapi = \core_user\fields::for_name();
+    $allnames = $userfieldsapi->get_sql('u', false, '', '', false)->selects;
     return $DB->get_records_sql("SELECT p.*, d.forum, $allnames, u.email, u.picture, u.imagealt
                               FROM {forum} f
                                    JOIN {forum_discussions} d ON d.forum = f.id
@@ -1429,7 +1374,8 @@ function forum_count_user_posts($forumid, $userid) {
 function forum_get_post_from_log($log) {
     global $CFG, $DB;
 
-    $allnames = get_all_user_name_fields(true, 'u');
+    $userfieldsapi = \core_user\fields::for_name();
+    $allnames = $userfieldsapi->get_sql('u', false, '', '', false)->selects;
     if ($log->action == "add post") {
 
         return $DB->get_record_sql("SELECT p.*, f.type AS forumtype, d.forum, d.groupid, $allnames, u.email, u.picture
@@ -1757,11 +1703,13 @@ function forum_get_discussions($cm, $forumsort="", $fullpost=true, $unused=-1, $
         $postdata = "p.*";
     }
 
+    $userfieldsapi = \core_user\fields::for_name();
+
     if (empty($userlastmodified)) {  // We don't need to know this
         $umfields = "";
         $umtable  = "";
     } else {
-        $umfields = ', ' . get_all_user_name_fields(true, 'um', null, 'um') . ', um.email AS umemail, um.picture AS umpicture,
+        $umfields = $userfieldsapi->get_sql('um', false, 'um')->selects . ', um.email AS umemail, um.picture AS umpicture,
                         um.imagealt AS umimagealt';
         $umtable  = " LEFT JOIN {user} um ON (d.usermodified = um.id)";
     }
@@ -1775,9 +1723,9 @@ function forum_get_discussions($cm, $forumsort="", $fullpost=true, $unused=-1, $
     $discussionfields = "d.id as discussionid, d.course, d.forum, d.name, d.firstpost, d.groupid, d.assessed," .
     " d.timemodified, d.usermodified, d.timestart, d.timeend, d.pinned, d.timelocked";
 
-    $allnames = get_all_user_name_fields(true, 'u');
+    $allnames = $userfieldsapi->get_sql('u', false, '', '', false)->selects;
     $sql = "SELECT $postdata, $discussionfields,
-                   $allnames, u.email, u.picture, u.imagealt $umfields
+                   $allnames, u.email, u.picture, u.imagealt, u.deleted AS userdeleted $umfields
               FROM {forum_discussions} d
                    JOIN {forum_posts} p ON p.discussion = d.id
                    JOIN {user} u ON p.userid = u.id
@@ -2431,7 +2379,7 @@ function forum_print_discussion_header(&$post, $forum, $group = -1, $datestring 
 
     // Picture
     $postuser = new stdClass();
-    $postuserfields = explode(',', user_picture::fields());
+    $postuserfields = explode(',', implode(',', \core_user\fields::get_picture_fields()));
     $postuser = username_load_fields_from_object($postuser, $post, null, $postuserfields);
     $postuser->id = $post->userid;
     echo '<td class="author">';
@@ -2450,7 +2398,7 @@ function forum_print_discussion_header(&$post, $forum, $group = -1, $datestring 
     // Group picture
     if ($group !== -1) {  // Groups are active - group is a group data object or NULL
         echo '<td class="picture group">';
-        if (!empty($group->picture) and empty($group->hidepicture)) {
+        if (!empty($group->picture)) {
             if ($canviewparticipants && $COURSE->groupmode) {
                 $picturelink = true;
             } else {
@@ -2654,6 +2602,22 @@ function forum_search_form($course, $search='') {
     return $output->render($forumsearch);
 }
 
+/**
+ * Retrieve HTML for the page action
+ *
+ * @param forum_entity|null $forum The forum entity.
+ * @param mixed $groupid false if groups not used, int if groups used, 0 means all groups
+ * @param stdClass $course The course object.
+ * @param string $search The search string.
+ * @return string rendered HTML string.
+ */
+function forum_activity_actionbar(?forum_entity $forum, $groupid, stdClass $course, string $search=''): string {
+    global $PAGE;
+
+    $actionbar = new mod_forum\output\forum_actionbar($forum, $course, $groupid, $search);
+    $output = $PAGE->get_renderer('mod_forum');
+    return $output->render($actionbar);
+}
 
 /**
  * @global object
@@ -4106,7 +4070,8 @@ function forum_get_recent_mod_activity(&$activities, &$index, $timestart, $cours
         $groupselect = "";
     }
 
-    $allnames = get_all_user_name_fields(true, 'u');
+    $userfieldsapi = \core_user\fields::for_name();
+    $allnames = $userfieldsapi->get_sql('u', false, '', '', false)->selects;
     if (!$posts = $DB->get_records_sql("SELECT p.*, f.type AS forumtype, d.forum, d.groupid,
                                               d.timestart, d.timeend, d.userid AS duserid,
                                               $allnames, u.email, u.picture, u.imagealt, u.email
@@ -4178,7 +4143,7 @@ function forum_get_recent_mod_activity(&$activities, &$index, $timestart, $cours
 
         $tmpactivity->user = new stdClass();
         $additionalfields = array('id' => 'userid', 'picture', 'imagealt', 'email');
-        $additionalfields = explode(',', user_picture::fields());
+        $additionalfields = explode(',', implode(',', \core_user\fields::get_picture_fields()));
         $tmpactivity->user = username_load_fields_from_object($tmpactivity->user, $post, null, $additionalfields);
         $tmpactivity->user->id = $post->userid;
 
@@ -4243,7 +4208,7 @@ function forum_print_recent_mod_activity($activity, $courseid, $detail, $modname
     $output .= html_writer::start_div($class);
     if ($detail) {
         $aname = s($activity->name);
-        $output .= $OUTPUT->image_icon('icon', $aname, $activity->type);
+        $output .= $OUTPUT->image_icon('monologo', $aname, $activity->type);
     }
     $discussionurl = new moodle_url('/mod/forum/discuss.php', ['d' => $content->discussion]);
     $discussionurl->set_anchor('p' . $activity->content->id);
@@ -4288,37 +4253,6 @@ function forum_change_discussionid($postid, $discussionid) {
         }
     }
     return true;
-}
-
-/**
- * Prints the editing button on subscribers page
- *
- * @global object
- * @global object
- * @param int $courseid
- * @param int $forumid
- * @return string
- */
-function forum_update_subscriptions_button($courseid, $forumid) {
-    global $CFG, $USER;
-
-    if (!empty($USER->subscriptionsediting)) {
-        $string = get_string('managesubscriptionsoff', 'forum');
-        $edit = "off";
-    } else {
-        $string = get_string('managesubscriptionson', 'forum');
-        $edit = "on";
-    }
-
-    $subscribers = html_writer::start_tag('form', array('action' => $CFG->wwwroot . '/mod/forum/subscribers.php',
-        'method' => 'get', 'class' => 'form-inline'));
-    $subscribers .= html_writer::empty_tag('input', array('type' => 'submit', 'value' => $string,
-        'class' => 'btn btn-secondary'));
-    $subscribers .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'id', 'value' => $forumid));
-    $subscribers .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'edit', 'value' => $edit));
-    $subscribers .= html_writer::end_tag('form');
-
-    return $subscribers;
 }
 
 // Functions to do with read tracking.
@@ -4561,14 +4495,28 @@ function forum_tp_is_post_old($post, $time=null) {
 function forum_tp_get_course_unread_posts($userid, $courseid) {
     global $CFG, $DB;
 
-    $now = floor(time() / 60) * 60; // DB cache friendliness.
-    $cutoffdate = $now - ($CFG->forum_oldpostdays * 24 * 60 * 60);
-    $params = array($userid, $userid, $courseid, $cutoffdate, $userid);
+    $modinfo = get_fast_modinfo($courseid);
+    $forumcms = $modinfo->get_instances_of('forum');
+    if (empty($forumcms)) {
+        // Return early if the course doesn't have any forum. Will save us a DB query.
+        return [];
+    }
+
+    $now = floor(time() / MINSECS) * MINSECS; // DB cache friendliness.
+    $cutoffdate = $now - ($CFG->forum_oldpostdays * DAYSECS);
+    $params = [
+        'privatereplyto' => $userid,
+        'modified' => $cutoffdate,
+        'readuserid' => $userid,
+        'trackprefsuser' => $userid,
+        'courseid' => $courseid,
+        'trackforumuser' => $userid,
+    ];
 
     if (!empty($CFG->forum_enabletimedposts)) {
-        $timedsql = "AND d.timestart < ? AND (d.timeend = 0 OR d.timeend > ?)";
-        $params[] = $now;
-        $params[] = $now;
+        $timedsql = "AND d.timestart < :timestart AND (d.timeend = 0 OR d.timeend > :timeend)";
+        $params['timestart'] = $now;
+        $params['timeend'] = $now;
     } else {
         $timedsql = "";
     }
@@ -4576,31 +4524,65 @@ function forum_tp_get_course_unread_posts($userid, $courseid) {
     if ($CFG->forum_allowforcedreadtracking) {
         $trackingsql = "AND (f.trackingtype = ".FORUM_TRACKING_FORCED."
                             OR (f.trackingtype = ".FORUM_TRACKING_OPTIONAL." AND tf.id IS NULL
-                                AND (SELECT trackforums FROM {user} WHERE id = ?) = 1))";
+                                AND (SELECT trackforums FROM {user} WHERE id = :trackforumuser) = 1))";
     } else {
         $trackingsql = "AND ((f.trackingtype = ".FORUM_TRACKING_OPTIONAL." OR f.trackingtype = ".FORUM_TRACKING_FORCED.")
                             AND tf.id IS NULL
-                            AND (SELECT trackforums FROM {user} WHERE id = ?) = 1)";
+                            AND (SELECT trackforums FROM {user} WHERE id = :trackforumuser) = 1)";
     }
 
-    $sql = "SELECT f.id, COUNT(p.id) AS unread
-              FROM {forum_posts} p
+    $sql = "SELECT f.id, COUNT(p.id) AS unread,
+                   COUNT(p.privatereply) as privatereplies,
+                   COUNT(p.privatereplytouser) as privaterepliestouser
+              FROM (
+                        SELECT
+                            id,
+                            discussion,
+                            CASE WHEN privatereplyto <> 0 THEN 1 END privatereply,
+                            CASE WHEN privatereplyto = :privatereplyto THEN 1 END privatereplytouser
+                        FROM {forum_posts}
+                        WHERE modified >= :modified
+                   ) p
                    JOIN {forum_discussions} d       ON d.id = p.discussion
                    JOIN {forum} f                   ON f.id = d.forum
                    JOIN {course} c                  ON c.id = f.course
-                   LEFT JOIN {forum_read} r         ON (r.postid = p.id AND r.userid = ?)
-                   LEFT JOIN {forum_track_prefs} tf ON (tf.userid = ? AND tf.forumid = f.id)
-             WHERE f.course = ?
-                   AND p.modified >= ? AND r.id is NULL
+                   LEFT JOIN {forum_read} r         ON (r.postid = p.id AND r.userid = :readuserid)
+                   LEFT JOIN {forum_track_prefs} tf ON (tf.userid = :trackprefsuser AND tf.forumid = f.id)
+             WHERE f.course = :courseid
+                   AND r.id is NULL
                    $trackingsql
                    $timedsql
           GROUP BY f.id";
 
-    if ($return = $DB->get_records_sql($sql, $params)) {
-        return $return;
+    $results = [];
+    if ($records = $DB->get_records_sql($sql, $params)) {
+        // Loop through each forum instance to check for capability and count the number of unread posts.
+        foreach ($forumcms as $cm) {
+            // Check that the forum instance exists in the query results.
+            if (!isset($records[$cm->instance])) {
+                continue;
+            }
+
+            $record = $records[$cm->instance];
+            $unread = $record->unread;
+
+            // Check if the user has the capability to read private replies for this forum instance.
+            $forumcontext = context_module::instance($cm->id);
+            if (!has_capability('mod/forum:readprivatereplies', $forumcontext, $userid)) {
+                // The real unread count would be the total of unread count minus the number of unread private replies plus
+                // the total unread private replies to the user.
+                $unread = $record->unread - $record->privatereplies + $record->privaterepliestouser;
+            }
+
+            // Build and add the object to the array of results to be returned.
+            $results[$record->id] = (object)[
+                'id' => $record->id,
+                'unread' => $unread,
+            ];
+        }
     }
 
-    return array();
+    return $results;
 }
 
 /**
@@ -4645,7 +4627,8 @@ function forum_tp_count_forum_unread_posts($cm, $course, $resetreadcache = false
         return $readcache[$course->id][$forumid];
     }
 
-    if (has_capability('moodle/site:accessallgroups', context_module::instance($cm->id))) {
+    $forumcontext = context_module::instance($cm->id);
+    if (has_any_capability(['moodle/site:accessallgroups', 'mod/forum:readprivatereplies'], $forumcontext)) {
         return $readcache[$course->id][$forumid];
     }
 
@@ -4658,30 +4641,36 @@ function forum_tp_count_forum_unread_posts($cm, $course, $resetreadcache = false
     // add all groups posts
     $mygroups[-1] = -1;
 
-    list ($groups_sql, $groups_params) = $DB->get_in_or_equal($mygroups);
+    list ($groupssql, $groupsparams) = $DB->get_in_or_equal($mygroups, SQL_PARAMS_NAMED);
 
-    $now = floor(time() / 60) * 60; // DB Cache friendliness.
-    $cutoffdate = $now - ($CFG->forum_oldpostdays*24*60*60);
-    $params = array($USER->id, $forumid, $cutoffdate);
+    $now = floor(time() / MINSECS) * MINSECS; // DB Cache friendliness.
+    $cutoffdate = $now - ($CFG->forum_oldpostdays * DAYSECS);
+    $params = [
+        'readuser' => $USER->id,
+        'forum' => $forumid,
+        'cutoffdate' => $cutoffdate,
+        'privatereplyto' => $USER->id,
+    ];
 
     if (!empty($CFG->forum_enabletimedposts)) {
-        $timedsql = "AND d.timestart < ? AND (d.timeend = 0 OR d.timeend > ?)";
-        $params[] = $now;
-        $params[] = $now;
+        $timedsql = "AND d.timestart < :timestart AND (d.timeend = 0 OR d.timeend > :timeend)";
+        $params['timestart'] = $now;
+        $params['timeend'] = $now;
     } else {
         $timedsql = "";
     }
 
-    $params = array_merge($params, $groups_params);
+    $params = array_merge($params, $groupsparams);
 
     $sql = "SELECT COUNT(p.id)
               FROM {forum_posts} p
-                   JOIN {forum_discussions} d ON p.discussion = d.id
-                   LEFT JOIN {forum_read} r   ON (r.postid = p.id AND r.userid = ?)
-             WHERE d.forum = ?
-                   AND p.modified >= ? AND r.id is NULL
+              JOIN {forum_discussions} d ON p.discussion = d.id
+         LEFT JOIN {forum_read} r ON (r.postid = p.id AND r.userid = :readuser)
+             WHERE d.forum = :forum
+                   AND p.modified >= :cutoffdate AND r.id is NULL
                    $timedsql
-                   AND d.groupid $groups_sql";
+                   AND d.groupid $groupssql
+                   AND (p.privatereplyto = 0 OR p.privatereplyto = :privatereplyto)";
 
     return $DB->get_field_sql($sql, $params);
 }
@@ -5049,15 +5038,16 @@ function forum_check_throttling($forum, $cm = null) {
     global $CFG, $DB, $USER;
 
     if (is_numeric($forum)) {
-        $forum = $DB->get_record('forum', array('id' => $forum), '*', MUST_EXIST);
+        $forum = $DB->get_record('forum', ['id' => $forum], 'id, course, blockperiod, blockafter, warnafter', MUST_EXIST);
     }
 
-    if (!is_object($forum)) {
-        return false; // This is broken.
-    }
-
-    if (!$cm) {
-        $cm = get_coursemodule_from_instance('forum', $forum->id, $forum->course, false, MUST_EXIST);
+    if (!is_object($forum) || !isset($forum->id) || !isset($forum->course)) {
+        // The passed forum parameter is invalid. This can happen if:
+        // - a non-object and non-numeric forum is passed; or
+        // - the forum object does not have an ID or course attributes.
+        // This is unlikely to happen with properly formed forum record fetched from the database,
+        // so it's most likely a dev error if we hit such this case.
+        throw new coding_exception('Invalid forum parameter passed');
     }
 
     if (empty($forum->blockafter)) {
@@ -5066,6 +5056,22 @@ function forum_check_throttling($forum, $cm = null) {
 
     if (empty($forum->blockperiod)) {
         return false;
+    }
+
+    if (!$cm) {
+        // Try to fetch the $cm object via get_fast_modinfo() so we don't incur DB reads.
+        $modinfo = get_fast_modinfo($forum->course);
+        $forumcms = $modinfo->get_instances_of('forum');
+        foreach ($forumcms as $tmpcm) {
+            if ($tmpcm->instance == $forum->id) {
+                $cm = $tmpcm;
+                break;
+            }
+        }
+        // Last resort. Try to fetch via get_coursemodule_from_instance().
+        if (!$cm) {
+            $cm = get_coursemodule_from_instance('forum', $forum->id, $forum->course, false, MUST_EXIST);
+        }
     }
 
     $modcontext = context_module::instance($cm->id);
@@ -5107,6 +5113,9 @@ function forum_check_throttling($forum, $cm = null) {
 
         return $warning;
     }
+
+    // No warning needs to be shown yet.
+    return false;
 }
 
 /**
@@ -5453,45 +5462,29 @@ function forum_get_extra_capabilities() {
  * @param navigation_node $forumnode The node to add module settings to
  */
 function forum_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $forumnode) {
-    global $USER, $PAGE, $CFG, $DB, $OUTPUT;
+    global $USER, $CFG;
 
-    if (empty($PAGE->cm->context)) {
-        $PAGE->cm->context = context_module::instance($PAGE->cm->instance);
+    if (empty($settingsnav->get_page()->cm->context)) {
+        $settingsnav->get_page()->cm->context = context_module::instance($settingsnav->get_page()->cm->instance);
     }
 
     $vaultfactory = mod_forum\local\container::get_vault_factory();
     $managerfactory = mod_forum\local\container::get_manager_factory();
     $legacydatamapperfactory = mod_forum\local\container::get_legacy_data_mapper_factory();
     $forumvault = $vaultfactory->get_forum_vault();
-    $forumentity = $forumvault->get_from_id($PAGE->cm->instance);
+    $forumentity = $forumvault->get_from_id($settingsnav->get_page()->cm->instance);
     $forumobject = $legacydatamapperfactory->get_forum_data_mapper()->to_legacy_object($forumentity);
 
-    $params = $PAGE->url->params();
+    $params = $settingsnav->get_page()->url->params();
     if (!empty($params['d'])) {
         $discussionid = $params['d'];
     }
 
-    // Display all forum reports user has access to.
-    if (isloggedin() && !isguestuser()) {
-        $reportnames = array_keys(core_component::get_plugin_list('forumreport'));
-
-        foreach ($reportnames as $reportname) {
-            if (has_capability("forumreport/{$reportname}:view", $PAGE->cm->context)) {
-                $reportlinkparams = [
-                    'courseid' => $forumobject->course,
-                    'forumid' => $forumobject->id,
-                ];
-                $reportlink = new moodle_url("/mod/forum/report/{$reportname}/index.php", $reportlinkparams);
-                $forumnode->add(get_string('nodetitle', "forumreport_{$reportname}"), $reportlink, navigation_node::TYPE_CONTAINER);
-            }
-        }
-    }
-
     // For some actions you need to be enrolled, being admin is not enough sometimes here.
-    $enrolled = is_enrolled($PAGE->cm->context, $USER, '', false);
-    $activeenrolled = is_enrolled($PAGE->cm->context, $USER, '', true);
+    $enrolled = is_enrolled($settingsnav->get_page()->context, $USER, '', false);
+    $activeenrolled = is_enrolled($settingsnav->get_page()->context, $USER, '', true);
 
-    $canmanage  = has_capability('mod/forum:managesubscriptions', $PAGE->cm->context);
+    $canmanage  = has_capability('mod/forum:managesubscriptions', $settingsnav->get_page()->context);
     $subscriptionmode = \mod_forum\subscriptions::get_subscription_mode($forumobject);
     $cansubscribe = $activeenrolled && !\mod_forum\subscriptions::is_forcesubscribed($forumobject) &&
             (!\mod_forum\subscriptions::subscription_disabled($forumobject) || $canmanage);
@@ -5499,11 +5492,59 @@ function forum_extend_settings_navigation(settings_navigation $settingsnav, navi
     if ($canmanage) {
         $mode = $forumnode->add(get_string('subscriptionmode', 'forum'), null, navigation_node::TYPE_CONTAINER);
         $mode->add_class('subscriptionmode');
+        $mode->set_show_in_secondary_navigation(false);
 
-        $allowchoice = $mode->add(get_string('subscriptionoptional', 'forum'), new moodle_url('/mod/forum/subscribe.php', array('id'=>$forumobject->id, 'mode'=>FORUM_CHOOSESUBSCRIBE, 'sesskey'=>sesskey())), navigation_node::TYPE_SETTING);
-        $forceforever = $mode->add(get_string("subscriptionforced", "forum"), new moodle_url('/mod/forum/subscribe.php', array('id'=>$forumobject->id, 'mode'=>FORUM_FORCESUBSCRIBE, 'sesskey'=>sesskey())), navigation_node::TYPE_SETTING);
-        $forceinitially = $mode->add(get_string("subscriptionauto", "forum"), new moodle_url('/mod/forum/subscribe.php', array('id'=>$forumobject->id, 'mode'=>FORUM_INITIALSUBSCRIBE, 'sesskey'=>sesskey())), navigation_node::TYPE_SETTING);
-        $disallowchoice = $mode->add(get_string('subscriptiondisabled', 'forum'), new moodle_url('/mod/forum/subscribe.php', array('id'=>$forumobject->id, 'mode'=>FORUM_DISALLOWSUBSCRIBE, 'sesskey'=>sesskey())), navigation_node::TYPE_SETTING);
+        // Optional subscription mode.
+        $allowchoicestring = get_string('subscriptionoptional', 'forum');
+        $allowchoiceaction = new action_link(
+            new moodle_url('/mod/forum/subscribe.php', [
+                'id' => $forumobject->id,
+                'mode' => FORUM_CHOOSESUBSCRIBE,
+                'sesskey' => sesskey(),
+            ]),
+            $allowchoicestring,
+            new confirm_action(get_string('subscriptionmodeconfirm', 'mod_forum', $allowchoicestring))
+        );
+        $allowchoice = $mode->add($allowchoicestring, $allowchoiceaction, navigation_node::TYPE_SETTING);
+
+        // Forced subscription mode.
+        $forceforeverstring = get_string('subscriptionforced', 'forum');
+        $forceforeveraction = new action_link(
+            new moodle_url('/mod/forum/subscribe.php', [
+                'id' => $forumobject->id,
+                'mode' => FORUM_FORCESUBSCRIBE,
+                'sesskey' => sesskey(),
+            ]),
+            $forceforeverstring,
+            new confirm_action(get_string('subscriptionmodeconfirm', 'mod_forum', $forceforeverstring))
+        );
+        $forceforever = $mode->add($forceforeverstring, $forceforeveraction, navigation_node::TYPE_SETTING);
+
+        // Initial subscription mode.
+        $forceinitiallystring = get_string('subscriptionauto', 'forum');
+        $forceinitiallyaction = new action_link(
+            new moodle_url('/mod/forum/subscribe.php', [
+                'id' => $forumobject->id,
+                'mode' => FORUM_INITIALSUBSCRIBE,
+                'sesskey' => sesskey(),
+            ]),
+            $forceinitiallystring,
+            new confirm_action(get_string('subscriptionmodeconfirm', 'mod_forum', $forceinitiallystring))
+        );
+        $forceinitially = $mode->add($forceinitiallystring, $forceinitiallyaction, navigation_node::TYPE_SETTING);
+
+        // Disabled subscription mode.
+        $disallowchoicestring = get_string('subscriptiondisabled', 'forum');
+        $disallowchoiceaction = new action_link(
+            new moodle_url('/mod/forum/subscribe.php', [
+                'id' => $forumobject->id,
+                'mode' => FORUM_DISALLOWSUBSCRIBE,
+                'sesskey' => sesskey(),
+            ]),
+            $disallowchoicestring,
+            new confirm_action(get_string('subscriptionmodeconfirm', 'mod_forum', $disallowchoicestring))
+        );
+        $disallowchoice = $mode->add($disallowchoicestring, $disallowchoiceaction, navigation_node::TYPE_SETTING);
 
         switch ($subscriptionmode) {
             case FORUM_CHOOSESUBSCRIBE : // 0
@@ -5546,34 +5587,25 @@ function forum_extend_settings_navigation(settings_navigation $settingsnav, navi
         }
     }
 
-    if ($cansubscribe) {
-        if (\mod_forum\subscriptions::is_subscribed($USER->id, $forumobject, null, $PAGE->cm)) {
-            $linktext = get_string('unsubscribe', 'forum');
-        } else {
-            $linktext = get_string('subscribe', 'forum');
-        }
-        $url = new moodle_url('/mod/forum/subscribe.php', array('id'=>$forumobject->id, 'sesskey'=>sesskey()));
-        $forumnode->add($linktext, $url, navigation_node::TYPE_SETTING);
-
-        if (isset($discussionid)) {
-            if (\mod_forum\subscriptions::is_subscribed($USER->id, $forumobject, $discussionid, $PAGE->cm)) {
-                $linktext = get_string('unsubscribediscussion', 'forum');
-            } else {
-                $linktext = get_string('subscribediscussion', 'forum');
-            }
-            $url = new moodle_url('/mod/forum/subscribe.php', array(
-                    'id' => $forumobject->id,
-                    'sesskey' => sesskey(),
-                    'd' => $discussionid,
-                    'returnurl' => $PAGE->url->out(),
-                ));
-            $forumnode->add($linktext, $url, navigation_node::TYPE_SETTING);
-        }
+    if (has_capability('mod/forum:viewsubscribers', $settingsnav->get_page()->context)) {
+        $url = new moodle_url('/mod/forum/subscribers.php', ['id' => $forumobject->id, 'edit' => 'off']);
+        $forumnode->add(get_string('subscriptions', 'forum'), $url, navigation_node::TYPE_SETTING, null, 'forumsubscriptions');
     }
 
-    if (has_capability('mod/forum:viewsubscribers', $PAGE->cm->context)){
-        $url = new moodle_url('/mod/forum/subscribers.php', array('id'=>$forumobject->id));
-        $forumnode->add(get_string('showsubscribers', 'forum'), $url, navigation_node::TYPE_SETTING);
+    // Display all forum reports user has access to.
+    if (isloggedin() && !isguestuser()) {
+        $reportnames = array_keys(core_component::get_plugin_list('forumreport'));
+
+        foreach ($reportnames as $reportname) {
+            if (has_capability("forumreport/{$reportname}:view", $settingsnav->get_page()->context)) {
+                $reportlinkparams = [
+                    'courseid' => $forumobject->course,
+                    'forumid' => $forumobject->id,
+                ];
+                $reportlink = new moodle_url("/mod/forum/report/{$reportname}/index.php", $reportlinkparams);
+                $forumnode->add(get_string('reports'), $reportlink, navigation_node::TYPE_CONTAINER);
+            }
+        }
     }
 
     if ($enrolled && forum_tp_can_track_forums($forumobject)) { // keep tracking info for users with suspended enrolments
@@ -5592,13 +5624,14 @@ function forum_extend_settings_navigation(settings_navigation $settingsnav, navi
         }
     }
 
-    if (!isloggedin() && $PAGE->course->id == SITEID) {
+    if (!isloggedin() && $settingsnav->get_page()->course->id == SITEID) {
         $userid = guest_user()->id;
     } else {
         $userid = $USER->id;
     }
 
-    $hascourseaccess = ($PAGE->course->id == SITEID) || can_access_course($PAGE->course, $userid);
+    $hascourseaccess = ($settingsnav->get_page()->course->id == SITEID) ||
+        can_access_course($settingsnav->get_page()->course, $userid);
     $enablerssfeeds = !empty($CFG->enablerssfeeds) && !empty($CFG->forum_enablerssfeeds);
 
     if ($enablerssfeeds && $forumobject->rsstype && $forumobject->rssarticles && $hascourseaccess) {
@@ -5613,7 +5646,8 @@ function forum_extend_settings_navigation(settings_navigation $settingsnav, navi
             $string = get_string('rsssubscriberssposts','forum');
         }
 
-        $url = new moodle_url(rss_get_url($PAGE->cm->context->id, $userid, "mod_forum", $forumobject->id));
+        $url = new moodle_url(rss_get_url($settingsnav->get_page()->cm->context->id, $userid, "mod_forum",
+            $forumobject->id));
         $forumnode->add($string, $url, settings_navigation::TYPE_SETTING, null, null, new pix_icon('i/rss', ''));
     }
 
@@ -5634,13 +5668,13 @@ function forum_cm_info_view(cm_info $cm) {
 
     if (forum_tp_can_track_forums()) {
         if ($unread = forum_tp_count_forum_unread_posts($cm, $cm->get_course())) {
-            $out = '<span class="unread"> <a href="' . $cm->url . '#unread">';
+            $out = '<span class="badge badge-secondary">';
             if ($unread == 1) {
                 $out .= get_string('unreadpostsone', 'forum');
             } else {
                 $out .= get_string('unreadpostsnumber', 'forum', $unread);
             }
-            $out .= '</a></span>';
+            $out .= '</span>';
             $cm->set_after_link($out);
         }
     }
@@ -6015,7 +6049,8 @@ function forum_get_posts_by_user($user, array $courses, $musthaveaccess = false,
     // Prepare SQL to both count and search.
     // We alias user.id to useridx because we forum_posts already has a userid field and not aliasing this would break
     // oracle and mssql.
-    $userfields = user_picture::fields('u', null, 'useridx');
+    $userfieldsapi = \core_user\fields::for_userpic();
+    $userfields = $userfieldsapi->get_sql('u', false, '', 'useridx', false)->selects;
     $countsql = 'SELECT COUNT(*) ';
     $selectsql = 'SELECT p.*, d.forum, d.name AS discussionname, '.$userfields.' ';
     $wheresql = implode(" OR ", $forumsearchwhere);
@@ -6607,7 +6642,7 @@ function forum_get_coursemodule_info($coursemodule) {
     global $DB;
 
     $dbparams = ['id' => $coursemodule->instance];
-    $fields = 'id, name, intro, introformat, completionposts, completiondiscussions, completionreplies';
+    $fields = 'id, name, intro, introformat, completionposts, completiondiscussions, completionreplies, duedate, cutoffdate';
     if (!$forum = $DB->get_record('forum', $dbparams, $fields)) {
         return false;
     }
@@ -6625,6 +6660,14 @@ function forum_get_coursemodule_info($coursemodule) {
         $result->customdata['customcompletionrules']['completiondiscussions'] = $forum->completiondiscussions;
         $result->customdata['customcompletionrules']['completionreplies'] = $forum->completionreplies;
         $result->customdata['customcompletionrules']['completionposts'] = $forum->completionposts;
+    }
+
+    // Populate some other values that can be used in calendar or on dashboard.
+    if ($forum->duedate) {
+        $result->customdata['duedate'] = $forum->duedate;
+    }
+    if ($forum->cutoffdate) {
+        $result->customdata['cutoffdate'] = $forum->cutoffdate;
     }
 
     return $result;
@@ -6958,4 +7001,40 @@ function forum_grading_areas_list() {
     return [
         'forum' => get_string('grade_forum_header', 'forum'),
     ];
+}
+
+/**
+ * Callback to fetch the activity event type lang string.
+ *
+ * @param string $eventtype The event type.
+ * @return lang_string The event type lang string.
+ */
+function mod_forum_core_calendar_get_event_action_string(string $eventtype): string {
+    global $CFG;
+    require_once($CFG->dirroot . '/mod/forum/locallib.php');
+
+    $modulename = get_string('modulename', 'forum');
+
+    if ($eventtype == FORUM_EVENT_TYPE_DUE) {
+        return get_string('calendardue', 'forum', $modulename);
+    } else {
+        return get_string('requiresaction', 'calendar', $modulename);
+    }
+}
+
+/**
+ * This callback will check the provided instance of this module
+ * and make sure there are up-to-date events created for it.
+ *
+ * @param int $courseid Not used.
+ * @param stdClass $instance Forum module instance.
+ * @param stdClass $cm Course module object.
+ */
+function forum_refresh_events(int $courseid, stdClass $instance, stdClass $cm): void {
+    global $CFG;
+
+    // This function is called by cron and we need to include the locallib for calls further down.
+    require_once($CFG->dirroot . '/mod/forum/locallib.php');
+
+    forum_update_calendar($instance, $cm->id);
 }

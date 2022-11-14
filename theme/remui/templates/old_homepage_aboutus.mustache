@@ -1,0 +1,35 @@
+{{#aboutus}}
+<div id="edwiser-aboutus" class="{{aboutus_layout}} py-6" role="main">
+    <div class="heading text-center">
+        {{# aboutus_heading }}<h4>{{{ aboutus_heading }}}</h4>{{/ aboutus_heading }}
+        {{# aboutus_desc }} {{{ aboutus_desc }}} {{/ aboutus_desc }}
+    </div>
+    <div class="aboutus grids">
+        {{# aboutus_spots }}
+        <div class="grid-item">
+            <!-- Example Overlay Fade -->
+            <figure class="overlay overlay-hover">
+                <div class="overlay-figure d-flex justify-content-center align-items-center {{^ image }} bg-grey-100 {{/ image }}"  {{# image }} style="background: url({{ image }}) center/cover;" {{/ image }}>
+                    <div class="iconbox py-p15">
+                        <div class="iconsquare">
+                            <i class="fa fa-{{ icon }}"></i>
+                        </div>
+
+                        <div class="iconbox-content font-size-18 p-20">
+                            {{# heading }} {{{ heading }}} {{/ heading }}
+                        </div>
+                    </div>
+                </div>
+                <figcaption class="overlay-panel overlay-fade bg-white text-dark text-center d-flex flex-column justify-content-center align-items-center">
+                    {{# description }} {{{ description }}} {{/ description }}
+                    {{# button }}
+                    <a href="{{ link }}" target="_blank" class="btn btn-primary w-p50 mt-2">{{ button }}</a>
+                    {{/ button }}
+                </figcaption>
+            </figure>
+            <!-- End Example Overlay Fade -->
+        </div>
+        {{/ aboutus_spots }}
+    </div>
+</div>
+{{/aboutus}}

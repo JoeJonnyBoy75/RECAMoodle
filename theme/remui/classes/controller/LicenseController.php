@@ -17,7 +17,7 @@
 /**
  * Edwiser RemUI
  * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\controller;
@@ -224,6 +224,7 @@ class LicenseController {
         $templatecontext['licensestatus'] = get_string('notactive', 'theme_remui');
         $templatecontext['licensestatuscolor'] = "color:red";
         $templatecontext['licensekey'] = '';
+        $templatecontext['sesskey'] = sesskey();
 
         $licensekey = toolbox::get_plugin_config(EDD_LICENSE_KEY);
         if ($licensekey !== false) {
@@ -271,9 +272,10 @@ class LicenseController {
                     ];
                 }
             }
-            if ($status == 'inactive') {
+            if ($status == 'inactive' || $status == "") {
                 $status = 'notactive';
             }
+
             $templatecontext['licensestatus'] = get_string($status, 'theme_remui');
             $templatecontext['licensestatuscolor'] = "color:$color";
             if (toolbox::get_plugin_config(EDD_LICENSE_ACTION) == true) {
@@ -321,14 +323,14 @@ class LicenseController {
         $error = toolbox::get_plugin_config(EDD_LICENSE_DATA);
 
         if ($error) {
-            $error = unserialize($error);
-            if ($error['error'] == true) {
+            $error = json_decode($error);
+            if ($error->error == true) {
                 toolbox::remove_plugin_config(EDD_LICENSE_DATA);
                 $templatecontext['alert'] = [
                     'icon' => "fa-ban",
                     'subtext' => "Alert!",
                     'classes' => 'alert-danger',
-                    'text' => $error['msg']
+                    'text' => $error->msg
                 ];
             }
         }

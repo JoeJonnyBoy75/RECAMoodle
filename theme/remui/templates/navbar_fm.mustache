@@ -18,39 +18,32 @@
     Page navbar.
 }}
 {{#focusdata}}
-<nav class="fm-navbar fixed-top navbar navbar-light navbar-expand moodle-has-zindex p-0 greedy border-bottom justify-content-between" aria-label="{{#str}}sitemenubar, admin{{/str}}">
-    <div class="navbar-brand navbar-brand-center p-0 m-0 h-100">
-        {{# output.should_display_logo }}
-        {{# isiconsitename }}
-            <a class="text-white d-flex align-items-center justify-content-center h-100 w-full text-decoration-none" href="{{{ config.wwwroot }}}">
-                <span class="navbar-brand-logo mini d-md-flex d-lg-none"><i class="fa fa-{{siteicon}}"></i></span>
-                <span class="navbar-brand-logo font-weight-bold d-md-none d-lg-flex">
+<nav class="fm-navbar fixed-top navbar navbar-light navbar-expand moodle-has-zindex p-0 greedy  justify-content-between" aria-label="{{#str}}sitemenubar, admin{{/str}}">
+    <div class="navbar-brand p-0 m-0 d-none d-md-flex align-items-center">
+        {{# output.should_display_navbar_logo }}
+            <a class="header-logo" href="{{{ config.wwwroot }}}" aria-label="{{ sitename }} - {{#str}}brandname, theme_remui{{/str}}">
+                <img src="{{ logourl }}" class="navbar-brand-logo logo">
+                <img src="{{ logominiurl }}" class="navbar-brand-logo logomini">
+                <span class="navbar-brand-logo icononly"><i class="fa fa-{{siteicon}}"></i></span>
+                <span class="navbar-brand-logo font-weight-bold iconsitename">
                     <i class="fa fa-{{siteicon}}"></i>&nbsp;
                     {{{ sitename }}}
                 </span>
             </a>
-        {{/ isiconsitename }}
-
-        {{# islogo }}
-            <a class="text-white d-flex align-items-center justify-content-center h-100 w-full text-decoration-none" href="{{{ config.wwwroot }}}">
-                <span class="navbar-brand-logo mini d-md-flex d-lg-none" style="background-image: url({{ logominiurl }});
-                    background-position: center; background-size: contain; background-repeat: no-repeat;"></span>
-                <span class="navbar-brand-logo d-md-none d-lg-flex" style="background-image: url({{ logourl }});
-                    background-position: center; background-size: contain; background-repeat: no-repeat;">
-                </span>
-            </a>
-        {{/ islogo }}
-        {{/ output.should_display_logo }}
+        {{/ output.should_display_navbar_logo }}
+        {{^ output.should_display_navbar_logo }}
+            {{{ sitename }}}
+        {{/ output.should_display_navbar_logo }}
     </div>
-    <div class="h-100 d-flex justify-content-between courseheaderbar">
+    <div class="h-100 d-flex justify-content-between courseheaderbar bg-white">
     <ul class="navbar-nav h-100 m-0 p-0" id="wdm-courseheader">
         <li class="nav-item w-100">
             <div class="nav-link d-block">
-                <h5 class="title"><a href="{{#courseurl}}{{courseurl}}{{/courseurl}} {{^courseurl}}javascript:void(0){{/courseurl}}">{{coursename}}</a></h5>
+                <h5 class="title" aria-label="Course - {{coursename}}"><a href="{{#courseurl}}{{courseurl}}{{/courseurl}} {{^courseurl}}javascript:void(0){{/courseurl}}">{{{coursename}}}</a></h5>
                 {{#progress}}
                 <div class="d-flex align-items-center">
-                    <div class="progress mr-1" style="height: 10px;width: 200px;">
-                        <div class="progress-bar" role="progressbar" style="width: {{progress}}%;" aria-valuenow="{{progress}}" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress mr-1" style="height: 10px;width: 200px;" >
+                        <div class="progress-bar" role="progressbar" style="width: {{progress}}%;" aria-valuenow="{{progress}}" tabindex="0" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>{{progress}}%
                 </div>
                 {{/progress}}
@@ -58,25 +51,24 @@
                 {{^progress}}
                 <div class="d-flex align-items-center">
                     <div class="progress mr-1" style="height: 10px;width: 200px;">
-                        <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="progress-bar" tabindex="0" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>0%
                 </div>
                 {{/progress}}
             </div>
         </li>
     </ul>
-    <ul class="nav navbar-nav h-100 justify-content-between activity-navigation col-md-4 col-lg-4 m-0 p-0">
+    <ul class="nav navbar-nav h-100 justify-content-between activity-navigation col-md-4 col-lg-4 m-0 p-0" aria-label="Activity Navigation">
         <li class="nav-item border-left col-md-3 m-0 p-0" id="coursePrevious">
-            <a class="nav-link w-100 justify-content-center {{^previous}}disabled{{/previous}}"
-            href="{{#previous}}{{previous}}{{/previous}}{{^previous}}javascript:void(0){{/previous}}"
-            ><i class="fa fa-angle-left mr-2"></i><span class="navigation-text d-md-none d-lg-block">{{#str}}prev, theme_remui {{/str}}</span></a>
+            <a class="nav-link w-100 h-100 d-flex align-items-center justify-content-center {{^previous}}disabled{{/previous}}" href="{{#previous}}{{previous}}{{/previous}}{{^previous}}javascript:void(0){{/previous}}" {{^previous}}aria-disabled='true'{{/previous}}>
+            <i class="fa fa-angle-left mr-2"></i><span class="navigation-text d-md-none d-lg-block" aria-label="Previous Activity" >{{#str}}prev, theme_remui {{/str}}</span></a>
         </li>
         <li class="nav-item border-left col-md-6 m-0 p-0 focus-dropdown" id="courseActivities">
-            <a class="nav-link w-100 justify-content-center dropdown-toggle" data-toggle="dropdown" href="javascript:void(0)" data-animation="scale-up" aria-expanded="true" role="button">
-            <span>{{#active}}{{active}}{{/active}}{{^active}}{{#str}}coursedata, theme_remui{{/str}}{{/active}}</span>
+            <a class="nav-link w-100 justify-content-center dropdown-toggle" data-toggle="dropdown" href="javascript:void(0)" data-animation="scale-up" aria-expanded="false" aria-haspopup="listbox" role="button" aria-labelledby="accordionEx1" aria-label="Activity List">
+            <span>{{#active}}{{{active}}}{{/active}}{{^active}}{{#str}}coursedata, theme_remui{{/str}}{{/active}}</span>
             </a>
             <div class="focus-dropdown-menu dropdown-menu-right" role="menu">
-                <div class="accordion md-accordion" id="accordionEx1" role="tablist" aria-multiselectable="true">
+                <div class="accordion md-accordion" id="accordionEx1" role="tablist" aria-label="Activity List" aria-multiselectable="true">
                     {{#sections}}
                     <!-- Accordion card -->
                       <div class="card border-bottom">
@@ -85,7 +77,7 @@
                           <a class="collapsed" data-toggle="collapse" data-parent="#accordionEx1" href="#collapse{{sectionid}}"
                             aria-expanded="false" aria-controls="collapse{{sectionid}}">
                             <h5 class="mb-0 d-flex justify-content-between">
-                              {{name}} {{#hasactivites}}<i class="fa fa-angle-down rotate-icon"></i>{{/hasactivites}}
+                              {{{name}}} {{#hasactivites}}<i class="fa fa-angle-down rotate-icon"></i>{{/hasactivites}}
                             </h5>
                           </a>
                         </div>
@@ -95,7 +87,7 @@
                           data-parent="#accordionEx1">
                           <div class="card-body m-0 p-0">
                             {{#activities}}
-                            <div class="card border-bottom ">
+                            <div class="card  ">
                                 <!-- Card header -->
                                 <div class="card-header activity-item" role="tab">
                                   <a href="{{url}}" class="w-100 d-inline-flex justify-content-left align-items-center">
@@ -116,15 +108,17 @@
                 </div>
             </div>
         </li>
-        <li class="nav-item border-left col-md-3 m-0 p-0" id="courseNext">
-            <a class="nav-link w-100 justify-content-center {{^next}}disabled{{/next}}"
+        <li class="nav-item border-left col-md-3 m-0 p-0" id="courseNext" {{^next}}aria-disabled="true"{{/next}}>
+            <a class="nav-link w-100 h-100 d-flex align-items-center justify-content-center {{^next}}disabled{{/next}}"
             href="{{#next}}{{next}}{{/next}}{{^next}}javascript:void(0){{/next}}"
-            ><span class="navigation-text d-md-none d-lg-block">{{#str}}next, theme_remui {{/str}}</span><i class="fa fa-angle-right ml-2"></i></a>
+            aria-label="Next Activity" role="button"
+            ><span class="navigation-text d-md-none d-lg-block" >{{#str}}next, theme_remui {{/str}}</span><i class="fa fa-angle-right ml-2"></i></a>
         </li>
     </ul>
     </div>
 </nav>  
 {{/focusdata}}
+
 {{#js}}
 require(['jquery'], function($) {
     var scrolled = false;

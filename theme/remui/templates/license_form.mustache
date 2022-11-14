@@ -23,32 +23,36 @@
         <h3 class="box-title px-3 border-0">{{#str}}edwiserremuilicenseactivation, theme_remui{{/str}}
         </h3>
     </div>
-    <div>
+    <div class="box-container">
         {{#alert}}
-        <div class="alert {{classes}} form-group">
+        <div class="alert {{classes}} form-group license-alert">
            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-           <h4><i class="icon fa {{icon}}"></i> {{subtext}}</h4>{{text}}.
+           <h4><i class="icon fa {{icon}}"></i> <span class="subtext">{{subtext}}</span></h4>{{text}}.
         </div>
         {{/alert}}
         <input type="hidden" name="activetab" value="remuilicensestatus">
-        <div class="form-group">
+        {{#sesskey}}
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+        {{/sesskey}}
+        <div class="form-group licensekey">
             <label class="control-label text-black col-12">{{#str}}licensekey, theme_remui{{/str}}</label>
             <div class="col-12">
                 <input id="edd_{{pluginslug}}_license_key" class="form-control {{#isvalid}}is-valid{{/isvalid}} {{^isvalid}}is-invalid{{/isvalid}}" name="edd_{{pluginslug}}_license_key" type="text" value="{{licensekey}}" placeholder="{{#str}}enterlicensekey, theme_remui{{/str}}" {{#readonly}}readonly{{/readonly}}>
             </div>
         </div>
-        <div class="form-group">
+        <div class="form-group licensestatus">
             <label class="control-label col-12">{{#str}}licensestatus, theme_remui{{/str}}</label>
-            <div class="col-12">
+            <div class="col-12 text">
                 <p style="{{licensestatuscolor}}">{{licensestatus}}</p>
             </div>
         </div>
-        <div class="form-group">
-            <div class="col-12">
-                <input type="hidden" id="onLicensePage" name="onLicensePage" value="1">
+        <div class="form-group licensebuttons">
+            <input type="hidden" id="onLicensePage" name="onLicensePage" value="1">
+            <div class="col-12 license-form-btn">
                 {{#buttons}}
-                <input type="submit" class="btn {{classes}} text-white" name="{{name}}" value="{{value}}" {{#extra}}{{extra}}{{/extra}}>
+                <input type="submit" class="btn {{classes}} text-white license-btn" name="{{name}}" value="{{value}}" {{#extra}}{{extra}}{{/extra}}>
                 {{/buttons}}
+                <div class="licensing-loader spinner-border text-muted hidden"></div>
             </div>
         </div>
     </div>

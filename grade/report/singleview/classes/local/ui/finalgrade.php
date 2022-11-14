@@ -141,6 +141,7 @@ class finalgrade extends grade_attribute_format implements unique_value, be_disa
         $feedback = false;
         $feedbackformat = false;
         if ($gradeitem->gradetype == GRADE_TYPE_SCALE) {
+            $value = (int)unformat_float($value);
             if ($value == -1) {
                 $finalgrade = null;
             } else {
@@ -161,12 +162,12 @@ class finalgrade extends grade_attribute_format implements unique_value, be_disa
         }
 
         if ($errorstr) {
-            $user = $DB->get_record('user', array('id' => $userid), 'id, firstname, alternatename, lastname');
+            $user = get_complete_user_data('id', $userid);
             $gradestr = new stdClass;
-            if (!empty($user->alternatename)) {
-                $gradestr->username = $user->alternatename . ' (' . $user->firstname . ') ' . $user->lastname;
+            if (has_capability('moodle/site:viewfullnames', \context_course::instance($gradeitem->courseid))) {
+                $gradestr->username = fullname($user, true);
             } else {
-                $gradestr->username = $user->firstname . ' ' . $user->lastname;
+                $gradestr->username = fullname($user);
             }
             $gradestr->itemname = $this->grade->grade_item->get_name();
             $errorstr = get_string($errorstr, 'grades', $gradestr);
@@ -174,7 +175,8 @@ class finalgrade extends grade_attribute_format implements unique_value, be_disa
         }
 
         // Only update grades if there are no errors.
-        $gradeitem->update_final_grade($userid, $finalgrade, 'singleview', $feedback, FORMAT_MOODLE);
+        $gradeitem->update_final_grade($userid, $finalgrade, 'singleview', $feedback, FORMAT_MOODLE,
+            null, null, true);
         return '';
     }
 }

@@ -14,15 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Unit tests for those parts of adminlib.php that implement the admin tree
- * functionality.
- *
- * @package     core
- * @category    phpunit
- * @copyright   2013 David Mudrak <david@moodle.com>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace core;
+
+use admin_category;
+use admin_externalpage;
+use admin_root;
+use admin_settingpage;
+use admin_setting_configdirectory;
+use admin_setting_configduration;
+use admin_setting_configexecutable;
+use admin_setting_configfile;
+use admin_setting_configmixedhostiplist;
+use admin_setting_configpasswordunmask;
+use admin_setting_configtext;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -31,8 +35,13 @@ require_once($CFG->libdir.'/adminlib.php');
 
 /**
  * Provides the unit tests for admin tree functionality.
+ *
+ * @package     core
+ * @category    test
+ * @copyright   2013 David Mudrak <david@moodle.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_admintree_testcase extends advanced_testcase {
+class admintree_test extends \advanced_testcase {
 
     /**
      * Adding nodes into the admin tree.
@@ -95,19 +104,15 @@ class core_admintree_testcase extends advanced_testcase {
         $this->assertEquals(array('zero', 'one', 'two', 'three', 'four', 'five', 'six'), $map);
     }
 
-    /**
-     * @expectedException coding_exception
-     */
     public function test_add_nodes_before_invalid1() {
         $tree = new admin_root(true);
+        $this->expectException(\coding_exception::class);
         $tree->add('root', new admin_externalpage('foo', 'Foo', 'http://foo.bar'), array('moodle:site/config'));
     }
 
-    /**
-     * @expectedException coding_exception
-     */
     public function test_add_nodes_before_invalid2() {
         $tree = new admin_root(true);
+        $this->expectException(\coding_exception::class);
         $tree->add('root', new admin_category('bar', 'Bar'), '');
     }
 
@@ -160,15 +165,15 @@ class core_admintree_testcase extends advanced_testcase {
 
         // Check for an invalid path.
         $result = $executable->output_html($CFG->dirroot . '/lib/tests/other/file_does_not_exist');
-        $this->assertRegexp('/class="text-danger"/', $result);
+        $this->assertMatchesRegularExpression('/class="text-danger"/', $result);
 
         // Check for a directory.
         $result = $executable->output_html($CFG->dirroot);
-        $this->assertRegexp('/class="text-danger"/', $result);
+        $this->assertMatchesRegularExpression('/class="text-danger"/', $result);
 
         // Check for a file which is not executable.
         $result = $executable->output_html($CFG->dirroot . '/filter/tex/readme_moodle.txt');
-        $this->assertRegexp('/class="text-danger"/', $result);
+        $this->assertMatchesRegularExpression('/class="text-danger"/', $result);
 
         // Check for an executable file.
         if ($CFG->ostype == 'WINDOWS') {
@@ -177,12 +182,12 @@ class core_admintree_testcase extends advanced_testcase {
             $filetocheck = 'mimetex.darwin';
         }
         $result = $executable->output_html($CFG->dirroot . '/filter/tex/' . $filetocheck);
-        $this->assertRegexp('/class="text-success"/', $result);
+        $this->assertMatchesRegularExpression('/class="text-success"/', $result);
 
         // Check for no file specified.
         $result = $executable->output_html('');
-        $this->assertRegexp('/name="s__test1"/', $result);
-        $this->assertRegexp('/value=""/', $result);
+        $this->assertMatchesRegularExpression('/name="s__test1"/', $result);
+        $this->assertMatchesRegularExpression('/value=""/', $result);
     }
 
     /**
@@ -271,7 +276,7 @@ class core_admintree_testcase extends advanced_testcase {
             $original = $setting->get_setting();
             $error = $setting->write_setting($data[$fullname]);
             if ($error !== '') {
-                $adminroot->errors[$fullname] = new stdClass();
+                $adminroot->errors[$fullname] = new \stdClass();
                 $adminroot->errors[$fullname]->data  = $data[$fullname];
                 $adminroot->errors[$fullname]->id    = $setting->get_id();
                 $adminroot->errors[$fullname]->error = $error;
@@ -362,6 +367,17 @@ class core_admintree_testcase extends advanced_testcase {
     }
 
     /**
+     * Test setting an empty duration displays the correct validation message.
+     */
+    public function test_emptydurationvalue() {
+        $this->resetAfterTest();
+        $adminsetting = new admin_setting_configduration('abc_cde/duration', 'some desc', '', '');
+
+        // A value that isn't a number is treated as a zero, so we expect to see no error message.
+        $this->assertEmpty($adminsetting->write_setting(['u' => '3600', 'v' => 'abc']));
+    }
+
+    /**
      * Test setting for blocked hosts
      *
      * For testing the admin settings element only. Test for blocked hosts functionality can be found
@@ -423,7 +439,7 @@ class core_admintree_testcase extends advanced_testcase {
         global $DB;
         // Current user is a manager at site context, which won't have access to the 'debugging' section of the admin tree.
         $manageruser = $this->getDataGenerator()->create_user();
-        $context = context_system::instance();
+        $context = \context_system::instance();
         $managerrole = $DB->get_record('role', array('shortname' => 'manager'));
         role_assign($managerrole->id, $manageruser->id, $context->id);
         $this->setUser($manageruser);

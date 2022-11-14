@@ -300,18 +300,12 @@ class manager {
     }
 
     /**
-     * Returns the enabled time splitting methods.
-     *
-     * @deprecated since Moodle 3.7
-     * @todo MDL-65086 This will be deleted in Moodle 4.1
-     * @see \core_analytics\manager::get_time_splitting_methods_for_evaluation
-     * @return \core_analytics\local\time_splitting\base[]
+     * @deprecated since Moodle 3.7 use get_time_splitting_methods_for_evaluation instead
      */
     public static function get_enabled_time_splitting_methods() {
-        debugging('This function has been deprecated. You can use self::get_time_splitting_methods_for_evaluation if ' .
+        throw new coding_exception(__FUNCTION__ . '() has been removed. You can use self::get_time_splitting_methods_for_evaluation if ' .
             'you want to get the default time splitting methods for evaluation, or you can use self::get_all_time_splittings if ' .
             'you want to get all the time splitting methods available on this site.');
-        return self::get_time_splitting_methods_for_evaluation();
     }
 
     /**
@@ -604,13 +598,13 @@ class manager {
      * Used to be used to add models included with the Moodle core.
      *
      * @deprecated Deprecated since Moodle 3.7 (MDL-61667) - Use lib/db/analytics.php instead.
-     * @todo Remove this method in Moodle 4.1 (MDL-65186).
+     * @todo Remove this method in Moodle 3.11 (MDL-65186).
      * @return void
      */
     public static function add_builtin_models() {
 
-        debugging('core_analytics\manager::add_builtin_models() has been deprecated. Core models are now automatically '.
-            'updated according to their declaration in the lib/db/analytics.php file.', DEBUG_DEVELOPER);
+        throw new \coding_exception('core_analytics\manager::add_builtin_models() has been removed. Core models ' .
+                        'are now automatically updated according to their declaration in the lib/db/analytics.php file.');
     }
 
     /**
@@ -624,9 +618,25 @@ class manager {
                         LEFT JOIN {context} ctx ON ap.contextid = ctx.id
                             WHERE ctx.id IS NULL)");
 
-        $contextsql = "SELECT id FROM {context} ctx";
-        $DB->delete_records_select('analytics_predictions', "contextid NOT IN ($contextsql)");
-        $DB->delete_records_select('analytics_indicator_calc', "contextid NOT IN ($contextsql)");
+        // Cleanup analaytics predictions/calcs with MySQL friendly sub-select.
+        $DB->execute("DELETE FROM {analytics_predictions} WHERE id IN (
+                        SELECT oldpredictions.id
+                        FROM (
+                            SELECT p.id
+                            FROM {analytics_predictions} p
+                            LEFT JOIN {context} ctx ON p.contextid = ctx.id
+                            WHERE ctx.id IS NULL
+                        ) oldpredictions
+                    )");
+
+        $DB->execute("DELETE FROM {analytics_indicator_calc} WHERE id IN (
+                        SELECT oldcalcs.id FROM (
+                            SELECT c.id
+                            FROM {analytics_indicator_calc} c
+                            LEFT JOIN {context} ctx ON c.contextid = ctx.id
+                            WHERE ctx.id IS NULL
+                        ) oldcalcs
+                    )");
 
         // Clean up stuff that depends on analysable ids that do not exist anymore.
 
@@ -677,6 +687,13 @@ class manager {
                 $DB->delete_records_select('analytics_used_analysables', "modelid = :modelid AND analysableid $idssql",
                     $param + $idsparams);
             }
+        }
+
+        // Clean up calculations table.
+        $calclifetime = get_config('analytics', 'calclifetime');
+        if (!empty($calclifetime)) {
+            $lifetime = time() - ($calclifetime * DAYSECS); // Value in days.
+            $DB->delete_records_select('analytics_indicator_calc', 'timecreated < ?', [$lifetime]);
         }
     }
 

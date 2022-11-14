@@ -119,6 +119,15 @@ $capabilities = array(
         )
     ),
 
+    'moodle/site:senderrormessage' => [
+        'riskbitmask' => RISK_SPAM,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array(
+            'user' => CAP_ALLOW
+        )
+    ],
+
     'moodle/site:deleteownmessage' => array(
 
         'captype' => 'write',
@@ -655,6 +664,7 @@ $capabilities = array(
         )
     ),
 
+    // The ability to override the permissions for any capability.
     'moodle/role:override' => array(
 
         'riskbitmask' => RISK_SPAM | RISK_PERSONAL | RISK_XSS,
@@ -666,6 +676,8 @@ $capabilities = array(
         )
     ),
 
+    // The ability to override the permissions for 'safe' capabilities (those without risks).
+    // If a user has moodle/role:override then you should not check this capability.
     'moodle/role:safeoverride' => array(
 
         'riskbitmask' => RISK_SPAM,
@@ -2555,5 +2567,99 @@ $capabilities = array(
             'coursecreator' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
         )
+    ],
+
+    // Allow users to download content.
+    'moodle/contentbank:downloadcontent' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
+            'coursecreator' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+        ]
+    ],
+
+    // Allow users to download course content.
+    'moodle/course:downloadcoursecontent' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'student' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        )
+    ],
+
+    // Allow users to configure download course content functionality within a course, if the feature is available.
+    'moodle/course:configuredownloadcontent' => [
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        ),
+    ],
+
+    // Allow to manage payment accounts.
+    'moodle/payment:manageaccounts' => [
+        'captype' => 'write',
+        'riskbitmask' => RISK_PERSONAL | RISK_CONFIG | RISK_DATALOSS,
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => [],
+    ],
+
+    // Allow to view payments.
+    'moodle/payment:viewpayments' => [
+        'captype' => 'read',
+        'riskbitmask' => RISK_PERSONAL,
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => [],
+    ],
+
+    // Allow users to view hidden content.
+    'moodle/contentbank:viewunlistedcontent' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
+            'coursecreator' => CAP_ALLOW,
+        ]
+    ],
+
+    // Allow users to view custom reports.
+    'moodle/reportbuilder:view' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [
+            'user' => CAP_ALLOW,
+        ],
+    ],
+
+    // Allow users to create/edit their own custom reports.
+    'moodle/reportbuilder:edit' => [
+        'captype' => 'write',
+        'riskbitmap' => RISK_PERSONAL,
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
+        ],
+    ],
+
+    // Allow users to create/edit all custom reports.
+    'moodle/reportbuilder:editall' => [
+        'captype' => 'write',
+        'riskbitmap' => RISK_PERSONAL,
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [],
+    ],
+
+    // Allow users to schedule reports as other users.
+    'moodle/reportbuilder:scheduleviewas' => [
+        'captype' => 'read',
+        'riskbitmap' => RISK_PERSONAL,
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [],
     ],
 );

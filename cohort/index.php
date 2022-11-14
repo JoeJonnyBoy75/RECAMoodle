@@ -60,11 +60,23 @@ if ($category) {
     $PAGE->set_pagelayout('admin');
     $PAGE->set_context($context);
     $PAGE->set_url('/cohort/index.php', array('contextid'=>$context->id));
+
+    core_course_category::page_setup();
+    // Set the cohorts node active in the settings navigation block.
+    if ($cohortsnode = $PAGE->settingsnav->find('cohort', navigation_node::TYPE_SETTING)) {
+        $cohortsnode->make_active();
+    }
+
     $PAGE->set_title($strcohorts);
-    $PAGE->set_heading($COURSE->fullname);
     $showall = false;
 } else {
     admin_externalpage_setup('cohorts', '', null, '', array('pagelayout'=>'report'));
+    $PAGE->set_primary_active_tab('siteadminnode');
+    if ($showall == 1) {
+        $PAGE->navbar->add(get_string('allcohorts', 'cohort'), $PAGE->url);
+    } else if (!$showall) {
+        $PAGE->navbar->add(get_string('systemcohorts', 'cohort'), $PAGE->url);
+    }
 }
 
 echo $OUTPUT->header();
@@ -103,19 +115,21 @@ if ($editcontrols = cohort_edit_controls($context, $baseurl)) {
 }
 
 // Add search form.
-$search  = html_writer::start_tag('form', array('id'=>'searchcohortquery', 'method'=>'get', 'class' => 'form-inline search-cohort'));
-$search .= html_writer::start_div('mb-1');
-$search .= html_writer::label(get_string('searchcohort', 'cohort'), 'cohort_search_q', true,
-        array('class' => 'mr-1')); // No : in form labels!
-$search .= html_writer::empty_tag('input', array('id' => 'cohort_search_q', 'type' => 'text', 'name' => 'search',
-        'value' => $searchquery, 'class' => 'form-control mr-1'));
-$search .= html_writer::empty_tag('input', array('type' => 'submit', 'value' => get_string('search', 'cohort'),
-        'class' => 'btn btn-secondary'));
-$search .= html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'contextid', 'value'=>$contextid));
-$search .= html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'showall', 'value'=>$showall));
-$search .= html_writer::end_div();
-$search .= html_writer::end_tag('form');
-echo $search;
+$hiddenfields = [
+    (object) ['name' => 'contextid', 'value' => $contextid],
+    (object) ['name' => 'showall', 'value' => $showall]
+];
+
+$data = [
+    'action' => new moodle_url('/cohort/index.php'),
+    'inputname' => 'search',
+    'searchstring' => get_string('search', 'cohort'),
+    'query' => $searchquery,
+    'hiddenfields' => $hiddenfields,
+    'extraclasses' => 'mb-3'
+];
+
+echo $OUTPUT->render_from_template('core/search_input', $data);
 
 // Output pagination bar.
 echo $OUTPUT->paging_bar($cohorts['totalcohorts'], $page, 25, $baseurl);
@@ -154,7 +168,7 @@ foreach($cohorts['cohorts'] as $cohort) {
         $cohortmanager = has_capability('moodle/cohort:manage', $cohortcontext);
         $cohortcanassign = has_capability('moodle/cohort:assign', $cohortcontext);
 
-        $urlparams = array('id' => $cohort->id, 'returnurl' => $baseurl->out_as_local_url());
+        $urlparams = array('id' => $cohort->id, 'returnurl' => $baseurl->out_as_local_url(false));
         $showhideurl = new moodle_url('/cohort/edit.php', $urlparams + array('sesskey' => sesskey()));
         if ($cohortmanager) {
             if ($cohort->visible) {

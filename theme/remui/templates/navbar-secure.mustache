@@ -19,26 +19,20 @@
 }}
 <nav class="fixed-top navbar navbar-light {{#navbarinverse}}nav-inverse{{/navbarinverse}}  navbar-expand moodle-has-zindex p-0" aria-label="{{#str}}navigation{{/str}}">
     <div class="navbar-brand navbar-brand-center p-0 m-0 h-100">
-        {{# output.should_display_logo }}
-            {{# isiconsitename }}
-                <a class="text-white d-flex align-items-center justify-content-center h-100 w-full text-decoration-none" href="{{{ config.wwwroot }}}">
-                    <span class="navbar-brand-logo mini"><i class="fa fa-{{siteicon}}"></i></span>
-                    <span class="navbar-brand-logo font-weight-bold">
-                        <i class="fa fa-{{siteicon}}"></i>&nbsp;
-                        {{{ sitename }}}
-                    </span>
-                </a>
-            {{/ isiconsitename }}
-            {{# islogo }}
-                <a class="text-white d-flex align-items-center justify-content-center h-100 w-full text-decoration-none" href="{{{ config.wwwroot }}}">
-                    <span class="navbar-brand-logo mini" style="background-image: url({{ logominiurl }});
-                        background-position: center; background-size: contain; background-repeat: no-repeat;"></span>
-                    <span class="navbar-brand-logo" style="background-image: url({{ logourl }});
-                        background-position: center; background-size: contain; background-repeat: no-repeat;">
-                    </span>
-                </a>
-            {{/ islogo }}
-        {{/ output.should_display_logo }}
+        {{# output.should_display_navbar_logo }}
+            <a class="header-logo" href="{{{ config.wwwroot }}}" aria-label="{{ sitename }} - {{#str}}brandname, theme_remui{{/str}}">
+                <img src="{{ logourl }}" class="navbar-brand-logo logo">
+                <img src="{{ logominiurl }}" class="navbar-brand-logo logomini">
+                <span class="navbar-brand-logo icononly"><i class="fa fa-{{siteicon}}"></i></span>
+                <span class="navbar-brand-logo font-weight-bold iconsitename">
+                    <i class="fa fa-{{siteicon}}"></i>&nbsp;
+                    {{{ sitename }}}
+                </span>
+            </a>
+        {{/ output.should_display_navbar_logo }}
+        {{^ output.should_display_navbar_logo }}
+            {{{ sitename }}}
+        {{/ output.should_display_navbar_logo }}
     </div>
     <div data-region="drawer-toggle" class="d-inline-block m-0 h-100">
         <button aria-expanded="{{#navdraweropen}}true{{/navdraweropen}}{{^navdraweropen}}false{{/navdraweropen}}" aria-controls="nav-drawer" type="button" class="btn nav-link float-sm-left  bg-transparent" data-action="toggle-drawer" data-side="left" data-preference="drawer-open-nav">{{#pix}}i/menubars{{/pix}}<span class="sr-only">{{#str}}sidepanel, core{{/str}}</span></button>

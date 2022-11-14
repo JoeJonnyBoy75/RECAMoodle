@@ -1,0 +1,35 @@
+{{#formdata}}
+
+    <li class="review-card mb-4" data-reviewid="{{id}}" data-userid="{{userid}}">
+        <div class="review-card__profile">
+            {{{userprofile}}}
+        </div>
+        <div class="review-card__details">
+            <div class="mb-2">
+                <h5 class="review-card__username mb-0">{{username}}</h5>
+                <div class="review-card__rating">{{{starratinghtml}}}</div>
+                <div class="review-card__date">{{date_created}}</div>
+            </div>
+            <p class="review-card__review mb-0">{{review}}</p>
+            
+            {{#famedetails}}
+            <div class="review-card__fame">
+                <div class="review-card__fame-like mr-4">
+                    <span class="likebtn m-0 py-2 {{#liked}}active{{/liked}}" data-reviewid="{{id}}" data-userid="{{userid}}">
+                        <i class="fa fa-thumbs-up" aria-hidden="true"></i>
+                    </span>
+                    <span class="liked count" data-reviewid="{{id}}">{{likecount}}</span>
+                </div>
+                <div class="review-card__fame-dlike mr-4">
+                    <span class="dlikebtn m-0 py-2 {{#dliked}}active{{/dliked}}" data-reviewid="{{id}}" data-userid="{{userid}}">
+                        <i class="fa fa-thumbs-down " aria-hidden="true"></i>
+                    </span>
+                    <span class="dliked count" data-reviewid="{{id}}">{{dlikecount}}</span>
+                </div>
+            </div>
+            {{/famedetails}}
+
+        </div>
+    </li>
+
+{{/formdata}}

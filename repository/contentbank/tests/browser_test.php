@@ -14,13 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Content bank repository browser unit tests.
- *
- * @package    repository_contentbank
- * @copyright  2020 Mihail Geshoski <mihail@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace repository_contentbank;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -35,7 +29,7 @@ require_once("$CFG->dirroot/repository/lib.php");
  * @copyright  2020 Mihail Geshoski <mihail@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class repository_contentbank_browser_testcase extends advanced_testcase {
+class browser_test extends \advanced_testcase {
 
     /**
      * Test get_content() in the system context with users that have capability to access/view content bank content
@@ -43,7 +37,7 @@ class repository_contentbank_browser_testcase extends advanced_testcase {
      * the system context.
      */
     public function test_get_content_system_context_user_has_capabilities() {
-        global $DB;
+        global $DB, $CFG;
 
         $this->resetAfterTest(true);
 
@@ -52,9 +46,9 @@ class repository_contentbank_browser_testcase extends advanced_testcase {
         $coursecategory = $this->getDataGenerator()->create_category(['name' => 'Category']);
         $coursecatcontext = \context_coursecat::instance($coursecategory->id);
 
-        // Get the default 'Miscellaneous' category.
-        $miscellaneouscat = \core_course_category::get(1);
-        $miscellaneouscatcontext = \context_coursecat::instance($miscellaneouscat->id);
+        // Get the default course category.
+        $defaultcat = \core_course_category::get(1);
+        $defaultcatcontext = \context_coursecat::instance($defaultcat->id);
 
         // Create course.
         $course = $this->getDataGenerator()->create_course(['category' => $coursecategory->id]);
@@ -66,8 +60,9 @@ class repository_contentbank_browser_testcase extends advanced_testcase {
         // Add some content to the content bank.
         $generator = $this->getDataGenerator()->get_plugin_generator('core_contentbank');
         // Add some content bank files in the system context.
+        $filepath = $CFG->dirroot . '/h5p/tests/fixtures/filltheblanks.h5p';
         $contentbankcontents = $generator->generate_contentbank_data('contenttype_h5p', 3, $admin->id,
-            $systemcontext, true);
+            $systemcontext, true, $filepath);
 
         // Log in as admin.
         $this->setUser($admin);
@@ -76,12 +71,12 @@ class repository_contentbank_browser_testcase extends advanced_testcase {
         $repositorycontentnodes = $browser->get_content();
         // All content nodes should be available to the admin user.
         // There should be a total of 5 nodes, 3 file nodes representing the existing content bank files in the
-        // system context and 2 folder nodes representing the default course category 'Miscellaneous' and 'Category'.
+        // system context and 2 folder nodes representing the default course category and 'Category'.
         $this->assertCount(5, $repositorycontentnodes);
         $contextfolders = [
             [
-                'name' => 'Miscellaneous',
-                'contextid' => $miscellaneouscatcontext->id
+                'name' => get_string('defaultcategoryname'),
+                'contextid' => $defaultcatcontext->id
             ],
             [
                 'name' => 'Category',
@@ -89,7 +84,7 @@ class repository_contentbank_browser_testcase extends advanced_testcase {
             ]
         ];
         $expected = $this->generate_expected_content($contextfolders, $contentbankcontents);
-        $this->assertEquals($expected, $repositorycontentnodes, '', 0.0, 10, true);
+        $this->assertEqualsCanonicalizing($expected, $repositorycontentnodes);
 
         // Log in as a user.
         $this->setUser($user);
@@ -101,7 +96,7 @@ class repository_contentbank_browser_testcase extends advanced_testcase {
         // the content of the category's courses.
         $this->assertCount(3, $repositorycontentnodes);
         $expected = $this->generate_expected_content([], $contentbankcontents);
-        $this->assertEquals($expected, $repositorycontentnodes, '', 0.0, 10, true);
+        $this->assertEqualsCanonicalizing($expected, $repositorycontentnodes);
 
         // Enrol the user as an editing teacher in the course.
         $editingteacherrole = $DB->get_field('role', 'id', ['shortname' => 'editingteacher']);
@@ -122,7 +117,7 @@ class repository_contentbank_browser_testcase extends advanced_testcase {
             ]
         ];
         $expected = $this->generate_expected_content($contextfolders, $contentbankcontents);
-        $this->assertEquals($expected, $repositorycontentnodes, '', 0.0, 10, true);
+        $this->assertEqualsCanonicalizing($expected, $repositorycontentnodes);
     }
 
     /**
@@ -156,6 +151,8 @@ class repository_contentbank_browser_testcase extends advanced_testcase {
      * any category course should be able to access/view the content in the course category context.
      */
     public function test_get_content_course_category_context_user_has_capabilities() {
+        global $CFG;
+
         $this->resetAfterTest(true);
 
         // Create a course category.
@@ -175,8 +172,9 @@ class repository_contentbank_browser_testcase extends advanced_testcase {
         // Add some content to the content bank.
         $generator = $this->getDataGenerator()->get_plugin_generator('core_contentbank');
         // Add some content bank files in the course category context.
+        $filepath = $CFG->dirroot . '/h5p/tests/fixtures/filltheblanks.h5p';
         $contentbankcontents = $generator->generate_contentbank_data('contenttype_h5p', 3, $admin->id,
-            $coursecatcontext, true);
+            $coursecatcontext, true, $filepath);
 
         $this->setUser($admin);
         // Get the content bank nodes displayed to the admin in the course category context.
@@ -197,7 +195,7 @@ class repository_contentbank_browser_testcase extends advanced_testcase {
             ]
         ];
         $expected = $this->generate_expected_content($contextfolders, $contentbankcontents);
-        $this->assertEquals($expected, $repositorycontents, '', 0.0, 10, true);
+        $this->assertEqualsCanonicalizing($expected, $repositorycontents);
 
         // Log in as an editing teacher enrolled in a child course.
         $this->setUser($editingteacher);
@@ -215,7 +213,7 @@ class repository_contentbank_browser_testcase extends advanced_testcase {
             ]
         ];
         $expected = $this->generate_expected_content($contextfolders, $contentbankcontents);
-        $this->assertEquals($expected, $repositorycontents, '', 0.0, 10, true);
+        $this->assertEqualsCanonicalizing($expected, $repositorycontents);
     }
 
     /**
@@ -231,7 +229,7 @@ class repository_contentbank_browser_testcase extends advanced_testcase {
         $category = $this->getDataGenerator()->create_category(['name' => 'Category']);
         // Create course1 in 'Category'.
         $course1 = $this->getDataGenerator()->create_course(['fullname' => 'Course1', 'category' => $category->id]);
-        // Create course2 in 'Miscellaneous' by default.
+        // Create course2 in default category by default.
         $course2 = $this->getDataGenerator()->create_course(['fullname' => 'Course2']);
         // Create a teacher enrolled in course1.
         $teacher = $this->getDataGenerator()->create_and_enrol($course1, 'teacher');
@@ -277,6 +275,8 @@ class repository_contentbank_browser_testcase extends advanced_testcase {
      * in the course should be able to access/view the content.
      */
     public function test_get_content_course_context_user_has_capabilities() {
+        global $CFG;
+
         $this->resetAfterTest(true);
 
         // Create course1.
@@ -290,8 +290,9 @@ class repository_contentbank_browser_testcase extends advanced_testcase {
         // Add some content to the content bank.
         $generator = $this->getDataGenerator()->get_plugin_generator('core_contentbank');
         // Add some content bank files in the course context.
+        $filepath = $CFG->dirroot . '/h5p/tests/fixtures/filltheblanks.h5p';
         $contentbankcontents = $generator->generate_contentbank_data('contenttype_h5p', 3, $admin->id,
-            $coursecontext, true);
+            $coursecontext, true, $filepath);
 
         $this->setUser($admin);
         // Get the content bank nodes displayed to the admin in the course context.
@@ -302,7 +303,7 @@ class repository_contentbank_browser_testcase extends advanced_testcase {
         // course context.
         $this->assertCount(3, $repositorycontents);
         $expected = $this->generate_expected_content([], $contentbankcontents);
-        $this->assertEquals($expected, $repositorycontents, '', 0.0, 10, true);
+        $this->assertEqualsCanonicalizing($expected, $repositorycontents);
 
         // Log in as an editing teacher.
         $this->setUser($editingteacher);
@@ -314,7 +315,7 @@ class repository_contentbank_browser_testcase extends advanced_testcase {
         // course context.
         $this->assertCount(3, $repositorycontents);
         $expected = $this->generate_expected_content([], $contentbankcontents);
-        $this->assertEquals($expected, $repositorycontents, '', 0.0, 10, true);
+        $this->assertEqualsCanonicalizing($expected, $repositorycontents);
     }
 
     /**

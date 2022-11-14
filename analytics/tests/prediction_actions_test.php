@@ -14,13 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Unit tests for prediction actions.
- *
- * @package   core_analytics
- * @copyright 2017 David Monllaó {@link http://www.davidmonllao.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace core_analytics;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -34,12 +28,12 @@ require_once(__DIR__ . '/fixtures/test_target_shortname.php');
  * @copyright 2017 David Monllaó {@link http://www.davidmonllao.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class analytics_prediction_actions_testcase extends advanced_testcase {
+class prediction_actions_test extends \advanced_testcase {
 
     /**
      * Common startup tasks
      */
-    public function setUp() {
+    public function setUp(): void {
         global $DB;
 
         $this->setAdminUser();
@@ -110,6 +104,86 @@ class analytics_prediction_actions_testcase extends advanced_testcase {
         $this->assertCount(2, $recordset);
         $recordset->close();
         $this->assertEquals(2, $DB->count_records('analytics_prediction_actions'));
+    }
+
+    /**
+     * Data provider for test_get_executed_actions.
+     *
+     * @return  array
+     */
+    public function execute_actions_provider(): array {
+        return [
+            'Empty actions with no filter' => [
+                [],
+                [],
+                0
+            ],
+            'Empty actions with filter' => [
+                [],
+                [\core_analytics\prediction::ACTION_FIXED],
+                0
+            ],
+            'Multiple actions with no filter' => [
+                [
+                    \core_analytics\prediction::ACTION_FIXED,
+                    \core_analytics\prediction::ACTION_FIXED,
+                    \core_analytics\prediction::ACTION_INCORRECTLY_FLAGGED
+                ],
+                [],
+                3
+            ],
+            'Multiple actions applying filter' => [
+                [
+                    \core_analytics\prediction::ACTION_FIXED,
+                    \core_analytics\prediction::ACTION_FIXED,
+                    \core_analytics\prediction::ACTION_INCORRECTLY_FLAGGED
+                ],
+                [\core_analytics\prediction::ACTION_FIXED],
+                2
+            ],
+            'Multiple actions not applying filter' => [
+                [
+                    \core_analytics\prediction::ACTION_FIXED,
+                    \core_analytics\prediction::ACTION_FIXED,
+                    \core_analytics\prediction::ACTION_INCORRECTLY_FLAGGED
+                ],
+                [\core_analytics\prediction::ACTION_NOT_APPLICABLE],
+                0
+            ],
+            'Multiple actions with multiple filter' => [
+                [
+                    \core_analytics\prediction::ACTION_FIXED,
+                    \core_analytics\prediction::ACTION_FIXED,
+                    \core_analytics\prediction::ACTION_INCORRECTLY_FLAGGED
+                ],
+                [\core_analytics\prediction::ACTION_FIXED, \core_analytics\prediction::ACTION_INCORRECTLY_FLAGGED],
+                3
+            ],
+        ];
+    }
+
+    /**
+     * Tests for get_executed_actions() function.
+     *
+     * @dataProvider    execute_actions_provider
+     * @param   array   $actionstoexecute    An array of actions to execute
+     * @param   array   $actionnamefilter   Actions to filter
+     * @param   int     $returned             Number of actions returned
+     *
+     * @covers \core_analytics\prediction::get_executed_actions
+     */
+    public function test_get_executed_actions(array $actionstoexecute, array $actionnamefilter, int $returned) {
+
+        $this->setUser($this->teacher2);
+        list($ignored, $predictions) = $this->model->get_predictions($this->context, true);
+        $prediction = reset($predictions);
+        $target = $this->model->get_target();
+        foreach($actionstoexecute as $action) {
+            $prediction->action_executed($action, $target);
+        }
+
+        $filteredactions = $prediction->get_executed_actions($actionnamefilter);
+        $this->assertCount($returned, $filteredactions);
     }
 
     /**

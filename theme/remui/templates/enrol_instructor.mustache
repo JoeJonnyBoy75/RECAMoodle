@@ -1,0 +1,43 @@
+{{#data}}
+<div class="row userelement shown" data-userid={{userId}}>
+  <div class="col-lg-3 first">
+    <div class="about_ins_info">
+      <div class="thumb text-center">
+        <a href="{{profileUrl}}" class="d-inline-block aabtn">
+          <img src="{{rawAvatar}}" class="img-fluid defaultuserpic" width="120" height="120" alt="Picture of {{fullname}}" title="Picture of {{fullname}}">
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-9 second">
+    <div class="details">
+      <ul class="about_info_list p-0">
+        {{#teachingStudentCount}}
+          <li class="list-inline-item">
+            <i class="fa fa-user-o" aria-hidden="true"></i> {{teachingStudentCount}}
+          </li>
+        {{/teachingStudentCount}}
+        <li class="list-inline-item"><i class="fa fa-book" aria-hidden="true"></i> {{teachingCoursesCount}}</li>
+      </ul>
+      <h4 class="instructor-name">{{{fullname}}}</h4>
+      <p class="subtitle">{{{department}}}</p>
+      <div class="description">
+        {{{description}}}
+      </div>
+
+      {{#hasinterests}}
+      <p>Interested In:</p>
+      <ul class="noliststyle tag_list mb0 d-inline-block">
+        {{#interests}}
+          <li class="tag_item mr-2 pull-left">{{{rawname}}}</li>
+        {{/interests}}
+      </ul>
+      {{/hasinterests}}
+    </div>
+  </div>
+</div>
+{{/data}}
+
+{{#instructorid}}
+  <div class="row userelement hidden" data-userid="{{instructorid}}"></div>
+{{/instructorid}}

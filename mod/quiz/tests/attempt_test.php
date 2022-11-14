@@ -40,9 +40,10 @@ class mod_quiz_attempt_testcase extends advanced_testcase {
      * Create quiz and attempt data with layout.
      *
      * @param string $layout layout to set. Like quiz attempt.layout. E.g. '1,2,0,3,4,0,'.
+     * @param string $navmethod quiz navigation method (defaults to free)
      * @return quiz_attempt the new quiz_attempt object
      */
-    protected function create_quiz_and_attempt_with_layout($layout) {
+    protected function create_quiz_and_attempt_with_layout($layout, $navmethod = QUIZ_NAVMETHOD_FREE) {
         $this->resetAfterTest(true);
 
         // Make a user to do the quiz.
@@ -51,7 +52,7 @@ class mod_quiz_attempt_testcase extends advanced_testcase {
         // Make a quiz.
         $quizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_quiz');
         $quiz = $quizgenerator->create_instance(['course' => $course->id,
-            'grade' => 100.0, 'sumgrades' => 2, 'layout' => $layout]);
+            'grade' => 100.0, 'sumgrades' => 2, 'layout' => $layout, 'navmethod' => $navmethod]);
 
         $quizobj = quiz::create($quiz->id, $user->id);
 
@@ -81,9 +82,6 @@ class mod_quiz_attempt_testcase extends advanced_testcase {
         return quiz_attempt::create($attempt->id);
     }
 
-    /**
-     * Test the functions quiz_update_open_attempts() and get_list_of_overdue_attempts()
-     */
     public function test_attempt_url() {
         $attempt = $this->create_quiz_and_attempt_with_layout('1,2,0,3,4,0,5,6,0');
 
@@ -101,8 +99,10 @@ class mod_quiz_attempt_testcase extends advanced_testcase {
         $expecteanchor = $questionattempt->get_outer_question_div_unique_id();
         $this->assertEquals(new moodle_url($url, $params, $expecteanchor), $attempt->attempt_url(4));
 
+        $questionattempt = $attempt->get_question_attempt(3);
+        $expecteanchor = '#' . $questionattempt->get_outer_question_div_unique_id();
         $this->assertEquals(new moodle_url('#'), $attempt->attempt_url(null, 2, 2));
-        $this->assertEquals(new moodle_url('#'), $attempt->attempt_url(3, -1, 1));
+        $this->assertEquals(new moodle_url($expecteanchor), $attempt->attempt_url(3, -1, 1));
 
         $questionattempt = $attempt->get_question_attempt(4);
         $expecteanchor = $questionattempt->get_outer_question_div_unique_id();
@@ -149,10 +149,13 @@ class mod_quiz_attempt_testcase extends advanced_testcase {
         $expecteanchor = '#' . $questionattempt->get_outer_question_div_unique_id();
         $this->assertEquals(new moodle_url($expecteanchor), $attempt->review_url(4, -1, null, 0));
         $this->assertEquals(new moodle_url('#'), $attempt->review_url(null, 2, true, 0));
-        $this->assertEquals(new moodle_url('#'), $attempt->review_url(1, -1, true, 0));
+
+        $questionattempt = $attempt->get_question_attempt(1);
+        $expecteanchor = '#' . $questionattempt->get_outer_question_div_unique_id();
+        $this->assertEquals(new moodle_url($expecteanchor), $attempt->review_url(1, -1, true, 0));
+        $this->assertEquals(new moodle_url($expecteanchor), $attempt->review_url(1, -1, false, 0));
         $this->assertEquals(new moodle_url($url, $params), $attempt->review_url(null, 2, false, 0));
         $this->assertEquals(new moodle_url('#'), $attempt->review_url(null, 0, false, 0));
-        $this->assertEquals(new moodle_url('#'), $attempt->review_url(1, -1, false, 0));
 
         $params['page'] = 1;
         $this->assertEquals(new moodle_url($url, $params), $attempt->review_url(3, -1, false, 0));
@@ -204,13 +207,17 @@ class mod_quiz_attempt_testcase extends advanced_testcase {
         $expecteanchor = $questionattempt->get_outer_question_div_unique_id();
         $this->assertEquals(new moodle_url(null, null, $expecteanchor), $attempt->review_url(4, -1, null, 0));
 
+        $questionattempt = $attempt->get_question_attempt(1);
+        $expecteanchor = '#' . $questionattempt->get_outer_question_div_unique_id();
+        $this->assertEquals(new moodle_url($expecteanchor), $attempt->review_url(1, -1, true, 0));
         $this->assertEquals(new moodle_url('#'), $attempt->review_url(null, 2, true, 0));
-        $this->assertEquals(new moodle_url('#'), $attempt->review_url(1, -1, true, 0));
 
         $params['page'] = 2;
+        $questionattempt = $attempt->get_question_attempt(1);
+        $expecteanchor = '#' . $questionattempt->get_outer_question_div_unique_id();
+        $this->assertEquals(new moodle_url($expecteanchor), $attempt->review_url(1, -1, false, 0));
         $this->assertEquals(new moodle_url($url, $params), $attempt->review_url(null, 2, false, 0));
         $this->assertEquals(new moodle_url('#'), $attempt->review_url(null, 0, false, 0));
-        $this->assertEquals(new moodle_url('#'), $attempt->review_url(1, -1, false, 0));
 
         $params['page'] = 1;
         $this->assertEquals(new moodle_url($url, $params), $attempt->review_url(11, -1, false, 0));
@@ -370,5 +377,59 @@ class mod_quiz_attempt_testcase extends advanced_testcase {
         $quba = question_engine::load_questions_usage_by_activity($student1attempt->uniqueid);
         $step = $quba->get_question_attempt(1)->get_step(0);
         $this->assertEquals($student1->id, $step->get_user_id());
+    }
+
+    /**
+     * Test check_page_access function
+     * @covers \quiz_attempt::check_page_access
+     */
+    public function test_check_page_access() {
+        $timenow = time();
+
+        // Free navigation.
+        $attempt = $this->create_quiz_and_attempt_with_layout('1,0,2,0,3,0,4,0,5,0', QUIZ_NAVMETHOD_FREE);
+
+        // Check access.
+        $this->assertTrue($attempt->check_page_access(4));
+        $this->assertTrue($attempt->check_page_access(3));
+        $this->assertTrue($attempt->check_page_access(2));
+        $this->assertTrue($attempt->check_page_access(1));
+        $this->assertTrue($attempt->check_page_access(0));
+        $this->assertTrue($attempt->check_page_access(2));
+
+        // Access page 2.
+        $attempt->set_currentpage(2);
+        $attempt = quiz_attempt::create($attempt->get_attempt()->id);
+
+        // Check access.
+        $this->assertTrue($attempt->check_page_access(0));
+        $this->assertTrue($attempt->check_page_access(1));
+        $this->assertTrue($attempt->check_page_access(2));
+        $this->assertTrue($attempt->check_page_access(3));
+        $this->assertTrue($attempt->check_page_access(4));
+
+        // Sequential navigation.
+        $attempt = $this->create_quiz_and_attempt_with_layout('1,0,2,0,3,0,4,0,5,0', QUIZ_NAVMETHOD_SEQ);
+
+        // Check access.
+        $this->assertTrue($attempt->check_page_access(0));
+        $this->assertTrue($attempt->check_page_access(1));
+        $this->assertFalse($attempt->check_page_access(2));
+        $this->assertFalse($attempt->check_page_access(3));
+        $this->assertFalse($attempt->check_page_access(4));
+
+        // Access page 1.
+        $attempt->set_currentpage(1);
+        $attempt = quiz_attempt::create($attempt->get_attempt()->id);
+        $this->assertTrue($attempt->check_page_access(1));
+
+        // Access page 2.
+        $attempt->set_currentpage(2);
+        $attempt = quiz_attempt::create($attempt->get_attempt()->id);
+        $this->assertTrue($attempt->check_page_access(2));
+
+        $this->assertTrue($attempt->check_page_access(3));
+        $this->assertFalse($attempt->check_page_access(4));
+        $this->assertFalse($attempt->check_page_access(1));
     }
 }

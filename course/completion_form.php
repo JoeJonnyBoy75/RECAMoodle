@@ -128,14 +128,16 @@ class course_completion_form extends moodleform {
         }
 
         // Get applicable courses (prerequisites).
-        $selectedcourses = $DB->get_fieldset_sql("SELECT cc.courseinstance
-                  FROM {course_completion_criteria} cc WHERE cc.course = ?", [$course->id]);
         $hasselectablecourses = core_course_category::search_courses(['onlywithcompletion' => true], ['limit' => 2]);
         unset($hasselectablecourses[$course->id]);
         if ($hasselectablecourses) {
             // Show multiselect box.
             $mform->addElement('course', 'criteria_course', get_string('coursesavailable', 'completion'),
                 array('multiple' => 'multiple', 'onlywithcompletion' => true, 'exclude' => $course->id));
+            $mform->setType('criteria_course', PARAM_INT);
+
+            $selectedcourses = $DB->get_fieldset_select('course_completion_criteria', 'courseinstance',
+                'course = :course AND criteriatype = :type', ['course' => $course->id, 'type' => COMPLETION_CRITERIA_TYPE_COURSE]);
             $mform->setDefault('criteria_course', $selectedcourses);
 
             // Map aggregation methods to context-sensitive human readable dropdown menu.
@@ -263,5 +265,32 @@ class course_completion_form extends moodleform {
             $mform->hardFreezeAllVisibleExcept($except);
             $mform->addElement('cancel');
         }
+    }
+
+    /**
+     * Form validation
+     *
+     * @param array $data
+     * @param array $files
+     * @return array
+     */
+    public function validation($data, $files) {
+        $errors = [];
+
+        if (!isset($data['criteria_course']) || $data['criteria_course'] === 0) {
+            return $errors;
+        }
+
+        foreach ($data['criteria_course'] as $courseid) {
+            $course = get_course($courseid);
+            $completioninfo = new completion_info($course);
+
+            if (! $completioninfo->is_enabled()) {
+                $errors[] = get_string('completionnotenabledforcourse', 'completion');
+                break;
+            }
+        }
+
+        return $errors;
     }
 }

@@ -1,0 +1,42 @@
+
+<div class="footerdata">
+    {{#sections}}
+        <div id="footer-column-{{index}}" class="footerdata-item" style="flex: 0 0 {{#width}}{{width}}{{/width}}{{^width}}25{{/width}}%;">
+            {{#customhtml}}
+            <div class="custom-html py-2 ">
+                {{#title}}
+                <h4 class="card-title mt-1 font-weight-normal font-size-18">{{{ title }}}</h4>
+                {{/title}}
+                
+                {{#content}}
+                <div class="card-text">{{{ content }}}</div>
+                {{/content}}
+            </div>
+            {{/customhtml}}
+
+
+            {{#hassocial}}
+            <div class="py-2 px-1 social-links">
+                <h4 class="card-title mt-1 font-weight-normal font-size-18">{{# str }} followus, theme_remui {{/ str }}</h4>
+                {{#social}}
+                <a href="{{ link }}" class="remuiicon btn btn-icon btn-round text-decoration-none {{class}} m-1">
+                    <i class="{{icon}}" aria-hidden="true"></i>
+                </a>
+                {{/social}}
+            </div>
+            {{/hassocial}}
+
+            {{#menu}}
+            <div class="py-2 footer-menu menu-{{orientation}}">
+                <h4 class="card-title mt-1 font-weight-normal font-size-18">{{{ title }}}</h4>
+                <div class="footer-menu-list">
+                    {{#content}}
+                        <a target="_blank" href="{{address}}">{{text}}</a>
+                    {{/content}}
+                </div>
+            </div>
+            {{/menu}}
+        </div>
+    {{/sections}}
+</div>
+<hr>

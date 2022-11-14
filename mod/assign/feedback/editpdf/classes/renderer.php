@@ -112,16 +112,11 @@ class assignfeedback_editpdf_renderer extends plugin_renderer_base {
 
         $html .= html_writer::div(get_string('jsrequired', 'assignfeedback_editpdf'), 'hiddenifjs');
         $linkid = html_writer::random_id();
-        if ($widget->readonly) {
-            $launcheditorlink = html_writer::tag('a',
-                                              get_string('viewfeedbackonline', 'assignfeedback_editpdf'),
-                                              array('id'=>$linkid, 'class'=>'btn', 'href'=>'#'));
-        } else {
-            $launcheditorlink = html_writer::tag('a',
-                                              get_string('launcheditor', 'assignfeedback_editpdf'),
-                                              array('id'=>$linkid, 'class'=>'btn', 'href'=>'#'));
-        }
-        $links = $launcheditorlink;
+
+        $launcheditorstring = $widget->readonly ? get_string('viewfeedbackonline', 'assignfeedback_editpdf') :
+            get_string('launcheditor', 'assignfeedback_editpdf');
+        $links = html_writer::link('#', $launcheditorstring, ['id' => $linkid, 'class' => 'd-block mt-2']);
+
         $html .= '<input type="hidden" name="assignfeedback_editpdf_haschanges" value="false"/>';
 
         $html .= html_writer::div($links, 'visibleifjs');
@@ -203,7 +198,7 @@ class assignfeedback_editpdf_renderer extends plugin_renderer_base {
 
             // Add toolbars to toolbar_group in order of display, and float the toolbar_group right.
             $toolbars = $rotationtools . $toolbar1 . $toolbar2 . $toolbar3 . $toolbar4;
-            $toolbargroup = html_writer::div($toolbars, 'toolbar_group', array('role' => 'toolbar_group'));
+            $toolbargroup = html_writer::div($toolbars, 'toolbar_group', ['role' => 'toolbar']);
         }
 
         $pageheader = html_writer::div($navigation1 .

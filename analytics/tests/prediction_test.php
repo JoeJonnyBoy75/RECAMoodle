@@ -14,21 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Unit tests for evaluation, training and prediction.
- *
- * NOTE: in order to execute this test using a separate server for the
- *       python ML backend you need to define these variables in your config.php file:
- *
- * define('TEST_MLBACKEND_PYTHON_HOST', '127.0.0.1');
- * define('TEST_MLBACKEND_PYTHON_PORT', 5000);
- * define('TEST_MLBACKEND_PYTHON_USERNAME', 'default');
- * define('TEST_MLBACKEND_PYTHON_PASSWORD', 'sshhhh');
- *
- * @package   core_analytics
- * @copyright 2017 David Monllaó {@link http://www.davidmonllao.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace core_analytics;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -48,11 +34,19 @@ require_once(__DIR__ . '/../../course/lib.php');
 /**
  * Unit tests for evaluation, training and prediction.
  *
+ * NOTE: in order to execute this test using a separate server for the
+ *       python ML backend you need to define these variables in your config.php file:
+ *
+ * define('TEST_MLBACKEND_PYTHON_HOST', '127.0.0.1');
+ * define('TEST_MLBACKEND_PYTHON_PORT', 5000);
+ * define('TEST_MLBACKEND_PYTHON_USERNAME', 'default');
+ * define('TEST_MLBACKEND_PYTHON_PASSWORD', 'sshhhh');
+ *
  * @package   core_analytics
  * @copyright 2017 David Monllaó {@link http://www.davidmonllao.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_analytics_prediction_testcase extends advanced_testcase {
+class prediction_test extends \advanced_testcase {
 
     /**
      * Purge all the mlbackend outputs.
@@ -62,7 +56,7 @@ class core_analytics_prediction_testcase extends advanced_testcase {
      *
      * @return null
      */
-    public function tearDown() {
+    public function tearDown(): void {
         $this->setAdminUser();
 
         $models = \core_analytics\manager::get_all_models();
@@ -135,7 +129,7 @@ class core_analytics_prediction_testcase extends advanced_testcase {
         $this->resetAfterTest(true);
         $this->setAdminuser();
 
-        $misc = $DB->get_record('course_categories', ['name' => 'Miscellaneous']);
+        $misc = $DB->get_record('course_categories', ['name' => get_string('defaultcategoryname')]);
         $miscctx = \context_coursecat::instance($misc->id);
 
         $category = $this->getDataGenerator()->create_category();
@@ -261,8 +255,8 @@ class core_analytics_prediction_testcase extends advanced_testcase {
             $this->assertEquals($predictedrangeindex, $predictedrange->rangeindex);
             $sampleids = json_decode($predictedrange->sampleids, true);
             $this->assertCount(2, $sampleids);
-            $this->assertContains($course1->id, $sampleids);
-            $this->assertContains($course2->id, $sampleids);
+            $this->assertContainsEquals($course1->id, $sampleids);
+            $this->assertContainsEquals($course2->id, $sampleids);
         }
         $this->assertEquals(1, $DB->count_records('analytics_used_files',
             array('modelid' => $model->get_id(), 'action' => 'predicted')));
@@ -302,10 +296,10 @@ class core_analytics_prediction_testcase extends advanced_testcase {
             $this->assertEquals($predictedrangeindex, $predictedrange->rangeindex);
             $sampleids = json_decode($predictedrange->sampleids, true);
             $this->assertCount(4, $sampleids);
-            $this->assertContains($course1->id, $sampleids);
-            $this->assertContains($course2->id, $sampleids);
-            $this->assertContains($course3->id, $sampleids);
-            $this->assertContains($course4->id, $sampleids);
+            $this->assertContainsEquals($course1->id, $sampleids);
+            $this->assertContainsEquals($course2->id, $sampleids);
+            $this->assertContainsEquals($course3->id, $sampleids);
+            $this->assertContainsEquals($course4->id, $sampleids);
         }
         $this->assertEquals(2, $DB->count_records('analytics_used_files',
             array('modelid' => $model->get_id(), 'action' => 'predicted')));
@@ -706,7 +700,7 @@ class core_analytics_prediction_testcase extends advanced_testcase {
         $endtime = 321;
         $sampleorigin = 'whatever';
 
-        $indicator = $this->getMockBuilder('test_indicator_max')->setMethods(['calculate_sample'])->getMock();
+        $indicator = $this->getMockBuilder('test_indicator_max')->onlyMethods(['calculate_sample'])->getMock();
         $indicator->expects($this->never())->method('calculate_sample');
 
         $existingcalcs = array(111 => 1, 222 => -1);
@@ -746,7 +740,7 @@ class core_analytics_prediction_testcase extends advanced_testcase {
             $samples,
             $ranges
         );
-        $dataset = phpunit_util::call_internal_method($analysis, 'calculate_indicators', $params,
+        $dataset = \phpunit_util::call_internal_method($analysis, 'calculate_indicators', $params,
             '\core_analytics\analysis');
         $this->assertArrayHasKey('123-0', $dataset);
         $this->assertArrayHasKey('123-1', $dataset);
@@ -770,7 +764,7 @@ class core_analytics_prediction_testcase extends advanced_testcase {
             $samples,
             $ranges
         );
-        $dataset = phpunit_util::call_internal_method($analysis, 'calculate_indicators', $params,
+        $dataset = \phpunit_util::call_internal_method($analysis, 'calculate_indicators', $params,
             '\core_analytics\analysis');
         $this->assertArrayNotHasKey('123-0', $dataset);
         $this->assertArrayNotHasKey('123-1', $dataset);

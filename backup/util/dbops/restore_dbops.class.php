@@ -581,11 +581,11 @@ abstract class restore_dbops {
         $rc = restore_controller_dbops::load_controller($restoreid);
         $restoreinfo = $rc->get_info();
         $rc->destroy(); // Always need to destroy.
-        $backuprelease = floatval($restoreinfo->backup_release);
+        $backuprelease = $restoreinfo->backup_release; // The major version: 2.9, 3.0, 3.10...
         preg_match('/(\d{8})/', $restoreinfo->moodle_release, $matches);
         $backupbuild = (int)$matches[1];
         $after35 = false;
-        if ($backuprelease >= 3.5 && $backupbuild > 20180205) {
+        if (version_compare($backuprelease, '3.5', '>=') && $backupbuild > 20180205) {
             $after35 = true;
         }
 
@@ -619,7 +619,8 @@ abstract class restore_dbops {
             // Top-level category counter.
             $topcats = 0;
             // get categories in context (bank)
-            $categories = self::restore_get_question_categories($restoreid, $contextid);
+            $categories = self::restore_get_question_categories($restoreid, $contextid, $contextlevel);
+
             // cache permissions if $targetcontext is found
             if ($targetcontext = self::restore_find_best_target_context($categories, $courseid, $contextlevel)) {
                 $canmanagecategory = has_capability('moodle/question:managecategory', $targetcontext, $userid);
@@ -675,9 +676,16 @@ abstract class restore_dbops {
                     $questions = self::restore_get_questions($restoreid, $category->id);
 
                     // Collect all the questions for this category into memory so we only talk to the DB once.
-                    $questioncache = $DB->get_records_sql_menu("SELECT ".$DB->sql_concat('stamp', "' '", 'version').", id
-                                                                  FROM {question}
-                                                                 WHERE category = ?", array($matchcat->id));
+                    $questioncache = $DB->get_records_sql_menu('SELECT q.id,
+                                                                       q.stamp
+                                                                  FROM {question} q
+                                                                  JOIN {question_versions} qv
+                                                                    ON qv.questionid = q.id
+                                                                  JOIN {question_bank_entries} qbe
+                                                                    ON qbe.id = qv.questionbankentryid
+                                                                  JOIN {question_categories} qc
+                                                                    ON qc.id = qbe.questioncategoryid
+                                                                 WHERE qc.id = ?', array($matchcat->id));
 
                     foreach ($questions as $question) {
                         if (isset($questioncache[$question->stamp." ".$question->version])) {
@@ -765,8 +773,13 @@ abstract class restore_dbops {
     /**
      * Return one array of question_category records for
      * a given restore operation and one restore context (question bank)
+     *
+     * @param string $restoreid Unique identifier of the restore operation being performed.
+     * @param int $contextid Context id we want question categories to be returned.
+     * @param int $contextlevel Context level we want to restrict the returned categories.
+     * @return array Question categories for the given context id and level.
      */
-    public static function restore_get_question_categories($restoreid, $contextid) {
+    public static function restore_get_question_categories($restoreid, $contextid, $contextlevel) {
         global $DB;
 
         $results = array();
@@ -776,7 +789,14 @@ abstract class restore_dbops {
                                           AND itemname = 'question_category'
                                           AND parentitemid = ?", array($restoreid, $contextid));
         foreach ($qcats as $qcat) {
-            $results[$qcat->itemid] = backup_controller_dbops::decode_backup_temp_info($qcat->info);
+            $result = backup_controller_dbops::decode_backup_temp_info($qcat->info);
+            // Filter out found categories that belong to another context level.
+            // (this can happen when a higher level category becomes remapped to
+            // a context id that, by coincidence, matches a context id of another
+            // category at lower level). See MDL-72950 for more info.
+            if ($result->contextlevel == $contextlevel) {
+                $results[$qcat->itemid] = $result;
+            }
         }
         $qcats->close();
 
@@ -1078,8 +1098,8 @@ abstract class restore_dbops {
                                 $localpath = $filesystem->get_local_path_from_storedfile($storedfile);
                                 $fs->create_file_from_pathname($file, $localpath);
                             } else if ($filesystem->is_file_readable_remotely_by_storedfile($storedfile)) {
-                                $url = $filesystem->get_remote_path_from_storedfile($storedfile);
-                                $fs->create_file_from_url($file, $url);
+                                $remotepath = $filesystem->get_remote_path_from_storedfile($storedfile);
+                                $fs->create_file_from_pathname($file, $remotepath);
                             } else if ($filesystem->is_file_readable_locally_by_storedfile($storedfile, true)) {
                                 $localpath = $filesystem->get_local_path_from_storedfile($storedfile, true);
                                 $fs->create_file_from_pathname($file, $localpath);
@@ -1151,6 +1171,7 @@ abstract class restore_dbops {
     public static function create_included_users($basepath, $restoreid, $userid,
             \core\progress\base $progress) {
         global $CFG, $DB;
+        require_once($CFG->dirroot.'/user/profile/lib.php');
         $progress->start_progress('Creating included users');
 
         $authcache = array(); // Cache to get some bits from authentication plugins
@@ -1165,7 +1186,7 @@ abstract class restore_dbops {
 
             // if user lang doesn't exist here, use site default
             if (!array_key_exists($user->lang, $languages)) {
-                $user->lang = $CFG->lang;
+                $user->lang = get_newuser_language();
             }
 
             // if user theme isn't available on target site or they are disabled, reset theme
@@ -1257,8 +1278,9 @@ abstract class restore_dbops {
                         $udata = (object)$udata;
                         // If the profile field has data and the profile shortname-datatype is defined in server
                         if ($udata->field_data) {
-                            if ($field = $DB->get_record('user_info_field', array('shortname'=>$udata->field_name, 'datatype'=>$udata->field_type))) {
-                            /// Insert the user_custom_profile_field
+                            $field = profile_get_custom_field_data_by_shortname($udata->field_name);
+                            if ($field && $field->datatype === $udata->field_type) {
+                                // Insert the user_custom_profile_field.
                                 $rec = new stdClass();
                                 $rec->userid  = $newuserid;
                                 $rec->fieldid = $field->id;
@@ -1286,7 +1308,41 @@ abstract class restore_dbops {
                         $preference = (object)$preference;
                         // Prepare the record and insert it
                         $preference->userid = $newuserid;
-                        $status = $DB->insert_record('user_preferences', $preference);
+
+                        // Translate _loggedin / _loggedoff message user preferences to _enabled. (MDL-67853)
+                        // This code cannot be removed.
+                        if (preg_match('/message_provider_.*/', $preference->name)) {
+                            $nameparts = explode('_', $preference->name);
+                            $name = array_pop($nameparts);
+
+                            if ($name == 'loggedin' || $name == 'loggedoff') {
+                                $preference->name = implode('_', $nameparts).'_enabled';
+
+                                $existingpreference = $DB->get_record('user_preferences',
+                                    ['name' => $preference->name , 'userid' => $newuserid]);
+                                // Merge both values.
+                                if ($existingpreference) {
+                                    $values = [];
+
+                                    if (!empty($existingpreference->value) && $existingpreference->value != 'none') {
+                                        $values = explode(',', $existingpreference->value);
+                                    }
+
+                                    if (!empty($preference->value) && $preference->value != 'none') {
+                                        $values = array_merge(explode(',', $preference->value), $values);
+                                        $values = array_unique($values);
+                                    }
+
+                                    $existingpreference->value = empty($values) ? 'none' : implode(',', $values);
+
+                                    $DB->update_record('user_preferences', $existingpreference);
+                                    continue;
+                                }
+                            }
+                        }
+                        // End translating loggedin / loggedoff message user preferences.
+
+                        $DB->insert_record('user_preferences', $preference);
                     }
                 }
                 // Special handling for htmleditor which was converted to a preference.
@@ -1296,7 +1352,7 @@ abstract class restore_dbops {
                         $preference->userid = $newuserid;
                         $preference->name = 'htmleditor';
                         $preference->value = 'textarea';
-                        $status = $DB->insert_record('user_preferences', $preference);
+                        $DB->insert_record('user_preferences', $preference);
                     }
                 }
 

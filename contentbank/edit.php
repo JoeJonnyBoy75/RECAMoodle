@@ -29,7 +29,15 @@ require_login();
 $contextid = required_param('contextid', PARAM_INT);
 $pluginname = required_param('plugin', PARAM_PLUGIN);
 $id = optional_param('id', null, PARAM_INT);
+$library = optional_param('library', null, PARAM_RAW);
+
 $context = context::instance_by_id($contextid, MUST_EXIST);
+
+$cb = new \core_contentbank\contentbank();
+if (!$cb->is_context_allowed($context)) {
+    print_error('contextnotallowed', 'core_contentbank');
+}
+
 require_capability('moodle/contentbank:access', $context);
 
 $returnurl = new \moodle_url('/contentbank/view.php', ['id' => $id]);
@@ -42,10 +50,12 @@ if (!empty($id)) {
     $heading = $content->get_name();
     // The content type of the content overwrites the pluginname param value.
     $contenttypename = $content->get_content_type();
+    $breadcrumbtitle = get_string('edit');
 } else {
     $contenttypename = "contenttype_$pluginname";
     $heading = get_string('addinganew', 'moodle', get_string('description', $contenttypename));
     $content = null;
+    $breadcrumbtitle = get_string('add');
 }
 
 // Check plugin is enabled.
@@ -70,7 +80,9 @@ if (!$contenttype->can_edit($content)) {
 $values = [
     'contextid' => $contextid,
     'plugin' => $pluginname,
-    'id' => $id
+    'id' => $id,
+    'heading' => $heading,
+    'library' => $library
 ];
 
 $title = get_string('contentbank');
@@ -79,12 +91,23 @@ if ($PAGE->course) {
     require_login($PAGE->course->id);
 }
 
-$PAGE->set_url(new \moodle_url('/contentbank/edit.php', $values));
-$PAGE->set_context($context);
-$PAGE->navbar->add(get_string('edit'));
-$PAGE->set_title($title);
+if ($context->contextlevel == CONTEXT_COURSECAT) {
+    $PAGE->set_primary_active_tab('home');
+}
 
-$PAGE->set_heading($heading);
+$PAGE->set_url(new \moodle_url('/contentbank/edit.php', $values));
+if ($context->id == \context_system::instance()->id) {
+    $PAGE->set_context(context_course::instance($context->id));
+} else {
+    $PAGE->set_context($context);
+}
+if ($content) {
+    $PAGE->navbar->add($content->get_name(), new \moodle_url('/contentbank/view.php', ['id' => $id]));
+}
+$PAGE->navbar->add($breadcrumbtitle);
+$PAGE->set_title($title);
+$PAGE->set_pagelayout('incourse');
+$PAGE->set_secondary_active_tab('contentbank');
 
 // Instantiate the content type form.
 $editorclass = "$contenttypename\\form\\editor";

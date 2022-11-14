@@ -17,7 +17,7 @@
 /**
  * Edwiser RemUI
  * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @copyright  (c) 2022 WisdmLabs (https://wisdmlabs.com/)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\controller;
@@ -28,15 +28,19 @@ namespace theme_remui\controller;
 class EventsController
 {
     public static function user_enrollment_event($eventdata) {
-        
+
         $data = $eventdata->get_data();
 
         $userid = $data['relateduserid'];
 
         set_user_preference('course_cache_reset', true, $userid);
+
+        // Update Enrollment History Data
+        $pnotification = new \theme_remui\productnotifications();
+        $pnotification->update_enrollment_history();
     }
 
-    public static function course_updation_event($eventdata){
+    public static function course_updation_event($eventdata) {
         // Set Global Config to acknowledge to reset the cache.
         // Can reset order is not just for enrolled students.
         // Need to reset the cache of all users as that course get displayed in All Courses Tab.

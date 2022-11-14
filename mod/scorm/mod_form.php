@@ -130,11 +130,6 @@ class mod_scorm_mod_form extends moodleform_mod {
         $mform->hideIf('winoptgrp', 'popup', 'eq', 0);
         $mform->setAdvanced('winoptgrp', $cfgscorm->winoptgrp_adv);
 
-        // Display activity name.
-        $mform->addElement('advcheckbox', 'displayactivityname', get_string('displayactivityname', 'scorm'));
-        $mform->addHelpButton('displayactivityname', 'displayactivityname', 'scorm');
-        $mform->setDefault('displayactivityname', $cfgscorm->displayactivityname);
-
         // Skip view page.
         $skipviewoptions = scorm_get_skip_view_array();
         $mform->addElement('select', 'skipview', get_string('skipview', 'scorm'), $skipviewoptions);
@@ -198,7 +193,7 @@ class mod_scorm_mod_form extends moodleform_mod {
         $mform->addElement('date_time_selector', 'timeclose', get_string("scormclose", "scorm"), array('optional' => true));
 
         // Grade Settings.
-        $mform->addElement('header', 'gradesettings', get_string('grade'));
+        $mform->addElement('header', 'gradesettings', get_string('gradenoun'));
 
         // Grade Method.
         $mform->addElement('select', 'grademethod', get_string('grademethod', 'scorm'), scorm_get_grade_method_array());
@@ -275,12 +270,17 @@ class mod_scorm_mod_form extends moodleform_mod {
 
         $this->standard_coursemodule_elements();
 
+        // A SCORM module should define this within itself and is not needed here.
+        if ($mform->elementExists('completionpassgrade')) {
+            $mform->removeElement('completionpassgrade');
+        }
+
         // Buttons.
         $this->add_action_buttons();
     }
 
     public function data_preprocessing(&$defaultvalues) {
-        global $COURSE;
+        global $CFG, $COURSE;
 
         if (isset($defaultvalues['popup']) && ($defaultvalues['popup'] == 1) && isset($defaultvalues['options'])) {
             if (!empty($defaultvalues['options'])) {
@@ -313,10 +313,10 @@ class mod_scorm_mod_form extends moodleform_mod {
 
         if (($COURSE->format == 'singleactivity') && ((count($scorms) == 0) || ($defaultvalues['instance'] == $coursescorm->id))) {
             $defaultvalues['redirect'] = 'yes';
-            $defaultvalues['redirecturl'] = '../course/view.php?id='.$defaultvalues['course'];
+            $defaultvalues['redirecturl'] = $CFG->wwwroot.'/course/view.php?id='.$defaultvalues['course'];
         } else {
             $defaultvalues['redirect'] = 'no';
-            $defaultvalues['redirecturl'] = '../mod/scorm/view.php?id='.$defaultvalues['coursemodule'];
+            $defaultvalues['redirecturl'] = $CFG->wwwroot.'/mod/scorm/view.php?id='.$defaultvalues['coursemodule'];
         }
         if (isset($defaultvalues['version'])) {
             $defaultvalues['pkgtype'] = (substr($defaultvalues['version'], 0, 5) == 'SCORM') ? 'scorm' : 'aicc';

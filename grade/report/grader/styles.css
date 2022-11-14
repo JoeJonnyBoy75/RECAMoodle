@@ -79,7 +79,6 @@
 }
 
 .path-grade-report-grader .gradeparent .user.cell .userpicture {
-    margin: 0 4px;
     border: none;
     vertical-align: middle;
 }
@@ -120,6 +119,9 @@
  */
 .path-grade-report-grader .gradeparent .avg .cell {
     text-align: right;
+    max-width: 200px;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 /**
  * Content styling.
@@ -136,14 +138,6 @@
 
 .path-grade-report-grader .gradeparent .gradevalue {
     display: inline-block;
-}
-
-.path-grade-report-grader span.gradepass {
-    color: #298721;
-}
-
-.path-grade-report-grader span.gradefail {
-    color: #890d0d;
 }
 
 .path-grade-report-grader .gradeparent tr:nth-child(n) td.overridden:nth-child(n) {
@@ -171,8 +165,9 @@
  * Editing fields.
  */
 .path-grade-report-grader .gradeparent select {
-    margin: 0;
-    padding: 0;
+    text-overflow: ellipsis;
+    min-width: 8rem;
+    width: 100%;
 }
 
 .path-grade-report-grader .gradeparent .text {

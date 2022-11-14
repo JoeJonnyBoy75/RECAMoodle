@@ -1,0 +1,42 @@
+html[dir="rtl"] {
+    body#page-site-index.latest-frontpage {
+        section {
+            &.section-testimonial {
+                .testimonials-container {
+                    .authors {
+                        .profiles {
+                            right: 50%;
+                            left: unset;
+                        }
+                    }
+                    .transit-vertical {
+                        transform: translatex(-100%);
+                        &.next {
+                            transform: translatex(-100%) !important;
+                        }
+                        &.previous {
+                            transform: translatex(100%) !important;
+                        }
+                    }
+                }
+            }
+            &.section-slider {
+                .carousel-inner {
+                    @media only screen and (max-width: 600px) {
+                        .view,
+                        .view video,
+                        .carousel-item img {
+                            transform: translateX(50%);
+                            right: 50%;
+                        }
+                    }
+                }
+            }
+        }
+        .btn-floating.slick-arrow {
+            .icon {
+                transform: scale(-1, 1);
+            }
+        }
+    }
+}

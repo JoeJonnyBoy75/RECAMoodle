@@ -44,6 +44,12 @@ class tool_uploadcourse_course {
     /** Outcome of the process: deleting the course */
     const DO_DELETE = 3;
 
+    /** @var array assignable roles. */
+    protected $assignableroles = [];
+
+    /** @var array Roles context levels. */
+    protected $contextlevels = [];
+
     /** @var array final import data. */
     protected $data = array();
 
@@ -95,7 +101,7 @@ class tool_uploadcourse_course {
     /** @var array fields allowed as course data. */
     static protected $validfields = array('fullname', 'shortname', 'idnumber', 'category', 'visible', 'startdate', 'enddate',
         'summary', 'format', 'theme', 'lang', 'newsitems', 'showgrades', 'showreports', 'legacyfiles', 'maxbytes',
-        'groupmode', 'groupmodeforce', 'enablecompletion');
+        'groupmode', 'groupmodeforce', 'enablecompletion', 'downloadcontent');
 
     /** @var array fields required on course creation. */
     static protected $mandatoryfields = array('fullname', 'category');
@@ -412,7 +418,8 @@ class tool_uploadcourse_course {
      * @return bool false is any error occured.
      */
     public function prepare() {
-        global $DB, $SITE;
+        global $DB, $SITE, $CFG;
+
         $this->prepared = true;
 
         // Validate the shortname.
@@ -768,9 +775,41 @@ class tool_uploadcourse_course {
             return false;
         }
 
+        // Ensure that user is allowed to configure course content download and the field contains a valid value.
+        if (isset($coursedata['downloadcontent'])) {
+            if (!$CFG->downloadcoursecontentallowed ||
+                    !has_capability('moodle/course:configuredownloadcontent', $context)) {
+
+                $this->error('downloadcontentnotallowed', new lang_string('downloadcontentnotallowed', 'tool_uploadcourse'));
+                return false;
+            }
+
+            $downloadcontentvalues = [
+                DOWNLOAD_COURSE_CONTENT_DISABLED,
+                DOWNLOAD_COURSE_CONTENT_ENABLED,
+                DOWNLOAD_COURSE_CONTENT_SITE_DEFAULT,
+            ];
+            if (!in_array($coursedata['downloadcontent'], $downloadcontentvalues)) {
+                $this->error('invaliddownloadcontent', new lang_string('invaliddownloadcontent', 'tool_uploadcourse'));
+                return false;
+            }
+        }
+
         // Saving data.
         $this->data = $coursedata;
+
+        // Get enrolment data. Where the course already exists, we can also perform validation.
         $this->enrolmentdata = tool_uploadcourse_helper::get_enrolment_data($this->rawdata);
+        $courseid = $coursedata['id'] ?? 0;
+        $errors = $this->validate_enrolment_data($courseid, $this->enrolmentdata);
+
+        if (!empty($errors)) {
+            foreach ($errors as $key => $message) {
+                $this->error($key, $message);
+            }
+
+            return false;
+        }
 
         if (isset($this->rawdata['tags']) && strval($this->rawdata['tags']) !== '') {
             $this->data['tags'] = preg_split('/\s*,\s*/', trim($this->rawdata['tags']), -1, PREG_SPLIT_NO_EMPTY);
@@ -872,6 +911,94 @@ class tool_uploadcourse_course {
     }
 
     /**
+     * Validate passed enrolment data against an existing course
+     *
+     * @param int $courseid
+     * @param array[] $enrolmentdata
+     * @return lang_string[] Errors keyed on error code
+     */
+    protected function validate_enrolment_data(int $courseid, array $enrolmentdata): array {
+        global $DB;
+
+        // Nothing to validate.
+        if (empty($enrolmentdata)) {
+            return [];
+        }
+
+        $errors = [];
+
+        $enrolmentplugins = tool_uploadcourse_helper::get_enrolment_plugins();
+        $instances = enrol_get_instances($courseid, false);
+
+        foreach ($enrolmentdata as $method => $options) {
+
+            if (isset($options['role'])) {
+                $role = $options['role'];
+                if ($courseid) {
+                    if (!$this->validate_role_context($courseid, $role)) {
+                        $errors['contextrolenotallowed'] = new lang_string('contextrolenotallowed', 'core_role', $role);
+
+                        break;
+                    }
+                } else {
+                    // We can at least check that context level is correct while actual context not exist.
+                    $roleid = $DB->get_field('role', 'id', ['shortname' => $role], MUST_EXIST);
+                    if (!$this->validate_role_context_level($roleid)) {
+                        $errors['contextrolenotallowed'] = new lang_string('contextrolenotallowed', 'core_role', $role);
+
+                        break;
+                    }
+                }
+            }
+
+            if ($courseid) {
+                $plugin = $enrolmentplugins[$method];
+
+                // Find matching instances by enrolment method.
+                $methodinstances = array_filter($instances, static function (stdClass $instance) use ($method) {
+                    return (strcmp($instance->enrol, $method) == 0);
+                });
+
+                if (!empty($options['delete'])) {
+                    // Ensure user is able to delete the instances.
+                    foreach ($methodinstances as $methodinstance) {
+                        if (!$plugin->can_delete_instance($methodinstance)) {
+                            $errors['errorcannotdeleteenrolment'] = new lang_string('errorcannotdeleteenrolment',
+                                'tool_uploadcourse', $plugin->get_instance_name($methodinstance));
+                            break;
+                        }
+                    }
+                } else if (!empty($options['disable'])) {
+                    // Ensure user is able to toggle instance statuses.
+                    foreach ($methodinstances as $methodinstance) {
+                        if (!$plugin->can_hide_show_instance($methodinstance)) {
+                            $errors['errorcannotdisableenrolment'] =
+                                new lang_string('errorcannotdisableenrolment', 'tool_uploadcourse',
+                                    $plugin->get_instance_name($methodinstance));
+
+                            break;
+                        }
+                    }
+                } else {
+                    // Ensure user is able to create/update instance.
+                    $methodinstance = empty($methodinstances) ? null : reset($methodinstances);
+                    if ((empty($methodinstance) && !$plugin->can_add_instance($courseid)) ||
+                        (!empty($methodinstance) && !$plugin->can_edit_instance($methodinstance))) {
+
+                        $errors['errorcannotcreateorupdateenrolment'] =
+                            new lang_string('errorcannotcreateorupdateenrolment', 'tool_uploadcourse',
+                                $plugin->get_instance_name($methodinstance));
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
      * Add the enrolment data for the course.
      *
      * @param object $course course record.
@@ -902,36 +1029,53 @@ class tool_uploadcourse_course {
             unset($method['delete']);
             unset($method['disable']);
 
-            if (!empty($instance) && $todelete) {
+            if ($todelete) {
                 // Remove the enrolment method.
-                foreach ($instances as $instance) {
-                    if ($instance->enrol == $enrolmethod) {
-                        $plugin = $enrolmentplugins[$instance->enrol];
+                if ($instance) {
+                    $plugin = $enrolmentplugins[$instance->enrol];
+
+                    // Ensure user is able to delete the instance.
+                    if ($plugin->can_delete_instance($instance)) {
                         $plugin->delete_instance($instance);
-                        break;
-                    }
-                }
-            } else if (!empty($instance) && $todisable) {
-                // Disable the enrolment.
-                foreach ($instances as $instance) {
-                    if ($instance->enrol == $enrolmethod) {
-                        $plugin = $enrolmentplugins[$instance->enrol];
-                        $plugin->update_status($instance, ENROL_INSTANCE_DISABLED);
-                        $enrol_updated = true;
-                        break;
+                    } else {
+                        $this->error('errorcannotdeleteenrolment',
+                            new lang_string('errorcannotdeleteenrolment', 'tool_uploadcourse',
+                                $plugin->get_instance_name($instance)));
                     }
                 }
             } else {
-                $plugin = null;
-                if (empty($instance)) {
-                    $plugin = $enrolmentplugins[$enrolmethod];
-                    $instance = new stdClass();
-                    $instance->id = $plugin->add_default_instance($course);
+                // Create/update enrolment.
+                $plugin = $enrolmentplugins[$enrolmethod];
+
+                $status = ($todisable) ? ENROL_INSTANCE_DISABLED : ENROL_INSTANCE_ENABLED;
+
+                // Create a new instance if necessary.
+                if (empty($instance) && $plugin->can_add_instance($course->id)) {
+                    $instanceid = $plugin->add_default_instance($course);
+                    $instance = $DB->get_record('enrol', ['id' => $instanceid]);
                     $instance->roleid = $plugin->get_config('roleid');
-                    $instance->status = ENROL_INSTANCE_ENABLED;
-                } else {
-                    $plugin = $enrolmentplugins[$instance->enrol];
-                    $plugin->update_status($instance, ENROL_INSTANCE_ENABLED);
+                    // On creation the user can decide the status.
+                    $plugin->update_status($instance, $status);
+                }
+
+                // Check if the we need to update the instance status.
+                if ($instance && $status != $instance->status) {
+                    if ($plugin->can_hide_show_instance($instance)) {
+                        $plugin->update_status($instance, $status);
+                    } else {
+                        $this->error('errorcannotdisableenrolment',
+                            new lang_string('errorcannotdisableenrolment', 'tool_uploadcourse',
+                                $plugin->get_instance_name($instance)));
+                        break;
+                    }
+                }
+
+                if (empty($instance) || !$plugin->can_edit_instance($instance)) {
+                    $this->error('errorcannotcreateorupdateenrolment',
+                        new lang_string('errorcannotcreateorupdateenrolment', 'tool_uploadcourse',
+                            $plugin->get_instance_name($instance)));
+
+                    break;
                 }
 
                 // Now update values.
@@ -963,8 +1107,15 @@ class tool_uploadcourse_course {
                     $instance->enrolenddate = $instance->enrolstartdate;
                 }
 
-                // Sort out the given role. This does not filter the roles allowed in the course.
+                // Sort out the given role.
                 if (isset($method['role'])) {
+                    $role = $method['role'];
+                    if (!$this->validate_role_context($course->id, $role)) {
+                        $this->error('contextrolenotallowed',
+                            new lang_string('contextrolenotallowed', 'core_role', $role));
+                        break;
+                    }
+
                     $roleids = tool_uploadcourse_helper::get_role_ids();
                     if (isset($roleids[$method['role']])) {
                         $instance->roleid = $roleids[$method['role']];
@@ -975,6 +1126,41 @@ class tool_uploadcourse_course {
                 $DB->update_record('enrol', $instance);
             }
         }
+    }
+
+    /**
+     * Check if role is allowed in course context
+     *
+     * @param int $courseid course context.
+     * @param string $role Role.
+     * @return bool
+     */
+    protected function validate_role_context(int $courseid, string $role) : bool {
+        if (empty($this->assignableroles[$courseid])) {
+            $coursecontext = \context_course::instance($courseid);
+            $this->assignableroles[$courseid] = get_assignable_roles($coursecontext, ROLENAME_SHORT);
+        }
+        if (!in_array($role, $this->assignableroles[$courseid])) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Check if role is allowed at this context level.
+     *
+     * @param int $roleid Role ID.
+     * @return bool
+     */
+    protected function validate_role_context_level(int $roleid) : bool {
+        if (empty($this->contextlevels[$roleid])) {
+            $this->contextlevels[$roleid] = get_role_contextlevels($roleid);
+        }
+
+        if (!in_array(CONTEXT_COURSE, $this->contextlevels[$roleid])) {
+            return false;
+        }
+        return true;
     }
 
     /**

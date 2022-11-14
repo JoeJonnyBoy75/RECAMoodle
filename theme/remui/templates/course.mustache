@@ -50,64 +50,24 @@
 }}
 {{> theme_remui/common_start }}
 
-<section id="region-main" {{#hasblocks}}class="has-blocks mb-3"{{/hasblocks}} aria-label="{{#str}}content{{/str}}">
-    <div class="card card-body">
-        {{#hasregionmainsettingsmenu}}
-            <div class="region_main_settings_menu_proxy"></div>
-        {{/hasregionmainsettingsmenu}}
-        {{#notstudent}}
-            {{#iscoursestatsshow}}
-                {{> theme_remui/course_stats }}
-            {{/iscoursestatsshow}}
-        {{/notstudent}}
-        {{{ output.course_content_header }}}
-<div class="text-center opencloseallwrapper"><button class="course-open-all btn btn-primary px-25 show"><i class="fa fa-folder-open" aria-hidden="true"></i> Open All Sections</button> <button class="course-close-all btn btn-primary px-25 show"><i class="fa fa-folder" aria-hidden="true"></i> Close All Sections</button></div>
-        {{{ output.main_content }}}
-        {{{ output.activity_navigation }}}
-        {{{ output.course_content_footer }}}
-    </div> 
+<section id="region-main" aria-label="{{#str}}content{{/str}}">
+    {{#hasregionmainsettingsmenu}}
+        <div class="region_main_settings_menu_proxy"></div>
+    {{/hasregionmainsettingsmenu}}
+    {{{ output.course_content_header }}}
+    {{#headercontent}}
+        {{> core/activity_header }}
+    {{/headercontent}}
+    {{#overflow}}
+        <div class="container-fluid tertiary-navigation">
+            <div class="navitem">
+                {{> core/url_select}}
+            </div>
+        </div>
+    {{/overflow}}
+    {{{ output.main_content }}}
+    {{{ output.activity_navigation }}}
+    {{{ output.course_content_footer }}}
 </section>
 
 {{> theme_remui/common_end }}
-{{#js}}
-    require(['jquery', 'core/ajax', 'theme_remui/loader'], function ($, Ajax) {
-        Breakpoints();
-        // Topics click in sidebar 
-        window.addEventListener("hashchange", function () {
-            window.scrollTo(window.scrollX, window.scrollY - 80);
-        });
-        function getUrlParameter(sParam) {
-            var sPageURL = decodeURIComponent(window.location.search.substring(1)),
-            sURLVariables = sPageURL.split('&'),
-            sParameterName,
-            i;
-
-            for (i = 0; i < sURLVariables.length; i++) {
-                sParameterName = sURLVariables[i].split('=');
-
-                if (sParameterName[0] === sParam) {
-                    return sParameterName[1] === undefined ? true : sParameterName[1];
-                }
-            }
-        }
-        {{#iscoursestatsshow}}
-            let courseid = getUrlParameter('id');
-            let service_name = 'theme_remui_get_course_stats';
-            let cstats = Ajax.call([
-                {
-                    methodname: service_name,
-                    args: { courseid : courseid }
-                }
-            ]);
-            cstats[0].done(function(response) {
-                // When course stats block is ready then render the respose value
-                $('.course-stats').ready(function() {
-                    $.each(response, function(index, value) {
-                        var courseStatsDiv = '#wdm_course-stats .stats-card .course-stats-' + index;
-                        $(courseStatsDiv).text(value);
-                    })
-                });
-            });
-        {{/iscoursestatsshow}}
-    });
-{{/js}}

@@ -34,15 +34,21 @@ $help = "Command line tool to uninstall plugins.
 Options:
     -h --help                   Print this help.
     --show-all                  Displays a list of all installed plugins.
+    --show-contrib              Displays a list of all third-party installed plugins.
     --show-missing              Displays a list of plugins missing from disk.
     --purge-missing             Uninstall all missing from disk plugins.
     --plugins=<plugin name>     A comma separated list of plugins to be uninstalled. E.g. mod_assign,mod_forum
     --run                       Execute uninstall. If this option is not set, then the script will be run in a dry mode.
+    --showsql                   Show sql queries before they are executed.
+    --showdebugging             Show developer level debugging information.
 
 Examples:
 
     # php uninstall_plugins.php  --show-all
         Prints tab-separated list of all installed plugins.
+
+    # php uninstall_plugins.php  --show-contrib
+        Prints tab-separated list of all third-party installed plugins.
 
     # php uninstall_plugins.php  --show-missing
         Prints tab-separated list of all missing from disk plugins.
@@ -63,10 +69,13 @@ Examples:
 list($options, $unrecognised) = cli_get_params([
     'help' => false,
     'show-all' => false,
+    'show-contrib' => false,
     'show-missing' => false,
     'purge-missing' => false,
     'plugins' => false,
     'run' => false,
+    'showsql' => false,
+    'showdebugging' => false,
 ], [
     'h' => 'help'
 ]);
@@ -81,15 +90,26 @@ if ($options['help']) {
     exit(0);
 }
 
+if ($options['showdebugging']) {
+    set_debugging(DEBUG_DEVELOPER, true);
+}
+
+if ($options['showsql']) {
+    $DB->set_debug(true);
+}
+
 $pluginman = core_plugin_manager::instance();
 $plugininfo = $pluginman->get_plugins();
 
-if ($options['show-all'] || $options['show-missing']) {
+if ($options['show-all'] || $options['show-missing'] || $options['show-contrib']) {
     foreach ($plugininfo as $type => $plugins) {
         foreach ($plugins as $name => $plugin) {
+            if ($options['show-contrib'] && $plugin->is_standard()) {
+                continue;
+            }
             $pluginstring = $plugin->component . "\t" . $plugin->displayname;
 
-            if ($options['show-all']) {
+            if ($options['show-all'] || $options['show-contrib']) {
                 cli_writeln($pluginstring);
             } else {
                 if ($plugin->get_status() === core_plugin_manager::PLUGIN_STATUS_MISSING) {

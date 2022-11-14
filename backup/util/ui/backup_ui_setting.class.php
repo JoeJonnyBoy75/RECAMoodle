@@ -146,11 +146,18 @@ class base_setting_ui {
      * @throws base_setting_ui_exception when the label is not valid.
      * @param string $label
      */
-    public function set_label($label) {
-        $label = (string)$label;
-        if ($label === '' || $label !== clean_param($label, PARAM_TEXT)) {
+    public function set_label(string $label): void {
+        // Let's avoid empty/whitespace-only labels, so the html clean (that makes trim()) doesn't fail.
+        if (trim($label) === '') {
+            $label = '&nbsp;'; // Will be converted to non-breaking utf-8 char 0xc2a0 by PARAM_CLEANHTML.
+        }
+
+        $label = clean_param($label, PARAM_CLEANHTML);
+
+        if ($label === '') {
             throw new base_setting_ui_exception('setting_invalid_ui_label');
         }
+
         $this->label = $label;
     }
 

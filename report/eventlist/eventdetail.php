@@ -108,7 +108,7 @@ if (!empty($typeparams[2])) {
 }
 
 // Retrieving the 'other' event field information.
-$otherpattern = "/(\*\s{5}-([\w|\s]*\:[\w|\s|\(|\)|.]*))/";
+$otherpattern = "/(\*\s{5,}-([\w|\s]*\:[\w|\s|\(|\)|.]*))/";
 $typeparams = array();
 preg_match_all($otherpattern, $eventcontents, $typeparams);
 if (!empty($typeparams[2])) {
@@ -133,6 +133,9 @@ if (isset($allobserverslist['\\core\\event\\base'])) {
 if (isset($allobserverslist[$eventname])) {
     $observers = array_merge($observers, $allobserverslist[$eventname]);
 }
+
+$PAGE->set_primary_active_tab('siteadminnode');
+$PAGE->set_secondary_active_tab('reports');
 
 // OUTPUT.
 $renderer = $PAGE->get_renderer('report_eventlist');

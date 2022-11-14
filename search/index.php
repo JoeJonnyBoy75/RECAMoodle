@@ -58,13 +58,12 @@ $searchrenderer = $PAGE->get_renderer('core_search');
 if (\core_search\manager::is_global_search_enabled() === false) {
     $PAGE->set_url(new moodle_url('/search/index.php'));
     echo $OUTPUT->header();
-    echo $OUTPUT->heading($pagetitle);
     echo $searchrenderer->render_search_disabled();
     echo $OUTPUT->footer();
     exit;
 }
 
-$search = \core_search\manager::instance(true);
+$search = \core_search\manager::instance(true, true);
 
 // Set up custom data for form.
 $customdata = ['searchengine' => $search->get_engine()->get_plugin_name()];
@@ -169,11 +168,15 @@ $PAGE->set_url($url);
 
 // We are ready to render.
 echo $OUTPUT->header();
-echo $OUTPUT->heading($pagetitle);
 
 // Get the results.
 if ($data) {
     $results = $search->paged_search($data, $page);
+}
+
+// Show search information if configured by system administrator.
+if ($CFG->searchbannerenable && $CFG->searchbanner) {
+    echo $OUTPUT->notification(format_text($CFG->searchbanner, FORMAT_HTML), 'notifywarning');
 }
 
 if ($errorstr = $search->get_engine()->get_query_error()) {
@@ -185,6 +188,10 @@ if ($errorstr = $search->get_engine()->get_query_error()) {
 $mform->display();
 
 if (!empty($results)) {
+    $topresults = $search->search_top($data);
+    if (!empty($topresults)) {
+        echo $searchrenderer->render_top_results($topresults);
+    }
     echo $searchrenderer->render_results($results->results, $results->actualpage, $results->totalcount, $url, $cat);
 
     \core_search\manager::trigger_search_results_viewed([

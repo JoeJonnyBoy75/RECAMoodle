@@ -91,7 +91,7 @@ class XHProfRuns_Default implements iXHProfRuns {
     // if specified, else we default to the directory
     // in which the error_log file resides.
 
-    if (empty($dir)) {
+    if (empty($dir) && !($dir = getenv('XHPROF_OUTPUT_DIR'))) {
       $dir = ini_get("xhprof.output_dir");
       if (empty($dir)) {
 
@@ -101,7 +101,7 @@ class XHProfRuns_Default implements iXHProfRuns {
                      "Trying {$dir} as default. You can either pass the " .
                      "directory location as an argument to the constructor ".
                      "for XHProfRuns_Default() or set xhprof.output_dir ".
-                     "ini param.");
+                     "ini param, or set XHPROF_OUTPUT_DIR environment variable.");
       }
     }
     $this->dir = $dir;
@@ -149,9 +149,7 @@ class XHProfRuns_Default implements iXHProfRuns {
     if (is_dir($this->dir)) {
         echo "<hr/>Existing runs:\n<ul>\n";
         $files = glob("{$this->dir}/*.{$this->suffix}");
-        usort($files, function($a, $b) {
-            return filemtime($b) - filemtime($a);
-        });
+		usort($files, function($a, $b) {return filemtime($b) - filemtime($a);});
         foreach ($files as $file) {
             list($run,$source) = explode('.', basename($file));
             echo '<li><a href="' . htmlentities($_SERVER['SCRIPT_NAME'])

@@ -26,11 +26,11 @@ Feature: Access to full profiles of users
 
   Scenario: Viewing full profiles with default settings
     When I log in as "student1"
+    # Another student's full profile is visible
     And I am on "Course 1" course homepage
-    # Another student's full profile is not visible
     And I navigate to course participants
     And I follow "Student 2"
-    Then I should not see "Full profile"
+    Then I should see "Full profile"
     # Teacher's full profile is visible
     And I am on "Course 1" course homepage
     And I navigate to course participants
@@ -66,6 +66,14 @@ Feature: Access to full profiles of users
     And I follow "Full profile"
     Then I should see "First access to site"
 
+  Scenario: Viewing full profiles of students as a teacher
+    When I log in as "teacher1"
+    And I am on "Course 1" course homepage
+    And I navigate to course participants
+    And I follow "Student 1"
+    And I follow "Full profile"
+    Then I should see "First access to site"
+
   Scenario: Viewing own full profile
     Given I log in as "student1"
     When I follow "Profile" in the user menu
@@ -94,7 +102,7 @@ Feature: Access to full profiles of users
   Scenario: View full profiles of someone in the same group in a course with separate groups.
     Given I log in as "admin"
     And I am on "Course 1" course homepage
-    And I navigate to "Edit settings" in current page administration
+    And I navigate to "Settings" in current page administration
     And I set the following fields to these values:
       | Group mode | Separate groups |
       | Force group mode | Yes |
@@ -109,8 +117,7 @@ Feature: Access to full profiles of users
     And I should see "The details of this user are not available to you"
     And I log out
     And I log in as "admin"
-    And I am on "Course 1" course homepage
-    And I navigate to "Users > Groups" in current page administration
+    And I am on the "Course 1" "groups" page
     And I press "Create group"
     And I set the following fields to these values:
       | Group name | Group 1 |
@@ -121,3 +128,19 @@ Feature: Access to full profiles of users
     And I log in as "student1"
     And I view the "Student 2" contact in the message area
     Then I should see "First access to site"
+
+  @javascript
+  Scenario: Accessibility, users can not click on profile image when on user's profile page.
+    Given I log in as "admin"
+    And I am on "Course 1" course homepage
+    When I navigate to course participants
+    Then "//img[contains(@class, 'userpicture')]" "xpath_element" should exist
+    And "//a/child::img[contains(@class, 'userpicture')]" "xpath_element" should exist
+    When I follow "Teacher 1"
+    Then I should see "Teacher 1"
+    And "//img[contains(@class, 'userpicture')]" "xpath_element" should exist
+    And "//a/child::img[contains(@class, 'userpicture')]" "xpath_element" should not exist
+    When I follow "Full profile"
+    And I should see "Teacher 1"
+    Then "//img[contains(@class, 'userpicture')]" "xpath_element" should exist
+    And "//a/child::img[contains(@class, 'userpicture')]" "xpath_element" should not exist

@@ -17,11 +17,17 @@
 /**
  * Unit tests for /lib/filelib.php.
  *
- * @package   core_files
- * @category  phpunit
+ * @package   core
+ * @category  test
  * @copyright 2009 Jerome Mouneyrac
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+namespace core;
+
+use core_filetypes;
+use curl;
+use repository;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -29,7 +35,15 @@ global $CFG;
 require_once($CFG->libdir . '/filelib.php');
 require_once($CFG->dirroot . '/repository/lib.php');
 
-class core_filelib_testcase extends advanced_testcase {
+/**
+ * Unit tests for /lib/filelib.php.
+ *
+ * @package   core
+ * @category  test
+ * @copyright 2009 Jerome Mouneyrac
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class filelib_test extends \advanced_testcase {
     public function test_format_postdata_for_curlcall() {
 
         // POST params with just simple types.
@@ -104,7 +118,7 @@ class core_filelib_testcase extends advanced_testcase {
         $this->assertInstanceOf('stdClass', $response);
         $this->assertSame('200', $response->status);
         $this->assertTrue(is_array($response->headers));
-        $this->assertRegExp('|^HTTP/1\.[01] 200 OK$|', rtrim($response->response_code));
+        $this->assertMatchesRegularExpression('|^HTTP/1\.[01] 200 OK$|', rtrim($response->response_code));
         $this->assertSame($contents, $response->results);
         $this->assertSame('', $response->error);
 
@@ -128,7 +142,7 @@ class core_filelib_testcase extends advanced_testcase {
         $this->assertInstanceOf('stdClass', $response);
         $this->assertSame('404', $response->status);
         $this->assertTrue(is_array($response->headers));
-        $this->assertRegExp('|^HTTP/1\.[01] 404 Not Found$|', rtrim($response->response_code));
+        $this->assertMatchesRegularExpression('|^HTTP/1\.[01] 404 Not Found$|', rtrim($response->response_code));
         // Do not test the response starts with DOCTYPE here because some servers may return different headers.
         $this->assertSame('', $response->error);
 
@@ -145,11 +159,22 @@ class core_filelib_testcase extends advanced_testcase {
         $contents = download_file_content("$testurl?redir=2");
         $this->assertSame('done', $contents);
 
+        $contents = download_file_content("$testurl?redir=2&verbose=1");
+        $this->assertSame('done', $contents);
+
         $response = download_file_content("$testurl?redir=2", null, null, true);
         $this->assertInstanceOf('stdClass', $response);
         $this->assertSame('200', $response->status);
         $this->assertTrue(is_array($response->headers));
-        $this->assertRegExp('|^HTTP/1\.[01] 200 OK$|', rtrim($response->response_code));
+        $this->assertMatchesRegularExpression('|^HTTP/1\.[01] 200 OK$|', rtrim($response->response_code));
+        $this->assertSame('done', $response->results);
+        $this->assertSame('', $response->error);
+
+        $response = download_file_content("$testurl?redir=2&verbose=1", null, null, true);
+        $this->assertInstanceOf('stdClass', $response);
+        $this->assertSame('200', $response->status);
+        $this->assertTrue(is_array($response->headers));
+        $this->assertMatchesRegularExpression('|^HTTP/1\.[01] 200 OK$|', rtrim($response->response_code));
         $this->assertSame('done', $response->results);
         $this->assertSame('', $response->error);
 
@@ -185,12 +210,12 @@ class core_filelib_testcase extends advanced_testcase {
         // Test HTTP success.
         $testhtml = $this->getExternalTestFileUrl('/test.html');
 
-        $curl = new curl();
+        $curl = new \curl();
         $contents = $curl->get($testhtml);
         $this->assertSame('47250a973d1b88d9445f94db4ef2c97a', md5($contents));
         $this->assertSame(0, $curl->get_errno());
 
-        $curl = new curl();
+        $curl = new \curl();
         $tofile = "$CFG->tempdir/test.html";
         @unlink($tofile);
         $fp = fopen($tofile, 'w');
@@ -201,7 +226,7 @@ class core_filelib_testcase extends advanced_testcase {
         $this->assertSame($contents, file_get_contents($tofile));
         @unlink($tofile);
 
-        $curl = new curl();
+        $curl = new \curl();
         $tofile = "$CFG->tempdir/test.html";
         @unlink($tofile);
         $result = $curl->download_one($testhtml, array(), array('filepath'=>$tofile));
@@ -211,7 +236,7 @@ class core_filelib_testcase extends advanced_testcase {
         @unlink($tofile);
 
         // Test 404 request.
-        $curl = new curl();
+        $curl = new \curl();
         $contents = $curl->get($this->getExternalTestFileUrl('/i.do.not.exist'));
         $response = $curl->getResponse();
         $this->assertSame('404 Not Found', reset($response));
@@ -226,12 +251,12 @@ class core_filelib_testcase extends advanced_testcase {
 
         // Test a request with a basic hostname filter applied.
         $testhtml = $this->getExternalTestFileUrl('/test.html');
-        $url = new moodle_url($testhtml);
+        $url = new \moodle_url($testhtml);
         $host = $url->get_host();
         set_config('curlsecurityblockedhosts', $host); // Blocks $host.
 
         // Create curl with the default security enabled. We expect this to be blocked.
-        $curl = new curl();
+        $curl = new \curl();
         $contents = $curl->get($testhtml);
         $expected = $curl->get_security()->get_blocked_url_string();
         $this->assertSame($expected, $contents);
@@ -239,7 +264,7 @@ class core_filelib_testcase extends advanced_testcase {
 
         // Now, create a curl using the 'ignoresecurity' override.
         // We expect this request to pass, despite the admin setting having been set earlier.
-        $curl = new curl(['ignoresecurity' => true]);
+        $curl = new \curl(['ignoresecurity' => true]);
         $contents = $curl->get($testhtml);
         $this->assertSame('47250a973d1b88d9445f94db4ef2c97a', md5($contents));
         $this->assertSame(0, $curl->get_errno());
@@ -253,7 +278,7 @@ class core_filelib_testcase extends advanced_testcase {
         // And make the mock security helper block all URLs. This helper instance doesn't care about config.
         $mockhelper->expects($this->any())->method('url_is_blocked')->will($this->returnValue(true));
 
-        $curl = new curl(['securityhelper' => $mockhelper]);
+        $curl = new \curl(['securityhelper' => $mockhelper]);
         $contents = $curl->get($testhtml);
         $this->assertSame('You shall not pass', $curl->get_security()->get_blocked_url_string());
         $this->assertSame($curl->get_security()->get_blocked_url_string(), $contents);
@@ -262,10 +287,9 @@ class core_filelib_testcase extends advanced_testcase {
     public function test_curl_redirects() {
         global $CFG;
 
-        // Test full URL redirects.
         $testurl = $this->getExternalTestFileUrl('/test_redir.php');
 
-        $curl = new curl();
+        $curl = new \curl();
         $contents = $curl->get("$testurl?redir=2", array(), array('CURLOPT_MAXREDIRS'=>2));
         $response = $curl->getResponse();
         $this->assertSame('200 OK', reset($response));
@@ -273,10 +297,22 @@ class core_filelib_testcase extends advanced_testcase {
         $this->assertSame(2, $curl->info['redirect_count']);
         $this->assertSame('done', $contents);
 
-        $curl = new curl();
+        // All redirects are emulated now. Enabling "emulateredirects" explicitly does not have effect.
+        $curl = new \curl();
         $curl->emulateredirects = true;
         $contents = $curl->get("$testurl?redir=2", array(), array('CURLOPT_MAXREDIRS'=>2));
         $response = $curl->getResponse();
+        $this->assertSame('200 OK', reset($response));
+        $this->assertSame(0, $curl->get_errno());
+        $this->assertSame(2, $curl->info['redirect_count']);
+        $this->assertSame('done', $contents);
+
+        // All redirects are emulated now. Attempting to disable "emulateredirects" explicitly causes warning.
+        $curl = new \curl();
+        $curl->emulateredirects = false;
+        $contents = $curl->get("$testurl?redir=2", array(), array('CURLOPT_MAXREDIRS' => 2));
+        $response = $curl->getResponse();
+        $this->assertDebuggingCalled('Attempting to disable emulated redirects has no effect any more!');
         $this->assertSame('200 OK', reset($response));
         $this->assertSame(0, $curl->get_errno());
         $this->assertSame(2, $curl->info['redirect_count']);
@@ -292,7 +328,7 @@ class core_filelib_testcase extends advanced_testcase {
             $responsecode302 = '302 Found';
         }
 
-        $curl = new curl();
+        $curl = new \curl();
         $contents = $curl->get("$testurl?redir=3", array(), array('CURLOPT_FOLLOWLOCATION'=>0));
         $response = $curl->getResponse();
         $this->assertSame($responsecode302, reset($response));
@@ -300,27 +336,12 @@ class core_filelib_testcase extends advanced_testcase {
         $this->assertSame(302, $curl->info['http_code']);
         $this->assertSame('', $contents);
 
-        $curl = new curl();
-        $curl->emulateredirects = true;
-        $contents = $curl->get("$testurl?redir=3", array(), array('CURLOPT_FOLLOWLOCATION'=>0));
-        $response = $curl->getResponse();
-        $this->assertSame($responsecode302, reset($response));
-        $this->assertSame(0, $curl->get_errno());
-        $this->assertSame(302, $curl->info['http_code']);
-        $this->assertSame('', $contents);
-
-        $curl = new curl();
+        $curl = new \curl();
         $contents = $curl->get("$testurl?redir=2", array(), array('CURLOPT_MAXREDIRS'=>1));
         $this->assertSame(CURLE_TOO_MANY_REDIRECTS, $curl->get_errno());
         $this->assertNotEmpty($contents);
 
-        $curl = new curl();
-        $curl->emulateredirects = true;
-        $contents = $curl->get("$testurl?redir=2", array(), array('CURLOPT_MAXREDIRS'=>1));
-        $this->assertSame(CURLE_TOO_MANY_REDIRECTS, $curl->get_errno());
-        $this->assertNotEmpty($contents);
-
-        $curl = new curl();
+        $curl = new \curl();
         $tofile = "$CFG->tempdir/test.html";
         @unlink($tofile);
         $fp = fopen($tofile, 'w');
@@ -331,19 +352,18 @@ class core_filelib_testcase extends advanced_testcase {
         $this->assertSame('done', file_get_contents($tofile));
         @unlink($tofile);
 
-        $curl = new curl();
-        $curl->emulateredirects = true;
+        $curl = new \curl();
         $tofile = "$CFG->tempdir/test.html";
         @unlink($tofile);
         $fp = fopen($tofile, 'w');
-        $result = $curl->get("$testurl?redir=1", array(), array('CURLOPT_FILE'=>$fp));
+        $result = $curl->get("$testurl?redir=1&verbose=1", array(), array('CURLOPT_FILE' => $fp));
         $this->assertTrue($result);
         fclose($fp);
         $this->assertFileExists($tofile);
         $this->assertSame('done', file_get_contents($tofile));
         @unlink($tofile);
 
-        $curl = new curl();
+        $curl = new \curl();
         $tofile = "$CFG->tempdir/test.html";
         @unlink($tofile);
         $result = $curl->download_one("$testurl?redir=1", array(), array('filepath'=>$tofile));
@@ -352,31 +372,54 @@ class core_filelib_testcase extends advanced_testcase {
         $this->assertSame('done', file_get_contents($tofile));
         @unlink($tofile);
 
-        $curl = new curl();
-        $curl->emulateredirects = true;
+        $curl = new \curl();
         $tofile = "$CFG->tempdir/test.html";
         @unlink($tofile);
-        $result = $curl->download_one("$testurl?redir=1", array(), array('filepath'=>$tofile));
+        $result = $curl->download_one("$testurl?redir=1&verbose=1", array(), array('filepath' => $tofile));
         $this->assertTrue($result);
         $this->assertFileExists($tofile);
         $this->assertSame('done', file_get_contents($tofile));
         @unlink($tofile);
     }
 
+    /**
+     * Test that redirects to blocked hosts are blocked.
+     */
+    public function test_curl_blocked_redirect() {
+        $this->resetAfterTest();
+
+        $testurl = $this->getExternalTestFileUrl('/test_redir.php');
+
+        // Block a host.
+        // Note: moodle.com is the URL redirected to when test_redir.php has the param extdest=1 set.
+        set_config('curlsecurityblockedhosts', 'moodle.com');
+
+        // Redirecting to a non-blocked host should resolve.
+        $curl = new \curl();
+        $contents = $curl->get("{$testurl}?redir=2");
+        $response = $curl->getResponse();
+        $this->assertSame('200 OK', reset($response));
+        $this->assertSame(0, $curl->get_errno());
+
+        // Redirecting to the blocked host should fail.
+        $curl = new \curl();
+        $blockedstring = $curl->get_security()->get_blocked_url_string();
+        $contents = $curl->get("{$testurl}?redir=1&extdest=1");
+        $this->assertSame($blockedstring, $contents);
+        $this->assertSame(0, $curl->get_errno());
+
+        // Redirecting to the blocked host after multiple successful redirects should also fail.
+        $curl = new \curl();
+        $contents = $curl->get("{$testurl}?redir=3&extdest=1");
+        $this->assertSame($blockedstring, $contents);
+        $this->assertSame(0, $curl->get_errno());
+    }
+
     public function test_curl_relative_redirects() {
         // Test relative location redirects.
         $testurl = $this->getExternalTestFileUrl('/test_relative_redir.php');
 
-        $curl = new curl();
-        $contents = $curl->get($testurl);
-        $response = $curl->getResponse();
-        $this->assertSame('200 OK', reset($response));
-        $this->assertSame(0, $curl->get_errno());
-        $this->assertSame(1, $curl->info['redirect_count']);
-        $this->assertSame('done', $contents);
-
-        $curl = new curl();
-        $curl->emulateredirects = true;
+        $curl = new \curl();
         $contents = $curl->get($testurl);
         $response = $curl->getResponse();
         $this->assertSame('200 OK', reset($response));
@@ -387,7 +430,7 @@ class core_filelib_testcase extends advanced_testcase {
         // Test different redirect types.
         $testurl = $this->getExternalTestFileUrl('/test_relative_redir.php');
 
-        $curl = new curl();
+        $curl = new \curl();
         $contents = $curl->get("$testurl?type=301");
         $response = $curl->getResponse();
         $this->assertSame('200 OK', reset($response));
@@ -395,16 +438,7 @@ class core_filelib_testcase extends advanced_testcase {
         $this->assertSame(1, $curl->info['redirect_count']);
         $this->assertSame('done', $contents);
 
-        $curl = new curl();
-        $curl->emulateredirects = true;
-        $contents = $curl->get("$testurl?type=301");
-        $response = $curl->getResponse();
-        $this->assertSame('200 OK', reset($response));
-        $this->assertSame(0, $curl->get_errno());
-        $this->assertSame(1, $curl->info['redirect_count']);
-        $this->assertSame('done', $contents);
-
-        $curl = new curl();
+        $curl = new \curl();
         $contents = $curl->get("$testurl?type=302");
         $response = $curl->getResponse();
         $this->assertSame('200 OK', reset($response));
@@ -412,16 +446,7 @@ class core_filelib_testcase extends advanced_testcase {
         $this->assertSame(1, $curl->info['redirect_count']);
         $this->assertSame('done', $contents);
 
-        $curl = new curl();
-        $curl->emulateredirects = true;
-        $contents = $curl->get("$testurl?type=302");
-        $response = $curl->getResponse();
-        $this->assertSame('200 OK', reset($response));
-        $this->assertSame(0, $curl->get_errno());
-        $this->assertSame(1, $curl->info['redirect_count']);
-        $this->assertSame('done', $contents);
-
-        $curl = new curl();
+        $curl = new \curl();
         $contents = $curl->get("$testurl?type=303");
         $response = $curl->getResponse();
         $this->assertSame('200 OK', reset($response));
@@ -429,16 +454,7 @@ class core_filelib_testcase extends advanced_testcase {
         $this->assertSame(1, $curl->info['redirect_count']);
         $this->assertSame('done', $contents);
 
-        $curl = new curl();
-        $curl->emulateredirects = true;
-        $contents = $curl->get("$testurl?type=303");
-        $response = $curl->getResponse();
-        $this->assertSame('200 OK', reset($response));
-        $this->assertSame(0, $curl->get_errno());
-        $this->assertSame(1, $curl->info['redirect_count']);
-        $this->assertSame('done', $contents);
-
-        $curl = new curl();
+        $curl = new \curl();
         $contents = $curl->get("$testurl?type=307");
         $response = $curl->getResponse();
         $this->assertSame('200 OK', reset($response));
@@ -446,32 +462,13 @@ class core_filelib_testcase extends advanced_testcase {
         $this->assertSame(1, $curl->info['redirect_count']);
         $this->assertSame('done', $contents);
 
-        $curl = new curl();
-        $curl->emulateredirects = true;
-        $contents = $curl->get("$testurl?type=307");
-        $response = $curl->getResponse();
-        $this->assertSame('200 OK', reset($response));
-        $this->assertSame(0, $curl->get_errno());
-        $this->assertSame(1, $curl->info['redirect_count']);
-        $this->assertSame('done', $contents);
-
-        $curl = new curl();
+        $curl = new \curl();
         $contents = $curl->get("$testurl?type=308");
         $response = $curl->getResponse();
         $this->assertSame('200 OK', reset($response));
         $this->assertSame(0, $curl->get_errno());
         $this->assertSame(1, $curl->info['redirect_count']);
         $this->assertSame('done', $contents);
-
-        $curl = new curl();
-        $curl->emulateredirects = true;
-        $contents = $curl->get("$testurl?type=308");
-        $response = $curl->getResponse();
-        $this->assertSame('200 OK', reset($response));
-        $this->assertSame(0, $curl->get_errno());
-        $this->assertSame(1, $curl->info['redirect_count']);
-        $this->assertSame('done', $contents);
-
     }
 
     public function test_curl_proxybypass() {
@@ -484,7 +481,7 @@ class core_filelib_testcase extends advanced_testcase {
         // Test without proxy bypass and inaccessible proxy.
         $CFG->proxyhost = 'i.do.not.exist';
         $CFG->proxybypass = '';
-        $curl = new curl();
+        $curl = new \curl();
         $contents = $curl->get($testurl);
         $this->assertNotEquals(0, $curl->get_errno());
         $this->assertNotEquals('47250a973d1b88d9445f94db4ef2c97a', md5($contents));
@@ -492,7 +489,7 @@ class core_filelib_testcase extends advanced_testcase {
         // Test with proxy bypass.
         $testurlhost = parse_url($testurl, PHP_URL_HOST);
         $CFG->proxybypass = $testurlhost;
-        $curl = new curl();
+        $curl = new \curl();
         $contents = $curl->get($testurl);
         $this->assertSame(0, $curl->get_errno());
         $this->assertSame('47250a973d1b88d9445f94db4ef2c97a', md5($contents));
@@ -507,7 +504,7 @@ class core_filelib_testcase extends advanced_testcase {
     public function test_duplicate_curl_header() {
         $testurl = $this->getExternalTestFileUrl('/test_post.php');
 
-        $curl = new curl();
+        $curl = new \curl();
         $headerdata = 'Accept: application/json';
         $header = [$headerdata, $headerdata];
         $this->assertCount(2, $header);
@@ -520,7 +517,7 @@ class core_filelib_testcase extends advanced_testcase {
         $testurl = $this->getExternalTestFileUrl('/test_post.php');
 
         // Test post request.
-        $curl = new curl();
+        $curl = new \curl();
         $contents = $curl->post($testurl, 'data=moodletest');
         $response = $curl->getResponse();
         $this->assertSame('200 OK', reset($response));
@@ -528,7 +525,7 @@ class core_filelib_testcase extends advanced_testcase {
         $this->assertSame('OK', $contents);
 
         // Test 100 requests.
-        $curl = new curl();
+        $curl = new \curl();
         $curl->setHeader('Expect: 100-continue');
         $contents = $curl->post($testurl, 'data=moodletest');
         $response = $curl->getResponse();
@@ -543,7 +540,7 @@ class core_filelib_testcase extends advanced_testcase {
 
         $fs = get_file_storage();
         $filerecord = array(
-            'contextid' => context_system::instance()->id,
+            'contextid' => \context_system::instance()->id,
             'component' => 'test',
             'filearea' => 'curl_post',
             'itemid' => 0,
@@ -555,7 +552,7 @@ class core_filelib_testcase extends advanced_testcase {
 
         // Test post with file.
         $data = array('testfile' => $testfile);
-        $curl = new curl();
+        $curl = new \curl();
         $contents = $curl->post($testurl, $data);
         $this->assertSame('OK', $contents);
     }
@@ -566,7 +563,7 @@ class core_filelib_testcase extends advanced_testcase {
 
         $fs = get_file_storage();
         $filerecord = array(
-            'contextid' => context_system::instance()->id,
+            'contextid' => \context_system::instance()->id,
             'component' => 'test',
             'filearea' => 'curl_post',
             'itemid' => 0,
@@ -578,7 +575,7 @@ class core_filelib_testcase extends advanced_testcase {
 
         // Test post with file.
         $data = array('testfile' => $testfile);
-        $curl = new curl();
+        $curl = new \curl();
         $contents = $curl->post($testurl, $data);
         $this->assertSame('OK', $contents);
     }
@@ -587,7 +584,7 @@ class core_filelib_testcase extends advanced_testcase {
 
         // HTTP and HTTPS requests were verified in previous requests. Now check
         // that we can selectively disable some protocols.
-        $curl = new curl();
+        $curl = new \curl();
 
         // Other protocols than HTTP(S) are disabled by default.
         $testurl = 'file:///';
@@ -635,7 +632,7 @@ class core_filelib_testcase extends advanced_testcase {
 
         $generator = $this->getDataGenerator();
         $user = $generator->create_user();
-        $usercontext = context_user::instance($user->id);
+        $usercontext = \context_user::instance($user->id);
         $USER = $DB->get_record('user', array('id'=>$user->id));
 
         $repositorypluginname = 'user';
@@ -648,7 +645,7 @@ class core_filelib_testcase extends advanced_testcase {
 
         $fs = get_file_storage();
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
         $component = 'core';
         $filearea  = 'unittest';
         $itemid    = 0;
@@ -671,7 +668,7 @@ class core_filelib_testcase extends advanced_testcase {
         $this->assertInstanceOf('stored_file', $originalfile);
 
         // Create a user private file.
-        $userfilerecord = new stdClass;
+        $userfilerecord = new \stdClass;
         $userfilerecord->contextid = $usercontext->id;
         $userfilerecord->component = 'user';
         $userfilerecord->filearea  = 'private';
@@ -691,7 +688,7 @@ class core_filelib_testcase extends advanced_testcase {
         $this->assertEquals($userrepository->id, $fileref->get_repository_id());
         $this->assertSame($userfile->get_contenthash(), $fileref->get_contenthash());
         $this->assertEquals($userfile->get_filesize(), $fileref->get_filesize());
-        $this->assertRegExp('#' . $userfile->get_filename(). '$#', $fileref->get_reference_details());
+        $this->assertMatchesRegularExpression('#' . $userfile->get_filename(). '$#', $fileref->get_reference_details());
 
         $draftitemid = 0;
         file_prepare_draft_area($draftitemid, $syscontext->id, $component, $filearea, $itemid);
@@ -746,7 +743,7 @@ class core_filelib_testcase extends advanced_testcase {
 
         $generator = $this->getDataGenerator();
         $user = $generator->create_user();
-        $usercontext = context_user::instance($user->id);
+        $usercontext = \context_user::instance($user->id);
         $USER = $DB->get_record('user', array('id'=>$user->id));
 
         $repositorypluginname = 'user';
@@ -758,12 +755,12 @@ class core_filelib_testcase extends advanced_testcase {
         $this->assertInstanceOf('repository', $userrepository);
 
         $fs = get_file_storage();
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
 
         $filecontent = 'User file content';
 
         // Create a user private file.
-        $userfilerecord = new stdClass;
+        $userfilerecord = new \stdClass;
         $userfilerecord->contextid = $usercontext->id;
         $userfilerecord->component = 'user';
         $userfilerecord->filearea  = 'private';
@@ -789,7 +786,7 @@ class core_filelib_testcase extends advanced_testcase {
         $this->assertEquals($userrepository->id, $fileref->get_repository_id());
         $this->assertSame($userfile->get_contenthash(), $fileref->get_contenthash());
         $this->assertEquals($userfile->get_filesize(), $fileref->get_filesize());
-        $this->assertRegExp('#' . $userfile->get_filename(). '$#', $fileref->get_reference_details());
+        $this->assertMatchesRegularExpression('#' . $userfile->get_filename(). '$#', $fileref->get_reference_details());
 
         $draftitemid = 0;
         file_prepare_draft_area($draftitemid, $usercontext->id, 'user', 'private', 0);
@@ -817,7 +814,7 @@ class core_filelib_testcase extends advanced_testcase {
 
         $generator = $this->getDataGenerator();
         $user = $generator->create_user();
-        $usercontext = context_user::instance($user->id);
+        $usercontext = \context_user::instance($user->id);
         $USER = $DB->get_record('user', array('id' => $user->id));
 
         $repositorypluginname = 'user';
@@ -829,12 +826,12 @@ class core_filelib_testcase extends advanced_testcase {
         $this->assertInstanceOf('repository', $userrepository);
 
         $fs = get_file_storage();
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
 
         $filecontent = 'User file content';
 
         // Create a user private file.
-        $userfilerecord = new stdClass;
+        $userfilerecord = new \stdClass;
         $userfilerecord->contextid = $usercontext->id;
         $userfilerecord->component = 'user';
         $userfilerecord->filearea  = 'private';
@@ -874,6 +871,28 @@ class core_filelib_testcase extends advanced_testcase {
         $text = file_save_draft_area_files(IGNORE_FILE_MERGE, $usercontext->id, 'user', 'private', 0, null, $inlinetext);
         $this->assertCount(2, $fs->get_area_files($usercontext->id, 'user', 'private'));
         $this->assertEquals($inlinetext, $text);
+    }
+
+    /**
+     * Testing deleting file_save_draft_area_files won't accidentally wipe unintended files.
+     */
+    public function test_file_save_draft_area_files_itemid_cannot_be_false() {
+        global $USER, $DB;
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator();
+        $user = $generator->create_user();
+        $usercontext = \context_user::instance($user->id);
+        $USER = $DB->get_record('user', ['id' => $user->id]);
+
+        $draftitemid = 0;
+        file_prepare_draft_area($draftitemid, $usercontext->id, 'user', 'private', 0);
+
+        // Call file_save_draft_area_files with itemid false - which could only happen due to a bug.
+        // This should throw an exception.
+        $this->expectExceptionMessage('file_save_draft_area_files was called with $itemid false. ' .
+                'This suggests a bug, because it would wipe all (' . $usercontext->id . ', user, private) files.');
+        file_save_draft_area_files($draftitemid, $usercontext->id, 'user', 'private', false);
     }
 
     /**
@@ -930,9 +949,9 @@ EOF;
         $mdl30648expected = preg_replace("~(?!<\r)\n~", "\r\n", $mdl30648expected);
 
         // Test stripping works OK.
-        $this->assertSame($mdl30648expected, curl::strip_double_headers($mdl30648example));
+        $this->assertSame($mdl30648expected, \curl::strip_double_headers($mdl30648example));
         // Test it does nothing to the 'plain' data.
-        $this->assertSame($mdl30648expected, curl::strip_double_headers($mdl30648expected));
+        $this->assertSame($mdl30648expected, \curl::strip_double_headers($mdl30648expected));
 
         // Example from OU proxy.
         $httpsexample = <<<EOF
@@ -968,9 +987,157 @@ EOF;
         $httpsexpected = preg_replace("~(?!<\r)\n~", "\r\n", $httpsexpected);
 
         // Test stripping works OK.
-        $this->assertSame($httpsexpected, curl::strip_double_headers($httpsexample));
+        $this->assertSame($httpsexpected, \curl::strip_double_headers($httpsexample));
         // Test it does nothing to the 'plain' data.
-        $this->assertSame($httpsexpected, curl::strip_double_headers($httpsexpected));
+        $this->assertSame($httpsexpected, \curl::strip_double_headers($httpsexpected));
+
+        $httpsexample = <<<EOF
+HTTP/1.0 200 Connection established
+
+HTTP/2 200 OK
+Date: Fri, 22 Feb 2013 17:14:23 GMT
+Server: Apache/2
+X-Powered-By: PHP/5.3.3-7+squeeze14
+Content-Type: text/xml
+Connection: close
+Content-Encoding: gzip
+Transfer-Encoding: chunked
+
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<rss version="2.0">...
+EOF;
+        $httpsexpected = <<<EOF
+HTTP/2 200 OK
+Date: Fri, 22 Feb 2013 17:14:23 GMT
+Server: Apache/2
+X-Powered-By: PHP/5.3.3-7+squeeze14
+Content-Type: text/xml
+Connection: close
+Content-Encoding: gzip
+Transfer-Encoding: chunked
+
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<rss version="2.0">...
+EOF;
+        // For HTTP, replace the \n with \r\n.
+        $httpsexample = preg_replace("~(?!<\r)\n~", "\r\n", $httpsexample);
+        $httpsexpected = preg_replace("~(?!<\r)\n~", "\r\n", $httpsexpected);
+
+        // Test stripping works OK.
+        $this->assertSame($httpsexpected, \curl::strip_double_headers($httpsexample));
+        // Test it does nothing to the 'plain' data.
+        $this->assertSame($httpsexpected, \curl::strip_double_headers($httpsexpected));
+
+        $httpsexample = <<<EOF
+HTTP/1.0 200 Connection established
+
+HTTP/2.1 200 OK
+Date: Fri, 22 Feb 2013 17:14:23 GMT
+Server: Apache/2
+X-Powered-By: PHP/5.3.3-7+squeeze14
+Content-Type: text/xml
+Connection: close
+Content-Encoding: gzip
+Transfer-Encoding: chunked
+
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<rss version="2.0">...
+EOF;
+        $httpsexpected = <<<EOF
+HTTP/2.1 200 OK
+Date: Fri, 22 Feb 2013 17:14:23 GMT
+Server: Apache/2
+X-Powered-By: PHP/5.3.3-7+squeeze14
+Content-Type: text/xml
+Connection: close
+Content-Encoding: gzip
+Transfer-Encoding: chunked
+
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<rss version="2.0">...
+EOF;
+        // For HTTP, replace the \n with \r\n.
+        $httpsexample = preg_replace("~(?!<\r)\n~", "\r\n", $httpsexample);
+        $httpsexpected = preg_replace("~(?!<\r)\n~", "\r\n", $httpsexpected);
+
+        // Test stripping works OK.
+        $this->assertSame($httpsexpected, \curl::strip_double_headers($httpsexample));
+        // Test it does nothing to the 'plain' data.
+        $this->assertSame($httpsexpected, \curl::strip_double_headers($httpsexpected));
+
+        $httpsexample = <<<EOF
+HTTP/1.1 200 Connection established
+
+HTTP/3 200 OK
+Date: Fri, 22 Feb 2013 17:14:23 GMT
+Server: Apache/2
+X-Powered-By: PHP/5.3.3-7+squeeze14
+Content-Type: text/xml
+Connection: close
+Content-Encoding: gzip
+Transfer-Encoding: chunked
+
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<rss version="2.0">...
+EOF;
+        $httpsexpected = <<<EOF
+HTTP/3 200 OK
+Date: Fri, 22 Feb 2013 17:14:23 GMT
+Server: Apache/2
+X-Powered-By: PHP/5.3.3-7+squeeze14
+Content-Type: text/xml
+Connection: close
+Content-Encoding: gzip
+Transfer-Encoding: chunked
+
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<rss version="2.0">...
+EOF;
+        // For HTTP, replace the \n with \r\n.
+        $httpsexample = preg_replace("~(?!<\r)\n~", "\r\n", $httpsexample);
+        $httpsexpected = preg_replace("~(?!<\r)\n~", "\r\n", $httpsexpected);
+
+        // Test stripping works OK.
+        $this->assertSame($httpsexpected, \curl::strip_double_headers($httpsexample));
+        // Test it does nothing to the 'plain' data.
+        $this->assertSame($httpsexpected, \curl::strip_double_headers($httpsexpected));
+
+        $httpsexample = <<<EOF
+HTTP/2 200 Connection established
+
+HTTP/4 200 OK
+Date: Fri, 22 Feb 2013 17:14:23 GMT
+Server: Apache/2
+X-Powered-By: PHP/5.3.3-7+squeeze14
+Content-Type: text/xml
+Connection: close
+Content-Encoding: gzip
+Transfer-Encoding: chunked
+
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<rss version="2.0">...
+EOF;
+        $httpsexpected = <<<EOF
+HTTP/4 200 OK
+Date: Fri, 22 Feb 2013 17:14:23 GMT
+Server: Apache/2
+X-Powered-By: PHP/5.3.3-7+squeeze14
+Content-Type: text/xml
+Connection: close
+Content-Encoding: gzip
+Transfer-Encoding: chunked
+
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<rss version="2.0">...
+EOF;
+        // For HTTP, replace the \n with \r\n.
+        $httpsexample = preg_replace("~(?!<\r)\n~", "\r\n", $httpsexample);
+        $httpsexpected = preg_replace("~(?!<\r)\n~", "\r\n", $httpsexpected);
+
+        // Test stripping works OK.
+        $this->assertSame($httpsexpected, \curl::strip_double_headers($httpsexample));
+        // Test it does nothing to the 'plain' data.
+        $this->assertSame($httpsexpected, \curl::strip_double_headers($httpsexpected));
     }
 
     /**
@@ -999,7 +1166,7 @@ EOF;
                 get_mimetype_description(array('filename' => 'test.frog')));
 
         // Test custom description using multilang filter.
-        filter_manager::reset_caches();
+        \filter_manager::reset_caches();
         filter_set_global_state('multilang', TEXTFILTER_ON);
         filter_set_applies_to_strings('multilang', true);
         core_filetypes::update_type('frog', 'frog', 'application/x-frog', 'document',
@@ -1089,7 +1256,7 @@ EOF;
         // Finally, test it via exttests, to ensure the agent is sent properly.
         // Matching.
         $testurl = $this->getExternalTestFileUrl('/test_agent.php');
-        $extcurl = new curl();
+        $extcurl = new \curl();
         $contents = $extcurl->get($testurl, array(), array('CURLOPT_USERAGENT' => 'AnotherUserAgent/1.2'));
         $response = $extcurl->getResponse();
         $this->assertSame('200 OK', reset($response));
@@ -1108,12 +1275,12 @@ EOF;
      */
     public function test_file_rewrite_pluginfile_urls() {
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
         $originaltext = 'Fake test with an image <img src="@@PLUGINFILE@@/image.png">';
 
         // Do the rewrite.
         $finaltext = file_rewrite_pluginfile_urls($originaltext, 'pluginfile.php', $syscontext->id, 'user', 'private', 0);
-        $this->assertContains("pluginfile.php", $finaltext);
+        $this->assertStringContainsString("pluginfile.php", $finaltext);
 
         // Now undo.
         $options = array('reverse' => true);
@@ -1133,7 +1300,7 @@ EOF;
 
         $this->resetAfterTest();
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
         $originaltext = 'Fake test with an image <img src="@@PLUGINFILE@@/image.png">';
         $options = ['includetoken' => true];
 
@@ -1182,7 +1349,7 @@ EOF;
 
         $this->resetAfterTest();
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
         $originaltext = 'Fake test with an image <img src="@@PLUGINFILE@@/image.png">';
         $options = ['includetoken' => true];
 
@@ -1232,7 +1399,7 @@ EOF;
         if (isset($filedata['contextid'])) {
             $filerecord['contextid'] = $filedata['contextid'];
         } else {
-            $usercontext = context_user::instance($USER->id);
+            $usercontext = \context_user::instance($USER->id);
             $filerecord['contextid'] = $usercontext->id;
         }
         $source = isset($filedata['source']) ? $filedata['source'] : serialize((object)array('source' => 'From string'));
@@ -1253,7 +1420,7 @@ EOF;
         $this->resetAfterTest(true);
         $this->setAdminUser();
         $fs = get_file_storage();
-        $usercontext = context_user::instance($USER->id);
+        $usercontext = \context_user::instance($USER->id);
 
         // Create a draft file.
         $filename = 'data.txt';
@@ -1367,7 +1534,7 @@ EOF;
 
         // Add new file.
         file_merge_files_from_draft_area_into_filearea($file->get_itemid(), $file->get_contextid(), 'user', 'private', 0, $options);
-        $usercontext = context_user::instance($USER->id);
+        $usercontext = \context_user::instance($USER->id);
         $files = $fs->get_area_files($usercontext->id, 'user', 'private', 0);
         $this->assertCount(0, $files);
     }
@@ -1392,7 +1559,7 @@ EOF;
 
         // Add new file.
         file_merge_files_from_draft_area_into_filearea($file->get_itemid(), $file->get_contextid(), 'user', 'private', 0, $options);
-        $usercontext = context_user::instance($USER->id);
+        $usercontext = \context_user::instance($USER->id);
         // Check we only get the base directory, not a new file.
         $files = $fs->get_area_files($usercontext->id, 'user', 'private', 0);
         $this->assertCount(1, $files);
@@ -1418,7 +1585,7 @@ EOF;
 
         // Add new file.
         file_merge_files_from_draft_area_into_filearea($file->get_itemid(), $file->get_contextid(), 'user', 'private', 0, $options);
-        $usercontext = context_user::instance($USER->id);
+        $usercontext = \context_user::instance($USER->id);
         // Check we only get the base directory, not a new file.
         $files = $fs->get_area_files($usercontext->id, 'user', 'private', 0);
         $this->assertCount(1, $files);
@@ -1451,7 +1618,7 @@ EOF;
         $size += $file->get_filesize();
 
         // Create directory.
-        $usercontext = context_user::instance($USER->id);
+        $usercontext = \context_user::instance($USER->id);
         $dir = $fs->create_directory($usercontext->id, 'user', 'draft', $draftitemid, '/testsubdir/');
         // Add file to directory.
         $filerecord = array(
@@ -1508,7 +1675,7 @@ EOF;
         $size += $file->get_filesize();
 
         // Create directory.
-        $usercontext = context_user::instance($USER->id);
+        $usercontext = \context_user::instance($USER->id);
         $dir = $fs->create_directory($usercontext->id, 'user', 'draft', $draftitemid, '/testsubdir/');
         // Add file to directory.
         $filerecord = array(
@@ -1560,7 +1727,7 @@ EOF;
 
         // Confirm the user drafts area lists 3 files.
         $fs = get_file_storage();
-        $usercontext = context_user::instance($USER->id);
+        $usercontext = \context_user::instance($USER->id);
         $draftfiles = $fs->get_area_files($usercontext->id, 'user', 'draft', $draftitemid, 'itemid', 0);
         $this->assertCount(3, $draftfiles);
 
@@ -1644,7 +1811,7 @@ EOF;
 
         // Confirm one file in each draft area.
         $fs = get_file_storage();
-        $usercontext = context_user::instance($USER->id);
+        $usercontext = \context_user::instance($USER->id);
         $draftfiles = $fs->get_area_files($usercontext->id, 'user', 'draft', $file1->get_itemid(), 'itemid', 0);
         $this->assertCount(1, $draftfiles);
         $draftfiles = $fs->get_area_files($usercontext->id, 'user', 'draft', $file2->get_itemid(), 'itemid', 0);
@@ -1667,6 +1834,73 @@ EOF;
         $draftfiles = $fs->get_area_files($usercontext->id, 'user', 'draft', $file2->get_itemid(), 'itemid', 0);
         $this->assertCount(1, $draftfiles);
     }
+
+    /**
+     * Test file_is_draft_areas_limit_reached
+     */
+    public function test_file_is_draft_areas_limit_reached() {
+        global $CFG;
+        $this->resetAfterTest(true);
+
+        $capacity = $CFG->draft_area_bucket_capacity = 5;
+        $leak = $CFG->draft_area_bucket_leak = 0.2; // Leaks every 5 seconds.
+
+        $generator = $this->getDataGenerator();
+        $user = $generator->create_user();
+
+        $this->setUser($user);
+
+        $itemids = [];
+        for ($i = 0; $i < $capacity; $i++) {
+            $itemids[$i] = file_get_unused_draft_itemid();
+        }
+
+        // This test highly depends on time. We try to make sure that the test starts at the early moments on the second.
+        // This was not needed if MDL-37327 was implemented.
+        $after = time();
+        while (time() === $after) {
+            usleep(100000);
+        }
+
+        // Burst up to the capacity and make sure that the bucket allows it.
+        $burststart = microtime();
+        for ($i = 0; $i < $capacity; $i++) {
+            if ($i) {
+                sleep(1); // A little delay so we have different timemodified value for files.
+            }
+            $this->assertFalse(file_is_draft_areas_limit_reached($user->id));
+            self::create_draft_file([
+                'filename' => 'file1.png',
+                'itemid' => $itemids[$i],
+            ]);
+        }
+
+        // The bucket should be full after bursting.
+        $this->assertTrue(file_is_draft_areas_limit_reached($user->id));
+
+        // Calculate the time taken to burst up the bucket capacity.
+        $timetaken = microtime_diff($burststart, microtime());
+
+        // The bucket leaks so it shouldn't be full after a certain time.
+        // Items are added into the bucket at the rate of 1 item per second.
+        // One item leaks from the bucket every 1/$leak seconds.
+        // So it takes 1/$leak - ($capacity-1) seconds for the bucket to leak one item and not be full anymore.
+        $milliseconds = ceil(1000000 * ((1 / $leak) - ($capacity - 1)) - ($timetaken  * 1000));
+        usleep($milliseconds);
+
+        $this->assertFalse(file_is_draft_areas_limit_reached($user->id));
+
+        // Only one item was leaked from the bucket. So the bucket should become full again if we add a single item to it.
+        self::create_draft_file([
+            'filename' => 'file2.png',
+            'itemid' => $itemids[0],
+        ]);
+        $this->assertTrue(file_is_draft_areas_limit_reached($user->id));
+
+        // The bucket leaks at a constant rate. It doesn't matter if it is filled as the result of bursting or not.
+        sleep(ceil(1 / $leak));
+        $this->assertFalse(file_is_draft_areas_limit_reached($user->id));
+    }
 }
 
 /**
@@ -1683,7 +1917,7 @@ class testable_curl extends curl {
      */
     public function get_options() {
         // Access to private property.
-        $rp = new ReflectionProperty('curl', 'options');
+        $rp = new \ReflectionProperty('curl', 'options');
         $rp->setAccessible(true);
         return $rp->getValue($this);
     }
@@ -1695,7 +1929,7 @@ class testable_curl extends curl {
      */
     public function set_options($options) {
         // Access to private property.
-        $rp = new ReflectionProperty('curl', 'options');
+        $rp = new \ReflectionProperty('curl', 'options');
         $rp->setAccessible(true);
         $rp->setValue($this, $options);
     }
@@ -1722,14 +1956,14 @@ class testable_curl extends curl {
     }
 
     /**
-     * Wrapper to access the private curl::apply_opt() method using reflection.
+     * Wrapper to access the private \curl::apply_opt() method using reflection.
      *
      * @param array $options
      * @return resource The curl handle
      */
     public function call_apply_opt($options = null) {
         // Access to private method.
-        $rm = new ReflectionMethod('curl', 'apply_opt');
+        $rm = new \ReflectionMethod('curl', 'apply_opt');
         $rm->setAccessible(true);
         $ch = curl_init();
         return $rm->invoke($this, $ch, $options);

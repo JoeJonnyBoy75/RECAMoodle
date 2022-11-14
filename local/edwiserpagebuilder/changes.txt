@@ -1,0 +1,11 @@
+CHANGES LOG
+
+Version 4.0.1
+=============
+
+Tweak - Added Note on add block modal to activate Edwiser Page Builder Filter plugin if it is not active.
+
+Version 4.0.0
+=============
+
+Moodle 4.0 compatible version of Edwiser Page Builder. It allows users to edit content dynamically using our page editor.

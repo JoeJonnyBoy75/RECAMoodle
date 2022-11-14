@@ -1,0 +1,26 @@
+{{# blog }}
+    {{# hasblogs }}
+    <div class="container-wrapper bg-grey-100 pt-2">
+        <div class="container">
+            <h2 class="blue-grey-600 px-4">{{#str}}blog, blog{{/str}}</h2>
+            <div class="row blog px-4">
+                {{# blogs }}
+                <div class="col-md-4 col-sm-6 recent-item">
+                    <div class="card card-transparent">
+                        <div class="card-body">
+                            <div class="card-content">
+                            <h4 class="card-title mt-2"><a href="{{ link }}" class="font-weight-400 font-size-18">{{ subject }}</a></h4>
+                            <p class="card-text">
+                                <small>By {{ firstname }} {{ lastname }}, on {{ createdat }}</small>
+                            </p>
+                            <p class="card-text">{{ summary }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{/ blogs }}
+            </div>
+        </div>
+    </div>
+    {{/ hasblogs }}
+{{/ blog }}

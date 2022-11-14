@@ -17,6 +17,10 @@ $animate-time: 0.5s;
 body {
     @include media-breakpoint-up(sm) {
         &.focusmode {
+            .secondary-navigation,
+            .drawer-right-toggle {
+                display: none;
+            }
             #page {
                 background: #FFFFFF;
             }
@@ -38,7 +42,7 @@ body {
                 &.fm-navbar {
                     display: flex !important;
                     transition: all $animate-time ease $animate-time;
-                    top: 0px !important;   
+                    top: 0 !important;   
                     color: $primary !important;
                     .courseheaderbar{
                         width: 100% !important;
@@ -148,7 +152,7 @@ body {
                         display: none;
                         min-width: 160px;
                         font-size: 14px;
-                        color: #526069;
+                        color: $text-color;
                         text-align: left;
                         list-style: none;
                         background-color: #fff;
@@ -157,7 +161,13 @@ body {
                         border-radius: .21428571rem;
                         -webkit-box-shadow: 0 3px 12px rgba(0,0,0,.05);
                         box-shadow: 0 3px 12px rgba(0,0,0,.05);
-
+                        .activity-item {
+                            border: none;
+                            padding: 1rem;
+                        }
+                        .card:not(.border-bottom) {
+                            border: none;
+                        }
                     }
                 }
             }
@@ -179,7 +189,7 @@ body {
         &:not(.focusmode) {
             .navbar {
                 &:not(.fm-navbar) {
-                    top: 0px !important;
+                    top: 0 !important;
                     transition: all $animate-time ease;
                 }
                 &.fm-navbar {

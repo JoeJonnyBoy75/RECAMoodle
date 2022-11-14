@@ -47,7 +47,7 @@ define('WORKSHOP_SUBMISSION_TYPE_REQUIRED', 2);
  *
  * @see plugin_supports() in lib/moodlelib.php
  * @param string $feature FEATURE_xx constant for requested feature
- * @return mixed true if the feature is supported, null if unknown
+ * @return mixed True if module supports feature, false if not, null if doesn't know or string for the module purpose.
  */
 function workshop_supports($feature) {
     switch($feature) {
@@ -60,6 +60,7 @@ function workshop_supports($feature) {
             return true;
         case FEATURE_SHOW_DESCRIPTION:  return true;
         case FEATURE_PLAGIARISM:        return true;
+        case FEATURE_MOD_PURPOSE:       return MOD_PURPOSE_ASSESSMENT;
         default:                        return null;
     }
 }
@@ -523,8 +524,9 @@ function workshop_user_complete($course, $user, $mod, $workshop) {
 function workshop_print_recent_activity($course, $viewfullnames, $timestart) {
     global $CFG, $USER, $DB, $OUTPUT;
 
-    $authoramefields = get_all_user_name_fields(true, 'author', null, 'author');
-    $reviewerfields = get_all_user_name_fields(true, 'reviewer', null, 'reviewer');
+    $userfieldsapi = \core_user\fields::for_name();
+    $authoramefields = $userfieldsapi->get_sql('author', false, 'author', '', false)->selects;
+    $reviewerfields = $userfieldsapi->get_sql('reviewer', false, 'reviewer', '', false)->selects;
 
     $sql = "SELECT s.id AS submissionid, s.title AS submissiontitle, s.timemodified AS submissionmodified,
                    author.id AS authorid, $authoramefields, a.id AS assessmentid, a.timemodified AS assessmentmodified,
@@ -768,8 +770,9 @@ function workshop_get_recent_mod_activity(&$activities, &$index, $timestart, $co
     $params['submissionmodified'] = $timestart;
     $params['assessmentmodified'] = $timestart;
 
-    $authornamefields = get_all_user_name_fields(true, 'author', null, 'author');
-    $reviewerfields = get_all_user_name_fields(true, 'reviewer', null, 'reviewer');
+    $userfieldsapi = \core_user\fields::for_name();
+    $authornamefields = $userfieldsapi->get_sql('author', false, 'author', '', false)->selects;
+    $reviewerfields = $userfieldsapi->get_sql('reviewer', false, 'reviewer', '', false)->selects;
 
     $sql = "SELECT s.id AS submissionid, s.title AS submissiontitle, s.timemodified AS submissionmodified,
                    author.id AS authorid, $authornamefields, author.picture AS authorpicture, author.imagealt AS authorimagealt,
@@ -806,13 +809,13 @@ function workshop_get_recent_mod_activity(&$activities, &$index, $timestart, $co
         // remember all user names we can use later
         if (empty($users[$activity->authorid])) {
             $u = new stdclass();
-            $additionalfields = explode(',', user_picture::fields());
+            $additionalfields = explode(',', implode(',', \core_user\fields::get_picture_fields()));
             $u = username_load_fields_from_object($u, $activity, 'author', $additionalfields);
             $users[$activity->authorid] = $u;
         }
         if ($activity->reviewerid and empty($users[$activity->reviewerid])) {
             $u = new stdclass();
-            $additionalfields = explode(',', user_picture::fields());
+            $additionalfields = explode(',', implode(',', \core_user\fields::get_picture_fields()));
             $u = username_load_fields_from_object($u, $activity, 'reviewer', $additionalfields);
             $users[$activity->reviewerid] = $u;
         }
@@ -986,7 +989,7 @@ function workshop_print_recent_mod_activity($activity, $courseid, $detail, $modn
             echo html_writer::start_tag('h4', array('class'=>'workshop'));
             $url = new moodle_url('/mod/workshop/view.php', array('id'=>$activity->cmid));
             $name = s($activity->name);
-            echo $OUTPUT->image_icon('icon', $name, $activity->type);
+            echo $OUTPUT->image_icon('monologo', $name, $activity->type);
             echo ' ' . $modnames[$activity->type];
             echo html_writer::link($url, $name, array('class'=>'name', 'style'=>'margin-left: 5px'));
             echo html_writer::end_tag('h4');
@@ -1023,7 +1026,7 @@ function workshop_print_recent_mod_activity($activity, $courseid, $detail, $modn
             echo html_writer::start_tag('h4', array('class'=>'workshop'));
             $url = new moodle_url('/mod/workshop/view.php', array('id'=>$activity->cmid));
             $name = s($activity->name);
-            echo $OUTPUT->image_icon('icon', $name, $activity->type);
+            echo $OUTPUT->image_icon('monologo', $name, $activity->type);
             echo ' ' . $modnames[$activity->type];
             echo html_writer::link($url, $name, array('class'=>'name', 'style'=>'margin-left: 5px'));
             echo html_writer::end_tag('h4');
@@ -1490,7 +1493,8 @@ function workshop_get_file_info($browser, $areas, $course, $cm, $context, $filea
 
         } else {
 
-            $userfields = get_all_user_name_fields(true, 'u');
+            $userfieldsapi = \core_user\fields::for_name();
+            $userfields = $userfieldsapi->get_sql('u', false, '', '', false)->selects;
             $sql = "SELECT s.id, $userfields
                       FROM {workshop_submissions} s
                       JOIN {user} u ON (s.authorid = u.id)
@@ -1624,17 +1628,14 @@ function workshop_extend_navigation(navigation_node $navref, stdclass $course, s
  * @param navigation_node $workshopnode {@link navigation_node}
  */
 function workshop_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $workshopnode=null) {
-    global $PAGE;
-
-    //$workshopobject = $DB->get_record("workshop", array("id" => $PAGE->cm->instance));
-
-    if (has_capability('mod/workshop:editdimensions', $PAGE->cm->context)) {
-        $url = new moodle_url('/mod/workshop/editform.php', array('cmid' => $PAGE->cm->id));
-        $workshopnode->add(get_string('editassessmentform', 'workshop'), $url, settings_navigation::TYPE_SETTING);
+    if (has_capability('mod/workshop:editdimensions', $settingsnav->get_page()->cm->context)) {
+        $url = new moodle_url('/mod/workshop/editform.php', array('cmid' => $settingsnav->get_page()->cm->id));
+        $workshopnode->add(get_string('assessmentform', 'workshop'), $url,
+        settings_navigation::TYPE_SETTING, null, 'workshopassessement');
     }
-    if (has_capability('mod/workshop:allocate', $PAGE->cm->context)) {
-        $url = new moodle_url('/mod/workshop/allocation.php', array('cmid' => $PAGE->cm->id));
-        $workshopnode->add(get_string('allocate', 'workshop'), $url, settings_navigation::TYPE_SETTING);
+    if (has_capability('mod/workshop:allocate', $settingsnav->get_page()->cm->context)) {
+        $url = new moodle_url('/mod/workshop/allocation.php', array('cmid' => $settingsnav->get_page()->cm->id));
+        $workshopnode->add(get_string('submissionsallocation', 'workshop'), $url, settings_navigation::TYPE_SETTING);
     }
 }
 
@@ -2205,4 +2206,77 @@ function mod_workshop_get_path_from_pluginfile(string $filearea, array $args) : 
         'itemid' => 0,
         'filepath' => $filepath,
     ];
+}
+
+/**
+ * Add a get_coursemodule_info function in case any feedback type wants to add 'extra' information
+ * for the course (see resource).
+ *
+ * Given a course_module object, this function returns any "extra" information that may be needed
+ * when printing this activity in a course listing.  See get_array_of_activities() in course/lib.php.
+ *
+ * @param stdClass $coursemodule The coursemodule object (record).
+ * @return cached_cm_info|false An object on information that the courses will know about (most noticeably, an icon).
+ */
+function workshop_get_coursemodule_info($coursemodule) {
+    global $DB;
+
+    $dbparams = ['id' => $coursemodule->instance];
+    $fields = 'id, name, intro, introformat, submissionstart, submissionend, assessmentstart, assessmentend';
+    if (!$workshop = $DB->get_record('workshop', $dbparams, $fields)) {
+        return false;
+    }
+
+    $result = new cached_cm_info();
+    $result->name = $workshop->name;
+
+    if ($coursemodule->showdescription) {
+        // Convert intro to html. Do not filter cached version, filters run at display time.
+        $result->content = format_module_intro('workshop', $workshop, $coursemodule->id, false);
+    }
+
+    // Populate some other values that can be used in calendar or on dashboard.
+    if ($workshop->submissionstart) {
+        $result->customdata['submissionstart'] = $workshop->submissionstart;
+    }
+    if ($workshop->submissionend) {
+        $result->customdata['submissionend'] = $workshop->submissionend;
+    }
+    if ($workshop->assessmentstart) {
+        $result->customdata['assessmentstart'] = $workshop->assessmentstart;
+    }
+    if ($workshop->assessmentend) {
+        $result->customdata['assessmentend'] = $workshop->assessmentend;
+    }
+
+    return $result;
+}
+
+/**
+ * Callback to fetch the activity event type lang string.
+ *
+ * @param string $eventtype The event type.
+ * @return lang_string The event type lang string.
+ */
+function mod_workshop_core_calendar_get_event_action_string($eventtype): string {
+    $modulename = get_string('modulename', 'workshop');
+
+    switch ($eventtype) {
+        case WORKSHOP_EVENT_TYPE_SUBMISSION_OPEN:
+            $identifier = 'submissionstartevent';
+            break;
+        case WORKSHOP_EVENT_TYPE_SUBMISSION_CLOSE:
+            $identifier = 'submissionendevent';
+            break;
+        case WORKSHOP_EVENT_TYPE_ASSESSMENT_OPEN:
+            $identifier = 'assessmentstartevent';
+            break;
+        case WORKSHOP_EVENT_TYPE_ASSESSMENT_CLOSE;
+            $identifier = 'assessmentendevent';
+            break;
+        default:
+            return get_string('requiresaction', 'calendar', $modulename);
+    }
+
+    return get_string($identifier, 'workshop', $modulename);
 }

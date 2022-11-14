@@ -23,7 +23,7 @@
  *
  * @package   theme_remui
  * @copyright 2016 Frédéric Massart - FMCorz.net
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -105,6 +105,8 @@ class autoprefixer {
      * @param Document $tree The CSS tree.
      */
     public function __construct(Document $tree) {
+        debugging('theme_remui\autoprefixer() is deprecated. Required prefixes for Bootstrap ' .
+            'are now in theme/remui/scss/moodle/prefixes.scss', DEBUG_DEVELOPER);
         $this->tree = $tree;
 
         $pseudos = array_map(function($pseudo) {
@@ -163,6 +165,7 @@ class autoprefixer {
      * Process block.
      *
      * @param object $block A block.
+     * @param object $parent The parent of the block.
      */
     // @codingStandardsIgnoreStart
     protected function processBlock($block) {

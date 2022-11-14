@@ -1,0 +1,11 @@
+<div class="resizer-wrapper">
+    <ul class="resizer">
+        {{#widget}}
+            <li class="widget" data-width="{{.}}" style="width: {{.}}%;">
+                <label>{{.}}%</label>
+                <div class="resize-x-handle fa fa-bars">
+                </div>
+            </li>
+        {{/widget}}
+    </ul>
+</div>

@@ -23,6 +23,10 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace core;
+
+use core_string_manager_standard;
+
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
@@ -31,10 +35,14 @@ require_once($CFG->libdir.'/moodlelib.php');
 /**
  * Tests for the API of the string_manager.
  *
+ * Unit tests for localization support in lib/moodlelib.php
+ *
+ * @package   core
+ * @category  test
  * @copyright 2013 David Mudrak <david@moodle.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_string_manager_standard_testcase extends advanced_testcase {
+class string_manager_standard_test extends \advanced_testcase {
 
     public function test_string_manager_instance() {
         $this->resetAfterTest();
@@ -74,12 +82,12 @@ class core_string_manager_standard_testcase extends advanced_testcase {
         // Check non-deprecated string.
         $this->assertFalse($stringman->string_deprecated('hidden', 'grades'));
 
-        // Check deprecated string.
-        $this->assertTrue($stringman->string_deprecated('purgedefinitionsuccess', 'core_cache'));
-        $this->assertTrue($stringman->string_exists('purgedefinitionsuccess', 'core_cache'));
+        // Check deprecated string, make sure to update once that chosen below is finally removed.
+        $this->assertTrue($stringman->string_deprecated('coursepage', 'core_admin'));
+        $this->assertTrue($stringman->string_exists('coursepage', 'core_admin'));
         $this->assertDebuggingNotCalled();
-        $this->assertEquals('Successfully purged the requested definition.', get_string('purgedefinitionsuccess', 'core_cache'));
-        $this->assertDebuggingCalled('String [purgedefinitionsuccess,core_cache] is deprecated. '.
+        $this->assertEquals('Course page', get_string('coursepage', 'core_admin'));
+        $this->assertDebuggingCalled('String [coursepage,core_admin] is deprecated. '.
             'Either you should no longer be using that string, or the string has been incorrectly deprecated, in which case you should report this as a bug. '.
             'Please refer to https://docs.moodle.org/dev/String_deprecation');
     }
@@ -116,7 +124,7 @@ class core_string_manager_standard_testcase extends advanced_testcase {
         $this->assertEquals($matches[2], clean_param($matches[2], PARAM_COMPONENT),
             "Component name {$string} appearing in one of the lang/en/deprecated.txt files does not have correct syntax");
 
-        list($pluginttype, $pluginname) = core_component::normalize_component($matches[2]);
+        list($pluginttype, $pluginname) = \core_component::normalize_component($matches[2]);
         $normcomponent = $pluginname ? ($pluginttype . '_' . $pluginname) : $pluginttype;
         $this->assertEquals($normcomponent, $matches[2],
             'String "'.$string.'" appearing in one of the lang/en/deprecated.txt files does not have normalised component name');
@@ -140,8 +148,66 @@ class core_string_manager_standard_testcase extends advanced_testcase {
 
         $this->assertEquals(['en' => 'En'], $stringman->get_list_of_translations());
 
+        // Set invalid config, ensure original list is returned.
+        set_config('langlist', 'xx');
+        $this->assertEquals(['en' => 'English ‎(en)‎'], get_string_manager(true)->get_list_of_translations());
+
+        set_config('langlist', 'xx,en|En');
+        $this->assertEquals(['en' => 'En'], get_string_manager(true)->get_list_of_translations());
+
         set_config('langlist', '');
         get_string_manager(true);
+    }
+
+    /**
+     * Test {@see core_string_manager_standard::get_list_of_countries()} under different conditions.
+     */
+    public function test_get_list_of_countries() {
+
+        $this->resetAfterTest();
+        $stringman = get_string_manager();
+
+        $countries = $stringman->get_list_of_countries(true);
+        $this->assertIsArray($countries);
+        $this->assertArrayHasKey('AU', $countries);
+        $this->assertArrayHasKey('BE', $countries);
+        $this->assertArrayHasKey('CZ', $countries);
+        $this->assertArrayHasKey('ES', $countries);
+        $this->assertGreaterThan(4, count($countries));
+
+        set_config('allcountrycodes', '');
+        $countries = $stringman->get_list_of_countries(false);
+        $this->assertArrayHasKey('AU', $countries);
+        $this->assertArrayHasKey('BE', $countries);
+        $this->assertArrayHasKey('CZ', $countries);
+        $this->assertArrayHasKey('ES', $countries);
+        $this->assertGreaterThan(4, count($countries));
+
+        set_config('allcountrycodes', 'CZ,BE');
+        $countries = $stringman->get_list_of_countries(true);
+        $this->assertArrayHasKey('AU', $countries);
+        $this->assertArrayHasKey('BE', $countries);
+        $this->assertArrayHasKey('CZ', $countries);
+        $this->assertArrayHasKey('ES', $countries);
+        $this->assertGreaterThan(4, count($countries));
+
+        $countries = $stringman->get_list_of_countries(false);
+        $this->assertEquals(2, count($countries));
+        $this->assertArrayHasKey('BE', $countries);
+        $this->assertArrayHasKey('CZ', $countries);
+
+        set_config('allcountrycodes', 'CZ,UVWXYZ');
+        $countries = $stringman->get_list_of_countries();
+        $this->assertArrayHasKey('CZ', $countries);
+        $this->assertEquals(1, count($countries));
+
+        set_config('allcountrycodes', 'UVWXYZ');
+        $countries = $stringman->get_list_of_countries();
+        $this->assertArrayHasKey('AU', $countries);
+        $this->assertArrayHasKey('BE', $countries);
+        $this->assertArrayHasKey('CZ', $countries);
+        $this->assertArrayHasKey('ES', $countries);
+        $this->assertGreaterThan(4, count($countries));
     }
 }
 

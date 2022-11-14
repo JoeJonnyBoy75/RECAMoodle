@@ -33,13 +33,12 @@
     * instructions - Instructions,
     * instructionsformat - Format of instructions,
     * loginurl - Login url,
-    * rememberusername - Remeber username?,
     * signupurl - Signup url,
-    * cookieshelpiconformatted - Formatted html of cookies help icon,
     * errorformatted - Formatted error,
     * logourl - Flag, logo url,
-    * sitename - Name of site.
-    * logintoken - Random token to protect login request.
+    * sitename - Name of site.,
+    * logintoken - Random token to protect login request.,
+    * maintenance - Maintenance message
 
     Example context (json):
     {
@@ -83,194 +82,161 @@
         "instructions": "For full access to this site, you first need to create an account.",
         "instructionsformat": "1",
         "loginurl": "http://localhost/stable_master/login/index.php",
-        "rememberusername": true,
         "signupurl": "http://localhost/stable_master/login/signup.php",
         "cookieshelpiconformatted": "",
         "errorformatted": "",
         "logourl": false,
         "sitename": "Beer & Chips",
-        "logintoken": "randomstring"
+        "logintoken": "randomstring",
+        "maintenance": "For full access to this site, you need to login in as an admin.",
+        "languagemenu": "Choose language"
     }
 }}
 
-<div class="row justify-content-center">
-    <div class="page-brand-info">
-        {{#loginpage_context}}
-        {{^logopos}}
-            {{#logourl}}
-                <h2 class="card-header bg-transparent mb-3" ><img src="{{logourl}}" class="img-fluid" title="{{sitename}}" alt="{{sitename}}"/></h2>
-            {{/logourl}}
-            {{^logourl}}
-                <h2 class="card-header bg-transparent mb-3"><i class="fa fa-{{siteicon}}"></i> {{sitename}}</h2>
-            {{/logourl}}
-        {{/logopos}}
-        {{/loginpage_context}}
-        {{#sitedesc}}
-            <p class="font-size-20 site-desc">{{{sitedesc}}}</p>
-        {{/sitedesc}}
-        {{^sitedesc}}
-            {{#hasinstructions}}
-                <p class="font-size-20 instructions">{{{instructions}}}</p>
-            {{/hasinstructions}}
-        {{/sitedesc}}
+<div class="loginform">
+    {{#hidelogo}}
+    {{# output.should_display_navbar_logo }}
+        <a class="login-brand-wrapper login-{{logoorsitename}}" href="#" aria-label="{{ sitename }} - {{#str}}brandname, theme_remui{{/str}}">
+            <img src="{{ logourl }}" class="login-brand-logo logo">
+            <img src="{{ logominiurl }}" class="login-brand-logo logomini">
+            <span class="login-brand-logo icononly"><i class="fa fa-{{siteicon}}"></i> {{{ sitename }}}</span>
+            <span class="login-brand-logo font-weight-bold iconsitename">
+                <i class="fa fa-{{siteicon}}"></i>&nbsp;
+                {{{ sitename }}}
+            </span>
+        </a>
+    {{/ output.should_display_navbar_logo }}
+    {{^ output.should_display_navbar_logo }}
+        {{{ sitename }}}
+    {{/ output.should_display_navbar_logo }}
+{{/hidelogo}}
+    {{#maintenance}}
+        <div class="alert alert-danger login-maintenance">
+            {{{maintenance}}}
+        </div>
+    {{/maintenance}}
+    {{#error}}
+        <a href="#" id="loginerrormessage" class="sr-only">{{error}}</a>
+        <div class="alert alert-danger" role="alert">{{error}}</div>
+    {{/error}}
+    {{#cansignup}}
+        <a href="{{signupurl}}" class="sr-only">{{#str}} tocreatenewaccount {{/str}}</a>
+    {{/cansignup}}
+    <form class="login-form" action="{{loginurl}}" method="post" id="login">
+        <h3 class="mb-4">{{# str }} signin, theme_remui {{/ str }}</h3>
+        <input type="hidden" name="logintoken" value="{{logintoken}}">
+        <div class="login-form-username form-group">
+            <label for="username" class="sr-only">
+                {{^canloginbyemail}}
+                    {{#str}} username {{/str}}
+                {{/canloginbyemail}}
+                {{#canloginbyemail}}
+                    {{#str}} usernameemail {{/str}}
+                {{/canloginbyemail}}
+            </label>
+            <input type="text" name="username" id="username" {{!
+                !}}class="form-control" {{!
+                !}}value="{{username}}" {{!
+                !}}placeholder="{{^canloginbyemail}}{{#cleanstr}}username{{/cleanstr}}{{/canloginbyemail}}{{!
+                !}}{{#canloginbyemail}}{{#cleanstr}}usernameemail{{/cleanstr}}{{/canloginbyemail}}" {{!
+                !}}autocomplete="username">
+        </div>
+        <div class="login-form-password form-group">
+            <label for="password" class="sr-only">{{#str}} password {{/str}}</label>
+            <input type="password" name="password" id="password" value="" {{!
+                !}}class="form-control" {{!
+                !}}placeholder="{{#cleanstr}}password{{/cleanstr}}" {{!
+                !}}autocomplete="current-password">
+        </div>
+        <div class="login-form-submit form-group">
+            <button class="btn btn-primary btn-block btn-lg" type="submit" id="loginbtn">{{#str}}login{{/str}}</button>
+        </div>
+        <div class="login-form-forgotpassword form-group">
+            <a href="{{forgotpasswordurl}}">{{#str}}forgotaccount{{/str}}</a>
+        </div>
+    </form>
+    {{#hasidentityproviders}}
+    <div class="login-divider"></div>
+    <div class="login-identityproviders">
+        <h2 class="login-heading">{{#str}} potentialidps, auth {{/str}}</h2>
+        {{#identityproviders}}
+        <a class="btn login-identityprovider-btn btn-block" href="{{url}}">
+            {{#iconurl}}
+            <img src="{{iconurl}}" alt="" width="24" height="24" />
+            {{/iconurl}}
+            {{name}}
+        </a>
+        {{/identityproviders}}
     </div>
-    <div class="p-0 loginform">
-        <div class="card">
-            <div class="card-block p-5">
-                {{#loginpage_context}}
-                {{#logopos}}
-                    {{#logourl}}
-                        <h2 class="card-header text-center bg-transparent mb-3 p-4" ><img src="{{logourl}}" class="img-fluid" title="{{sitename}}" alt="{{sitename}}"/></h2>
-                    {{/logourl}}
-                    {{^logourl}}
-                        <h2 class="card-header text-center bg-transparent mb-3 p-4"><i class="fa fa-{{siteicon}}"></i> {{sitename}}</h2>
-                    {{/logourl}}
-                {{/logopos}}
-                {{/loginpage_context}}
-                <div class="card-body">
-                    {{#cansignup}}
-                        <div class="sr-only">
-                            <a href="{{signupurl}}">{{#str}} tocreatenewaccount {{/str}}</a>
-                        </div>
-                    {{/cansignup}}
+    {{/hasidentityproviders}}
+    {{#hasinstructions}}
+        <div class="login-divider"></div>
+        <div class="login-instructions {{#cansignup}}mb-3{{/cansignup}}">
+            <h2 class="login-heading">{{#str}}firsttime{{/str}}</h2>
+            {{{instructions}}}
+        </div>
+    {{/hasinstructions}}
+    {{#cansignup}}
+        <div class="login-signup">
+            <a class="btn btn-secondary btn-block" href="{{signupurl}}">{{#str}}startsignup{{/str}}</a>
+        </div>
+    {{/cansignup}}
+    {{#canloginasguest}}
+        <div class="login-divider"></div>
+        <h2 class="login-heading">{{#str}}someallowguest{{/str}}</h2>
+        <form action="{{loginurl}}" method="post" id="guestlogin">
+            <input type="hidden" name="logintoken" value="{{logintoken}}">
+            <input type="hidden" name="username" value="guest" />
+            <input type="hidden" name="password" value="guest" />
+            <button class="btn btn-secondary btn-block" type="submit">{{#str}}loginguest{{/str}}</button>
+        </form>
+    {{/canloginasguest}}
+    <div class="login-divider"></div>
+    <div class="d-flex">
+        {{#languagemenu}}
+            <div class="login-languagemenu">
+                {{>core/action_menu}}
+            </div>
+            <div class="divider border-left align-self-center mx-3"></div>
+        {{/languagemenu}}
+        <button type="button" class="btn btn-secondary btn-block" {{!
+        }} data-modal="alert"{{!
+        }} data-modal-title-str='["cookiesenabled", "core"]' {{!
+        }} data-modal-content-str='["cookiesenabled_help_html", "core"]'{{!
+        }}>{{#str}}cookiesnotice{{/str}}</button>
+    </div>
 
-                    {{#error}}
-                        <div class="loginerrors mt-3">
-                            <a href="#" id="loginerrormessage" class="accesshide">{{error}}</a>
-                            <div class="alert alert-danger" role="alert" data-aria-autofocus="true">{{error}}</div>
-                        </div>
-                    {{/error}}
-
-                    <div class="row justify-content-md-center">
-                        <div class="col-md-12">
-                            <h3 class="mb-4">{{# str }} signin, theme_remui {{/ str }}</h3>
-                            <form class="my-3" action="{{loginurl}}" method="post" id="login">
-                                <input id="anchor" type="hidden" name="anchor" value="">
-                                <script>document.getElementById('anchor').value = location.hash;</script>
-                                <input type="hidden" name="logintoken" value="{{logintoken}}">
-                                <div class="form-group">
-                                    <label for="username" class="sr-only">
-                                        {{^canloginbyemail}}
-                                            {{#str}} username {{/str}}
-                                        {{/canloginbyemail}}
-                                        {{#canloginbyemail}}
-                                            {{#str}} usernameemail {{/str}}
-                                        {{/canloginbyemail}}
-                                    </label>
-                                    <input type="text" name="username" id="username"
-                                        class="form-control"
-                                        value="{{username}}"
-                                        placeholder={{#quote}}{{^canloginbyemail}}{{#str}}username{{/str}}{{/canloginbyemail}}{{#canloginbyemail}}{{#str}}usernameemail{{/str}}{{/canloginbyemail}}{{/quote}}
-                                        autocomplete="username">
-                                </div>
-                                <div class="form-group">
-                                    <label for="password" class="sr-only">{{#str}} password {{/str}}</label>
-                                    <input type="password" name="password" id="password" value=""
-                                        class="form-control"
-                                        placeholder={{#quote}}{{#str}}password{{/str}}{{/quote}}
-                                        autocomplete="current-password">
-                                </div>
-                                {{#rememberusername}}
-                                    <div class="rememberpass mt-3 checkbox-custom">
-                                        <input type="checkbox" name="rememberusername" id="rememberusername" value="1" {{#username}}checked="checked"{{/username}} />
-                                        <label for="rememberusername">{{#str}} rememberusername, admin {{/str}}</label>
-                                        <a class="float-right" href="{{forgotpasswordurl}}">{{# str }} forgotpassword, theme_remui {{/ str }}</a> 
-                                    </div>
-                                {{/rememberusername}}
-
-                                <button type="submit" class="btn btn-primary btn-block mt-4" id="loginbtn">{{#str}}login{{/str}}</button>
-                            </form>
-                        </div>
-
-                        <div class="col-md-12">
-                            {{#hasinstructions}}
-                                {{#cansignup}}
-                                    <p>{{# str }} noaccount, theme_remui {{/ str }} <a href="{{signupurl}}">{{#str}}startsignup{{/str}}</a></p>
-                                {{/cansignup}}
-                            {{/hasinstructions}}
-
-                            {{#canloginasguest}}
-                                <div class="mt-2">
-                                    <form action="{{loginurl}}" method="post" id="guestlogin">
-                                        <input type="hidden" name="logintoken" value="{{logintoken}}">
-                                        <input type="hidden" name="username" value="guest" />
-                                        <input type="hidden" name="password" value="guest" />
-                                        <button class="btn btn-secondary btn-block" type="submit">{{#str}}loginguest{{/str}}</button>
-                                    </form>
-                                </div>
-                            {{/canloginasguest}}
-
-                            {{#hasidentityproviders}}
-                                <h6 class="mt-3">{{#str}} potentialidps, auth {{/str}}</h6>
-                                <div class="potentialidplist" class="mt-3">
-                                    {{#identityproviders}}
-                                        <div class="potentialidp">
-                                            <a href="{{url}}" title={{#quote}}{{name}}{{/quote}} class="btn btn-secondary btn-block">
-                                                {{#iconurl}}
-                                                    <img src="{{iconurl}}" alt="" width="24" height="24"/>
-                                                {{/iconurl}}
-                                                {{name}}
-                                            </a>
-                                        </div>
-                                    {{/identityproviders}}
-                                </div>
-                            {{/hasidentityproviders}}
-                            <footer class="page-copyright py-4">
-                                {{# loginsocial_context }}
-                                {{# social }}
-                                <p class="text-center">{{# str }} followus, theme_remui {{/ str }}</p>
-                                <div class="social text-center">
-                                    {{# facebook }}
-                                        <a href="{{ facebook }}" class="btn btn-icon btn-round social-facebook m-1"><i class="icon fa text-white fa-facebook" aria-hidden="true"></i></a>
-                                    {{/ facebook }}
-                                    {{# twitter }}
-                                        <a href="{{ twitter }}" class="btn btn-icon btn-round social-twitter m-1"><i class="icon fa text-white fa-twitter" aria-hidden="true"></i></a>
-                                    {{/ twitter }}
-                                    {{# quora }}
-                                        <a href="{{ quora }}" target="_blank" class="btn btn-icon btn-round social-pinterest"><i class="icon fa text-white fa-quora" aria-hidden="true"></i></a>
-                                    {{/ quora }}
-                                    {{# linkedin }}
-                                        <a href="{{ linkedin }}" class="btn btn-icon btn-round social-linkedin m-1"><i class="icon fa text-white fa-linkedin" aria-hidden="true"></i></a>
-                                    {{/ linkedin }}
-                                    {{# gplus }}
-                                        <a href="{{ gplus }}" class="btn btn-icon btn-round social-google-plus m-1"><i class="icon fa text-white fa-google-plus" aria-hidden="true"></i></a>
-                                    {{/ gplus }}
-                                    {{# instagram }}
-                                        <a href="{{ instagram }}" class="btn btn-icon btn-round social-instagram m-1"><i class="icon fa text-white fa-instagram" aria-hidden="true"></i></a>
-                                    {{/ instagram }}
-                                    {{# youtube }}
-                                        <a href="{{ youtube }}" class="btn btn-icon btn-round social-youtube m-1"><i class="icon fa text-white fa-youtube" aria-hidden="true"></i></a>
-                                    {{/ youtube }}
-                                    {{# pinterest }}
-                                        <a href="{{ pinterest }}" class="btn btn-icon btn-round social-pinterest m-1"><i class="icon fa text-white fa-pinterest" aria-hidden="true"></i></a>
-                                    {{/ pinterest }}
-                                </div>
-                                {{/ social }}
-                                {{/ loginsocial_context }}
-                            </footer>
-                        </div>
-                    </div>
+    {{# loginsocial_context }}
+    <footer class="page-copyright py-4 text-center">
+        {{#sections}}
+            {{#hassocial}}
+            <div id="footer-column-{{index}}" class="footerdata-item">
+                <div class="py-2 px-1 social-links">
+                    <h4 class="card-title mt-1 font-weight-normal font-size-18">{{# str }} followus, theme_remui {{/ str }}</h4>
+                    {{#social}}
+                    <a href="{{ link }}" class="remuiicon btn btn-icon btn-round text-decoration-none {{class}} m-1">
+                        <i class="{{icon}}" aria-hidden="true"></i>
+                    </a>
+                    {{/social}}
                 </div>
             </div>
-        </div>
-    </div>
+            {{/hassocial}}
+        {{/sections}}
+    </footer>
+    {{/ loginsocial_context }}
 </div>
-
 {{#js}}
-    {{#error}}
-        require(['jquery'], function($) {
-            $('#loginerrormessage').focus();
-        });
-    {{/error}}
     {{^error}}
         {{#autofocusform}}
-            require(['jquery'], function($) {
-                if ($('#username').val()) {
-                    $('#password').focus();
-                } else {
-                    $('#username').focus();
-                }
-            });
+            var userNameField = document.getElementById('username');
+            if (userNameField.value.length == 0) {
+                userNameField.focus();
+            } else {
+                document.getElementById('password').focus();
+            }
         {{/autofocusform}}
+    {{/error}}
+    {{#error}}
+        document.getElementById('loginerrormessage').focus();
     {{/error}}
 {{/js}}

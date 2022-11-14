@@ -30,6 +30,11 @@ $contextid    = optional_param('contextid', \context_system::instance()->id, PAR
 $search = optional_param('search', '', PARAM_CLEAN);
 $context = context::instance_by_id($contextid, MUST_EXIST);
 
+$cb = new \core_contentbank\contentbank();
+if (!$cb->is_context_allowed($context)) {
+    print_error('contextnotallowed', 'core_contentbank');
+}
+
 require_capability('moodle/contentbank:access', $context);
 
 $statusmsg = optional_param('statusmsg', '', PARAM_ALPHANUMEXT);
@@ -40,14 +45,23 @@ $title = get_string('contentbank');
 if ($PAGE->course) {
     require_login($PAGE->course->id);
 }
-$PAGE->set_url('/contentbank/index.php');
-$PAGE->set_context($context);
+$PAGE->set_url('/contentbank/index.php', ['contextid' => $contextid]);
+if ($contextid == \context_system::instance()->id) {
+    $PAGE->set_context(context_course::instance($contextid));
+} else {
+    $PAGE->set_context($context);
+}
+
+if ($context->contextlevel == CONTEXT_COURSECAT) {
+    $PAGE->set_primary_active_tab('home');
+}
+
 $PAGE->set_title($title);
-$PAGE->set_heading($title);
+$PAGE->add_body_class('limitedwidth');
 $PAGE->set_pagetype('contentbank');
+$PAGE->set_secondary_active_tab('contentbank');
 
 // Get all contents managed by active plugins where the user has permission to render them.
-$cb = new \core_contentbank\contentbank();
 $contenttypes = [];
 $enabledcontenttypes = $cb->get_enabled_content_types();
 foreach ($enabledcontenttypes as $contenttypename) {
@@ -84,17 +98,23 @@ if (has_capability('moodle/contentbank:upload', $context)) {
     // Don' show upload button if there's no plugin to support any file extension.
     $accepted = $cb->get_supported_extensions_as_string($context);
     if (!empty($accepted)) {
-        $importurl = new moodle_url('/contentbank/upload.php', ['contextid' => $contextid]);
+        $importurl = new moodle_url('/contentbank/index.php', ['contextid' => $contextid]);
         $toolbar[] = [
             'name' => get_string('upload', 'contentbank'),
-            'link' => $importurl,
+            'link' => $importurl->out(false),
             'icon' => 'i/upload',
             'action' => 'upload'
         ];
+        $PAGE->requires->js_call_amd(
+            'core_contentbank/upload',
+            'initModal',
+            ['[data-action=upload]', \core_contentbank\form\upload_files::class, $contextid]
+        );
     }
 }
 
 echo $OUTPUT->header();
+echo $OUTPUT->heading($title, 2);
 echo $OUTPUT->box_start('generalbox');
 
 // If needed, display notifications.
@@ -107,7 +127,7 @@ if ($errormsg !== '' && get_string_manager()->string_exists($errormsg, 'core_con
 }
 
 // Render the contentbank contents.
-$folder = new \core_contentbank\output\bankcontent($foldercontents, $toolbar, $context);
+$folder = new \core_contentbank\output\bankcontent($foldercontents, $toolbar, $context, $cb);
 echo $OUTPUT->render($folder);
 
 echo $OUTPUT->box_end();

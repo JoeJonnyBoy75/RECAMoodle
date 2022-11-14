@@ -1,0 +1,11 @@
+.drawer-toggles {
+    .drawer-toggler {
+        .btn {
+            background-color: $primary;
+            color: white;
+            &:focus {
+                box-shadow: none;
+            }
+        }
+    }
+}

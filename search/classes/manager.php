@@ -190,13 +190,18 @@ class manager {
      * parameter provides a way to skip those checks on pages which are used frequently. It has
      * no effect if an instance has already been constructed in this request.
      *
+     * The $query parameter indicates that the page is used for queries rather than indexing. If
+     * configured, this will cause the query-only search engine to be used instead of the 'normal'
+     * one.
+     *
      * @see \core_search\engine::is_installed
      * @see \core_search\engine::is_server_ready
      * @param bool $fast Set to true when calling on a page that requires high performance
+     * @param bool $query Set true on a page that is used for querying
      * @throws \core_search\engine_exception
      * @return \core_search\manager
      */
-    public static function instance($fast = false) {
+    public static function instance(bool $fast = false, bool $query = false) {
         global $CFG;
 
         // One per request, this should be purged during testing.
@@ -208,7 +213,7 @@ class manager {
             throw new \core_search\engine_exception('enginenotselected', 'search');
         }
 
-        if (!$engine = static::search_engine_instance()) {
+        if (!$engine = static::search_engine_instance($query)) {
             throw new \core_search\engine_exception('enginenotfound', 'search', '', $CFG->searchengine);
         }
 
@@ -259,12 +264,44 @@ class manager {
     }
 
     /**
+     * Tests if global search is configured to be equivalent to the front page course search.
+     *
+     * @return bool
+     */
+    public static function can_replace_course_search(): bool {
+        global $CFG;
+
+        // Assume we can replace front page search.
+        $canreplace = true;
+
+        // Global search must be enabled.
+        if (!static::is_global_search_enabled()) {
+            $canreplace = false;
+        }
+
+        // Users must be able to search the details of all courses that they can see,
+        // even if they do not have access to them.
+        if (empty($CFG->searchincludeallcourses)) {
+            $canreplace = false;
+        }
+
+        // Course search must be enabled.
+        if ($canreplace) {
+            $areaid = static::generate_areaid('core_course', 'course');
+            $enabledareas = static::get_search_areas_list(true);
+            $canreplace = isset($enabledareas[$areaid]);
+        }
+
+        return $canreplace;
+    }
+
+    /**
      * Returns the search URL for course search
      *
      * @return moodle_url
      */
     public static function get_course_search_url() {
-        if (self::is_global_search_enabled()) {
+        if (self::can_replace_course_search()) {
             $searchurl = '/search/index.php';
         } else {
             $searchurl = '/course/search.php';
@@ -287,17 +324,46 @@ class manager {
     /**
      * Returns an instance of the search engine.
      *
+     * @param bool $query If true, gets the query-only search engine (where configured)
      * @return \core_search\engine
      */
-    public static function search_engine_instance() {
+    public static function search_engine_instance(bool $query = false) {
         global $CFG;
 
-        $classname = '\\search_' . $CFG->searchengine . '\\engine';
-        if (!class_exists($classname)) {
-            return false;
+        if ($query && $CFG->searchenginequeryonly) {
+            return self::search_engine_instance_from_setting($CFG->searchenginequeryonly);
+        } else {
+            return self::search_engine_instance_from_setting($CFG->searchengine);
+        }
+    }
+
+    /**
+     * Loads a search engine based on the name given in settings, which can optionally
+     * include '-alternate' to indicate that an alternate version should be used.
+     *
+     * @param string $setting
+     * @return engine|null
+     */
+    protected static function search_engine_instance_from_setting(string $setting): ?engine {
+        if (preg_match('~^(.*)-alternate$~', $setting, $matches)) {
+            $enginename = $matches[1];
+            $alternate = true;
+        } else {
+            $enginename = $setting;
+            $alternate = false;
         }
 
-        return new $classname();
+        $classname = '\\search_' . $enginename . '\\engine';
+        if (!class_exists($classname)) {
+            return null;
+        }
+
+        if ($alternate) {
+            return new $classname(true);
+        } else {
+            // Use the constructor with no parameters for compatibility.
+            return new $classname();
+        }
     }
 
     /**
@@ -446,7 +512,7 @@ class manager {
 
             // Sort categories by order.
             uasort($categories, function($category1, $category2) {
-                return $category1->get_order() > $category2->get_order();
+                return $category1->get_order() <=> $category2->get_order();
             });
 
             static::$searchareacategories = $categories;
@@ -789,8 +855,8 @@ class manager {
             }
         }
 
-        // Add all supported block contexts, in a single query for performance.
-        if (!empty($areasbylevel[CONTEXT_BLOCK])) {
+        // Add all supported block contexts for course contexts that user can access, in a single query for performance.
+        if (!empty($areasbylevel[CONTEXT_BLOCK]) && !empty($coursecontextids)) {
             // Get list of all block types we care about.
             $blocklist = [];
             foreach ($areasbylevel[CONTEXT_BLOCK] as $areaid => $searchclass) {
@@ -1023,6 +1089,68 @@ class manager {
     }
 
     /**
+     * Search for top ranked result.
+     * @param \stdClass $formdata search query data
+     * @return array|document[]
+     */
+    public function search_top(\stdClass $formdata): array {
+        global $USER;
+
+        // Return if the config value is set to 0.
+        $maxtopresult = get_config('core', 'searchmaxtopresults');
+        if (empty($maxtopresult)) {
+            return [];
+        }
+
+        // Only process if 'searchenablecategories' is set.
+        if (self::is_search_area_categories_enabled() && !empty($formdata->cat)) {
+            $cat = self::get_search_area_category_by_name($formdata->cat);
+            $formdata->areaids = array_keys($cat->get_areas());
+        } else {
+            return [];
+        }
+        $docs = $this->search($formdata);
+
+        // Look for course, teacher and course content.
+        $coursedocs = [];
+        $courseteacherdocs = [];
+        $coursecontentdocs = [];
+        $otherdocs = [];
+        foreach ($docs as $doc) {
+            if ($doc->get('areaid') === 'core_course-course' && stripos($doc->get('title'), $formdata->q) !== false) {
+                $coursedocs[] = $doc;
+            } else if (strpos($doc->get('areaid'), 'course_teacher') !== false
+                && stripos($doc->get('content'), $formdata->q) !== false) {
+                $courseteacherdocs[] = $doc;
+            } else if (strpos($doc->get('areaid'), 'mod_') !== false) {
+                $coursecontentdocs[] = $doc;
+            } else {
+                $otherdocs[] = $doc;
+            }
+        }
+
+        // Swap current courses to top.
+        $enroledcourses = $this->get_my_courses(false);
+        // Move current courses of the user to top.
+        foreach ($enroledcourses as $course) {
+            $completion = new \completion_info($course);
+            if (!$completion->is_course_complete($USER->id)) {
+                foreach ($coursedocs as $index => $doc) {
+                    $areaid = $doc->get('areaid');
+                    if ($areaid == 'core_course-course' && $course->id == $doc->get('courseid')) {
+                        unset($coursedocs[$index]);
+                        array_unshift($coursedocs, $doc);
+                    }
+                }
+            }
+        }
+
+        $maxtopresult = get_config('core', 'searchmaxtopresults');
+        $result = array_merge($coursedocs, $courseteacherdocs, $coursecontentdocs, $otherdocs);
+        return array_slice($result, 0, $maxtopresult);
+    }
+
+    /**
      * Build a list of course ids to limit the search based on submitted form data.
      *
      * @param \stdClass $formdata Submitted search form data.
@@ -1152,8 +1280,20 @@ class manager {
                     $recordset, array($searcharea, 'get_document'), $options));
             $result = $this->engine->add_documents($iterator, $searcharea, $options);
             $recordset->close();
-            if (count($result) === 5) {
-                list($numrecords, $numdocs, $numdocsignored, $lastindexeddoc, $partial) = $result;
+            $batchinfo = '';
+            if (count($result) === 6) {
+                [$numrecords, $numdocs, $numdocsignored, $lastindexeddoc, $partial, $batches] = $result;
+                // Only show the batch count if we actually batched any requests.
+                if ($batches !== $numdocs + $numdocsignored) {
+                    $batchinfo = ' (' . $batches . ' batch' . ($batches === 1 ? '' : 'es') . ')';
+                }
+            } else if (count($result) === 5) {
+                // Backward compatibility for engines that don't return a batch count.
+                [$numrecords, $numdocs, $numdocsignored, $lastindexeddoc, $partial] = $result;
+                // Deprecated since Moodle 3.10 MDL-68690.
+                // TODO: MDL-68776 This will be deleted in Moodle 4.2.
+                debugging('engine::add_documents() should return $batches (5-value return is deprecated)',
+                        DEBUG_DEVELOPER);
             } else {
                 throw new coding_exception('engine::add_documents() should return $partial (4-value return is deprecated)');
             }
@@ -1168,7 +1308,7 @@ class manager {
                 }
 
                 $progress->output('Processed ' . $numrecords . ' records containing ' . $numdocs .
-                        ' documents, in ' . $elapsed . ' seconds' . $partialtext . '.', 1);
+                        ' documents' . $batchinfo . ', in ' . $elapsed . ' seconds' . $partialtext . '.', 1);
             } else {
                 $progress->output('No new documents to index.', 1);
             }
@@ -1305,8 +1445,20 @@ class manager {
 
             // Use this iterator to add documents.
             $result = $this->engine->add_documents($iterator, $searcharea, $options);
-            if (count($result) === 5) {
-                list($numrecords, $numdocs, $numdocsignored, $lastindexeddoc, $partial) = $result;
+            $batchinfo = '';
+            if (count($result) === 6) {
+                [$numrecords, $numdocs, $numdocsignored, $lastindexeddoc, $partial, $batches] = $result;
+                // Only show the batch count if we actually batched any requests.
+                if ($batches !== $numdocs + $numdocsignored) {
+                    $batchinfo = ' (' . $batches . ' batch' . ($batches === 1 ? '' : 'es') . ')';
+                }
+            } else if (count($result) === 5) {
+                // Backward compatibility for engines that don't return a batch count.
+                [$numrecords, $numdocs, $numdocsignored, $lastindexeddoc, $partial] = $result;
+                // Deprecated since Moodle 3.10 MDL-68690.
+                // TODO: MDL-68776 This will be deleted in Moodle 4.2 (as should the below bit).
+                debugging('engine::add_documents() should return $batches (5-value return is deprecated)',
+                        DEBUG_DEVELOPER);
             } else {
                 // Backward compatibility for engines that don't support partial adding.
                 list($numrecords, $numdocs, $numdocsignored, $lastindexeddoc) = $result;
@@ -1318,7 +1470,7 @@ class manager {
             if ($numdocs > 0) {
                 $elapsed = round((self::get_current_time() - $elapsed), 3);
                 $progress->output('Processed ' . $numrecords . ' records containing ' . $numdocs .
-                        ' documents, in ' . $elapsed . ' seconds' .
+                        ' documents' . $batchinfo . ', in ' . $elapsed . ' seconds' .
                         ($partial ? ' (not complete)' : '') . '.', 1);
             } else {
                 $progress->output('No documents to index.', 1);

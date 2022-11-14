@@ -40,55 +40,27 @@
     }
 }}
 
-<div class="card-deck dashboard-card-deck one-row slick-slider" role="list">
+<div class="card-deck dashboard-card-deck one-row" data-region="items-list" role="list">
     {{#items}}
-        <a class="card dashboard-card mb-0 py-2 coursename m-0" href="{{{viewurl}}}">
-            <div class="card-body course-info-container py-20 mx-10">
-                <div class="d-flex text-truncate align-items-center">
-                    <div class="d-flex align-self-center icon-size-5">
+        <a class="card dashboard-card m-2 mt-0 p-2 coursename" href="{{{viewurl}}}" title="{{{name}}}">
+            <div class="card-body course-info-container">
+                <div class="d-flex text-truncate">
+                    <div class="d-flex align-self-center activityiconcontainer {{purpose}}">
                         {{{icon}}}
                     </div>
-                    <div class="w-p100 line-height-3 text-truncate ml-2">
+                    <div class="w-100 line-height-3 text-truncate ml-2">
                         <h6 class="mb-0 text-truncate">{{{name}}}</h6>
-                        <small class="text-muted text-truncate m-b-0">{{{coursename}}}</small>
+                        <small class="text-muted text-truncate mb-0">{{{coursename}}}</small>
                     </div>
                 </div>
             </div>
         </a>
     {{/items}}
 </div>
-{{#js}}
-require(['jquery', 'theme_remui/slick'], function($) {
-    $('div[data-region="recentlyaccesseditems-view-content"] .dashboard-card-deck').css("overflow", "unset");
-    $('div[data-region="recentlyaccesseditems-view-content"] .dashboard-card-deck').not('.slick-initialized').slick({
-        dots: false,
-        arrows: true,
-        infinite: false,
-        rtl: ($("html").attr("dir") == "rtl") ? true : false,
-        opacity: 0,
-        speed: 500,
-        slidesToShow: 4,
-        slidesToScroll: 4,
-        responsive: [{
-            breakpoint: 1024,
-            settings: {
-                slidesToShow: 3,
-                slidesToScroll: 3
-            }
-            }, {
-            breakpoint: 800,
-            settings: {
-                slidesToShow: 2,
-                slidesToScroll: 2
-            }
-            }, {
-            breakpoint: 480,
-            settings: {
-                slidesToShow: 1,
-                slidesToScroll: 1
-            }
-            }
-        ]
-    });
-});
-{{/js}}
+{{#hasmoreitems}}
+    <div data-region="more-items-button-container" class="mt-2 px-1">
+        <button type="button" class="btn btn-secondary btn-sm" data-action="more-items">
+            {{#str}}moreitems, block_recentlyaccesseditems {{/str}}
+        </button>
+    </div>
+{{/hasmoreitems}}

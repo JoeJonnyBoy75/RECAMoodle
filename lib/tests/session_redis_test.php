@@ -14,8 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace core;
+
+use Redis;
+use RedisException;
+
 /**
- * Redis session tests.
+ * Unit tests for classes/session/redis.php.
  *
  * NOTE: in order to execute this test you need to set up
  *       Redis server and add configuration a constant
@@ -26,28 +31,17 @@
  * @package   core
  * @author    Russell Smith <mr-russ@smith2001.net>
  * @copyright 2016 Russell Smith
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-defined('MOODLE_INTERNAL') || die();
-
-/**
- * Unit tests for classes/session/redis.php.
- *
- * @package   core
- * @author    Russell Smith <mr-russ@smith2001.net>
- * @copyright 2016 Russell Smith
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @runClassInSeparateProcess
  */
-class core_session_redis_testcase extends advanced_testcase {
+class session_redis_test extends \advanced_testcase {
 
     /** @var $keyprefix This key prefix used when testing Redis */
     protected $keyprefix = null;
     /** @var $redis The current testing redis connection */
     protected $redis = null;
 
-    public function setUp() {
+    public function setUp(): void {
         global $CFG;
 
         if (!extension_loaded('redis')) {
@@ -79,7 +73,7 @@ class core_session_redis_testcase extends advanced_testcase {
         $this->redis->connect(TEST_SESSION_REDIS_HOST);
     }
 
-    public function tearDown() {
+    public function tearDown(): void {
         if (!extension_loaded('redis') || !defined('TEST_SESSION_REDIS_HOST')) {
             return;
         }
@@ -116,6 +110,30 @@ class core_session_redis_testcase extends advanced_testcase {
         $this->assertSessionNoLocks();
     }
 
+    public function test_compression_read_and_write_works() {
+        global $CFG;
+
+        $CFG->session_redis_compressor = \core\session\redis::COMPRESSION_GZIP;
+
+        $sess = new \core\session\redis();
+        $sess->init();
+        $this->assertTrue($sess->handler_write('sess1', 'DATA'));
+        $this->assertSame('DATA', $sess->handler_read('sess1'));
+        $this->assertTrue($sess->handler_close());
+
+        if (extension_loaded('zstd')) {
+            $CFG->session_redis_compressor = \core\session\redis::COMPRESSION_ZSTD;
+
+            $sess = new \core\session\redis();
+            $sess->init();
+            $this->assertTrue($sess->handler_write('sess2', 'DATA'));
+            $this->assertSame('DATA', $sess->handler_read('sess2'));
+            $this->assertTrue($sess->handler_close());
+        }
+
+        $CFG->session_redis_compressor = \core\session\redis::COMPRESSION_NONE;
+    }
+
     public function test_session_blocks_with_existing_session() {
         $sess = new \core\session\redis();
         $sess->init();
@@ -141,8 +159,8 @@ class core_session_redis_testcase extends advanced_testcase {
             $sessblocked->handler_read('sess1');
             $this->fail('Session lock must fail to be obtained.');
         } catch (\core\session\exception $e) {
-            $this->assertContains("Unable to obtain session lock", $e->getMessage());
-            $this->assertContains('Cannot obtain session lock for sid: sess1', file_get_contents($errorlog));
+            $this->assertStringContainsString("Unable to obtain session lock", $e->getMessage());
+            $this->assertStringContainsString('Cannot obtain session lock for sid: sess1', file_get_contents($errorlog));
         }
 
         $this->assertTrue($sessblocked->handler_close());
@@ -302,7 +320,7 @@ class core_session_redis_testcase extends advanced_testcase {
 
         $expected = 'Failed to connect (try 5 out of 5) to redis at ' . TEST_SESSION_REDIS_HOST . ':111111';
         $this->assertDebuggingCalledCount(5);
-        $this->assertContains($expected, $actual);
+        $this->assertStringContainsString($expected, $actual);
     }
 
     /**

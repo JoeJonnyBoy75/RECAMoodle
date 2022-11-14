@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core_contentbank\content;
+
 require('../config.php');
 
 require_login();
@@ -50,63 +52,31 @@ if ($PAGE->course) {
     require_login($PAGE->course->id);
 }
 
+$cb = new \core_contentbank\contentbank();
+$content = $cb->get_content_from_id($record->id);
+$contenttype = $content->get_content_type_instance();
+
+if (!$content->is_view_allowed()) {
+    $cburl = new \moodle_url('/contentbank/index.php', ['contextid' => $context->id, 'errormsg' => 'notavailable']);
+    redirect($cburl);
+}
+
+if ($context->contextlevel == CONTEXT_COURSECAT) {
+    $PAGE->set_primary_active_tab('home');
+}
+
 $PAGE->set_url(new \moodle_url('/contentbank/view.php', ['id' => $id]));
-$PAGE->set_context($context);
+if ($context->id == \context_system::instance()->id) {
+    $PAGE->set_context(context_course::instance($context->id));
+} else {
+    $PAGE->set_context($context);
+}
 $PAGE->navbar->add($record->name);
-$PAGE->set_heading($record->name);
 $title .= ": ".$record->name;
 $PAGE->set_title($title);
 $PAGE->set_pagetype('contentbank');
-
-$contenttypeclass = "\\$record->contenttype\\contenttype";
-$contentclass = "\\$record->contenttype\\content";
-if (!class_exists($contenttypeclass) || !class_exists($contentclass)) {
-    print_error('contenttypenotfound', 'error', $returnurl, $record->contenttype);
-}
-$contenttype = new $contenttypeclass($context);
-$content = new $contentclass($record);
-
-// Create the cog menu with all the secondary actions, such as delete, rename...
-$actionmenu = new action_menu();
-$actionmenu->set_alignment(action_menu::TR, action_menu::BR);
-if ($contenttype->can_manage($content)) {
-    // Add the rename content item to the menu.
-    $attributes = [
-        'data-action' => 'renamecontent',
-        'data-contentname' => $content->get_name(),
-        'data-contentid' => $content->get_id(),
-    ];
-    $actionmenu->add_secondary_action(new action_menu_link(
-        new moodle_url('#'),
-        new pix_icon('e/styleparagraph', get_string('rename')),
-        get_string('rename'),
-        false,
-        $attributes
-    ));
-}
-if ($contenttype->can_delete($content)) {
-    // Add the delete content item to the menu.
-    $attributes = [
-                'data-action' => 'deletecontent',
-                'data-contentname' => $content->get_name(),
-                'data-contentid' => $content->get_id(),
-                'data-contextid' => $context->id,
-            ];
-    $actionmenu->add_secondary_action(new action_menu_link(
-        new moodle_url('#'),
-        new pix_icon('t/delete', get_string('delete')),
-        get_string('delete'),
-        false,
-        $attributes
-    ));
-}
-
-// Add the cog menu to the header.
-$PAGE->add_header_action(html_writer::div(
-    $OUTPUT->render($actionmenu),
-    'd-print-none',
-    ['id' => 'region-main-settings-menu']
-));
+$PAGE->set_pagelayout('incourse');
+$PAGE->set_secondary_active_tab('contentbank');
 
 echo $OUTPUT->header();
 
@@ -115,7 +85,22 @@ if ($errormsg !== '' && get_string_manager()->string_exists($errormsg, 'core_con
     $errormsg = get_string($errormsg, 'core_contentbank');
     echo $OUTPUT->notification($errormsg);
 } else if ($statusmsg !== '' && get_string_manager()->string_exists($statusmsg, 'core_contentbank')) {
-    $statusmsg = get_string($statusmsg, 'core_contentbank');
+    if ($statusmsg == 'contentvisibilitychanged') {
+        switch ($content->get_visibility()) {
+            case content::VISIBILITY_PUBLIC:
+                $visibilitymsg = get_string('public', 'core_contentbank');
+                break;
+            case content::VISIBILITY_UNLISTED:
+                $visibilitymsg = get_string('unlisted', 'core_contentbank');
+                break;
+            default:
+                print_error('contentvisibilitynotfound', 'error', $returnurl, $content->get_visibility());
+                break;
+        }
+        $statusmsg = get_string($statusmsg, 'core_contentbank', $visibilitymsg);
+    } else {
+        $statusmsg = get_string($statusmsg, 'core_contentbank');
+    }
     echo $OUTPUT->notification($statusmsg, 'notifysuccess');
 }
 if ($contenttype->can_access()) {

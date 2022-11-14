@@ -24,7 +24,6 @@
  * Till then this will have to do.
  *
  * @module     tool_moodlenet/instance_form
- * @package    tool_moodlenet
  * @copyright  2020 Mathew May <mathew.solutions>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -67,7 +66,7 @@ define(['tool_moodlenet/validator',
                             input.classList.remove('is-invalid'); // Just in case the class has been applied already.
                             input.classList.add('is-valid');
                             validationArea.innerText = result.message;
-                            validationArea.classList.remove('text-error');
+                            validationArea.classList.remove('text-danger');
                             validationArea.classList.add('text-success');
                             // Give the user some time to see their input is valid.
                             setTimeout(function() {
@@ -76,7 +75,7 @@ define(['tool_moodlenet/validator',
                         } else {
                             input.classList.add('is-invalid');
                             validationArea.innerText = result.message;
-                            validationArea.classList.add('text-error');
+                            validationArea.classList.add('text-danger');
                         }
                         return;
                 }).catch();

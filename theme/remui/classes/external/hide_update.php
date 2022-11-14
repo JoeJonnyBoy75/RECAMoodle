@@ -17,7 +17,7 @@
 /**
  * Hide update nag service
  * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\external;
@@ -26,11 +26,12 @@ defined('MOODLE_INTERNAL') || die;
 
 use external_function_parameters;
 use external_value;
+use context_system;
 use cache;
 
 /**
  * Hide update trait
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 trait hide_update {
@@ -50,6 +51,10 @@ trait hide_update {
      */
     public static function hide_update() {
         global $PAGE;
+        // Validation for context is needed.
+        $context = context_system::instance();
+        self::validate_context($context);
+
         if (!is_siteadmin()) {
             return false;
         }

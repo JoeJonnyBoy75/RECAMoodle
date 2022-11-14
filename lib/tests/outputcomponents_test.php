@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Unit tests for lib/outputcomponents.php.
- *
- * @package   core
- * @category  phpunit
- * @copyright 2011 David Mudrak <david@moodle.com>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace core;
+
+use block_contents;
+use custom_menu;
+use custom_menu_item;
+use paging_bar;
+use renderer_base;
+use single_select;
+use theme_config;
+use url_select;
+use user_picture;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -29,10 +32,20 @@ global $CFG;
 require_once($CFG->libdir . '/outputcomponents.php');
 
 /**
- * Unit tests for the user_picture class.
+ * Unit tests for lib/outputcomponents.php.
+ *
+ * @package   core
+ * @category  test
+ * @copyright 2011 David Mudrak <david@moodle.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_outputcomponents_testcase extends advanced_testcase {
+class outputcomponents_test extends \advanced_testcase {
 
+    /**
+     * Tests user_picture::fields.
+     *
+     * @deprecated since Moodle 3.11 MDL-45242
+     */
     public function test_fields_aliasing() {
         $fields = user_picture::fields();
         $fields = array_map('trim', explode(',', $fields));
@@ -60,13 +73,19 @@ class core_outputcomponents_testcase extends advanced_testcase {
             $this->assertContains($expected, $returned, "Expected pattern '$expected' not returned");
         }
         $this->assertContains("custom1 AS prefixcustom1", $returned, "Expected pattern 'custom1 AS prefixcustom1' not returned");
+
+        // Deprecation warnings for user_picture::fields.
+        $this->assertDebuggingCalledCount(2);
     }
 
+    /**
+     * Tests user_picture::unalias.
+     */
     public function test_fields_unaliasing() {
-        $fields = user_picture::fields();
+        $fields = implode(',', \core_user\fields::get_picture_fields());
         $fields = array_map('trim', explode(',', $fields));
 
-        $fakerecord = new stdClass();
+        $fakerecord = new \stdClass();
         $fakerecord->aliasedid = 42;
         foreach ($fields as $field) {
             if ($field !== 'id') {
@@ -86,11 +105,14 @@ class core_outputcomponents_testcase extends advanced_testcase {
         $this->assertSame('Value of custom1', $returned->custom1);
     }
 
+    /**
+     * Tests user_picture::unalias with null values.
+     */
     public function test_fields_unaliasing_null() {
-        $fields = user_picture::fields();
+        $fields = implode(',', \core_user\fields::get_picture_fields());
         $fields = array_map('trim', explode(',', $fields));
 
-        $fakerecord = new stdClass();
+        $fakerecord = new \stdClass();
         $fakerecord->aliasedid = 42;
         foreach ($fields as $field) {
             if ($field !== 'id') {
@@ -130,25 +152,25 @@ class core_outputcomponents_testcase extends advanced_testcase {
         $this->assertSame('mm', $CFG->gravatardefaulturl);
 
         // Create some users.
-        $page = new moodle_page();
+        $page = new \moodle_page();
         $page->set_url('/user/profile.php');
-        $page->set_context(context_system::instance());
+        $page->set_context(\context_system::instance());
         $renderer = $page->get_renderer('core');
 
         $user1 = $this->getDataGenerator()->create_user(array('picture'=>11, 'email'=>'user1@example.com'));
-        $context1 = context_user::instance($user1->id);
+        $context1 = \context_user::instance($user1->id);
         $user2 = $this->getDataGenerator()->create_user(array('picture'=>0, 'email'=>'user2@example.com'));
-        $context2 = context_user::instance($user2->id);
+        $context2 = \context_user::instance($user2->id);
 
         // User 3 is deleted.
         $user3 = $this->getDataGenerator()->create_user(array('picture'=>1, 'deleted'=>1, 'email'=>'user3@example.com'));
-        $this->assertNotEmpty(context_user::instance($user3->id));
+        $this->assertNotEmpty(\context_user::instance($user3->id));
         $this->assertEquals(0, $user3->picture);
         $this->assertNotEquals('user3@example.com', $user3->email);
 
         // User 4 is incorrectly deleted with its context deleted as well (testing legacy code).
         $user4 = $this->getDataGenerator()->create_user(['picture' => 1, 'deleted' => 1, 'email' => 'user4@example.com']);
-        context_helper::delete_instance(CONTEXT_USER, $user4->id);
+        \context_helper::delete_instance(CONTEXT_USER, $user4->id);
         $this->assertEquals(0, $user4->picture);
         $this->assertNotEquals('user4@example.com', $user4->email);
 
@@ -159,7 +181,7 @@ class core_outputcomponents_testcase extends advanced_testcase {
         $user1->picture = 11;
 
         // Try valid user with picture when user context is not cached - 1 query expected.
-        context_helper::reset_caches();
+        \context_helper::reset_caches();
         $reads = $DB->perf_get_reads();
         $up1 = new user_picture($user1);
         $this->assertEquals($reads, $DB->perf_get_reads());
@@ -168,7 +190,7 @@ class core_outputcomponents_testcase extends advanced_testcase {
 
         // Try valid user with contextid hint - no queries expected.
         $user1->contextid = $context1->id;
-        context_helper::reset_caches();
+        \context_helper::reset_caches();
         $reads = $DB->perf_get_reads();
         $up1 = new user_picture($user1);
         $this->assertEquals($reads, $DB->perf_get_reads());
@@ -176,7 +198,7 @@ class core_outputcomponents_testcase extends advanced_testcase {
         $this->assertEquals($reads, $DB->perf_get_reads());
 
         // Try valid user without image - no queries expected.
-        context_helper::reset_caches();
+        \context_helper::reset_caches();
         $reads = $DB->perf_get_reads();
         $up2 = new user_picture($user2);
         $this->assertEquals($reads, $DB->perf_get_reads());
@@ -185,7 +207,7 @@ class core_outputcomponents_testcase extends advanced_testcase {
 
         // Try guessing of deleted users - no queries expected.
         unset($user3->deleted);
-        context_helper::reset_caches();
+        \context_helper::reset_caches();
         $reads = $DB->perf_get_reads();
         $up3 = new user_picture($user3);
         $this->assertEquals($reads, $DB->perf_get_reads());
@@ -261,9 +283,9 @@ class core_outputcomponents_testcase extends advanced_testcase {
         // Now test gravatar with one theme having own images (afterburner).
         // $this->assertFileExists("$CFG->dirroot/theme/afterburner/config.php");
         // set_config('theme', 'afterburner');
-        // $page = new moodle_page();
+        // $page = new \moodle_page();
         // $page->set_url('/user/profile.php');
-        // $page->set_context(context_system::instance());
+        // $page->set_context(\context_system::instance());
         // $renderer = $page->get_renderer('core');
 
         // $up2 = new user_picture($user2);
@@ -277,9 +299,9 @@ class core_outputcomponents_testcase extends advanced_testcase {
         // set_config('enablegravatar', 0);
         // $this->assertFileExists("$CFG->dirroot/theme/formal_white/config.php"); // Use any other theme.
         // set_config('theme', 'formal_white');
-        // $page = new moodle_page();
+        // $page = new \moodle_page();
         // $page->set_url('/user/profile.php');
-        // $page->set_context(context_system::instance());
+        // $page->set_context(\context_system::instance());
         // $renderer = $page->get_renderer('core');
 
         // $up1 = new user_picture($user1);
@@ -292,9 +314,9 @@ class core_outputcomponents_testcase extends advanced_testcase {
         set_config('theme', 'classic');
         $CFG->wwwroot = str_replace('https:', 'http:', $CFG->wwwroot);
         $CFG->slasharguments = 0;
-        $page = new moodle_page();
+        $page = new \moodle_page();
         $page->set_url('/user/profile.php');
-        $page->set_context(context_system::instance());
+        $page->set_context(\context_system::instance());
         $renderer = $page->get_renderer('core');
 
         $up3 = new user_picture($user3);
@@ -303,7 +325,7 @@ class core_outputcomponents_testcase extends advanced_testcase {
 
     public function test_empty_menu() {
         $emptymenu = new custom_menu();
-        $this->assertInstanceOf('custom_menu', $emptymenu);
+        $this->assertInstanceOf(custom_menu::class, $emptymenu);
         $this->assertFalse($emptymenu->has_children());
     }
 
@@ -333,7 +355,7 @@ EOF;
         $this->assertCount(3, $item->get_children());
         $this->assertEquals('Moodle community', $item->get_text());
         $itemurl = $item->get_url();
-        $this->assertTrue($itemurl instanceof moodle_url);
+        $this->assertTrue($itemurl instanceof \moodle_url);
         $this->assertEquals('http://moodle.org', $itemurl->out());
         $this->assertNull($item->get_title()); // Implicit title.
 
@@ -446,7 +468,7 @@ EOF;
                            '<a href="page?page=7">8</a>',
                            );
 
-        $mpage = new moodle_page();
+        $mpage = new \moodle_page();
         $rbase = new renderer_base($mpage, "/");
         $pbara = new paging_bar(40, 0, 5, 'index.php');
         $pbara->prepare($rbase, $mpage, "/");
@@ -461,7 +483,7 @@ EOF;
     public function test_pix_icon() {
         $this->resetAfterTest();
 
-        $page = new moodle_page();
+        $page = new \moodle_page();
 
         set_config('theme', 'boost');
         // Need to reset after changing theme.
@@ -469,10 +491,10 @@ EOF;
         $renderer = $page->get_renderer('core');
 
         $reason = 'An icon with no alt text is hidden from screenreaders.';
-        $this->assertContains('aria-hidden="true"', $renderer->pix_icon('t/print', ''), $reason);
+        $this->assertStringContainsString('aria-hidden="true"', $renderer->pix_icon('t/print', ''), $reason);
 
         $reason = 'An icon with alt text is not hidden from screenreaders.';
-        $this->assertNotContains('aria-hidden="true"', $renderer->pix_icon('t/print', 'Print'), $reason);
+        $this->assertStringNotContainsString('aria-hidden="true"', $renderer->pix_icon('t/print', 'Print'), $reason);
 
         // Test another theme with a different icon system.
         set_config('theme', 'classic');
@@ -481,10 +503,10 @@ EOF;
         $renderer = $page->get_renderer('core');
 
         $reason = 'An icon with no alt text is hidden from screenreaders.';
-        $this->assertContains('aria-hidden="true"', $renderer->pix_icon('t/print', ''), $reason);
+        $this->assertStringContainsString('aria-hidden="true"', $renderer->pix_icon('t/print', ''), $reason);
 
         $reason = 'An icon with alt text is not hidden from screenreaders.';
-        $this->assertNotContains('aria-hidden="true"', $renderer->pix_icon('t/print', 'Print'), $reason);
+        $this->assertStringNotContainsString('aria-hidden="true"', $renderer->pix_icon('t/print', 'Print'), $reason);
     }
 
     /**
@@ -529,7 +551,7 @@ EOF;
         $options = [ "Option A", "Option B", "Option C" ];
         $nothing = ['' => 'choosedots'];
 
-        $url = new moodle_url('/');
+        $url = new \moodle_url('/');
 
         $singleselect = new single_select($url, $realname, $options, null, $nothing, 'someformid');
         $singleselect->class = $realclass;
@@ -605,9 +627,9 @@ EOF;
             'style' => $labelstyle
         ];
 
-        $url1 = new moodle_url("/#a");
-        $url2 = new moodle_url("/#b");
-        $url3 = new moodle_url("/#c");
+        $url1 = new \moodle_url("/#a");
+        $url2 = new \moodle_url("/#b");
+        $url3 = new \moodle_url("/#c");
 
         $urls = [
             $url1->out() => 'A',
@@ -649,5 +671,34 @@ EOF;
         // The rest should be fine.
         $this->assertTrue(in_array(['name' => 'class', 'value' => $labelclass], $data->labelattributes));
         $this->assertTrue(in_array(['name' => 'style', 'value' => $labelstyle], $data->labelattributes));
+    }
+
+    /**
+     * Data provider for test_block_contents_is_fake().
+     *
+     * @return array
+     */
+    public function block_contents_is_fake_provider() {
+        return [
+            'Null' => [null, false],
+            'Not set' => [false, false],
+            'Fake' => ['_fake', true],
+            'Real block' => ['activity_modules', false],
+        ];
+    }
+
+    /**
+     * Test block_contents is_fake() method.
+     *
+     * @dataProvider block_contents_is_fake_provider
+     * @param mixed $value Value for the data-block attribute
+     * @param boolean $expected The expected result
+     */
+    public function test_block_contents_is_fake($value, $expected) {
+        $bc = new block_contents(array());
+        if ($value !== false) {
+            $bc->attributes['data-block'] = $value;
+        }
+        $this->assertEquals($expected, $bc->is_fake());
     }
 }

@@ -14,31 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * std_proxy tests.
- *
- * @package    core_calendar
- * @copyright  2017 Cameron Ball <cameron@cameron1729.xyz>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-defined('MOODLE_INTERNAL') || die();
+namespace core_calendar;
 
 use core_calendar\local\event\proxies\std_proxy;
 
 /**
  * std_proxy testcase.
  *
+ * @package core_calendar
  * @copyright 2017 Cameron Ball <cameron@cameron1729.xyz>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_calendar_std_proxy_testcase extends advanced_testcase {
+class std_proxy_test extends \advanced_testcase {
     /**
      * @var \stdClass[] $objects Array of objects to proxy.
      */
     public $objects;
 
-    public function setUp() {
+    public function setUp(): void {
         $this->objects = [
             1 => (object) [
                 'member1' => 'Hello',

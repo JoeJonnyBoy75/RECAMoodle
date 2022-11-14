@@ -41,16 +41,9 @@ $templatecontext = array();
 $licensecontroller = new theme_remui\controller\LicenseController();
 $templatecontext['license'] = $licensecontroller->get_remui_license_template_context();
 
-if (optional_param('section', '', PARAM_TEXT) == 'themesettingremui' ||
-	$licensecontroller->get_data_from_db() == 'available') {
-	$refresh = optional_param('refresh-update', false, PARAM_BOOL);
-    $update = new theme_remui\update($refresh);
-    $updates = $update->get_update_details();
-    $templatecontext['plugins'] = $updates;
-}
-
 $templatecontext['announcements'] = \theme_remui\controller\RemUIController::get_remui_announcements();
-
+require_once($CFG->dirroot.'/theme/remui/lib.php');
+$templatecontext['remuithemeversion'] = get_string('themeversionforinfo', 'theme_remui', get_themereleaseinfo());
 echo $OUTPUT->render_from_template('theme_remui/information_center', $templatecontext);
 
 toolbox::remove_plugin_config(EDD_LICENSE_ACTION);

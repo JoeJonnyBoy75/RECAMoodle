@@ -141,7 +141,7 @@ class badge {
         $data = $DB->get_record('badge', array('id' => $badgeid));
 
         if (empty($data)) {
-            print_error('error:nosuchbadge', 'badges', $badgeid);
+            throw new moodle_exception('error:nosuchbadge', 'badges', '', $badgeid);
         }
 
         foreach ((array)$data as $field => $value) {
@@ -289,7 +289,7 @@ class badge {
 
             // Copy badge image.
             $fs = get_file_storage();
-            if ($file = $fs->get_file($this->get_context()->id, 'badges', 'badgeimage', $this->id, '/', 'f1.png')) {
+            if ($file = $fs->get_file($this->get_context()->id, 'badges', 'badgeimage', $this->id, '/', 'f3.png')) {
                 if ($imagefile = $file->copy_content_to_temp()) {
                     badges_process_badge_image($newbadge, $imagefile);
                 }

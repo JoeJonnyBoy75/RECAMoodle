@@ -17,15 +17,19 @@
 /**
  * Edwiser RemUI
  * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\output\qtype_multichoice;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->dirroot . '/question/type/multichoice/renderer.php');
+
 use question_attempt;
 use question_display_options;
 use html_writer;
 use question_state;
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Subclass for generating the bits of output specific to multiple choice single questions.

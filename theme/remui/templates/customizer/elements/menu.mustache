@@ -1,0 +1,28 @@
+<div id="fitem_id_{{name}}" class="form-group row fitem">
+    <div class="col-md-3 pr-5">
+        <label class="col-form-label d-inline " for="id_{{name}}">
+            {{label}}
+        </label>
+        {{{help}}}
+    </div>
+    <div class="menu-reset btn" title="{{#str}}resetdesc, theme_remui{{/str}}" data-default="{{default}}">
+        <i class="fa fa-undo"></i>
+    </div>
+    <div class="col-md-9 form-inline felement" data-fieldtype="menu">
+        <textarea class="form-control d-none" name="{{name}}" id="id_{{name}}">{{default}}</textarea>
+        <div class="customizer-menu-item-list w-100">
+            {{#menu}}
+            {{> theme_remui/customizer/elements/menu/menu-item }}
+            {{/menu}}
+        </div>
+        <button type="button" class="btn btn-primary add-menu-item" data-name="{{name}}">{{#str}} customizermenuadd, theme_remui {{/str}}</button>
+        <div class="form-control-feedback invalid-feedback" id="id_error_{{name}}">
+
+        </div>
+    </div>
+</div>
+{{#js}}
+require(['theme_remui/customizer/elements/menu'], function(menu) {
+    menu.init('#fitem_id_{{name}}');
+});
+{{/js}}

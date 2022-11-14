@@ -37,6 +37,7 @@ use mod_forum\local\factories\url as url_factory;
 use mod_forum\local\factories\vault as vault_factory;
 use mod_forum\local\managers\capability as capability_manager;
 use mod_forum\local\renderers\posts as posts_renderer;
+use forum_portfolio_caller;
 use core\output\notification;
 use context;
 use context_module;
@@ -52,6 +53,7 @@ use stdClass;
 use url_select;
 
 require_once($CFG->dirroot . '/mod/forum/lib.php');
+require_once($CFG->dirroot . '/mod/forum/locallib.php');
 
 /**
  * Discussion renderer class.
@@ -213,8 +215,9 @@ class discussion {
                 'movediscussion' => null,
                 'pindiscussion' => null,
                 'neighbourlinks' => $this->get_neighbour_links_html(),
-                'exportdiscussion' => !empty($CFG->enableportfolios) ? $this->get_export_discussion_html() : null
-            ]
+                'exportdiscussion' => !empty($CFG->enableportfolios) ? $this->get_export_discussion_html($user) : null
+            ],
+            'settingsselector' => true,
         ]);
 
         $capabilities = (array) $exporteddiscussion['capabilities'];
@@ -230,6 +233,15 @@ class discussion {
                 'fullname' => $loggedinuser->get_full_name(),
                 'profileimageurl' => ($urlfactory->get_author_profile_image_url($loggedinuser, null))->out(false)
             ];
+        }
+
+        $exporteddiscussion['throttlingwarningmsg'] = '';
+        $cmrecord = $this->forum->get_course_module_record();
+        if (($warningobj = forum_check_throttling($this->forumrecord, $cmrecord)) && $warningobj->canpost) {
+            $throttlewarnnotification = (new notification(
+                    get_string($warningobj->errorcode, $warningobj->module, $warningobj->additional)
+            ))->set_show_closebutton();
+            $exporteddiscussion['throttlingwarningmsg'] = $throttlewarnnotification->get_message();
         }
 
         if ($this->displaymode === FORUM_MODE_NESTED_V2) {
@@ -355,15 +367,18 @@ class discussion {
     /**
      * Get the HTML to render the export discussion button.
      *
-     * @return string|null
+     * @param   stdClass $user The user viewing the discussion
+     * @return  string|null
      */
-    private function get_export_discussion_html() : ?string {
+    private function get_export_discussion_html(stdClass $user) : ?string {
         global $CFG;
 
-        require_once($CFG->libdir . '/portfoliolib.php');
-        $discussion = $this->discussion;
+        if (!$this->capabilitymanager->can_export_discussions($user)) {
+            return null;
+        }
+
         $button = new \portfolio_add_button();
-        $button->set_callback_options('forum_portfolio_caller', ['discussionid' => $discussion->get_id()], 'mod_forum');
+        $button->set_callback_options('forum_portfolio_caller', ['discussionid' => $this->discussion->get_id()], 'mod_forum');
         $button = $button->to_html(PORTFOLIO_ADD_FULL_FORM, get_string('exportdiscussion', 'mod_forum'));
         return $button ?: null;
     }
@@ -378,23 +393,25 @@ class discussion {
         $notifications = $this->notifications;
         $discussion = $this->discussion;
         $forum = $this->forum;
-        $renderer = $this->renderer;
 
         if ($forum->is_cutoff_date_reached()) {
             $notifications[] = (new notification(
                     get_string('cutoffdatereached', 'forum'),
                     notification::NOTIFY_INFO
             ))->set_show_closebutton();
-        } else if ($forum->is_due_date_reached()) {
-            $notifications[] = (new notification(
+        } else if ($forum->get_type() != 'single') {
+            // Due date is already shown at the top of the page for single simple discussion forums.
+            if ($forum->is_due_date_reached()) {
+                $notifications[] = (new notification(
                     get_string('thisforumisdue', 'forum', userdate($forum->get_due_date())),
                     notification::NOTIFY_INFO
-            ))->set_show_closebutton();
-        } else if ($forum->has_due_date()) {
-            $notifications[] = (new notification(
+                ))->set_show_closebutton();
+            } else if ($forum->has_due_date()) {
+                $notifications[] = (new notification(
                     get_string('thisforumhasduedate', 'forum', userdate($forum->get_due_date())),
                     notification::NOTIFY_INFO
-            ))->set_show_closebutton();
+                ))->set_show_closebutton();
+            }
         }
 
         if ($forum->is_discussion_locked($discussion)) {
@@ -410,7 +427,7 @@ class discussion {
             if ($this->capabilitymanager->must_post_before_viewing_discussion($user, $discussion)) {
                 $notifications[] = (new notification(
                     get_string('qandanotify', 'forum')
-                ))->set_show_closebutton(true);
+                ))->set_show_closebutton(true)->set_extra_classes(['mt-3']);
             }
         }
 
@@ -421,6 +438,7 @@ class discussion {
                     'blockperiod' => get_string('secondstotime' . $forum->get_block_period())
                 ])
             ))->set_show_closebutton();
+
         }
 
         return array_map(function($notification) {

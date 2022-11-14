@@ -14,38 +14,24 @@ Feature: Scorm with no calendar capabilites
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And the following "activity" exists:
+      | activity        | scorm                                          |
+      | course          | C1                                             |
+      | name            | Test scorm name                                |
+      | timeopen        | ##first day of January 2017##                  |
+      | timeclose       | ##first day of February 2017##                 |
+      | packagefilepath | mod/scorm/tests/packages/singlesco_scorm12.zip |
     And I log in as "admin"
-    And I am on "Course 1" course homepage
-    And I navigate to "Users > Permissions" in current page administration
+    And I am on the "Course 1" "permissions" page
     And I override the system permissions of "Teacher" role with:
       | capability | permission |
       | moodle/calendar:manageentries | Prohibit |
     And I log out
 
   @javascript @_file_upload @_switch_iframe
-  Scenario: Editing a chat
-    Given I log in as "admin"
-    And I am on "Course 1" course homepage with editing mode on
-    When I add a "SCORM package" to section "1"
-    And I set the following fields to these values:
-      | Name | Test scorm name |
-      | Description | Test scorm description |
-      | id_timeopen_enabled | 1 |
-      | id_timeopen_day | 1 |
-      | id_timeopen_month | 1 |
-      | id_timeopen_year | 2017 |
-      | id_timeclose_enabled | 1 |
-      | id_timeclose_day | 1 |
-      | id_timeclose_month | 2 |
-      | id_timeclose_year | 2017 |
-    And I upload "mod/scorm/tests/packages/singlesco_scorm12.zip" file to "Package file" filemanager
-    And I click on "Save and display" "button"
-    And I log out
-    When I log in as "teacher1"
-    And I am on "Course 1" course homepage with editing mode on
-    And I follow "Test scorm name"
-    And I navigate to "Edit settings" in current page administration
-    And I set the following fields to these values:
+  Scenario: Editing a scorm activity without calendar permission
+    Given I am on the "Test scorm name" "scorm activity editing" page logged in as teacher1
+    When I set the following fields to these values:
       | id_timeopen_year | 2018 |
       | id_timeclose_year | 2018 |
     And I press "Save and return to course"

@@ -24,6 +24,7 @@
 
 $string['addmorechoiceblanks'] = 'Blanks for {no} more choices';
 $string['answer'] = 'Answer';
+$string['blanknumber'] = 'Blank {$a}';
 $string['choices'] = 'Choices';
 $string['choicex'] = 'Choice [[{no}]]';
 $string['combinedcontrolnamegapselect'] = 'drop-down menu';
@@ -41,7 +42,12 @@ $string['pluginname_link'] = 'question/type/gapselect';
 $string['pluginnameadding'] = 'Adding a select missing words question';
 $string['pluginnameediting'] = 'Editing a select missing words question';
 $string['pluginnamesummary'] = 'Missing words in the question text are filled in using drop-down menus.';
-$string['privacy:metadata'] = 'The Select missing words plugin does not store any personal data.';
+$string['privacy:metadata'] = 'Select missing words question type plugin allows question authors to set default options as user preferences.';
+$string['privacy:preference:defaultmark'] = 'The default mark set for a given question.';
+$string['privacy:preference:penalty'] = 'The penalty for each incorrect try when questions are run using the \'Interactive with multiple tries\' or \'Adaptive mode\' behaviour.';
+$string['privacy:preference:shuffleanswers'] = 'Whether the answers should be automatically shuffled.';
+$string['regradeissuenumchoiceschanged'] = 'The number of choices in group {$a} changed.';
+$string['regradeissuenumgroupsschanged'] = 'The number of groups of choices has changed.';
 $string['shuffle'] = 'Shuffle';
 $string['tagsnotallowed'] = '{$a->tag} is not allowed. (Only {$a->allowed} are permitted.)';
 $string['tagsnotallowedatall'] = '{$a->tag} is not allowed. (No HTML is allowed here.)';

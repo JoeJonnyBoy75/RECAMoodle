@@ -1,0 +1,189 @@
+// #epb_custom_modal, 
+// #epb_preview_window {
+
+    // .blocklist {
+    //     .action-buttons-modal .updatelayoutlist, .layout-list, .show-blocks {
+    //         display: none;
+    //     }
+    // }
+    // .layoutlist {
+    //     .action-buttons-modal .updateblocklist, .blocks-list, .show-layouts {
+    //         display: none;
+    //     }
+    // }
+
+//     $padding-modal-spaces:  20px 25px;
+    .rotate {
+        animation: rotation 2s infinite linear;
+    }
+//     &.modal {
+//         display: block; 
+//         position: fixed; 
+//         z-index: 1700; 
+//         left: 0;
+//         top: 0;
+//         overflow: auto; 
+//         background-color: rgb(0,0,0); 
+//         background-color: rgba(0,0,0,0.4); 
+//     }
+
+//         .modal-content {
+//             background-color: #fefefe;
+//             border: 1px solid #888;
+//             border-radius: .215rem;
+
+//             .modal-header {
+//                 padding: $padding-modal-spaces;
+//                 // background-image: linear-gradient(90deg,#3452ff 0%,#ff1053 100%);
+//                 box-shadow: 0 1px 2px #00000021;
+//                 .modal-title {
+//                     text-transform: uppercase;
+//                     font-weight: 600;
+//                     font-size: 20px;
+//                 // color: white;
+//                 }
+//             }
+
+//             .modal-body{
+//                 background-color: #f9fafc;
+//                 overflow: auto;
+//             }
+//         }
+
+//     @media only screen and (min-width: 600px) {
+//         .modal-dialog {
+//             max-width: 100%;
+//             max-height: 92vh;
+//             min-height: 92vh;
+//             margin: 25px 30px;
+//         }
+//         .modal-body {
+//             height: 100%;
+//             overflow: auto;
+//             padding: $padding-modal-spaces;
+//         }
+//         .modal-footer {
+//             padding: $padding-modal-spaces;   
+//         }
+//     }
+
+    
+
+//     .nav {
+//         border-bottom: none!important;
+//     }
+// }
+
+
+// #epb_preview_window {
+    // .preview_image_container {
+    //     padding: 30px;
+    //     width: 100%;
+    //     transition: all .2s;
+    //     img {
+    //         transition: all .2s;
+    //     }
+    // }
+
+    // .page-template-form {
+    //     width: 0%;
+    //     background: white;
+    //     position: absolute;
+    //     top: 0;
+    //     right: 0;
+    //     bottom: 0;
+    //     height: 100%;
+    //     transition: all .2s;
+    //     display: none;
+
+    //     #epb_page_form_container {
+    //         background: white;
+    //         max-height: 100%;
+    //         overflow: auto;
+    //         padding-top: 0!important;
+
+    //         .heading {
+    //             position: sticky;
+    //             top: 0;
+    //             background: white;
+    //             padding: 10px 0;
+    //         }
+    //     }
+    // }
+
+    // .expand-preview {
+    //     position: absolute;
+    //     left: 40%;
+    //     top: 0;
+    //     padding: 15px 20px;
+    //     width: 55px;
+    //     background: rgba(0,0,0,.1);
+    //     float: right;
+    //     display: none;
+    //     z-index: 1;
+    //     cursor: pointer;
+    //     transform: translateX(-56px);
+    //     @media only screen and (max-width: 600px) {
+    //         display: none;
+    //     }
+    // }
+
+    // .modal-body.showtemplateform {
+    //     overflow: hidden;
+    //     .preview_image_container {
+    //         width: 40%;
+    //         position: absolute;
+    //         overflow: auto;
+    //         top: 0;
+    //         left: 0;
+    //         bottom: 0;
+
+    //         @media only screen and (max-width: 600px) {
+    //             width: 0%;
+    //         }
+    //         :hover {
+    //             cursor: nesw-resize;
+    //         }
+    //     }
+    //     .page-template-form {
+    //         width: 60%;
+    //         display: block;
+    //         @media only screen and (max-width: 600px) {
+    //             width: 100%;
+    //         }
+    //     }
+    //     .expand-preview {
+    //         display: block;
+    //     }
+    // }
+
+    // .actionbtnlabel {
+    //     display: none;
+    //     &.active {
+    //         display: block;
+    //     }
+    // }
+// }
+
+.modal {
+    .spinner-border {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+    }
+    .modal-header  {
+        display: flex;
+        align-items: center;
+    }
+    .modal-subheader {
+        display: flex;
+        padding: 0 15px;
+        flex-grow: 1;
+        align-items: center;
+        
+        @media only screen and (max-width: 600px) {
+            display: none;
+        }
+    }
+}
+

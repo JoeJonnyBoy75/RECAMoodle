@@ -19,7 +19,7 @@
  *
  * @package   theme_remui
  * @copyright 2016 Damyon Wiese
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -31,5 +31,7 @@ $templatecontext = [
     'sitename' => format_string($SITE->shortname, true, ["escape" => false]),
     'output' => $OUTPUT
 ];
-
+if (get_config('theme_remui', 'icondesign') != 'default') {
+    $templatecontext['icondesign'] = true;
+}
 echo $OUTPUT->render_from_template('theme_remui/maintenance', $templatecontext);

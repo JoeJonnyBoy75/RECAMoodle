@@ -1,0 +1,136 @@
+<style>
+:root {
+  --primary: #62a8ea;
+  --text-color: #526069;
+}
+
+html {
+    font-size: 14px !important;
+    text-transform: unset !important;
+}
+body, input, select, .customizer-footer .mode-toggle, .fitem > .btn, .popover * {
+    color: var(--text-color) !important
+}
+a, a:hover {
+    color: #007bff;
+}
+body, .h1, .h2, .h3, .h4, .h5, .h6, h1, h1, h2, h3, h4, h5, h6, .text-muted, .popover {
+    font-family: Roboto, sans-serif !important;
+    font-size: inherit !important;
+    font-weight: 400 !important;
+    color: var(--text-color) !important;
+    text-transform: inherit !important;
+}
+body, .h1, .h2, .h3, .h4, .h5, .h6, h1, h1, h2, h3, h4, h5, h6, input, textarea {
+    color: var(--text-color) !important;
+}
+.text-primary {
+    color: var(--primary) !important;
+}
+.btn-primary {
+    background: var(--primary);
+}
+.btn-secondary, .btn-default {
+    color: var(--text-color) ;
+    background: #fff;
+    border-color: var(--text-color);
+}
+.btn-primary, .btn-secondary, .btn-default {
+    font-family: Roboto, sans-serif !important;
+    font-size: .9375rem;
+    line-height: 1.57143;
+    padding: .429rem 1rem;
+    border: 1px solid transparent;
+    border-radius: .215rem;
+    font-weight: inherit;
+    text-transform: inherit;
+    letter-spacing: 0;
+}
+</style>
+<div id="customizer" class="mode-desktop">
+    <form id="customize-controls" class="wrap">
+        <div class="customizer-header p-2 border-bottom">
+            <a class="customize-controls-close border-right text-dark" href="{{url}}">
+                <i class="fa fa-close"></i>
+            </a>
+            <div class="customize-save-button-wrapper d-flex justify-content-end">
+                <button id="reset-settings" type="button" class="btn btn-default mr-2" title="{{#str}}reset-settings, theme_remui{{/str}}">
+                    {{#str}} reset, theme_remui{{/str}}
+                </button>
+                <button id="publish-settings" type="button" class="btn">
+                {{#str}} save {{/str}}
+                </button>
+            </div>
+        </div>
+        <div class="customizer-panels">
+            {{#panels}}
+            <ul class="sidebar-panel {{#current}} current {{/current}}" id="{{name}}">
+                {{#root}}
+                    <li class="customize-info bg-white mb-3 p-3 border-bottom border-top">
+                        {{#str}} customizing, theme_remui {{/str}}
+                        <div class="h4 site-title">{{site}}</div>
+                    </li>
+                {{/root}}
+                {{#parent}}
+                    <li class="customize-back bg-white mb-3 p-3 border-bottom border-top bg-white">
+                        <button type="button" class="bg-white border-right customize-panel-back" data-panel-id="{{parent}}">
+                            <i class="fa fa-2x fa-angle-left"></i>
+                        </button>
+                        {{#str}} customizing, theme_remui {{/str}}
+                        <div class="h4 site-title">{{{label}}}</div>
+                    </li>
+                {{/parent}}
+                {{#children}}
+                    {{#panel}}
+                    <li class="p-3 m-0 bg-white border-bottom" sidebar-panel-link data-panel-id="{{name}}">
+                        <h5>{{label}}</h5>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </li>
+                    {{/panel}}
+                    {{^panel}}
+                    {{#setting}}
+                        {{#wrap_item}}
+                        <li class="setting-item setting-type-{{get_type}} {{get_css_classes}}">
+                        {{/wrap_item}}
+                            {{{output}}}
+                            {{#js}}
+                                {{{js}}}
+                            {{/js}}
+                        {{#wrap_item}}
+                        </li>
+                        {{/wrap_item}}
+                    {{/setting}}
+                    {{/panel}}
+                {{/children}}
+            </ul>
+            {{/panels}}
+        </div>
+        <div class="customizer-footer border-top w-100">
+            <button type="button" class="customizer-controls-toggle btn rounded-circle" title="{{#str}}hide-customizer, theme_remui{{/str}}">
+                <i class="fa fa-arrow-left"></i>
+            </button>
+            <div class="customizer-mode-button-wrapper d-inline">
+                <button type="button" data-mode="desktop" class="mode-toggle btn">
+                    <i class="fa fa-desktop" aria-hidden="true"></i>
+                </button>
+                <button type="button" data-mode="tablet" class="mode-toggle btn">
+                    <i class="fa fa-tablet" aria-hidden="true"></i>
+                </button>
+                <button type="button" data-mode="mobile" class="mode-toggle btn">
+                    <i class="fa fa-mobile-phone" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+    </form>
+    <div id="customizer-wrap" class="bg-dark">
+        <div class="customizer-preview h-100 m-auto">
+            <iframe class="h-100 w-100" id="customizer-frame" src="{{{url}}}" frameborder="0"></iframe>
+            <div class="bg-white customizer-overlay" id="preview-overlay">
+                <img src="{{{loader}}}"/>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white customizer-overlay d-none" id="main-overlay">
+        <img src="{{{loader}}}"/>
+    </div>
+</div>

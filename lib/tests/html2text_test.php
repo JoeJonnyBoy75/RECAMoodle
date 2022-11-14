@@ -14,22 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace core;
+
 /**
  * Tests our html2text hacks
  *
  * Note: includes original tests from testweblib.php
  *
  * @package    core
- * @category   phpunit
+ * @category   test
  * @copyright  2012 Petr Skoda {@link http://skodak.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-
-defined('MOODLE_INTERNAL') || die();
-
-
-class core_html2text_testcase extends basic_testcase {
+class html2text_test extends \basic_testcase {
 
     /**
      * ALT as image replacements.
@@ -78,9 +75,9 @@ class core_html2text_testcase extends basic_testcase {
      */
     public function test_build_link_list() {
 
-        // Note the trailing whitespace left intentionally in the text.
+        // Note the trailing whitespace left intentionally in the text after first link.
         $text = 'Total of <a title="List of integrated issues"
-            href="http://tr.mdl.org/sh.jspa?r=1&j=p+%3D+%22I+d%22+%3D">     
+            href="http://tr.mdl.org/sh.jspa?r=1&j=p+%3D+%22I+d%22+%3D">     ' . '
             <strong>27 issues</strong></a> and <a href="http://another.url/?f=a&amp;b=2">some</a> other
 have been fixed <strong><a href="http://third.url/view.php">last week</a></strong>';
 

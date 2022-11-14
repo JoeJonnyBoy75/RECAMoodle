@@ -20,7 +20,7 @@
  * We send anonymous user data to imporve our product compatibility with various plugins and systems.
  * Moodle's new Bootstrap theme engine
  * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -28,9 +28,11 @@ namespace theme_remui;
 
 defined('MOODLE_INTERNAL') || die();
 
+use curl;
+
 /**
  * Edwiser Usage Tracking
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class usage_tracking {
@@ -65,25 +67,28 @@ class usage_tracking {
 
                     $url = "https://edwiser.org/wp-json/edwiser_customizations/send_usage_data";
                     // Call api endpoint with data.
-                    $ch = curl_init();
+                    $curl = new curl();
 
                     // Set the url, number of POST vars, POST data.
-                    curl_setopt($ch, CURLOPT_URL, $url);
-                    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, $analyticsdata);
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                        'Content-Type: application/json',
-                        'Content-Length: ' . strlen($analyticsdata))
-                    );
+                    $curl->setopt([
+                        'CURLOPT_URL' => $url,
+                        'CURLOPT_CUSTOMREQUEST' => "POST",
+                        'CURLOPT_RETURNTRANSFER' => true,
+                        'CURLOPT_HTTPHEADER' => array(
+                            'Content-Type: application/json',
+                            'Content-Length: ' . strlen($analyticsdata)
+                        )
+                    ]);
 
                     // Execute post.
-                    $result = curl_exec($ch);
-                    if ($result) {
+                    $result = $curl->post($url, $analyticsdata);
+                    if ($curl->get_errno() === 0) {
                         $resultarr = json_decode($result, 1);
+                    } else {
+                        $resultarr = [
+                            'success' => false
+                        ];
                     }
-                    // Close connection.
-                    curl_close($ch);
 
                     // Save new timestamp, 7 days --- save only if api returned success.
                     if (isset($resultarr['success']) && $resultarr['success']) {
@@ -92,6 +97,10 @@ class usage_tracking {
                 }
             }
         }
+    }
+
+    public function get_sitedata_bug_feedback_report() {
+        return $this->prepare_usage_analytics();
     }
 
      /**
@@ -183,28 +192,32 @@ class usage_tracking {
         $filteredpluginconfig = array();
 
         // Suppressing all the errors here, just in case the setting does not exists, to avoid many if statements.
+
+        /*General Tab*/
         $filteredpluginconfig['enableannouncement'] = @$pluginconfig->enableannouncement;
         $filteredpluginconfig['announcementtype'] = @$pluginconfig->announcementtype;
         $filteredpluginconfig['enabledismissannouncement'] = @$pluginconfig->enabledismissannouncement;
-        $filteredpluginconfig['enablerecentcourses'] = @$pluginconfig->enablerecentcourses;
-        $filteredpluginconfig['enableheaderbuttons'] = @$pluginconfig->enableheaderbuttons;
         $filteredpluginconfig['mergemessagingsidebar'] = @$pluginconfig->mergemessagingsidebar;
-        $filteredpluginconfig['courseperpage'] = @$pluginconfig->courseperpage;
-        $filteredpluginconfig['courseanimation'] = @$pluginconfig->courseanimation;
-        $filteredpluginconfig['enablenewcoursecards'] = @$pluginconfig->enablenewcoursecards;
-        $filteredpluginconfig['activitynextpreviousbutton'] = @$pluginconfig->activitynextpreviousbutton;
         $filteredpluginconfig['logoorsitename'] = @$pluginconfig->logoorsitename;
+        $filteredpluginconfig['logo'] = @$pluginconfig->logo;
+        $filteredpluginconfig['logomini'] = @$pluginconfig->logomini;
+        $filteredpluginconfig['siteicon'] = @$pluginconfig->siteicon;
+        $filteredpluginconfig['faviconurl'] = @$pluginconfig->faviconurl;
         $filteredpluginconfig['fontselect'] = @$pluginconfig->fontselect;
         $filteredpluginconfig['fontname'] = @$pluginconfig->fontname;
         $filteredpluginconfig['customcss'] = isset($pluginconfig->customcss) ? base64_encode($pluginconfig->customcss) : '';
-        // Encode to avoid any issues with special chars in css.
-        $filteredpluginconfig['enablecoursestats'] = @$pluginconfig->enablecoursestats;
         $filteredpluginconfig['enabledictionary'] = @$pluginconfig->enabledictionary;
+
+        // Encode to avoid any issues with special chars in css.
+        $filteredpluginconfig['activitynextpreviousbutton'] = @$pluginconfig->activitynextpreviousbutton;
+        $filteredpluginconfig['enablecoursestats'] = @$pluginconfig->enablecoursestats;
         $filteredpluginconfig['poweredbyedwiser'] = @$pluginconfig->poweredbyedwiser;
         $filteredpluginconfig['navlogin_popup'] = @$pluginconfig->navlogin_popup;
         $filteredpluginconfig['loginsettingpic'] = isset($pluginconfig->loginsettingpic) ? 1 : 0;
         $filteredpluginconfig['brandlogopos'] = @$pluginconfig->brandlogopos;
 
+        $filteredpluginconfig['courseperpage'] = @$pluginconfig->courseperpage;
+        $filteredpluginconfig['enablerecentcourses'] = @$pluginconfig->enablerecentcourses;
         $homepageinstalled = \core_plugin_manager::instance()->get_plugin_info('local_remuihomepage');
         $filteredpluginconfig['new_homepage_installed'] = 0;
         if ($homepageinstalled != null) {
@@ -231,7 +244,13 @@ class usage_tracking {
 
         // Focus Mode Setting
         $filteredpluginconfig['enablefocusmode'] = @$pluginconfig->enablefocusmode;
-        
+
+        // Form design Setting
+        $filteredpluginconfig['formselementdesign'] = @$pluginconfig->formselementdesign;
+
+        // Icon design Setting
+        $filteredpluginconfig['icondesign'] = @$pluginconfig->icondesign;
+
         return $filteredpluginconfig;
     }
 

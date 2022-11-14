@@ -1,0 +1,65 @@
+// Heading all
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+    font-weight: '[[setting:typography-heading-all-fontweight]]';
+    text-transform: '[[setting:typography-heading-all-text-transform]]';
+    color: '[[setting:typography-heading-all-textcolor]]';
+}
+
+// Heading 1
+h1,
+.h1 {
+    font-size: '[[setting:typography-heading-h1-fontsize]]'rem;
+    font-weight: '[[setting:typography-heading-h1-fontweight]]';
+    text-transform: '[[setting:typography-heading-h1-text-transform]]';
+}
+
+// Heading 2
+h2,
+.h2 {
+    font-size: '[[setting:typography-heading-h2-fontsize]]'rem;
+    font-weight: '[[setting:typography-heading-h2-fontweight]]';
+    text-transform: '[[setting:typography-heading-h2-text-transform]]';
+}
+
+// Heading 3
+h3,
+.h3 {
+    font-size: '[[setting:typography-heading-h3-fontsize]]'rem;
+    font-weight: '[[setting:typography-heading-h3-fontweight]]';
+    text-transform: '[[setting:typography-heading-h3-text-transform]]';
+}
+
+// Heading 4
+h4,
+.h4 {
+    font-size: '[[setting:typography-heading-h4-fontsize]]'rem;
+    font-weight: '[[setting:typography-heading-h4-fontweight]]';
+    text-transform: '[[setting:typography-heading-h4-text-transform]]';
+}
+
+// Heading 5
+h5,
+.h5 {
+    font-size: '[[setting:typography-heading-h5-fontsize]]'rem;
+    font-weight: '[[setting:typography-heading-h5-fontweight]]';
+    text-transform: '[[setting:typography-heading-h5-text-transform]]';
+}
+
+// Heading 6
+h6,
+.h6 {
+    font-size: '[[setting:typography-heading-h6-fontsize]]'rem;
+    font-weight: '[[setting:typography-heading-h6-fontweight]]';
+    text-transform: '[[setting:typography-heading-h6-text-transform]]';
+}

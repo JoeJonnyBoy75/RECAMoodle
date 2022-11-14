@@ -33,8 +33,14 @@
         </div>
     </div>
     <div class="hidden" data-region="view-content">
+        {{#pagingbar}}
+        <div class="d-flex paging-bar-container mb-3" data-region="paging-bar-container" style="margin-top: unset;">
+            {{> core/paged_content_paging_bar }}
+        </div>
+    {{/pagingbar}}
         {{< core_course/coursecards }}
-            {{$classes}}one-row fixed-width-cards justify-content-center overflow-hidden{{/classes}}
+            {{$classes}} overflow-hidden one-row  justify-content-center{{/classes}}
+            {{! one-row fixed-width-cards justify-content-center  }}
         {{/ core_course/coursecards }}
     </div>
     <div class="hidden text-xs-center text-center mt-3" data-region="empty-message">

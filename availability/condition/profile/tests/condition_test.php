@@ -14,17 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Unit tests for the user profile condition.
- *
- * @package availability_profile
- * @copyright 2014 The Open University
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-defined('MOODLE_INTERNAL') || die();
-
-use availability_profile\condition;
+namespace availability_profile;
 
 /**
  * Unit tests for the user profile condition.
@@ -33,7 +23,7 @@ use availability_profile\condition;
  * @copyright 2014 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class availability_profile_condition_testcase extends advanced_testcase {
+class condition_test extends \advanced_testcase {
     /** @var profile_define_text Profile field for testing */
     protected $profilefield;
 
@@ -45,19 +35,15 @@ class availability_profile_condition_testcase extends advanced_testcase {
     /** @var \core_availability\info Current info */
     private $info;
 
-    public function setUp() {
+    public function setUp(): void {
         global $DB, $CFG;
 
         $this->resetAfterTest();
 
-        // Add a custom profile field type. The API for doing this is indescribably
-        // horrid and tightly intertwined with the form UI, so it's best to add
-        // it directly in database.
-        $DB->insert_record('user_info_field', array(
-                'shortname' => 'frogtype', 'name' => 'Type of frog', 'categoryid' => 1,
+        // Add a custom profile field type.
+        $this->profilefield = $this->getDataGenerator()->create_custom_profile_field(array(
+                'shortname' => 'frogtype', 'name' => 'Type of frog',
                 'datatype' => 'text'));
-        $this->profilefield = $DB->get_record('user_info_field',
-                array('shortname' => 'frogtype'));
 
         // Clear static cache.
         \availability_profile\condition::wipe_static_cache();
@@ -100,12 +86,12 @@ class availability_profile_condition_testcase extends advanced_testcase {
      */
     public function test_constructor() {
         // No parameters.
-        $structure = new stdClass();
+        $structure = new \stdClass();
         try {
             $cond = new condition($structure);
             $this->fail();
-        } catch (coding_exception $e) {
-            $this->assertContains('Missing or invalid ->op', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertStringContainsString('Missing or invalid ->op', $e->getMessage());
         }
 
         // Invalid op.
@@ -113,8 +99,8 @@ class availability_profile_condition_testcase extends advanced_testcase {
         try {
             $cond = new condition($structure);
             $this->fail();
-        } catch (coding_exception $e) {
-            $this->assertContains('Missing or invalid ->op', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertStringContainsString('Missing or invalid ->op', $e->getMessage());
         }
 
         // Missing value.
@@ -122,8 +108,8 @@ class availability_profile_condition_testcase extends advanced_testcase {
         try {
             $cond = new condition($structure);
             $this->fail();
-        } catch (coding_exception $e) {
-            $this->assertContains('Missing or invalid ->v', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertStringContainsString('Missing or invalid ->v', $e->getMessage());
         }
 
         // Invalid value (not string).
@@ -131,8 +117,8 @@ class availability_profile_condition_testcase extends advanced_testcase {
         try {
             $cond = new condition($structure);
             $this->fail();
-        } catch (coding_exception $e) {
-            $this->assertContains('Missing or invalid ->v', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertStringContainsString('Missing or invalid ->v', $e->getMessage());
         }
 
         // Unexpected value.
@@ -140,8 +126,8 @@ class availability_profile_condition_testcase extends advanced_testcase {
         try {
             $cond = new condition($structure);
             $this->fail();
-        } catch (coding_exception $e) {
-            $this->assertContains('Unexpected ->v', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertStringContainsString('Unexpected ->v', $e->getMessage());
         }
 
         // Missing field.
@@ -150,8 +136,8 @@ class availability_profile_condition_testcase extends advanced_testcase {
         try {
             $cond = new condition($structure);
             $this->fail();
-        } catch (coding_exception $e) {
-            $this->assertContains('Missing ->sf or ->cf', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertStringContainsString('Missing ->sf or ->cf', $e->getMessage());
         }
 
         // Invalid field (not string).
@@ -159,8 +145,8 @@ class availability_profile_condition_testcase extends advanced_testcase {
         try {
             $cond = new condition($structure);
             $this->fail();
-        } catch (coding_exception $e) {
-            $this->assertContains('Invalid ->sf', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertStringContainsString('Invalid ->sf', $e->getMessage());
         }
 
         // Both fields.
@@ -169,8 +155,8 @@ class availability_profile_condition_testcase extends advanced_testcase {
         try {
             $cond = new condition($structure);
             $this->fail();
-        } catch (coding_exception $e) {
-            $this->assertContains('Both ->sf and ->cf', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertStringContainsString('Both ->sf and ->cf', $e->getMessage());
         }
 
         // Invalid ->cf field (not string).
@@ -179,8 +165,8 @@ class availability_profile_condition_testcase extends advanced_testcase {
         try {
             $cond = new condition($structure);
             $this->fail();
-        } catch (coding_exception $e) {
-            $this->assertContains('Invalid ->cf', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertStringContainsString('Invalid ->cf', $e->getMessage());
         }
 
         // Valid examples (checks values are correctly included).
@@ -313,7 +299,8 @@ class availability_profile_condition_testcase extends advanced_testcase {
         // Check the message (should be using lang string with capital, which
         // is evidence that it called the right function to get the name).
         $information = $cond->get_description(false, false, $info);
-        $this->assertRegExp('~Department~', $information);
+        $information = \core_availability\info::format_info($information, $info->get_course());
+        $this->assertMatchesRegularExpression('~Department~', $information);
 
         // Set the field to true for both users and retry.
         $DB->set_field('user', 'department', 'Cheese Studies', array('id' => $user->id));
@@ -333,11 +320,9 @@ class availability_profile_condition_testcase extends advanced_testcase {
         $info = new \core_availability\mock_info();
 
         // Add custom textarea type.
-        $DB->insert_record('user_info_field', array(
-                'shortname' => 'longtext', 'name' => 'Long text', 'categoryid' => 1,
+        $customfield = $this->getDataGenerator()->create_custom_profile_field(array(
+                'shortname' => 'longtext', 'name' => 'Long text',
                 'datatype' => 'textarea'));
-        $customfield = $DB->get_record('user_info_field',
-                array('shortname' => 'longtext'));
 
         // The list of fields should include the text field added in setUp(),
         // but should not include the textarea field added just now.
@@ -394,7 +379,8 @@ class availability_profile_condition_testcase extends advanced_testcase {
                 'Failed checking normal (positive) result');
         if (!$yes) {
             $information = $cond->get_description(false, false, $info);
-            $this->assertRegExp($failpattern, $information);
+            $information = \core_availability\info::format_info($information, $info->get_course());
+            $this->assertMatchesRegularExpression($failpattern, $information);
         }
 
         // Negative (NOT) test.
@@ -402,7 +388,8 @@ class availability_profile_condition_testcase extends advanced_testcase {
                 'Failed checking NOT (negative) result');
         if ($yes) {
             $information = $cond->get_description(false, true, $info);
-            $this->assertRegExp($failpattern, $information);
+            $information = \core_availability\info::format_info($information, $info->get_course());
+            $this->assertMatchesRegularExpression($failpattern, $information);
         }
     }
 
@@ -465,11 +452,9 @@ class availability_profile_condition_testcase extends advanced_testcase {
         condition::wipe_static_cache();
 
         // For testing, make another info field with default value.
-        $DB->insert_record('user_info_field', array(
-                'shortname' => 'tonguestyle', 'name' => 'Tongue style', 'categoryid' => 1,
+        $otherprofilefield = $this->getDataGenerator()->create_custom_profile_field(array(
+                'shortname' => 'tonguestyle', 'name' => 'Tongue style',
                 'datatype' => 'text', 'defaultdata' => 'Slimy'));
-        $otherprofilefield = $DB->get_record('user_info_field',
-                array('shortname' => 'tonguestyle'));
 
         // Make a test course and some users.
         $generator = $this->getDataGenerator();

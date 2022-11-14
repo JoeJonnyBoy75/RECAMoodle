@@ -8,56 +8,23 @@
         "formhtml": "<p>(Form html would go here)</p>"
     }
 }}
-<div class="container-fluid">
-    <div class="row justify-content-md-center">
-        <div class="page-brand-info">
-            {{#loginpage_context}}
-            {{^logopos}}
-                {{#logourl}}
-                    <h2 class="card-header bg-transparent mb-3" ><img src="{{logourl}}" class="img-fluid" title="{{sitename}}" alt="{{sitename}}"/></h2>
-                {{/logourl}}
-                {{^logourl}}
-                    <h2 class="card-header bg-transparent mb-3"><i class="fa fa-{{siteicon}}"></i> {{sitename}}</h2>
-                {{/logourl}}
-            {{/logopos}}
-            {{/loginpage_context}}
-            {{#sitedesc}}
-                <p class="font-size-20 site-desc">{{{sitedesc}}}</p>
-            {{/sitedesc}}
-            {{^sitedesc}}
-                {{#hasinstructions}}
-                    <p class="font-size-20 instructions">{{{instructions}}}</p>
-                {{/hasinstructions}}
-            {{/sitedesc}}
-        </div>
-        <div class="p-0 signupform">
-            <div class="card">
-                <div class="card-block p-5">
-                    {{#loginpage_context}}
-                    {{#logopos}}
-                        {{#logourl}}
-                            <h2 class="card-header text-center bg-transparent mb-3 p-4" ><img src="{{logourl}}" class="img-fluid" title="{{sitename}}" alt="{{sitename}}"/></h2>
-                        {{/logourl}}
-                        {{^logourl}}
-                            <h2 class="card-header text-center bg-transparent mb-3 p-4"><i class="fa fa-{{siteicon}}"></i> {{sitename}}</h2>
-                        {{/logourl}}
-                    {{/logopos}}
-                    {{/loginpage_context}}
-                    <div class="card-body">
-                        <div class="card-title">
-                            <h3 class="font-size-24">{{#str}}signup, theme_remui{{/str}}</h3>
-                        </div>
-                        {{{formhtml}}}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="signupform">
+    {{#hidelogo}}
+    {{# output.should_display_navbar_logo }}
+        <a class="login-brand-wrapper login-{{logoorsitename}}" href="#" aria-label="{{ sitename }} - {{#str}}brandname, theme_remui{{/str}}">
+            <img src="{{ logourl }}" class="login-brand-logo logo">
+            <img src="{{ logominiurl }}" class="login-brand-logo logomini">
+            <span class="login-brand-logo icononly"><i class="fa fa-{{siteicon}}"></i> {{{ sitename }}}</span>
+            <span class="login-brand-logo font-weight-bold iconsitename">
+                <i class="fa fa-{{siteicon}}"></i>&nbsp;
+                {{{ sitename }}}
+            </span>
+        </a>
+    {{/ output.should_display_navbar_logo }}
+    {{^ output.should_display_navbar_logo }}
+        {{{ sitename }}}
+    {{/ output.should_display_navbar_logo }}
+    {{/hidelogo}}
+    <h1 class="login-heading">{{#str}} newaccount {{/str}}</h1>
+    {{{formhtml}}}
 </div>
-{{#js}}
-require(['theme_remui/loader'], function () {
-    jQuery(document).ready(function(){
-        jQuery('#page-login-signup label[for="id_recaptcha_element"]').parent().css({"width": "100%", "margin": "0 20px"});
-    });
-});
-{{/js}}

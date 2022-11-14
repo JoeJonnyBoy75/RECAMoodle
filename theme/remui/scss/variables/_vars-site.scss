@@ -1,10 +1,8 @@
-
-
 //== Site Navbar
 //
 //##
 $brand-font-family: $headings-font-family;
-$site-navbar-height: remToPx($navbar-height);
+$site-navbar-height: remtopx($navbar-height);
 $site-navbar-color: $gray-400;
 $site-navbar-hover-color: $gray-500;
 $site-navbar-brand-bg: $gray-700;
@@ -83,8 +81,6 @@ $site-menubar-fold-top-active-bg: $gray-700;
 //Light
 $site-menubar-light-fold-top-active-bg: $color-blue-100;
 $site-menubar-light-fold-alt-box-shadow: none;
-
-
 
 //== Site Menubar light
 //

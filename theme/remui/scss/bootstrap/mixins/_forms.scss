@@ -14,15 +14,14 @@
   &:focus {
     color: $input-focus-color;
     background-color: $input-focus-bg;
-    // border-color: $input-focus-border-color;
-    border-color: $primary;
+    border-color: $input-focus-border-color;
     outline: 0;
-    // @if $enable-shadows {
-    //   @include box-shadow($input-box-shadow, $input-focus-box-shadow);
-    // } @else {
-    //  // Avoid using mixin so we can pass custom focus shadow properly
-    //   box-shadow: $input-focus-box-shadow;
-    // }
+    @if $enable-shadows {
+      @include box-shadow($input-box-shadow, $input-focus-box-shadow);
+    } @else {
+      // Avoid using mixin so we can pass custom focus shadow properly
+      box-shadow: $input-focus-box-shadow;
+    }
   }
   @include deprecate("The `form-control-focus()` mixin", "v4.4.0", "v5", $ignore-warning);
 }
@@ -54,6 +53,7 @@
   .#{$state}-tooltip {
     position: absolute;
     top: 100%;
+    left: 0;
     z-index: 5;
     display: none;
     max-width: 100%; // Contain to parent when possible
@@ -64,6 +64,13 @@
     color: color-yiq($color);
     background-color: rgba($color, $form-feedback-tooltip-opacity);
     @include border-radius($form-feedback-tooltip-border-radius);
+
+    // See https://github.com/twbs/bootstrap/pull/31557
+    // Align tooltip to form elements
+    .form-row > .col > &,
+    .form-row > [class*="col-"] > & {
+      left: $form-grid-gutter-width / 2;
+    }
   }
 
   @include form-validation-state-selector($state) {
@@ -75,7 +82,7 @@
 
   .form-control {
     @include form-validation-state-selector($state) {
-      border-color: $primary;
+      border-color: $color;
 
       @if $enable-validation-icons {
         padding-right: $input-height-inner;
@@ -86,8 +93,8 @@
       }
 
       &:focus {
-        border-color: $primary;
-        box-shadow: 0 0 0 $input-focus-width rgba($primary, .25);
+        border-color: $color;
+        // box-shadow: 0 0 0 $input-focus-width rgba($color, .25);
       }
     }
   }
@@ -108,7 +115,7 @@
 
       @if $enable-validation-icons {
         padding-right: $custom-select-feedback-icon-padding-right;
-        background: $custom-select-background, escape-svg($icon) $custom-select-bg no-repeat $custom-select-feedback-icon-position / $custom-select-feedback-icon-size;
+        background: $custom-select-background, $custom-select-bg escape-svg($icon) $custom-select-feedback-icon-position / $custom-select-feedback-icon-size no-repeat;
       }
 
       &:focus {

@@ -14,13 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Tests for step.
- *
- * @package    tool_usertours
- * @copyright  2016 Andrew Nicols <andrew@nicols.co.uk>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace tool_usertours;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -34,7 +28,7 @@ require_once($CFG->libdir . '/formslib.php');
  * @copyright  2016 Andrew Nicols <andrew@nicols.co.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class step_testcase extends advanced_testcase {
+class step_test extends \advanced_testcase {
 
     /**
      * @var moodle_database
@@ -44,7 +38,7 @@ class step_testcase extends advanced_testcase {
     /**
      * Setup to store the DB reference.
      */
-    public function setUp() {
+    public function setUp(): void {
         global $DB;
 
         $this->db = $DB;
@@ -53,7 +47,7 @@ class step_testcase extends advanced_testcase {
     /**
      * Tear down to restore the original DB reference.
      */
-    public function tearDown() {
+    public function tearDown(): void {
         global $DB;
 
         $DB = $this->db;
@@ -117,7 +111,7 @@ class step_testcase extends advanced_testcase {
      */
     public function test_fetch() {
         $step = $this->getMockBuilder(\tool_usertours\step::class)
-            ->setMethods(['reload_from_record'])
+            ->onlyMethods(['reload_from_record'])
             ->getMock()
             ;
 
@@ -185,7 +179,7 @@ class step_testcase extends advanced_testcase {
      */
     public function test_is_first_step($sortorder, $count, $isfirst, $islast) {
         $step = $this->getMockBuilder(\tool_usertours\step::class)
-            ->setMethods(['get_sortorder'])
+            ->onlyMethods(['get_sortorder'])
             ->getMock();
 
         $step->expects($this->once())
@@ -207,11 +201,11 @@ class step_testcase extends advanced_testcase {
      */
     public function test_is_last_step($sortorder, $count, $isfirst, $islast) {
         $step = $this->getMockBuilder(\tool_usertours\step::class)
-            ->setMethods(['get_sortorder', 'get_tour'])
+            ->onlyMethods(['get_sortorder', 'get_tour'])
             ->getMock();
 
         $tour = $this->getMockBuilder(\tool_usertours\tour::class)
-            ->setMethods(['count_steps'])
+            ->onlyMethods(['count_steps'])
             ->getMock();
 
         $step->expects($this->once())
@@ -362,7 +356,7 @@ class step_testcase extends advanced_testcase {
      */
     public function test_get_config_valid_keys($values, $key, $default, $tourconfig, $isforced, $forcedvalue, $expected) {
         $step = $this->getMockBuilder(\tool_usertours\step::class)
-            ->setMethods(['get_target', 'get_targettype', 'get_tour'])
+            ->onlyMethods(['get_target', 'get_targettype', 'get_tour'])
             ->getMock();
 
         $rc = new \ReflectionClass(\tool_usertours\step::class);
@@ -494,7 +488,7 @@ class step_testcase extends advanced_testcase {
      */
     public function test_persist_non_dirty() {
         $step = $this->getMockBuilder(\tool_usertours\step::class)
-            ->setMethods([
+            ->onlyMethods([
                     'to_record',
                     'reload',
                 ])
@@ -525,7 +519,7 @@ class step_testcase extends advanced_testcase {
 
         // Mock the tour.
         $step = $this->getMockBuilder(\tool_usertours\step::class)
-            ->setMethods([
+            ->onlyMethods([
                     'to_record',
                     'calculate_sortorder',
                     'reload',
@@ -574,7 +568,7 @@ class step_testcase extends advanced_testcase {
 
         // Mock the tour.
         $step = $this->getMockBuilder(\tool_usertours\step::class)
-            ->setMethods([
+            ->onlyMethods([
                     'to_record',
                     'calculate_sortorder',
                     'reload',
@@ -616,7 +610,7 @@ class step_testcase extends advanced_testcase {
 
         // Mock the tour.
         $step = $this->getMockBuilder(\tool_usertours\step::class)
-            ->setMethods([
+            ->onlyMethods([
                     'to_record',
                     'calculate_sortorder',
                     'reload',
@@ -668,7 +662,7 @@ class step_testcase extends advanced_testcase {
 
         // Mock the tour.
         $step = $this->getMockBuilder(\tool_usertours\step::class)
-            ->setMethods([
+            ->onlyMethods([
                     'to_record',
                     'calculate_sortorder',
                     'reload',
@@ -707,7 +701,7 @@ class step_testcase extends advanced_testcase {
      */
     public function test_remove_non_persisted() {
         $step = $this->getMockBuilder(\tool_usertours\step::class)
-            ->setMethods(null)
+            ->onlyMethods([])
             ->getMock()
             ;
 
@@ -727,7 +721,7 @@ class step_testcase extends advanced_testcase {
         $id = rand(1, 100);
 
         $tour = $this->getMockBuilder(\tool_usertours\tour::class)
-            ->setMethods([
+            ->onlyMethods([
                     'reset_step_sortorder',
                 ])
             ->getMock()
@@ -738,7 +732,7 @@ class step_testcase extends advanced_testcase {
             ;
 
         $step = $this->getMockBuilder(\tool_usertours\step::class)
-            ->setMethods([
+            ->onlyMethods([
                     'get_tour',
                 ])
             ->getMock()
@@ -825,47 +819,35 @@ class step_testcase extends advanced_testcase {
     }
 
     /**
-     * Data Provider for get_string_from_input.
-     *
-     * @return array
+     * Ensure that the get_step_image_from_input function replace PIXICON placeholder with the correct images correctly.
      */
-    public function get_string_from_input_provider() {
-        return [
-            'Text'  => [
-                'example',
-                'example',
-            ],
-            'Text which looks like a langstring' => [
-                'example,fakecomponent',
-                'example,fakecomponent',
-            ],
-            'Text which is a langstring' => [
-                'administration,core',
-                'Administration',
-            ],
-            'Text which is a langstring but uses "moodle" instead of "core"' => [
-                'administration,moodle',
-                'Administration',
-            ],
-            'Text which is a langstring, but with extra whitespace' => [
-                '  administration,moodle  ',
-                'Administration',
-            ],
-            'Looks like a langstring, but has incorrect space around comma' => [
-                'administration , moodle',
-                'administration , moodle',
-            ],
-        ];
-    }
+    public function test_get_step_image_from_input() {
+        // Test step content with single image.
+        $stepcontent = '@@PIXICON::tour/tour_mycourses::tool_usertours@@<br>Test';
+        $stepcontent = \tool_usertours\step::get_step_image_from_input($stepcontent);
 
-    /**
-     * Ensure that the get_string_from_input function returns langstring strings correctly.
-     *
-     * @dataProvider get_string_from_input_provider
-     * @param   string  $string     The string to test
-     * @param   string  $expected   The expected result
-     */
-    public function test_get_string_from_input($string, $expected) {
-        $this->assertEquals($expected, \tool_usertours\step::get_string_from_input($string));
+        // If the format is correct, PIXICON placeholder will be replaced with the img tag.
+        $this->assertStringStartsWith('<img', $stepcontent);
+        $this->assertStringEndsWith('Test', $stepcontent);
+        $this->assertStringNotContainsString('PIXICON', $stepcontent);
+
+        // Test step content with multiple images.
+        $stepcontent = '@@PIXICON::tour/tour_mycourses::tool_usertours@@<br>Test<br>@@PIXICON::tour/tour_myhomepage::tool_usertours@@';
+        $stepcontent = \tool_usertours\step::get_step_image_from_input($stepcontent);
+        // If the format is correct, PIXICON placeholder will be replaced with the img tag.
+        $this->assertStringStartsWith('<img', $stepcontent);
+        // We should have 2 img tags here.
+        $this->assertEquals(2, substr_count($stepcontent, '<img'));
+        $this->assertStringNotContainsString('PIXICON', $stepcontent);
+
+        // Test step content with incorrect format.
+        $stepcontent = '@@PIXICON::tour/tour_mycourses<br>Test';
+        $stepcontent = \tool_usertours\step::get_step_image_from_input($stepcontent);
+
+        // If the format is not correct, PIXICON placeholder will not be replaced with the img tag.
+        $this->assertStringStartsNotWith('<img', $stepcontent);
+        $this->assertStringStartsWith('@@PIXICON', $stepcontent);
+        $this->assertStringEndsWith('Test', $stepcontent);
+        $this->assertStringContainsString('PIXICON', $stepcontent);
     }
 }

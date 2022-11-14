@@ -63,21 +63,26 @@
         }
     }
 
+    $groupmode = groups_get_activity_groupmode($cm);
+
     if (!$download) {
-        $PAGE->navbar->add($strresponses);
         $PAGE->set_title(format_string($choice->name).": $strresponses");
         $PAGE->set_heading($course->fullname);
+        $PAGE->activityheader->set_attrs([
+            'hidecompletion' => true,
+            'description' => ''
+        ]);
         echo $OUTPUT->header();
-        echo $OUTPUT->heading(format_string($choice->name), 2, null);
+        echo $OUTPUT->heading($strresponses);
+
         /// Check to see if groups are being used in this choice
-        $groupmode = groups_get_activity_groupmode($cm);
         if ($groupmode) {
             groups_get_activity_group($cm, true);
-            groups_print_activity_menu($cm, $CFG->wwwroot . '/mod/choice/report.php?id='.$id);
+            $groupsactivitymenu = groups_print_activity_menu($cm, $CFG->wwwroot . '/mod/choice/report.php?id=' . $id,
+                true);
+            echo html_writer::div($groupsactivitymenu, 'mb-2');
         }
     } else {
-        $groupmode = groups_get_activity_groupmode($cm);
-
         // Trigger the report downloaded event.
         $eventdata = array();
         $eventdata['context'] = $context;
@@ -95,7 +100,8 @@
 
     $users = choice_get_response_data($choice, $cm, $groupmode, $onlyactive);
 
-    $extrafields = get_extra_user_fields($context);
+    // TODO Does not support custom user profile fields (MDL-70456).
+    $extrafields = \core_user\fields::get_identity_fields($context, false);
 
     if ($download == "ods" && has_capability('mod/choice:downloadresponses', $context)) {
         require_once("$CFG->libdir/odslib.class.php");
@@ -118,7 +124,7 @@
 
         // Add headers for extra user fields.
         foreach ($extrafields as $field) {
-            $myxls->write_string(0, $i++, get_user_field_name($field));
+            $myxls->write_string(0, $i++, \core_user\fields::get_display_name($field));
         }
 
         $myxls->write_string(0, $i++, get_string("group"));
@@ -179,7 +185,7 @@
 
         // Add headers for extra user fields.
         foreach ($extrafields as $field) {
-            $myxls->write_string(0, $i++, get_user_field_name($field));
+            $myxls->write_string(0, $i++, \core_user\fields::get_display_name($field));
         }
 
         $myxls->write_string(0, $i++, get_string("group"));
@@ -235,7 +241,7 @@
 
         // Add headers for extra user fields.
         foreach ($extrafields as $field) {
-            echo get_user_field_name($field) . "\t";
+            echo \core_user\fields::get_display_name($field) . "\t";
         }
 
         echo get_string("group"). "\t";

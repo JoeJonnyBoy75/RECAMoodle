@@ -1,0 +1,51 @@
+<div class="panel-body px-0">
+    <form class="form-horizontal fv-form fv-form-bootstrap4" id="exampleStandardForm" autocomplete="off" novalidate="novalidate">
+        <div class="form-group row">
+            <label class="col-md-3 form-control-label">{{# str }} firstname, moodle {{/ str }}</label>
+            <div class="col-md-9">
+                <input type="text" class="form-control" id='first_name' name="first_name" data-fv-field="first_name" value="{{ firstname }}" {{#field_lock_firstname}}disabled{{/field_lock_firstname}} >
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-md-3 form-control-label">{{# str }} surname, theme_remui {{/ str }}</label>
+            <div class="col-md-9">
+                <input type="text" class="form-control" id='surname' name="surname" data-fv-field="surname" value="{{ lastname }}" {{#field_lock_lastname}}disabled{{/field_lock_lastname}} >
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-md-3 form-control-label">{{# str }} email, moodle {{/ str }}</label>
+            <div class="col-md-9">
+                <input type="email" class="form-control" id='standard_email' name="standard_email" data-fv-field="standard_email" value="{{ email }}" disabled>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-md-3 form-control-label">{{# str }} city, moodle {{/ str }}</label>
+            <div class="col-md-9">
+                <input type="text" class="form-control" id='city' name="city" data-fv-field="city" value="{{#location}}{{city}} {{/location}}" {{#field_lock_city}}disabled{{/field_lock_city}}>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-md-3 form-control-label">{{# str }} country, moodle {{/ str }}</label>
+            <div class="col-md-9">
+                <select class="form-control" id="country" name="country" required="" data-fv-field="country" {{#field_lock_country}}disabled{{/field_lock_country}}>
+                    {{# countries }}
+                    <option value="{{ keyName }}">{{ valName }}</option>
+                    {{/ countries }}
+                </select>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-md-3 form-control-label">{{# str }} description, moodle {{/ str }}</label>
+            <div class="col-md-9">
+                <textarea class="form-control" id='description' name="description" rows="3" data-fv-field="description">{{{description}}}</textarea>
+            </div>
+        </div>
+        <div class="text-right">
+            <button type="button" class="btn btn-primary" id="btn-save-changes">{{# str }} submit, moodle {{/ str }}</button>
+        </div>
+    </form>
+    <!--<div class="alert alert-danger" id="error-message" style="display:none;margin-top:10px"></div>-->
+    <div class="summary-errors alert alert-success alert-dismissible" id="error-message" style="display:none;margin-top:10px">
+        <p></p>
+    </div>
+</div>

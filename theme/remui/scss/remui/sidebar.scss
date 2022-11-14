@@ -1,6 +1,6 @@
 // Right Sidebar.
 .site-sidebar-nav {
-    .nav-item  {
+    .nav-item {
         flex-grow: 1;
     }
     .wdm-msg-count {
@@ -28,7 +28,7 @@
             position: absolute;
             box-shadow: none;
             top: 55px;
-            bottom:0;
+            bottom: 0;
         }
         &.hidden {
             display: flex;
@@ -39,7 +39,7 @@
 
 .site-skintools {
     .site-skintools-title {
-        margin: 20px 0px;
+        margin: 20px 0;
         text-transform: uppercase;
         font-size: 14px;
     }
@@ -59,8 +59,10 @@
 // Left Sidebar.
 #activity-nav {
     a.list-group-item {
+        transition: 0.4s;
+        font-size: 15px;
         // padding-right: 32px;
-        color: rgba(82,96,105,.9);
+        // color: rgba(82,96,105,.9);
         .media-body {
             .fa {
                 position: absolute;
@@ -68,16 +70,16 @@
                 top: 20px;
             }
         }
-        &.active {
-            color: $primary;
-        }
+        // &.active {
+        // color: $primary;
+        // }
     }
-    .section-heading  {
+    .section-heading {
         display: none;
     }
     .list-group-item {
         a {
-            color: rgba(82,96,105,.9);
+            // color: rgba(82,96,105,.9);
             text-decoration: none;
             display: flex;
             padding: 16px 32px;
@@ -90,11 +92,21 @@
                 color: #526069 !important;
             }
         }
-        &.active {
-            a {
-                color: $primary;
+        div {
+            .instancename {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            &.dimmed {
+                color: #526069 !important;
             }
         }
+        // &.active {
+        //     a {
+        //         // color: $primary;
+        //     }
+        // }
         &.complete span.instancename {
             &:after {
                 font-family: 'FontAwesome';
@@ -129,14 +141,26 @@
             display: block;
         }
     }
-    a[data-key="addblock"] .media-left{
+    a[data-key="addblock"] .media-left {
         display: block;
     }
 }
-
+#nav-drawer {
+    .mycoursesubmenu {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.2s ease-out;
+        &.active {
+            transition: max-height 0.2s ease-in;
+            max-height: calc(100vh - 360px);
+            overflow-y: auto;
+        }
+    }
+}
 #nav-drawer.closed {
     #activity-nav {
-        .media-left, .section-heading {
+        .media-left,
+        .section-heading {
             display: flex;
         }
         .sub-menu {
@@ -147,10 +171,12 @@
             max-height: 250px;
             overflow-y: auto;
             overflow-x: hidden;
-            -ms-overflow-style: none; 
+            -ms-overflow-style: none;
+
             &::-webkit-scrollbar {
                 display: none;
             }
+
             &.pop-over {
                 display: initial;
             }
@@ -165,14 +191,16 @@
         max-height: 250px;
         overflow-y: auto;
         overflow-x: hidden;
-        -ms-overflow-style: none; 
+        -ms-overflow-style: none;
+
         &::-webkit-scrollbar {
             display: none;
         }
+
         &.pop-over {
             display: initial;
             a[data-indent="1"] {
-                display: flex;
+                // display: flex;
                 opacity: 1;
                 height: auto;
                 padding: 16px 20px;
@@ -183,43 +211,43 @@
             }
         }
     }
-    .toggle-menu { 
-        display: none !important;       
+    
+    .toggle-menu {
+        display: none !important;
     }
+
 }
 
-#nav-drawer.dark {
-    #activity-nav {
-        a.list-group-item {
-            color: rgba(163,175,183,.9);
-            &.active {
-                color: $primary !important;
-            }
-        }
-        .list-group-item {
-            a {
-                color: rgba(163,175,183,.9);
-                &.active{
-                    color: $primary;
-                }
-            }
-            &.activity {
-                background: #2a363b;
-            }
-        }
-    }
-    // .mycoursesubmenu {
-    //     background: 
-    // }
-}
+// #nav-drawer.dark {
+//     #activity-nav {
+//         a.list-group-item {
+//             color: rgba(163,175,183,.9);
+//             &.active {
+//                 color: $primary !important;
+//             }
+//         }
+//         .list-group-item {
+//             a {
+//                 color: rgba(163,175,183,.9);
+//                 &.active{
+//                     color: $primary;
+//                 }
+//             }
+//             &.activity {
+//                 background: #2a363b;
+//             }
+//         }
+//     }
+// }
 
 #nav-drawer {
+
     .list-group-item {
         height: 54px;
     }
     a[data-indent="1"] {
-        height: 0px;
-        padding: 0px;
+        height: 0;
+        padding: 0;
         opacity: 0;
         transition: opacity 350ms ease-in-out;
         &.show {
@@ -235,10 +263,21 @@
         width: 20px;
         font-size: 18px;
         z-index: 1200;
+        transition: .3s all;
         display: none;
         &.show {
             display: flex;
         }
+        &.rotate90 {
+            transform: rotateZ(90deg);
+        }
     }
-    
+
+}
+body {
+    .safari {
+        #nav-drawer {
+            height: calc(100% - #{$navbar-height});
+        }
+    }
 }

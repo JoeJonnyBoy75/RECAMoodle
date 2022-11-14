@@ -14,24 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * API tests.
- *
- * @package    core_competency
- * @copyright  2015 Frédéric Massart - FMCorz.net
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-defined('MOODLE_INTERNAL') || die();
-global $CFG;
-
-use core_competency\api;
-use core_competency\competency;
-use core_competency\competency_framework;
-use core_competency\course_competency_settings;
-use core_competency\evidence;
-use core_competency\user_competency;
-use core_competency\plan;
+namespace core_competency;
 
 /**
  * API tests.
@@ -40,7 +23,7 @@ use core_competency\plan;
  * @copyright  2015 Frédéric Massart - FMCorz.net
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_competency_api_testcase extends advanced_testcase {
+class api_test extends \advanced_testcase {
 
     public function test_get_framework_related_contexts() {
         $this->resetAfterTest(true);
@@ -50,10 +33,10 @@ class core_competency_api_testcase extends advanced_testcase {
         $cat3 = $dg->create_category(array('parent' => $cat2->id));
         $c1 = $dg->create_course(array('category' => $cat2->id));   // This context should not be returned.
 
-        $cat1ctx = context_coursecat::instance($cat1->id);
-        $cat2ctx = context_coursecat::instance($cat2->id);
-        $cat3ctx = context_coursecat::instance($cat3->id);
-        $sysctx = context_system::instance();
+        $cat1ctx = \context_coursecat::instance($cat1->id);
+        $cat2ctx = \context_coursecat::instance($cat2->id);
+        $cat3ctx = \context_coursecat::instance($cat3->id);
+        $sysctx = \context_system::instance();
 
         $expected = array($cat1ctx->id => $cat1ctx);
         $this->assertEquals($expected, api::get_related_contexts($cat1ctx, 'self'));
@@ -74,10 +57,10 @@ class core_competency_api_testcase extends advanced_testcase {
         $cat3 = $dg->create_category(array('parent' => $cat2->id));
         $c1 = $dg->create_course(array('category' => $cat2->id));   // This context should not be returned.
 
-        $cat1ctx = context_coursecat::instance($cat1->id);
-        $cat2ctx = context_coursecat::instance($cat2->id);
-        $cat3ctx = context_coursecat::instance($cat3->id);
-        $sysctx = context_system::instance();
+        $cat1ctx = \context_coursecat::instance($cat1->id);
+        $cat2ctx = \context_coursecat::instance($cat2->id);
+        $cat3ctx = \context_coursecat::instance($cat3->id);
+        $sysctx = \context_system::instance();
 
         $roleallow = create_role('Allow', 'allow', 'Allow read');
         assign_capability('moodle/competency:competencyview', CAP_ALLOW, $roleallow, $sysctx->id);
@@ -111,10 +94,10 @@ class core_competency_api_testcase extends advanced_testcase {
         $cat3 = $dg->create_category(array('parent' => $cat2->id));
         $c1 = $dg->create_course(array('category' => $cat2->id));   // This context should not be returned.
 
-        $cat1ctx = context_coursecat::instance($cat1->id);
-        $cat2ctx = context_coursecat::instance($cat2->id);
-        $cat3ctx = context_coursecat::instance($cat3->id);
-        $sysctx = context_system::instance();
+        $cat1ctx = \context_coursecat::instance($cat1->id);
+        $cat2ctx = \context_coursecat::instance($cat2->id);
+        $cat3ctx = \context_coursecat::instance($cat3->id);
+        $sysctx = \context_system::instance();
 
         $expected = array($cat1ctx->id => $cat1ctx);
         $this->assertEquals($expected, api::get_related_contexts($cat1ctx, 'self'));
@@ -135,10 +118,10 @@ class core_competency_api_testcase extends advanced_testcase {
         $cat3 = $dg->create_category(array('parent' => $cat2->id));
         $c1 = $dg->create_course(array('category' => $cat2->id));   // This context should not be returned.
 
-        $cat1ctx = context_coursecat::instance($cat1->id);
-        $cat2ctx = context_coursecat::instance($cat2->id);
-        $cat3ctx = context_coursecat::instance($cat3->id);
-        $sysctx = context_system::instance();
+        $cat1ctx = \context_coursecat::instance($cat1->id);
+        $cat2ctx = \context_coursecat::instance($cat2->id);
+        $cat3ctx = \context_coursecat::instance($cat3->id);
+        $sysctx = \context_system::instance();
 
         $roleallow = create_role('Allow', 'allow', 'Allow read');
         assign_capability('moodle/competency:templateview', CAP_ALLOW, $roleallow, $sysctx->id);
@@ -166,15 +149,13 @@ class core_competency_api_testcase extends advanced_testcase {
 
     /**
      * Test updating a template.
-     *
-     * @expectedException coding_exception
      */
     public function test_update_template() {
         $cat = $this->getDataGenerator()->create_category();
         $this->resetAfterTest(true);
         $this->setAdminUser();
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
         $template = api::create_template((object) array('shortname' => 'testing', 'contextid' => $syscontext->id));
 
         $this->assertEquals('testing', $template->get('shortname'));
@@ -186,7 +167,8 @@ class core_competency_api_testcase extends advanced_testcase {
         $this->assertEquals('success', $template->get('shortname'));
 
         // Trying to change the context.
-        api::update_template((object) array('id' => $template->get('id'), 'contextid' => context_coursecat::instance($cat->id)));
+        $this->expectException(\coding_exception::class);
+        api::update_template((object) ['id' => $template->get('id'), 'contextid' => \context_coursecat::instance($cat->id)->id]);
     }
 
     /**
@@ -204,7 +186,7 @@ class core_competency_api_testcase extends advanced_testcase {
             'description' => 'description',
             'descriptionformat' => FORMAT_HTML,
             'visible' => true,
-            'contextid' => context_system::instance()->id
+            'contextid' => \context_system::instance()->id
         ));
 
         $framework2 = $lpg->create_framework(array(
@@ -213,7 +195,7 @@ class core_competency_api_testcase extends advanced_testcase {
             'description' => 'description',
             'descriptionformat' => FORMAT_HTML,
             'visible' => true,
-            'contextid' => context_system::instance()->id
+            'contextid' => \context_system::instance()->id
         ));
 
         $framework3 = $lpg->create_framework(array(
@@ -222,11 +204,11 @@ class core_competency_api_testcase extends advanced_testcase {
             'description' => 'description',
             'descriptionformat' => FORMAT_HTML,
             'visible' => false,
-            'contextid' => context_system::instance()->id
+            'contextid' => \context_system::instance()->id
         ));
 
         // Get frameworks list order by shortname desc.
-        $result = api::list_frameworks('shortname', 'DESC', null, 3, context_system::instance());
+        $result = api::list_frameworks('shortname', 'DESC', null, 3, \context_system::instance());
 
         $f = (object) array_shift($result);
         $this->assertEquals($framework3->get('id'), $f->get('id'));
@@ -236,7 +218,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $this->assertEquals($framework1->get('id'), $f->get('id'));
 
         // Get frameworks list order by idnumber asc.
-        $result = api::list_frameworks('idnumber', 'ASC', null, 3, context_system::instance());
+        $result = api::list_frameworks('idnumber', 'ASC', null, 3, \context_system::instance());
 
         $f = (object) array_shift($result);
         $this->assertEquals($framework2->get('id'), $f->get('id'));
@@ -246,7 +228,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $this->assertEquals($framework1->get('id'), $f->get('id'));
 
         // Repeat excluding the non-visible ones.
-        $result = api::list_frameworks('idnumber', 'ASC', null, 3, context_system::instance(), 'self', true);
+        $result = api::list_frameworks('idnumber', 'ASC', null, 3, \context_system::instance(), 'self', true);
         $this->assertCount(2, $result);
         $f = (object) array_shift($result);
         $this->assertEquals($framework2->get('id'), $f->get('id'));
@@ -254,23 +236,23 @@ class core_competency_api_testcase extends advanced_testcase {
         $this->assertEquals($framework1->get('id'), $f->get('id'));
 
         // Search by query string, trying match on shortname.
-        $result = api::list_frameworks('idnumber', 'ASC', null, 3, context_system::instance(), 'self', false, 'crisp');
+        $result = api::list_frameworks('idnumber', 'ASC', null, 3, \context_system::instance(), 'self', false, 'crisp');
         $this->assertCount(1, $result);
         $f = (object) array_shift($result);
         $this->assertEquals($framework3->get('id'), $f->get('id'));
 
         // Search by query string, trying match on shortname, but hidden.
-        $result = api::list_frameworks('idnumber', 'ASC', null, 3, context_system::instance(), 'self', true, 'crisp');
+        $result = api::list_frameworks('idnumber', 'ASC', null, 3, \context_system::instance(), 'self', true, 'crisp');
         $this->assertCount(0, $result);
 
         // Search by query string, trying match on ID number.
-        $result = api::list_frameworks('idnumber', 'ASC', null, 3, context_system::instance(), 'self', false, 'apple');
+        $result = api::list_frameworks('idnumber', 'ASC', null, 3, \context_system::instance(), 'self', false, 'apple');
         $this->assertCount(1, $result);
         $f = (object) array_shift($result);
         $this->assertEquals($framework2->get('id'), $f->get('id'));
 
         // Search by query string, trying match on both.
-        $result = api::list_frameworks('idnumber', 'ASC', null, 3, context_system::instance(), 'self', false, 'bee');
+        $result = api::list_frameworks('idnumber', 'ASC', null, 3, \context_system::instance(), 'self', false, 'bee');
         $this->assertCount(2, $result);
         $f = (object) array_shift($result);
         $this->assertEquals($framework2->get('id'), $f->get('id'));
@@ -286,7 +268,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $this->resetAfterTest(true);
         $this->setAdminUser();
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
         $params = array(
                 'shortname' => 'shortname_a',
                 'idnumber' => 'idnumber_c',
@@ -398,7 +380,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $usermanagedraft = $dg->create_user();
         $usermanage = $dg->create_user();
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
 
         // Creating specific roles.
         $manageowndraftrole = $dg->create_role(array(
@@ -455,8 +437,9 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             $plan = api::update_plan($record);
             $this->fail('Updating the status is not allowed.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/To change the status of a plan use the appropriate methods./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/To change the status of a plan use the appropriate methods./',
+                $e->getMessage());
         }
 
         // Test when user with manage own plan capability try to edit other user plan.
@@ -466,7 +449,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             $plan = api::update_plan($record);
             $this->fail('User with manage own plan capability can only edit his own plan.');
-        } catch (required_capability_exception $e) {
+        } catch (\required_capability_exception $e) {
             $this->assertTrue(true);
         }
 
@@ -476,7 +459,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             $plan = api::update_plan($record);
             $this->fail('User with manage plan capability cannot edit the other user plans with status draft');
-        } catch (required_capability_exception $e) {
+        } catch (\required_capability_exception $e) {
             $this->assertTrue(true);
         }
 
@@ -506,14 +489,11 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::update_plan($record);
             $this->fail('Completed plan can not be edited');
-        } catch (coding_exception $e) {
+        } catch (\coding_exception $e) {
             $this->assertTrue(true);
         }
     }
 
-    /**
-     * @expectedException coding_exception
-     */
     public function test_create_plan_from_template() {
         $this->resetAfterTest(true);
         $this->setAdminUser();
@@ -536,6 +516,7 @@ class core_competency_api_testcase extends advanced_testcase {
 
         // Check that api::create_plan cannot be used.
         unset($record->id);
+        $this->expectException(\coding_exception::class);
         $plan = api::create_plan($record);
     }
 
@@ -558,7 +539,7 @@ class core_competency_api_testcase extends advanced_testcase {
             $record->templateid = null;
             api::update_plan($record);
             $this->fail('A plan cannot be unlinked using api::update_plan()');
-        } catch (coding_exception $e) {
+        } catch (\coding_exception $e) {
             // All good.
         }
 
@@ -568,7 +549,7 @@ class core_competency_api_testcase extends advanced_testcase {
             $record->templateid = $tpl2->get('id');
             api::update_plan($record);
             $this->fail('A plan cannot be moved to another template.');
-        } catch (coding_exception $e) {
+        } catch (\coding_exception $e) {
             // All good.
         }
 
@@ -578,7 +559,7 @@ class core_competency_api_testcase extends advanced_testcase {
             $record->templateid = $tpl1->get('id');
             api::update_plan($record);
             $this->fail('A plan cannot be update to use a template.');
-        } catch (coding_exception $e) {
+        } catch (\coding_exception $e) {
             // All good.
         }
     }
@@ -640,7 +621,7 @@ class core_competency_api_testcase extends advanced_testcase {
         // Check we can unlink draft plan.
         try {
             api::unlink_plan_from_template($plan2);
-        } catch (coding_exception $e) {
+        } catch (\coding_exception $e) {
             $this->fail('Fail to unlink draft plan.');
         }
 
@@ -648,7 +629,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::unlink_plan_from_template($plan3);
             $this->fail('We can not unlink completed plan.');
-        } catch (coding_exception $e) {
+        } catch (\coding_exception $e) {
             // All good.
         }
 
@@ -756,8 +737,6 @@ class core_competency_api_testcase extends advanced_testcase {
 
     /**
      * Test that the method to complete a plan.
-     *
-     * @expectedException coding_exception
      */
     public function test_complete_plan() {
         global $DB;
@@ -825,7 +804,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::add_competency_to_plan($plan->get('id'), $c4->get('id'));
             $this->fail('We can not add competency to completed plan.');
-        } catch (coding_exception $e) {
+        } catch (\coding_exception $e) {
             // All good.
         }
 
@@ -833,11 +812,12 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::remove_competency_from_plan($plan->get('id'), $c3->get('id'));
             $this->fail('We can not remove competency to completed plan.');
-        } catch (coding_exception $e) {
+        } catch (\coding_exception $e) {
             // All good.
         }
 
         // Completing a plan that is completed throws an exception.
+        $this->expectException(\coding_exception::class);
         api::complete_plan($plan);
     }
 
@@ -854,7 +834,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $reviewer = $dg->create_user();
         $otheruser = $dg->create_user();
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
         $userrole = $dg->create_role();
         $reviewerrole = $dg->create_role();
         $otheruserrole = $dg->create_role();
@@ -903,7 +883,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_request_review($plan);
             $this->fail('The user can not read the plan.');
-        } catch (required_capability_exception $e) {
+        } catch (\required_capability_exception $e) {
             $this->assertEquals('nopermissions', $e->errorcode);
         }
 
@@ -912,8 +892,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_request_review($tplplan);
             $this->fail('The plan is based on a template.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/Template plans cannot be reviewed./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/Template plans cannot be reviewed./', $e->getMessage());
         }
 
         // Can not send for review when not draft.
@@ -922,8 +902,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_request_review($plan);
             $this->fail('The plan cannot be sent for review at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan cannot be sent for review at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan cannot be sent for review at this stage./', $e->getMessage());
         }
 
         // Can not send for review when not draft.
@@ -932,8 +912,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_request_review($plan);
             $this->fail('The plan cannot be sent for review at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan cannot be sent for review at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan cannot be sent for review at this stage./', $e->getMessage());
         }
 
         // Can not send for review when not draft.
@@ -942,8 +922,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_request_review($plan);
             $this->fail('The plan cannot be sent for review at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan cannot be sent for review at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan cannot be sent for review at this stage./', $e->getMessage());
         }
 
         // Can not send for review when not draft.
@@ -952,8 +932,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_request_review($plan);
             $this->fail('The plan cannot be sent for review at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan cannot be sent for review at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan cannot be sent for review at this stage./', $e->getMessage());
         }
 
         // Sending for review as a reviewer.
@@ -962,7 +942,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_request_review($plan);
             $this->fail('The user can not request a review.');
-        } catch (required_capability_exception $e) {
+        } catch (\required_capability_exception $e) {
             $this->assertEquals('nopermissions', $e->errorcode);
         }
 
@@ -1004,7 +984,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_cancel_review_request($plan);
             $this->fail('The user can not read the plan.');
-        } catch (required_capability_exception $e) {
+        } catch (\required_capability_exception $e) {
             $this->assertEquals('nopermissions', $e->errorcode);
         }
 
@@ -1013,8 +993,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_cancel_review_request($tplplan);
             $this->fail('The plan is based on a template.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/Template plans cannot be reviewed./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/Template plans cannot be reviewed./', $e->getMessage());
         }
 
         // Can not cancel review request when not waiting for review.
@@ -1023,8 +1003,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_cancel_review_request($plan);
             $this->fail('The plan cannot be sent for review at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan review cannot be cancelled at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan review cannot be cancelled at this stage./', $e->getMessage());
         }
 
         // Can not cancel review request when not waiting for review.
@@ -1033,8 +1013,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_cancel_review_request($plan);
             $this->fail('The plan review cannot be cancelled at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan review cannot be cancelled at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan review cannot be cancelled at this stage./', $e->getMessage());
         }
 
         // Can not cancel review request when not waiting for review.
@@ -1043,8 +1023,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_cancel_review_request($plan);
             $this->fail('The plan review cannot be cancelled at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan review cannot be cancelled at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan review cannot be cancelled at this stage./', $e->getMessage());
         }
 
         // Can not cancel review request when not waiting for review.
@@ -1053,8 +1033,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_cancel_review_request($plan);
             $this->fail('The plan review cannot be cancelled at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan review cannot be cancelled at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan review cannot be cancelled at this stage./', $e->getMessage());
         }
 
         // Cancelling as a reviewer.
@@ -1063,7 +1043,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_cancel_review_request($plan);
             $this->fail('The user can not cancel a review request.');
-        } catch (required_capability_exception $e) {
+        } catch (\required_capability_exception $e) {
             $this->assertEquals('nopermissions', $e->errorcode);
         }
 
@@ -1105,7 +1085,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_start_review($plan);
             $this->fail('The user can not read the plan.');
-        } catch (required_capability_exception $e) {
+        } catch (\required_capability_exception $e) {
             $this->assertEquals('nopermissions', $e->errorcode);
         }
 
@@ -1114,8 +1094,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_start_review($tplplan);
             $this->fail('The plan is based on a template.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/Template plans cannot be reviewed./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/Template plans cannot be reviewed./', $e->getMessage());
         }
 
         // Can not start a review when not waiting for review.
@@ -1124,8 +1104,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_start_review($plan);
             $this->fail('The plan review cannot be started at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan review cannot be started at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan review cannot be started at this stage./', $e->getMessage());
         }
 
         // Can not start a review when not waiting for review.
@@ -1134,8 +1114,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_start_review($plan);
             $this->fail('The plan review cannot be started at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan review cannot be started at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan review cannot be started at this stage./', $e->getMessage());
         }
 
         // Can not start a review when not waiting for review.
@@ -1144,8 +1124,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_start_review($plan);
             $this->fail('The plan review cannot be started at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan review cannot be started at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan review cannot be started at this stage./', $e->getMessage());
         }
 
         // Can not start a review when not waiting for review.
@@ -1154,8 +1134,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_start_review($plan);
             $this->fail('The plan review cannot be started at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan review cannot be started at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan review cannot be started at this stage./', $e->getMessage());
         }
 
         // Starting as the owner.
@@ -1164,7 +1144,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_start_review($plan);
             $this->fail('The user can not start a review.');
-        } catch (required_capability_exception $e) {
+        } catch (\required_capability_exception $e) {
             $this->assertEquals('nopermissions', $e->errorcode);
         }
 
@@ -1209,7 +1189,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_stop_review($plan);
             $this->fail('The user can not read the plan.');
-        } catch (required_capability_exception $e) {
+        } catch (\required_capability_exception $e) {
             $this->assertEquals('nopermissions', $e->errorcode);
         }
 
@@ -1218,8 +1198,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_stop_review($tplplan);
             $this->fail('The plan is based on a template.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/Template plans cannot be reviewed./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/Template plans cannot be reviewed./', $e->getMessage());
         }
 
         // Can not stop a review whe not in review.
@@ -1228,8 +1208,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_stop_review($plan);
             $this->fail('The plan review cannot be stopped at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan review cannot be stopped at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan review cannot be stopped at this stage./', $e->getMessage());
         }
 
         // Can not stop a review whe not in review.
@@ -1238,8 +1218,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_stop_review($plan);
             $this->fail('The plan review cannot be stopped at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan review cannot be stopped at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan review cannot be stopped at this stage./', $e->getMessage());
         }
 
         // Can not stop a review whe not in review.
@@ -1248,8 +1228,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_stop_review($plan);
             $this->fail('The plan review cannot be stopped at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan review cannot be stopped at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan review cannot be stopped at this stage./', $e->getMessage());
         }
 
         // Can not stop a review whe not in review.
@@ -1258,8 +1238,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_stop_review($plan);
             $this->fail('The plan review cannot be stopped at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan review cannot be stopped at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan review cannot be stopped at this stage./', $e->getMessage());
         }
 
         // Stopping as the owner.
@@ -1268,7 +1248,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::plan_stop_review($plan);
             $this->fail('The user can not stop a review.');
-        } catch (required_capability_exception $e) {
+        } catch (\required_capability_exception $e) {
             $this->assertEquals('nopermissions', $e->errorcode);
         }
 
@@ -1310,7 +1290,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::approve_plan($plan);
             $this->fail('The user can not read the plan.');
-        } catch (required_capability_exception $e) {
+        } catch (\required_capability_exception $e) {
             $this->assertEquals('nopermissions', $e->errorcode);
         }
 
@@ -1319,8 +1299,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::approve_plan($tplplan);
             $this->fail('The plan is based on a template.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/Template plans are already approved./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/Template plans are already approved./', $e->getMessage());
         }
 
         // Can not approve a plan already approved.
@@ -1329,8 +1309,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::approve_plan($plan);
             $this->fail('The plan cannot be approved at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan cannot be approved at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan cannot be approved at this stage./', $e->getMessage());
         }
 
         // Can not approve a plan already approved.
@@ -1339,8 +1319,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::approve_plan($plan);
             $this->fail('The plan cannot be approved at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan cannot be approved at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan cannot be approved at this stage./', $e->getMessage());
         }
 
         // Approve as the owner.
@@ -1349,7 +1329,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::approve_plan($plan);
             $this->fail('The user can not approve the plan.');
-        } catch (required_capability_exception $e) {
+        } catch (\required_capability_exception $e) {
             $this->assertEquals('nopermissions', $e->errorcode);
         }
 
@@ -1405,7 +1385,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::unapprove_plan($plan);
             $this->fail('The user can not read the plan.');
-        } catch (required_capability_exception $e) {
+        } catch (\required_capability_exception $e) {
             $this->assertEquals('nopermissions', $e->errorcode);
         }
 
@@ -1414,8 +1394,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::unapprove_plan($tplplan);
             $this->fail('The plan is based on a template.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/Template plans are always approved./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/Template plans are always approved./', $e->getMessage());
         }
 
         // Can not unapprove a non-draft plan.
@@ -1424,8 +1404,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::unapprove_plan($plan);
             $this->fail('The plan cannot be sent back to draft at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan cannot be sent back to draft at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan cannot be sent back to draft at this stage./', $e->getMessage());
         }
 
         // Can not unapprove a non-draft plan.
@@ -1434,8 +1414,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::unapprove_plan($plan);
             $this->fail('The plan cannot be sent back to draft at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan cannot be sent back to draft at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan cannot be sent back to draft at this stage./', $e->getMessage());
         }
 
         // Can not unapprove a non-draft plan.
@@ -1444,8 +1424,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::unapprove_plan($plan);
             $this->fail('The plan cannot be sent back to draft at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan cannot be sent back to draft at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan cannot be sent back to draft at this stage./', $e->getMessage());
         }
 
         // Can not unapprove a non-draft plan.
@@ -1454,8 +1434,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::unapprove_plan($plan);
             $this->fail('The plan cannot be sent back to draft at this stage.');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/The plan cannot be sent back to draft at this stage./', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/The plan cannot be sent back to draft at this stage./', $e->getMessage());
         }
 
         // Unapprove as the owner.
@@ -1464,7 +1444,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::unapprove_plan($plan);
             $this->fail('The user can not unapprove the plan.');
-        } catch (required_capability_exception $e) {
+        } catch (\required_capability_exception $e) {
             $this->assertEquals('nopermissions', $e->errorcode);
         }
 
@@ -1492,7 +1472,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $dg = $this->getDataGenerator();
         $lpg = $this->getDataGenerator()->get_plugin_generator('core_competency');
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
 
         // Create users and roles for the test.
         $user = $dg->create_user();
@@ -1544,7 +1524,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             $plan = api::update_plan($record);
             $this->fail('We cannot complete a plan using api::update_plan().');
-        } catch (coding_exception $e) {
+        } catch (\coding_exception $e) {
             // All good.
         }
         api::complete_plan($plan);
@@ -1580,7 +1560,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::update_plan($record);
             $this->fail('Completed plan can not be edited');
-        } catch (coding_exception $e) {
+        } catch (\coding_exception $e) {
             // All good.
         }
 
@@ -1601,7 +1581,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $dg = $this->getDataGenerator();
         $lpg = $this->getDataGenerator()->get_plugin_generator('core_competency');
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
 
         // Create users and roles for the test.
         $user = $dg->create_user();
@@ -1688,7 +1668,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $dg = $this->getDataGenerator();
         $lpg = $this->getDataGenerator()->get_plugin_generator('core_competency');
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
 
         // Create user and role for the test.
         $user = $dg->create_user();
@@ -1737,7 +1717,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $dg = $this->getDataGenerator();
         $lpg = $this->getDataGenerator()->get_plugin_generator('core_competency');
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
 
         // Create user and role for the test.
         $user = $dg->create_user();
@@ -1845,8 +1825,8 @@ class core_competency_api_testcase extends advanced_testcase {
         $dg = $this->getDataGenerator();
         $lpg = $this->getDataGenerator()->get_plugin_generator('core_competency');
         $cat = $dg->create_category();
-        $catcontext = context_coursecat::instance($cat->id);
-        $syscontext = context_system::instance();
+        $catcontext = \context_coursecat::instance($cat->id);
+        $syscontext = \context_system::instance();
 
         $user = $dg->create_user();
         $role = $dg->create_role();
@@ -1871,7 +1851,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             $result = api::create_template_cohort($t1, $c2);
             $this->fail('Permission required.');
-        } catch (required_capability_exception $e) {
+        } catch (\required_capability_exception $e) {
             // That's what should happen.
         }
 
@@ -1889,8 +1869,8 @@ class core_competency_api_testcase extends advanced_testcase {
         $dg = $this->getDataGenerator();
         $lpg = $this->getDataGenerator()->get_plugin_generator('core_competency');
         $cat = $dg->create_category();
-        $catcontext = context_coursecat::instance($cat->id);
-        $syscontext = context_system::instance();
+        $catcontext = \context_coursecat::instance($cat->id);
+        $syscontext = \context_system::instance();
 
         $user = $dg->create_user();
         $role = $dg->create_role();
@@ -1926,7 +1906,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::reorder_template_competency($template->get('id'), $competency2->get('id'), $competency1->get('id'));
             $this->fail('Exception expected due to not permissions to manage template competencies');
-        } catch (required_capability_exception $e) {
+        } catch (\required_capability_exception $e) {
             $this->assertEquals('nopermissions', $e->errorcode);
         }
 
@@ -1943,7 +1923,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::reorder_template_competency($template->get('id'), $competency2->get('id'), $competency1->get('id'));
             $this->fail('Exception expected due to not permissions to manage template competencies');
-        } catch (required_capability_exception $e) {
+        } catch (\required_capability_exception $e) {
             $this->assertEquals('nopermissions', $e->errorcode);
         }
     }
@@ -2023,7 +2003,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $lpg = $dg->get_plugin_generator('core_competency');
 
         $u1 = $dg->create_user();
-        $u1ctx = context_user::instance($u1->id);
+        $u1ctx = \context_user::instance($u1->id);
         $f1 = $lpg->create_framework();
         $c1 = $lpg->create_competency(array('competencyframeworkid' => $f1->get('id')));
         $c2 = $lpg->create_competency(array('competencyframeworkid' => $f1->get('id')));
@@ -2077,8 +2057,8 @@ class core_competency_api_testcase extends advanced_testcase {
             $evidence = api::add_evidence($u1->id, $c1->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_LOG, 'invaliddata',
                 'error', null, false, null, 1);
             $this->fail('A grade can not be set');
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/grade MUST NOT be set/', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/grade MUST NOT be set/', $e->getMessage());
         }
     }
 
@@ -2088,7 +2068,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $lpg = $dg->get_plugin_generator('core_competency');
 
         $u1 = $dg->create_user();
-        $u1ctx = context_user::instance($u1->id);
+        $u1ctx = \context_user::instance($u1->id);
         $scale = $dg->create_scale(array('scale' => 'A,B,C,D'));
         $scaleconfig = array(array('scaleid' => $scale->id));
         $scaleconfig[] = array('name' => 'B', 'id' => 2, 'scaledefault' => 1, 'proficient' => 0);
@@ -2105,8 +2085,8 @@ class core_competency_api_testcase extends advanced_testcase {
         $c3 = $lpg->create_competency(array('competencyframeworkid' => $f1->get('id')));
 
         // Creating an evidence with minimal information.
-        $evidence = api::add_evidence($u1->id, $c1->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_COMPLETE, 'invaliddata',
-            'error');
+        $evidence = api::add_evidence($u1->id, $c1->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_COMPLETE,
+            'invaliddata', 'error');
         $evidence->read();
         $uc = \core_competency\user_competency::get_record(array('userid' => $u1->id, 'competencyid' => $c1->get('id')));
         $this->assertEquals(\core_competency\user_competency::STATUS_IDLE, $uc->get('status'));
@@ -2123,8 +2103,8 @@ class core_competency_api_testcase extends advanced_testcase {
         $this->assertSame(null, $evidence->get('actionuserid'));
 
         // Creating an evidence complete on competency with custom scale.
-        $evidence = api::add_evidence($u1->id, $c2->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_COMPLETE, 'invaliddata',
-            'error');
+        $evidence = api::add_evidence($u1->id, $c2->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_COMPLETE,
+            'invaliddata', 'error');
         $evidence->read();
         $uc = \core_competency\user_competency::get_record(array('userid' => $u1->id, 'competencyid' => $c2->get('id')));
         $this->assertEquals(\core_competency\user_competency::STATUS_IDLE, $uc->get('status'));
@@ -2145,8 +2125,8 @@ class core_competency_api_testcase extends advanced_testcase {
             'proficiency' => 0));
         $this->assertEquals(1, $uc->get('grade'));
         $this->assertEquals(0, $uc->get('proficiency'));
-        $evidence = api::add_evidence($u1->id, $c3->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_COMPLETE, 'invaliddata',
-            'error');
+        $evidence = api::add_evidence($u1->id, $c3->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_COMPLETE,
+            'invaliddata', 'error');
         $evidence->read();
         $uc->read();
         $this->assertEquals(\core_competency\user_competency::STATUS_IDLE, $uc->get('status'));
@@ -2163,8 +2143,8 @@ class core_competency_api_testcase extends advanced_testcase {
         $this->assertSame(null, $evidence->get('actionuserid'));
 
         // Creating a standard evidence and send for review.
-        $evidence = api::add_evidence($u1->id, $c2->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_COMPLETE, 'invaliddata',
-            'error', null, true);
+        $evidence = api::add_evidence($u1->id, $c2->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_COMPLETE,
+            'invaliddata', 'error', null, true);
         $evidence->read();
         $uc = \core_competency\user_competency::get_record(array('userid' => $u1->id, 'competencyid' => $c2->get('id')));
         $this->assertEquals(\core_competency\user_competency::STATUS_WAITING_FOR_REVIEW, $uc->get('status'));
@@ -2173,8 +2153,8 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::add_evidence($u1->id, $c2->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_COMPLETE, 'invaliddata',
                 'error', null, false, null, 1);
-        } catch (coding_exception $e) {
-            $this->assertRegExp('/grade MUST NOT be set/', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertMatchesRegularExpression('/grade MUST NOT be set/', $e->getMessage());
         }
     }
 
@@ -2184,13 +2164,13 @@ class core_competency_api_testcase extends advanced_testcase {
         $lpg = $dg->get_plugin_generator('core_competency');
 
         $u1 = $dg->create_user();
-        $u1ctx = context_user::instance($u1->id);
+        $u1ctx = \context_user::instance($u1->id);
         $f1 = $lpg->create_framework();
         $c1 = $lpg->create_competency(array('competencyframeworkid' => $f1->get('id')));
 
         // Creating an evidence with minimal information.
-        $evidence = api::add_evidence($u1->id, $c1->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_OVERRIDE, 'invaliddata',
-            'error');
+        $evidence = api::add_evidence($u1->id, $c1->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_OVERRIDE,
+            'invaliddata', 'error');
         $evidence->read();
         $uc = \core_competency\user_competency::get_record(array('userid' => $u1->id, 'competencyid' => $c1->get('id')));
         $this->assertEquals(\core_competency\user_competency::STATUS_IDLE, $uc->get('status'));
@@ -2207,8 +2187,8 @@ class core_competency_api_testcase extends advanced_testcase {
         $this->assertSame(null, $evidence->get('actionuserid'));
 
         // Creating an evidence with a grade information.
-        $evidence = api::add_evidence($u1->id, $c1->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_OVERRIDE, 'invaliddata',
-            'error', null, false, null, 3);
+        $evidence = api::add_evidence($u1->id, $c1->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_OVERRIDE,
+            'invaliddata', 'error', null, false, null, 3);
         $evidence->read();
         $uc = \core_competency\user_competency::get_record(array('userid' => $u1->id, 'competencyid' => $c1->get('id')));
         $this->assertEquals(\core_competency\user_competency::STATUS_IDLE, $uc->get('status'));
@@ -2225,8 +2205,8 @@ class core_competency_api_testcase extends advanced_testcase {
         $this->assertSame(null, $evidence->get('actionuserid'));
 
         // Creating an evidence with another grade information.
-        $evidence = api::add_evidence($u1->id, $c1->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_OVERRIDE, 'invaliddata',
-            'error', null, false, null, 1);
+        $evidence = api::add_evidence($u1->id, $c1->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_OVERRIDE,
+            'invaliddata', 'error', null, false, null, 1);
         $evidence->read();
         $uc = \core_competency\user_competency::get_record(array('userid' => $u1->id, 'competencyid' => $c1->get('id')));
         $this->assertEquals(\core_competency\user_competency::STATUS_IDLE, $uc->get('status'));
@@ -2243,8 +2223,8 @@ class core_competency_api_testcase extends advanced_testcase {
         $this->assertSame(null, $evidence->get('actionuserid'));
 
         // Creating reverting the grade and send for review.
-        $evidence = api::add_evidence($u1->id, $c1->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_OVERRIDE, 'invaliddata',
-            'error', null, true);
+        $evidence = api::add_evidence($u1->id, $c1->get('id'), $u1ctx->id, \core_competency\evidence::ACTION_OVERRIDE,
+            'invaliddata', 'error', null, true);
         $evidence->read();
         $uc = \core_competency\user_competency::get_record(array('userid' => $u1->id, 'competencyid' => $c1->get('id')));
         $this->assertSame(null, $uc->get('grade'));
@@ -2259,7 +2239,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $lpg = $dg->get_plugin_generator('core_competency');
 
         $u1 = $dg->create_user();
-        $u1ctx = context_user::instance($u1->id);
+        $u1ctx = \context_user::instance($u1->id);
         $f1 = $lpg->create_framework();
         $c1 = $lpg->create_competency(array('competencyframeworkid' => $f1->get('id')));
 
@@ -2292,7 +2272,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $dg = $this->getDataGenerator();
         $lpg = $this->getDataGenerator()->get_plugin_generator('core_competency');
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
 
         // Create users.
         $user = $dg->create_user();
@@ -2334,7 +2314,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $dg = $this->getDataGenerator();
         $lpg = $this->getDataGenerator()->get_plugin_generator('core_competency');
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
 
         // Create users.
         $user = $dg->create_user();
@@ -2370,7 +2350,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $this->resetAfterTest(true);
         $dg = $this->getDataGenerator();
         $lpg = $dg->get_plugin_generator('core_competency');
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
         $ctxid = $syscontext->id;
 
         $u1 = $dg->create_user();
@@ -2411,7 +2391,8 @@ class core_competency_api_testcase extends advanced_testcase {
         api::add_evidence($u1->id, $c1a, $ctxid, evidence::ACTION_LOG, 'commentincontext', 'core');
         $uc1a = user_competency::get_record(array('userid' => $u1->id, 'competencyid' => $c1a->get('id')));
         $this->assertSame(null, $uc1a->get('proficiency'));
-        $this->assertFalse(user_competency::record_exists_select('userid = ? AND competencyid = ?', array($u1->id, $c1->get('id'))));
+        $this->assertFalse(user_competency::record_exists_select('userid = ? AND competencyid = ?',
+            array($u1->id, $c1->get('id'))));
 
         // Now let's try complete a competency but the rule won't match (not all children are complete).
         // The parent (the thing with the rule) will be created but won't have any evidence attached, and not
@@ -2454,7 +2435,8 @@ class core_competency_api_testcase extends advanced_testcase {
         api::add_evidence($u1->id, $c4a, $ctxid, evidence::ACTION_COMPLETE, 'commentincontext', 'core');
         $uc4a = user_competency::get_record(array('userid' => $u1->id, 'competencyid' => $c4a->get('id')));
         $this->assertEquals(true, $uc1a->get('proficiency'));
-        $this->assertFalse(user_competency::record_exists_select('userid = ? AND competencyid = ?', array($u1->id, $c4->get('id'))));
+        $this->assertFalse(user_competency::record_exists_select('userid = ? AND competencyid = ?',
+            array($u1->id, $c4->get('id'))));
 
         // Check marking on something that has no parent. This just checks that nothing breaks.
         api::add_evidence($u1->id, $c5, $ctxid, evidence::ACTION_COMPLETE, 'commentincontext', 'core');
@@ -2467,7 +2449,7 @@ class core_competency_api_testcase extends advanced_testcase {
     public function test_add_evidence_for_user_competency_course_grade_outside_course() {
         $this->resetAfterTest(true);
         $dg = $this->getDataGenerator();
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
 
         // Create a student.
         $student = $dg->create_user();
@@ -2510,7 +2492,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $record = array('courseid' => $course->id, 'pushratingstouserplans' => false);
         $settings = new course_competency_settings(0, (object) $record);
         $settings->create();
-        $coursecontext = context_course::instance($course->id);
+        $coursecontext = \context_course::instance($course->id);
 
         // Create a student and enrol into the course.
         $student = $dg->create_user();
@@ -2564,7 +2546,7 @@ class core_competency_api_testcase extends advanced_testcase {
 
         // Set-up users, framework, competencies and course competencies.
         $course = $dg->create_course();
-        $coursectx = context_course::instance($course->id);
+        $coursectx = \context_course::instance($course->id);
         $u1 = $dg->create_user();
         $f1 = $lpg->create_framework();
         $c1 = $lpg->create_competency(array('competencyframeworkid' => $f1->get('id')));
@@ -2660,7 +2642,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $lpg = $dg->get_plugin_generator('core_competency');
         $u1 = $dg->create_user();
         $course = $dg->create_course();
-        $coursecontext = context_course::instance($course->id);
+        $coursecontext = \context_course::instance($course->id);
 
         $this->setAdminUser();
         $f = $lpg->create_framework();
@@ -2673,7 +2655,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $page = $pagegenerator->create_instance(array('course' => $course->id));
 
         $cm = get_coursemodule_from_instance('page', $page->id);
-        $cmcontext = context_module::instance($cm->id);
+        $cmcontext = \context_module::instance($cm->id);
         // Add the competency to the course module.
         $ccm = api::add_competency_to_course_module($cm, $c->get('id'));
 
@@ -2795,7 +2777,8 @@ class core_competency_api_testcase extends advanced_testcase {
         $this->assertTrue(api::set_course_competency_ruleoutcome($recordscc[0]['coursecompetency']->get('id'),
             \core_competency\course_competency::OUTCOME_NONE));
         $recordscc = api::list_course_competencies($course->id);
-        $this->assertEquals(\core_competency\course_competency::OUTCOME_NONE, $recordscc[0]['coursecompetency']->get('ruleoutcome'));
+        $this->assertEquals(\core_competency\course_competency::OUTCOME_NONE,
+            $recordscc[0]['coursecompetency']->get('ruleoutcome'));
     }
 
     /**
@@ -2902,7 +2885,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::add_competency_to_course($course->id, $competency->get('id'));
             $this->fail('A competency belonging to hidden framework can not be linked to course');
-        } catch (coding_exception $e) {
+        } catch (\coding_exception $e) {
             $this->assertTrue(true);
         }
 
@@ -2910,7 +2893,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::add_competency_to_template($template->get('id'), $competency->get('id'));
             $this->fail('A competency belonging to hidden framework can not be added to template');
-        } catch (coding_exception $e) {
+        } catch (\coding_exception $e) {
             $this->assertTrue(true);
         }
 
@@ -2918,7 +2901,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::add_competency_to_plan($plan->get('id'), $competency->get('id'));
             $this->fail('A competency belonging to hidden framework can not be added to plan');
-        } catch (coding_exception $e) {
+        } catch (\coding_exception $e) {
             $this->assertTrue(true);
         }
     }
@@ -2942,7 +2925,7 @@ class core_competency_api_testcase extends advanced_testcase {
         try {
             api::create_plan_from_template($template->get('id'), $user->id);
             $this->fail('Can not link a hidden template to plan');
-        } catch (coding_exception $e) {
+        } catch (\coding_exception $e) {
             $this->assertTrue(true);
         }
 
@@ -3933,9 +3916,9 @@ class core_competency_api_testcase extends advanced_testcase {
 
         $c1 = $dg->create_course();
         $c2 = $dg->create_course();
-        $sysctx = context_system::instance();
-        $c1ctx = context_course::instance($c1->id);
-        $c2ctx = context_course::instance($c2->id);
+        $sysctx = \context_system::instance();
+        $c1ctx = \context_course::instance($c1->id);
+        $c2ctx = \context_course::instance($c2->id);
 
         $teacher1 = $dg->create_user();
         $noneditingteacher = $dg->create_user();
@@ -4064,10 +4047,10 @@ class core_competency_api_testcase extends advanced_testcase {
         $raised = false;
         try {
             api::grade_competency_in_course($courseid, $userid, $compid, $grade);
-        } catch (moodle_exception $e) {
+        } catch (\moodle_exception $e) {
             $raised = true;
             $this->assertInstanceOf($exceptiontype, $e);
-            $this->assertRegExp('@' . $exceptiontext . '@', $e->getMessage());
+            $this->assertMatchesRegularExpression('@' . $exceptiontext . '@', $e->getMessage());
         }
 
         if (!$raised) {
@@ -4085,7 +4068,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $dg = $this->getDataGenerator();
         $lpg = $this->getDataGenerator()->get_plugin_generator('core_competency');
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
 
         // Create users.
         $user = $dg->create_user();
@@ -4143,7 +4126,7 @@ class core_competency_api_testcase extends advanced_testcase {
         // Enrol the user so they can be rated in the course.
         $studentarch = get_archetype_roles('student');
         $studentrole = array_shift($studentarch);
-        $coursecontext = context_course::instance($c1->id);
+        $coursecontext = \context_course::instance($c1->id);
         $dg->role_assign($studentrole->id, $user->id, $coursecontext->id);
         $dg->enrol_user($user->id, $c1->id, $studentrole->id);
 
@@ -4189,7 +4172,7 @@ class core_competency_api_testcase extends advanced_testcase {
         // Enrol students in the course.
         $studentarch = get_archetype_roles('student');
         $studentrole = array_shift($studentarch);
-        $coursecontext = context_course::instance($c1->id);
+        $coursecontext = \context_course::instance($c1->id);
         $dg->role_assign($studentrole->id, $u1->id, $coursecontext->id);
         $dg->enrol_user($u1->id, $c1->id, $studentrole->id);
         $dg->role_assign($studentrole->id, $u2->id, $coursecontext->id);
@@ -4399,7 +4382,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $leastarray = array($comp4->get('id'), $comp6->get('id'));
         foreach ($result as $one) {
             $this->assertInstanceOf('\core_competency\competency', $one);
-            $this->assertContains($one->get('id'), $leastarray);
+            $this->assertContainsEquals($one->get('id'), $leastarray);
         }
     }
 
@@ -4513,9 +4496,6 @@ class core_competency_api_testcase extends advanced_testcase {
         $this->assertTrue(evidence::record_exists($ev2->get('id')));
     }
 
-    /**
-     * @expectedException required_capability_exception
-     */
     public function test_delete_evidence_without_permissions() {
         $this->resetAfterTest();
         $dg = $this->getDataGenerator();
@@ -4529,6 +4509,7 @@ class core_competency_api_testcase extends advanced_testcase {
 
         $this->setUser($u1);
 
+        $this->expectException(\required_capability_exception::class);
         api::delete_evidence($ev1);
     }
 
@@ -4536,7 +4517,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $dg = $this->getDataGenerator();
         $this->resetAfterTest();
         $ccg = $dg->get_plugin_generator('core_competency');
-        $sysctx = context_system::instance();
+        $sysctx = \context_system::instance();
         $this->setAdminUser();
 
         $reviewer = $dg->create_user();
@@ -4569,7 +4550,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $this->assertEquals($p2a->get('id'), $result['plans'][2]->plan->get('id'));
 
         // The reviewer cannot view the plans when they do not have the permission in the user's context.
-        role_assign($roleprohibit, $reviewer->id, context_user::instance($u2->id)->id);
+        role_assign($roleprohibit, $reviewer->id, \context_user::instance($u2->id)->id);
         accesslib_clear_all_caches_for_unit_testing();
         $result = api::list_plans_to_review();
         $this->assertEquals(2, $result['count']);
@@ -4584,7 +4565,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $dg = $this->getDataGenerator();
         $this->resetAfterTest();
         $ccg = $dg->get_plugin_generator('core_competency');
-        $sysctx = context_system::instance();
+        $sysctx = \context_system::instance();
         $this->setAdminUser();
 
         $reviewer = $dg->create_user();
@@ -4634,7 +4615,7 @@ class core_competency_api_testcase extends advanced_testcase {
         $this->assertEquals(3, $result['count']);
 
         // The reviewer cannot view the plans when they do not have the permission in the user's context.
-        role_assign($roleprohibit, $reviewer->id, context_user::instance($u2->id)->id);
+        role_assign($roleprohibit, $reviewer->id, \context_user::instance($u2->id)->id);
         accesslib_clear_all_caches_for_unit_testing();
         $result = api::list_user_competencies_to_review();
         $this->assertEquals(2, $result['count']);

@@ -19,6 +19,9 @@
  *
  * All CLI utilities uses $CFG->behat_dataroot and $CFG->prefix_dataroot as
  * $CFG->dataroot and $CFG->prefix
+ * Same applies for $CFG->behat_dbname, $CFG->behat_dbuser, $CFG->behat_dbpass
+ * and $CFG->behat_dbhost. But if any of those is not defined $CFG->dbname,
+ * $CFG->dbuser, $CFG->dbpass and/or $CFG->dbhost will be used.
  *
  * @package    tool_behat
  * @copyright  2012 David Monllaó
@@ -54,6 +57,7 @@ list($options, $unrecognized) = cli_get_params(
         'torun'       => 0,
         'optimize-runs' => '',
         'add-core-features-to-theme' => false,
+        'axe'         => false,
     ),
     array(
         'h' => 'help',
@@ -69,7 +73,7 @@ $help = "
 Behat utilities to manage the test environment
 
 Usage:
-  php util.php [--install|--drop|--enable|--disable|--diag|--updatesteps|--help] [--parallel=value [--maxruns=value]]
+  php util.php [--install|--drop|--enable|--disable|--diag|--updatesteps|--axe|--help] [--parallel=value [--maxruns=value]]
 
 Options:
 --install      Installs the test environment for acceptance tests
@@ -78,6 +82,7 @@ Options:
 --disable      Disables test environment
 --diag         Get behat test environment status code
 --updatesteps  Update feature step file.
+--axe          Include axe accessibility tests
 
 -j, --parallel Number of parallel behat run operation
 -m, --maxruns Max parallel processes to be executed at one time.

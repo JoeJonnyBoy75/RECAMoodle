@@ -18,15 +18,14 @@ Feature: Edit activities in social activities block
       | student1 | C1 | student |
 
   @javascript
-  Scenario: Edit name of acitivity in-place in social activities block
+  Scenario: Edit name of activity in-place in social activities block
     Given I log in as "user1"
     And I am on "Course 1" course homepage with editing mode on
-    And I set the field "Add an activity to section 'section 0'" to "Forum"
+    And I press "Add an activity or resource"
+    And I click on "Add a new Forum" "link" in the "Add an activity or resource" "dialogue"
     And I set the field "Forum name" to "My forum name"
     And I press "Save and return to course"
-    And I click on "Edit title" "link" in the "My forum name" activity in social activities block
-    And I set the field "New name for activity My forum name" to "New forum name"
-    And I press key "13" in the field "New name for activity My forum name"
+    When I set the field "Edit title" in the "My forum name" "block_social_activities > Activity" to "New forum name"
     Then I should not see "My forum name" in the "Social activities" "block"
     And I should see "New forum name"
     And I follow "New forum name"
@@ -35,14 +34,13 @@ Feature: Edit activities in social activities block
 
   @javascript
   Scenario: Activities in social activities block can be made available but not visible on a course page
-    And I log in as "admin"
-    And I set the following administration settings values:
+    Given the following config values are set as admin:
       | allowstealth | 1 |
-    And I log out
     And I log in as "user1"
     And I am on "Course 1" course homepage with editing mode on
     And I add the "Recent activity" block
-    And I set the field "Add an activity to section 'section 0'" to "Forum"
+    And I press "Add an activity or resource"
+    And I click on "Add a new Forum" "link" in the "Add an activity or resource" "dialogue"
     And I set the field "Forum name" to "My forum name"
     And I press "Save and return to course"
     And "My forum name" activity in social activities block should have "Hide" editing icon
@@ -82,4 +80,3 @@ Feature: Edit activities in social activities block
     And I should not see "My forum name" in the "Social activities" "block"
     And I click on "My forum name" "link" in the "Recent activity" "block"
     And I should see "My forum name" in the ".breadcrumb" "css_element"
-    And I log out

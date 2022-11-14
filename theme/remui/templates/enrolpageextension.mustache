@@ -1,0 +1,76 @@
+<div class="enrol-extension p-4">
+  <div class="row">
+    <div class="col-12 col-md-12 col-lg-9 column left-column ">
+      
+      <div class="inner-container p-4 w-100 mb-4 mt-1 coursesummary">
+        <h4 class="title">{{#str}}courseoverview, theme_remui{{/str}}</h4>
+        <div>
+          {{{coursesummary}}}
+        </div>
+      </div>
+      <!-- This section is visible only in mobile devices -->
+      {{#purchasesection}}
+        {{> theme_remui/enrol_coursepurchase}}
+      {{/purchasesection}}
+       
+      {{#courseintrovideo}}
+        {{> theme_remui/enrol_courseintrovideo}}
+      {{/courseintrovideo}}
+
+      {{#coursemaincontent}}
+      {{> theme_remui/enrol_coursecontent}}
+      {{/coursemaincontent}}
+      
+      {{#instructors}}
+        {{> theme_remui/enrol_aboutinstructor}}
+      {{/instructors}}
+
+      <!-- Last element will have margin zero-->
+      <div class="inner-container p-0 w-100 mb-0 enroloptions mb-4">
+        <!-- enrolment options -->
+        {{{ output.main_content }}}
+      </div>
+
+      {{#rnrreviewdesign}}
+        {{> theme_remui/enrol_ratingreview}}
+      {{/rnrreviewdesign}}
+
+    </div>
+    <div class="col-12 col-md-12 col-lg-3 column right-column">
+      <!-- This section is visible only in large devices -->
+      {{#purchasesection}}
+        {{> theme_remui/enrol_coursepurchase}}
+      {{/purchasesection}}
+      
+      {{#featuresection}}
+        {{> theme_remui/enrol_coursefeatures}}
+      {{/featuresection}}
+
+      {{#tagsection}}
+        {{> theme_remui/enrol_coursetags}}
+      {{/tagsection}}
+    </div>
+  </div>
+</div>
+
+{{#js}}
+require(['jquery'], function ($) {
+    $(".cart_btnss").click(function (){
+        var val = $(".enrol-extension .enroloptions").offset().top;
+        val = val - 65;
+        $('html, body').animate({
+            scrollTop: val
+        }, 1000);
+    });
+    {{#rnrreviewdesign}}
+    $(".move-to-rnr-block").click(function(){
+      var val = $("#rating-review-block").offset().top;
+      val = val - 65;
+      $('html, body').animate({
+          scrollTop: val
+      }, 1000);
+    });
+    {{/rnrreviewdesign}}
+
+});
+{{/js}}

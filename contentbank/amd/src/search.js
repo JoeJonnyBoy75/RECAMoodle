@@ -17,7 +17,6 @@
  * Search methods for finding contents in the content bank.
  *
  * @module     core_contentbank/search
- * @package    core_contentbank
  * @copyright  2020 Sara Arjona <sara@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -80,8 +79,7 @@ const registerListenerEvents = (root) => {
  * @param {String} searchQuery The search query.
  */
 const toggleSearchResultsView = async(body, searchQuery) => {
-    const clearSearchButton = body.find(selectors.elements.clearsearch)[0];
-    const searchIcon = body.find(selectors.elements.searchicon)[0];
+    const clearSearchButton = body.find(selectors.actions.clearSearch)[0];
 
     const navbarBreadcrumb = body.find(selectors.elements.cbnavbarbreadcrumb)[0];
     const navbarTotal = body.find(selectors.elements.cbnavbartotalsearch)[0];
@@ -91,7 +89,6 @@ const toggleSearchResultsView = async(body, searchQuery) => {
         // As the search query is present, search results should be displayed.
 
         // Display the "clear" search button in the activity chooser search bar.
-        searchIcon.classList.add('d-none');
         clearSearchButton.classList.remove('d-none');
 
         // Change the cb-navbar to display total items found.
@@ -103,7 +100,6 @@ const toggleSearchResultsView = async(body, searchQuery) => {
 
         // Hide the "clear" search button in the activity chooser search bar.
         clearSearchButton.classList.add('d-none');
-        searchIcon.classList.remove('d-none');
 
         // Display again the breadcrumb in the navbar.
         navbarBreadcrumb.classList.remove('d-none');

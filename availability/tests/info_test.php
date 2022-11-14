@@ -14,19 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Unit tests for info and subclasses.
- *
- * @package core_availability
- * @copyright 2014 The Open University
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-defined('MOODLE_INTERNAL') || die();
-
-use core_availability\info;
-use core_availability\info_module;
-use core_availability\info_section;
+namespace core_availability;
 
 /**
  * Unit tests for info and subclasses.
@@ -35,8 +23,8 @@ use core_availability\info_section;
  * @copyright 2014 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class info_testcase extends advanced_testcase {
-    public function setUp() {
+class info_test extends \advanced_testcase {
+    public function setUp(): void {
         // Load the mock condition so that it can be used.
         require_once(__DIR__ . '/fixtures/mock_condition.php');
     }
@@ -91,7 +79,7 @@ class info_testcase extends advanced_testcase {
         $debugging = $this->getDebuggingMessages();
         $this->resetDebugging();
         $this->assertEquals(1, count($debugging));
-        $this->assertContains('Invalid availability', $debugging[0]->message);
+        $this->assertStringContainsString('Invalid availability', $debugging[0]->message);
 
         // Check empty one.
         $info = new info_module($cm4);
@@ -145,7 +133,7 @@ class info_testcase extends advanced_testcase {
         $debugging = $this->getDebuggingMessages();
         $this->resetDebugging();
         $this->assertEquals(1, count($debugging));
-        $this->assertContains('Invalid availability', $debugging[0]->message);
+        $this->assertStringContainsString('Invalid availability', $debugging[0]->message);
 
         // Check empty one.
         $info = new info_section($sections[4]);
@@ -491,7 +479,7 @@ class info_testcase extends advanced_testcase {
 
         // If the students have viewhiddenactivities, they get past the module
         // restriction.
-        role_change_permission($studentroleid, context_module::instance($page2->cmid),
+        role_change_permission($studentroleid, \context_module::instance($page2->cmid),
                 'moodle/course:ignoreavailabilityrestrictions', CAP_ALLOW);
         $expected = array($u1->id, $u2->id);
         $this->assertEquals($expected, array_keys($info->filter_user_list($allusers)));
@@ -502,7 +490,7 @@ class info_testcase extends advanced_testcase {
 
         // If they have viewhiddensections, they also get past the section
         // restriction.
-        role_change_permission($studentroleid, context_course::instance($course->id),
+        role_change_permission($studentroleid, \context_course::instance($course->id),
                 'moodle/course:ignoreavailabilityrestrictions', CAP_ALLOW);
         $expected = array($u1->id, $u2->id, $u3->id);
         $this->assertEquals($expected, array_keys($info->filter_user_list($allusers)));
@@ -510,5 +498,64 @@ class info_testcase extends advanced_testcase {
         $result = $DB->get_fieldset_sql($sql, $params);
         sort($result);
         $this->assertEquals($expected, $result);
+    }
+
+    /**
+     * Tests the info_module class when involved in a recursive call to $cm->name.
+     */
+    public function test_info_recursive_name_call() {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        // Create a course and page.
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $page1 = $generator->create_module('page', ['course' => $course->id, 'name' => 'Page1']);
+
+        // Set invalid availability.
+        $DB->set_field('course_modules', 'availability', 'not valid', ['id' => $page1->cmid]);
+
+        // Get the cm_info object.
+        $this->setAdminUser();
+        $modinfo = get_fast_modinfo($course);
+        $cm1 = $modinfo->get_cm($page1->cmid);
+
+        // At this point we will generate dynamic data for $cm1, which will cause the debugging
+        // call below.
+        $this->assertEquals('Page1', $cm1->name);
+
+        $this->assertDebuggingCalled('Error processing availability data for ' .
+                '&lsquo;Page1&rsquo;: Invalid availability text');
+    }
+
+    /**
+     * Test for the is_available_for_all() method of the info base class.
+     * @covers \core_availability\info_module::is_available_for_all
+     */
+    public function test_is_available_for_all() {
+        global $CFG, $DB;
+        $this->resetAfterTest();
+        $CFG->enableavailability = 0;
+
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $page = $generator->get_plugin_generator('mod_page')->create_instance(['course' => $course]);
+
+        // Set an availability restriction and reset the modinfo cache.
+        // The enableavailability setting is disabled so this does not take effect yet.
+        $notavailable = '{"op":"|","show":true,"c":[{"type":"mock","a":false}]}';
+        $DB->set_field('course_modules', 'availability', $notavailable, ['id' => $page->cmid]);
+        get_fast_modinfo($course, 0, true);
+
+        // Availability is disabled, so we expect this module to be available for everyone.
+        $modinfo = get_fast_modinfo($course);
+        $info = new info_module($modinfo->get_cm($page->cmid));
+        $this->assertTrue($info->is_available_for_all());
+
+        // Now, enable availability restrictions, and check again.
+        // This time, we expect it to return false, because of the access restriction.
+        $CFG->enableavailability = 1;
+        $this->assertFalse($info->is_available_for_all());
     }
 }

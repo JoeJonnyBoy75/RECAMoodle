@@ -40,6 +40,15 @@ class media_videojs_plugin extends core_media_player_native {
     protected $extensions = null;
     /** @var bool is this a youtube link */
     protected $youtube = false;
+    /** @var bool Need to use Ogv.JS Tech plugin or not. */
+    protected $ogvtech = false;
+    /** @var array Ogv.JS supported extensions */
+    protected $ogvsupportedextensions = [
+        '.ogv',
+        '.webm',
+        '.oga',
+        '.ogg'
+    ];
 
     /**
      * Generates code required to embed the player.
@@ -72,10 +81,8 @@ class media_videojs_plugin extends core_media_player_native {
             $hasposter = self::get_attribute($text, 'poster') !== null;
         }
 
-        // Currently Flash in VideoJS does not support responsive layout. If Flash is enabled try to guess
-        // if HTML5 player will be engaged for the user and then set it to responsive.
-        $responsive = (get_config('media_videojs', 'useflash') && !$this->youtube) ? null : true;
-        $flashtech = false;
+        // Try to guess if HTML5 player will be engaged for the user and then set it to responsive.
+        $responsive = (!$this->youtube) ? null : true;
 
         // Build list of source tags.
         foreach ($urls as $url) {
@@ -101,10 +108,6 @@ class media_videojs_plugin extends core_media_player_native {
             if ($responsive === null) {
                 $responsive = core_useragent::supports_html5($extension);
             }
-            if (($url->get_scheme() === 'rtmp' || !core_useragent::supports_html5($extension))
-                    && get_config('media_videojs', 'useflash')) {
-                $flashtech = true;
-            }
         }
         $sources = implode("\n", $sources);
 
@@ -123,8 +126,10 @@ class media_videojs_plugin extends core_media_player_native {
 
             $sources = ''; // Do not specify <source> tags - it may confuse browser.
             $isaudio = false; // Just in case.
-        } else if ($flashtech) {
-            $datasetup[] = '"techOrder": ["flash", "html5"]';
+        }
+
+        if ($this->ogvtech) {
+            $datasetup[] = '"techOrder": ["OgvJS"]';
         }
 
         // Add a language.
@@ -148,6 +153,10 @@ class media_videojs_plugin extends core_media_player_native {
             // Maybe TODO: if there are only chapter tracks we still don't need poster area.
             $datasetup[] = '"aspectRatio": "1:0"';
         }
+
+        // Additional setup for playback rate and user actions.
+        $datasetup[] = '"playbackRates": [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]';
+        $datasetup[] = '"userActions": {"hotkeys": true}';
 
         // Attributes for the video/audio tag.
         // We use data-setup-lazy as the attribute name for the config instead of
@@ -258,8 +267,8 @@ class media_videojs_plugin extends core_media_player_native {
                 get_config('media_videojs', 'audioextensions'))));
 
             $this->extensions = file_get_typegroup('extension', $filetypes);
-            if ($this->extensions && !get_config('media_videojs', 'useflash')) {
-                // If Flash is disabled get extensions supported by player that don't rely on flash.
+            if ($this->extensions) {
+                // Get extensions supported by player.
                 $supportedextensions = array_merge(file_get_typegroup('extension', 'html_video'),
                     file_get_typegroup('extension', 'html_audio'), file_get_typegroup('extension', 'media_source'));
                 $this->extensions = array_intersect($this->extensions, $supportedextensions);
@@ -283,17 +292,9 @@ class media_videojs_plugin extends core_media_player_native {
         }
 
         $extensions = $this->get_supported_extensions();
-        $rtmpallowed = get_config('media_videojs', 'rtmp') && get_config('media_videojs', 'useflash');
         foreach ($urls as $url) {
-            // If RTMP support is disabled, skip the URL that is using RTMP (which
-            // might have been picked to the list by its valid extension).
-            if (!$rtmpallowed && ($url->get_scheme() === 'rtmp')) {
-                continue;
-            }
-
-            // If RTMP support is allowed, URL with RTMP scheme is supported irrespective to extension.
-            if ($rtmpallowed && ($url->get_scheme() === 'rtmp')) {
-                $result[] = $url;
+            // Skip the URL that is using RTMP (which might have been picked to the list by its valid extension).
+            if ($url->get_scheme() === 'rtmp') {
                 continue;
             }
 
@@ -305,15 +306,16 @@ class media_videojs_plugin extends core_media_player_native {
                 continue;
             }
 
-            if (!get_config('media_videojs', 'useflash')) {
-                return parent::list_supported_urls($urls, $options);
-            } else {
-                // If Flash fallback is enabled we can not check if/when browser supports flash.
-                // We assume it will be able to handle any other extensions that player supports.
-                if (in_array($ext, $extensions)) {
-                    $result[] = $url;
-                }
+            // Ogv.JS Tech.
+            $this->ogvtech = false;
+            if (in_array($ext, $this->ogvsupportedextensions) &&
+                (core_useragent::is_safari() || core_useragent::is_ios())) {
+                $this->ogvtech = true;
+                $result[] = $url;
+                continue;
             }
+
+            return parent::list_supported_urls($urls, $options);
         }
         return $result;
     }
@@ -340,42 +342,46 @@ class media_videojs_plugin extends core_media_player_native {
         $langfiles = get_directory_list($basedir);
         $candidates = [];
         foreach ($langfiles as $langfile) {
-            if (strtolower(pathinfo($langfile, PATHINFO_EXTENSION)) !== 'js') {
+            if (strtolower(pathinfo($langfile, PATHINFO_EXTENSION)) !== 'json') {
                 continue;
             }
-            $lang = basename($langfile, '.js');
-            if (strtolower($langfile) === $this->language . '.js') {
-                // Found an exact match for the language.
-                $js = file_get_contents($basedir . $langfile);
-                break;
+            $lang = basename($langfile, '.json');
+            if (strtolower($langfile) === $this->language . '.json') {
+                // Found an exact match for the language. It is stored in $this->language.
+                return;
             }
             if (substr($this->language, 0, 2) === strtolower(substr($langfile, 0, 2))) {
                 // Not an exact match but similar, for example "pt_br" is similar to "pt".
                 $candidates[$lang] = $langfile;
             }
         }
-        if (empty($js) && $candidates) {
+
+        if ($candidates) {
             // Exact match was not found, take the first candidate.
             $this->language = key($candidates);
-            $js = file_get_contents($basedir . $candidates[$this->language]);
+        } else {
+            // Could not match, use default language of video player (English).
+            $this->language = 'en';
         }
-        // Add it as a language for Video.JS.
-        if (!empty($js)) {
-            return "$js\n";
-        }
+    }
 
-        // Could not match, use default language of video player (English).
-        $this->language = null;
-        return "";
+    /**
+     * Returns the requested language pack in the json format.
+     *
+     * @param string $lang The language code
+     * @return false|string The read data or false on failure
+     */
+    public static function get_language_content(string $lang) {
+        global $CFG;
+        $langfile = "{$CFG->dirroot}/media/player/videojs/videojs/lang/{$lang}.json";
+
+        return file_exists($langfile) ? file_get_contents($langfile) : '';
     }
 
     public function supports($usedextensions = []) {
         $supports = parent::supports($usedextensions);
         if (get_config('media_videojs', 'youtube')) {
             $supports .= ($supports ? '<br>' : '') . get_string('youtube', 'media_videojs');
-        }
-        if (get_config('media_videojs', 'rtmp') && get_config('media_videojs', 'useflash')) {
-            $supports .= ($supports ? '<br>' : '') . get_string('rtmp', 'media_videojs');
         }
         return $supports;
     }
@@ -385,10 +391,6 @@ class media_videojs_plugin extends core_media_player_native {
         // Add YouTube support if enabled.
         if (get_config('media_videojs', 'youtube')) {
             $markers = array_merge($markers, array('youtube.com', 'youtube-nocookie.com', 'youtu.be', 'y2u.be'));
-        }
-        // Add RTMP support if enabled.
-        if (get_config('media_videojs', 'rtmp') && get_config('media_videojs', 'useflash')) {
-            $markers[] = 'rtmp://';
         }
 
         return $markers;
@@ -417,18 +419,17 @@ class media_videojs_plugin extends core_media_player_native {
      * @param moodle_page $page The page we are going to add requirements to.
      */
     public function setup($page) {
+        if (during_initial_install() || is_major_upgrade_required()) {
+            return;
+        }
 
         // Load dynamic loader. It will scan page for videojs media and load necessary modules.
         // Loader will be loaded on absolutely every page, however the videojs will only be loaded
         // when video is present on the page or added later to it in AJAX.
-        $path = new moodle_url('/media/player/videojs/videojs/video-js.swf');
-        $contents = 'videojs.options.flash.swf = "' . $path . '";' . "\n";
-        $contents .= $this->find_language(current_language());
+        $this->find_language();
         $page->requires->js_amd_inline(<<<EOT
 require(["media_videojs/loader"], function(loader) {
-    loader.setUp(function(videojs) {
-        $contents
-    });
+    loader.setUp('$this->language');
 });
 EOT
         );

@@ -105,7 +105,17 @@ class content_item_service {
             return $favmods;
         }
 
-        $favourites = $this->get_content_favourites(self::RECOMMENDATION_PREFIX, \context_user::instance($CFG->siteguest));
+        // Make sure the guest user exists in the database.
+        if (!\core_user::get_user($CFG->siteguest)) {
+            throw new \coding_exception('The guest user does not exist in the database.');
+        }
+
+        // Make sure the guest user context exists.
+        if (!$guestusercontext = \context_user::instance($CFG->siteguest, false)) {
+            throw new \coding_exception('The guest user context does not exist.');
+        }
+
+        $favourites = $this->get_content_favourites(self::RECOMMENDATION_PREFIX, $guestusercontext);
 
         $recommendationcache->set($CFG->siteguest, $favourites);
         return $favourites;
@@ -133,8 +143,12 @@ class content_item_service {
             // Add any subplugins to the list of item types.
             $subplugins = $pluginmanager->get_subplugins_of_plugin('mod_' . $plugin->name);
             foreach ($subplugins as $subpluginname => $subplugininfo) {
-                if (component_callback_exists($subpluginname, 'get_course_content_items')) {
-                    $itemtypes[] = $prefix . $subpluginname;
+                try {
+                    if (component_callback_exists($subpluginname, 'get_course_content_items')) {
+                        $itemtypes[] = $prefix . $subpluginname;
+                    }
+                } catch (\moodle_exception $e) {
+                    debugging('Cannot get_course_content_items: ' . $e->getMessage(), DEBUG_DEVELOPER);
                 }
             }
         }
@@ -210,11 +224,8 @@ class content_item_service {
         $exported = $ciexporter->export($PAGE->get_renderer('core'));
 
         // Sort by title for return.
-        usort($exported->content_items, function($a, $b) {
-            return $a->title > $b->title;
-        });
-
-        return $exported->content_items;
+        \core_collator::asort_objects_by_property($exported->content_items, 'title');
+        return array_values($exported->content_items);
     }
 
     /**
@@ -286,11 +297,9 @@ class content_item_service {
         $exported = $ciexporter->export($PAGE->get_renderer('course'));
 
         // Sort by title for return.
-        usort($exported->content_items, function($a, $b) {
-            return $a->title > $b->title;
-        });
+        \core_collator::asort_objects_by_property($exported->content_items, 'title');
 
-        return $exported->content_items;
+        return array_values($exported->content_items);
     }
 
     /**

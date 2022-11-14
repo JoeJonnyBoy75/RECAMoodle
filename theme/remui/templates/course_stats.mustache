@@ -17,30 +17,73 @@
 {{#iscoursestatsshow}}
 <div id="wdm_course-stats" class="course-stats row mx-0 p-0 my-2">
 	<div class="col-6 col-md-6 col-lg-3">
-		<div class="stats-card d-flex align-items-center justify-content-center px-2 flex-wrap">
+		<div class="stats-card d-flex align-items-center justify-content-left flex-wrap">
 			<p class="course-stats-enrolledusers display-4 bold mr-1 mb-0 mb-md-1">0</p>
 			<p class="stats-title mb-0 mb-md-1">{{#str}}enrolledusers, theme_remui{{/str}}</p>
 		</div>
 	</div>
 	{{#completion}}
 	<div class="col-6 col-md-6 col-lg-3">
-		<div class="stats-card d-flex align-items-center justify-content-center px-2 flex-wrap">
+		<div class="stats-card d-flex align-items-center justify-content-left flex-wrap">
 			<p class="course-stats-completed display-4 bold mr-1 mb-0 mb-md-1">0</p>
 			<p class="stats-title mb-0 mb-md-1">{{#str}}studentcompleted, theme_remui{{/str}}</p>
 		</div>
 	</div>
 	<div class="col-6 col-md-6 col-lg-3">
-		<div class="stats-card d-flex align-items-center justify-content-center px-2 flex-wrap">
+		<div class="stats-card d-flex align-items-center justify-content-left flex-wrap">
 			<p class="course-stats-inprogress display-4 bold mr-1 mb-0 mb-md-1">0</p>
 			<p class="stats-title mb-0 mb-md-1">{{#str}}inprogress, theme_remui{{/str}}</p>
 		</div>
 	</div>
 	<div class="col-6 col-md-6 col-lg-3">
-		<div class="stats-card d-flex align-items-center justify-content-center px-2 flex-wrap">
+		<div class="stats-card d-flex align-items-center justify-content-left flex-wrap">
 			<p class="course-stats-notstarted display-4 bold mr-1 mb-0 mb-md-1">0</p>
 			<p class="stats-title mb-0 mb-md-1">{{#str}}yettostart, theme_remui{{/str}}</p>
 		</div>
 	</div>
 	{{/completion}}
 </div>
+
+{{#js}}
+	require(['jquery', 'core/ajax'], function($, Ajax) {
+		$(document).ready(function(){
+			
+			function getUrlParameter(sParam) {
+			    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+			    sURLVariables = sPageURL.split('&'),
+			    sParameterName,
+			    i;
+
+			    for (i = 0; i < sURLVariables.length; i++) {
+			        sParameterName = sURLVariables[i].split('=');
+
+			        if (sParameterName[0] === sParam) {
+			            return sParameterName[1] === undefined ? true : sParameterName[1];
+			        }
+			    }
+			}
+
+			console.log("We got executed");
+			let courseid = getUrlParameter('id');
+			let service_name = 'theme_remui_get_course_stats';
+			let cstats = Ajax.call([
+			    {
+			        methodname: service_name,
+			        args: { courseid : courseid }
+			    }
+			]);
+			cstats[0].done(function(response) {
+			    // When course stats block is ready then render the respose value
+			    $('.course-stats').ready(function() {
+			        $.each(response, function(index, value) {
+			            var courseStatsDiv = '#wdm_course-stats .stats-card .course-stats-' + index;
+			            $(courseStatsDiv).text(value);
+			        })
+			    });
+			});
+		});
+	});
+{{/js}}
+
+
 {{/iscoursestatsshow}}

@@ -35,11 +35,22 @@
     }
 
 }}
-<li class="popover-region nav-item collapsed text-center m-0">
-    <a id="message-drawer-toggle-{{uniqid}}" class="nav-link popover-region-toggle p-3" data-toggle="tab" href="#sidebar-message" role="tab" aria-selected="false" data-placement="top" data-toggle="tooltip" data-original-title="{{#str}} togglemessagemenu, message {{/str}}">
-        <i class="icon fa fa-comment" aria-hidden="true"></i>
-        <span class="wdm-msg-count font-size-10 badge badge-danger up animation-shake {{^unreadcount}}hidden{{/unreadcount}}" data-region="count-container">{{unreadcount}}</span>
+
+{{! this is for Header Menu}}
+{{^mergemessagingsidebar}}
+<li class="popover-region nav-item text-center m-0 collapsed no-bghover message_popover">
+    <a id="message-drawer-toggle-{{uniqid}}" class="nav-link popover-region-toggle p-3 remuiicon" href="#sidebar-message" role="button" title="{{#str}} togglemessagemenu, message {{/str}}" aria-label="{{#str}} togglemessagemenu, message {{/str}}">
+{{/mergemessagingsidebar}}
+
+{{#mergemessagingsidebar}}
+<li id="merged-messaging-tab" class="popover-region nav-item collapsed text-center m-0 {{#msgactive}}active{{/msgactive}}">
+    <a id="message-drawer-toggle-{{uniqid}}" class="nav-link popover-region-toggle p-3 {{#msgactive}}active{{/msgactive}}" href="#sidebar-message" role="tab" title="{{#str}} togglemessagemenu, message {{/str}}" aria-label="{{#str}} togglemessagemenu, message {{/str}}" data-toggle="tab" aria-selected="false" data-placement="top" data-toggle="tooltip" data-original-title="{{#str}} togglemessagemenu, message {{/str}}">
+{{/mergemessagingsidebar}}
+        {{#pix}} t/message, core, {{#str}} togglemessagemenu, message {{/str}} {{/pix}}
+        <div class="count-container {{^unreadcount}}hidden{{/unreadcount}}" data-region="count-container"
+        aria-label="{{#str}} unreadconversations, core_message, {{unreadcount}} {{/str}}">{{unreadcount}}</div>
     </a>
+    {{> core_message/message_jumpto }}
 </li>
 
 {{#js}}
@@ -54,5 +65,9 @@ function(
 ) {
     var toggle = $('#message-drawer-toggle-{{uniqid}}');
     Popover.init(toggle);
+
+    {{#msgactive}}
+        $('#sidebar-message .drawer[data-region="right-hand-drawer"]').removeClass('hidden');
+    {{/msgactive}}
 });
 {{/js}}

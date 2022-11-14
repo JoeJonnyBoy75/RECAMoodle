@@ -93,12 +93,3 @@ label.star:before {
     </div>
 </div>
 {{/ hasannouncements }}
-
-{{#js}}
-require(['jquery'], function($) {
-    $('#announcements_carousel_{{uniqid}}').carousel({
-        interval: 5000,
-        ride: 'carousel'
-    });
-});
-{{/js}}

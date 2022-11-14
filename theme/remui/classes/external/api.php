@@ -13,12 +13,11 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
 /**
  * Theme external services
  *
  * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\external;
@@ -33,7 +32,7 @@ use external_api;
 
 /**
  * Uses all moodle webservices trait defined in external folder
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class api extends external_api {
@@ -43,4 +42,9 @@ class api extends external_api {
     use get_course_stats;
     use get_courses;
     use hide_update;
+    use get_tags;
+    use handle_bug_feedback_report;
+    use serve_license_data;
+    use save_current_step;
+    use get_myoverviewcourses;
 }

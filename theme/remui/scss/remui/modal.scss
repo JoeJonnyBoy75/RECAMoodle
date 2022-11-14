@@ -1,0 +1,31 @@
+// $padding-modal-spaces:  13px 20px;
+// .modal {
+//     .modal-header {
+//         padding: $padding-modal-spaces;
+//         // background-image: linear-gradient(90deg,#3452ff 0%,#ff1053 100%);
+//         box-shadow: 0 1px 2px #00000021;
+//         .modal-title {
+//             text-transform: uppercase;
+//             font-weight: 600;
+//             font-size: 15px;
+//         }
+//         .close {
+//             span {
+//                 font-size: 22px;
+//             }
+//             // color: white;
+//         }
+//     }
+//     .modal-dialog {
+//         width: 96vw !important;
+//         max-width: 96vw !important;
+//         height: 92vh !important;
+//         max-height: 92vh !important;
+//         position: relative;
+//     }
+// }
+
+.fullwidth-modal .modal-dialog {
+    max-width: 96vw;
+    width: 96vw;
+}

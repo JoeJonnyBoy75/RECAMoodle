@@ -48,37 +48,36 @@
         "hasregionmainsettingsmenu": false
     }
 }}
-<div class="row category-filters pb-3 d-none">
-    <div class="my-1 col-lg-3 col-md-6 col-sm-12">
-        <select id="categoryfilter" class="selectpicker" data-live-search="true" data-style="custom-select form-control bg-white">
+<div class="filters-wrapper pb-3 d-none" aria-label="Course Archive Page Filters">
+
+        <select id="categoryfilter" class="selectpicker categoryfiltermenu w-100" aria-haspopup="true" aria-expanded="false"
+            data-live-search="true" data-style="custom-select form-control bg-white">
             <option value='all'>{{#str}} allcategories , theme_remui {{/str}}</option>
             {{#categories}}
-                <option value='{{ id }}'>{{{ title }}}</option>
+            <option value='{{ id }}'>{{{ title }}}</option>
             {{/categories}}
         </select>
-    </div>
 
-    <div class="my-1 col-lg-3 col-md-6 col-sm-12">
-        <select id="sortfilter" class="selectpicker" data-style="custom-select form-control bg-white">
+        <select id="sortfilter" class="selectpicker w-100" data-style="custom-select form-control bg-white">
             <option value='default'>{{#str}} sortdefault, theme_remui {{/str}}</option>
             <option value='ASC'>{{#str}} sortascending, theme_remui {{/str}}</option>
-            <option value='DESC'>{{#str}} sortdescending, theme_remui {{/str}}</option>   
+            <option value='DESC'>{{#str}} sortdescending, theme_remui {{/str}}</option>
         </select>
-    </div>
 
-    <div class="my-1 col-lg-4 col-md-9 col-sm-12">
-        {{{searchhtml}}}
-    </div>
+        <div class="w-100">
+            {{{searchhtml}}}
+        </div>
+
     {{^latest_card}}
-    <div class="my-1 col-lg-2 col-md-3 hidden-sm-down">
-        <div class="d-flex float-right btn-group" data-toggle="buttons">
-            <a class="grid_btn btn togglebtn active btn-primary" title="Grid view" data-view="grid">
+        <div class=" btn-group" data-toggle="buttons">
+            <a class="grid_btn btn togglebtn active btn-primary" title="{{#str}}gridview,theme_remui{{/str}}" data-view="grid" tabindex="0"
+                role="button">
                 <i class="fa fa-th" aria-hidden="true"></i>
             </a>
-            <a class="list_btn btn togglebtn" title="List view" data-view="list">
+            <a class="list_btn btn togglebtn" title="{{#str}}listview,theme_remui{{/str}}" data-view="list" tabindex="0" role="button">
                 <i class="fa fa-list" aria-hidden="true"></i>
             </a>
         </div>
-    </div>
     {{/latest_card}}
+    {{{coursearchivefiltermenumorebutton}}}
 </div>

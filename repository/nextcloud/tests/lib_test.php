@@ -21,6 +21,10 @@
  * @copyright  2017 Project seminar (Learnweb, University of Münster)
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+namespace repository_nextcloud;
+
+use repository;
+use repository_nextcloud;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -34,7 +38,7 @@ require_once($CFG->libdir . '/webdavlib.php');
  * @copyright  2017 Project seminar (Learnweb, University of Münster)
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class repository_nextcloud_lib_testcase extends advanced_testcase {
+class lib_test extends \advanced_testcase {
 
     /** @var null|\repository_nextcloud the repository_nextcloud object, which the tests are run on. */
     private $repo = null;
@@ -45,7 +49,7 @@ class repository_nextcloud_lib_testcase extends advanced_testcase {
     /**
      * SetUp to create an repository instance.
      */
-    protected function setUp() {
+    protected function setUp(): void {
         $this->resetAfterTest(true);
 
         // Admin is neccessary to create api and issuer objects.
@@ -505,7 +509,7 @@ JSON;
 
         $this->assertEquals($this->repo->print_login(), $this->repo->logout());
 
-        $mock->expects($this->exactly(2))->method('get_login_url')->will($this->returnValue(new moodle_url('url')));
+        $mock->expects($this->exactly(2))->method('get_login_url')->will($this->returnValue(new \moodle_url('url')));
 
         $this->repo->options['ajax'] = true;
         $this->assertEquals($this->repo->print_login(), $this->repo->logout());
@@ -561,13 +565,13 @@ JSON;
      */
     public function test_print_login() {
         $mock = $this->createMock(\core\oauth2\client::class);
-        $mock->expects($this->exactly(2))->method('get_login_url')->will($this->returnValue(new moodle_url('url')));
+        $mock->expects($this->exactly(2))->method('get_login_url')->will($this->returnValue(new \moodle_url('url')));
         $this->set_private_property($mock, 'client');
 
         // Test with ajax activated.
         $this->repo->options['ajax'] = true;
 
-        $url = new moodle_url('url');
+        $url = new \moodle_url('url');
         $ret = array();
         $btn = new \stdClass();
         $btn->type = 'popup';
@@ -579,7 +583,7 @@ JSON;
         // Test without ajax.
         $this->repo->options['ajax'] = false;
 
-        $output = html_writer::link($url, get_string('login', 'repository'),
+        $output = \html_writer::link($url, get_string('login', 'repository'),
             array('target' => '_blank',  'rel' => 'noopener noreferrer'));
         $this->expectOutputString($output);
         $this->repo->print_login();
@@ -602,16 +606,16 @@ JSON;
         $generator->test_create_single_endpoint($this->issuer->get('id'), "webdav_endpoint",
             "https://www.default.test:8080/webdav/index.php");
 
-        $fakeaccesstoken = new stdClass();
+        $fakeaccesstoken = new \stdClass();
         $fakeaccesstoken->token = "fake access token";
         $oauthmock = $this->createMock(\core\oauth2\client::class);
         $oauthmock->expects($this->once())->method('get_accesstoken')->will($this->returnValue($fakeaccesstoken));
         $this->set_private_property($oauthmock, 'client');
 
-        $dav = phpunit_util::call_internal_method($this->repo, "initiate_webdavclient", [], 'repository_nextcloud');
+        $dav = \phpunit_util::call_internal_method($this->repo, "initiate_webdavclient", [], 'repository_nextcloud');
 
         // Verify that port is set correctly (private property).
-        $refclient = new ReflectionClass($dav);
+        $refclient = new \ReflectionClass($dav);
 
         $property = $refclient->getProperty('_port');
         $property->setAccessible(true);
@@ -623,13 +627,13 @@ JSON;
 
     /**
      * Test supported_returntypes.
-     * FILE_INTERNAL when no system account is connected.
-     * FILE_INTERNAL | FILE_CONTROLLED_LINK when a system account is connected.
+     * FILE_INTERNAL | FILE_REFERENCE when no system account is connected.
+     * FILE_INTERNAL | FILE_CONTROLLED_LINK | FILE_REFERENCE when a system account is connected.
      */
     public function test_supported_returntypes() {
         global $DB;
-        $this->assertEquals(FILE_INTERNAL, $this->repo->supported_returntypes());
-        $dataobject = new stdClass();
+        $this->assertEquals(FILE_INTERNAL | FILE_REFERENCE, $this->repo->supported_returntypes());
+        $dataobject = new \stdClass();
         $dataobject->timecreated = time();
         $dataobject->timemodified = time();
         $dataobject->usermodified = 2;
@@ -641,12 +645,12 @@ JSON;
 
         $DB->insert_record('oauth2_system_account', $dataobject);
         // When a system account is registered the file_type FILE_CONTROLLED_LINK is supported.
-        $this->assertEquals(FILE_INTERNAL | FILE_CONTROLLED_LINK,
+        $this->assertEquals(FILE_INTERNAL | FILE_CONTROLLED_LINK | FILE_REFERENCE,
             $this->repo->supported_returntypes());
     }
 
     /**
-     * The reference_file_selected() methode is called every time a FILE_CONTROLLED_LINK is chosen for upload.
+     * The reference_file_selected() method is called every time a FILE_CONTROLLED_LINK is chosen for upload.
      * Since the function is very long the private function are tested separately, and merely the abortion of the
      * function are tested.
      *
@@ -654,36 +658,36 @@ JSON;
     public function test_reference_file_selected_error() {
         $this->repo->disabled = true;
         $this->expectException(\repository_exception::class);
-        $this->repo->reference_file_selected('', context_system::instance(), '', '', '');
+        $this->repo->reference_file_selected('', \context_system::instance(), '', '', '');
 
         $this->repo->disabled = false;
         $this->expectException(\repository_exception::class);
         $this->expectExceptionMessage('Cannot connect as system user');
-        $this->repo->reference_file_selected('', context_system::instance(), '', '', '');
+        $this->repo->reference_file_selected('', \context_system::instance(), '', '', '');
 
         $mock = $this->createMock(\core\oauth2\client::class);
         $mock->expects($this->once())->method('get_system_oauth_client')->with($this->issuer)->willReturn(true);
 
         $this->expectException(\repository_exception::class);
         $this->expectExceptionMessage('Cannot connect as current user');
-        $this->repo->reference_file_selected('', context_system::instance(), '', '', '');
+        $this->repo->reference_file_selected('', \context_system::instance(), '', '', '');
 
         $this->repo->expects($this->once())->method('get_user_oauth_client')->willReturn(true);
         $this->expectException(\repository_exception::class);
         $this->expectExceptionMessage('cannotdownload');
-        $this->repo->reference_file_selected('', context_system::instance(), '', '', '');
+        $this->repo->reference_file_selected('', \context_system::instance(), '', '', '');
 
         $this->repo->expects($this->once())->method('get_user_oauth_client')->willReturn(true);
         $this->expectException(\repository_exception::class);
         $this->expectExceptionMessage('cannotdownload');
-        $this->repo->reference_file_selected('', context_system::instance(), '', '', '');
+        $this->repo->reference_file_selected('', \context_system::instance(), '', '', '');
 
         $this->repo->expects($this->once())->method('get_user_oauth_client')->willReturn(true);
         $this->repo->expects($this->once())->method('copy_file_to_path')->willReturn(array('statuscode' =>
             array('success' => 400)));
         $this->expectException(\repository_exception::class);
         $this->expectExceptionMessage('Could not copy file');
-        $this->repo->reference_file_selected('', context_system::instance(), '', '', '');
+        $this->repo->reference_file_selected('', \context_system::instance(), '', '', '');
 
         $this->repo->expects($this->once())->method('get_user_oauth_client')->willReturn(true);
         $this->repo->expects($this->once())->method('copy_file_to_path')->willReturn(array('statuscode' =>
@@ -692,7 +696,7 @@ JSON;
             array('statuscode' => array('success' => 400)));
         $this->expectException(\repository_exception::class);
         $this->expectExceptionMessage('Share is still present');
-        $this->repo->reference_file_selected('', context_system::instance(), '', '', '');
+        $this->repo->reference_file_selected('', \context_system::instance(), '', '', '');
 
         $this->repo->expects($this->once())->method('get_user_oauth_client')->willReturn(true);
         $this->repo->expects($this->once())->method('copy_file_to_path')->willReturn(array('statuscode' =>
@@ -704,7 +708,7 @@ JSON;
         $filereturn->name = 'mysource';
         $filereturn->usesystem = true;
         $filereturn = json_encode($filereturn);
-        $return = $this->repo->reference_file_selected('mysource', context_system::instance(), '', '', '');
+        $return = $this->repo->reference_file_selected('mysource', \context_system::instance(), '', '', '');
         $this->assertEquals($filereturn, $return);
     }
 
@@ -714,7 +718,7 @@ JSON;
     public function test_send_file_errors() {
         $fs = get_file_storage();
         $storedfile = $fs->create_file_from_reference([
-            'contextid' => context_system::instance()->id,
+            'contextid' => \context_system::instance()->id,
             'component' => 'core',
             'filearea'  => 'unittest',
             'itemid'    => 0,
@@ -769,7 +773,7 @@ JSON;
    <token/>
    <uid_file_owner>tech</uid_file_owner>
    <displayname_file_owner>tech</displayname_file_owner>
-   <path>/System/Category Miscellaneous/Course Example Course/File morefiles/mod_resource/content/0/merge.txt</path>
+   <path>/System/Category Category 1/Course Example Course/File morefiles/mod_resource/content/0/merge.txt</path>
    <item_type>file</item_type>
    <mimetype>text/plain</mimetype>
    <storage_id>home::tech</storage_id>
@@ -794,7 +798,7 @@ JSON;
    <token/>
    <uid_file_owner>tech</uid_file_owner>
    <displayname_file_owner>tech</displayname_file_owner>
-   <path>/System/Category Miscellaneous/Course Example Course/File morefiles/mod_resource/content/0/merge.txt</path>
+   <path>/System/Category Category 1/Course Example Course/File morefiles/mod_resource/content/0/merge.txt</path>
    <item_type>file</item_type>
    <mimetype>text/plain</mimetype>
    <storage_id>home::tech</storage_id>
@@ -845,6 +849,150 @@ XML;
     }
 
     /**
+     * This function provides the data for test_sync_reference
+     *
+     * @return array[]
+     */
+    public function sync_reference_provider():array {
+        return [
+            'referecncelastsync done recently' => [
+                [
+                    'storedfile_record' => [
+                            'contextid' => \context_system::instance()->id,
+                            'component' => 'core',
+                            'filearea'  => 'unittest',
+                            'itemid'    => 0,
+                            'filepath'  => '/',
+                            'filename'  => 'testfile.txt',
+                    ],
+                    'storedfile_reference' => json_encode(
+                        [
+                            'type' => 'FILE_REFERENCE',
+                            'link' => 'https://test.local/fakelink/',
+                            'usesystem' => true,
+                            'referencelastsync' => DAYSECS + time()
+                        ]
+                    ),
+                ],
+                'mockfunctions' => ['get_referencelastsync'],
+                'expectedresult' => false
+            ],
+            'file without link' => [
+                [
+                    'storedfile_record' => [
+                        'contextid' => \context_system::instance()->id,
+                        'component' => 'core',
+                        'filearea'  => 'unittest',
+                        'itemid'    => 0,
+                        'filepath'  => '/',
+                        'filename'  => 'testfile.txt',
+                    ],
+                    'storedfile_reference' => json_encode(
+                        [
+                            'type' => 'FILE_REFERENCE',
+                            'usesystem' => true,
+                        ]
+                    ),
+                ],
+                'mockfunctions' => [],
+                'expectedresult' => false
+            ],
+            'file extenstion to exclude' => [
+                [
+                    'storedfile_record' => [
+                        'contextid' => \context_system::instance()->id,
+                        'component' => 'core',
+                        'filearea'  => 'unittest',
+                        'itemid'    => 0,
+                        'filepath'  => '/',
+                        'filename'  => 'testfile.txt',
+                    ],
+                    'storedfile_reference' => json_encode(
+                        [
+                            'link' => 'https://test.local/fakelink/',
+                            'type' => 'FILE_REFERENCE',
+                            'usesystem' => true,
+                        ]
+                    ),
+                ],
+                'mockfunctions' => [],
+                'expectedresult' => false
+            ],
+            'file extenstion for image' => [
+                [
+                    'storedfile_record' => [
+                        'contextid' => \context_system::instance()->id,
+                        'component' => 'core',
+                        'filearea'  => 'unittest',
+                        'itemid'    => 0,
+                        'filepath'  => '/',
+                        'filename'  => 'testfile.png',
+                    ],
+                    'storedfile_reference' => json_encode(
+                        [
+                            'link' => 'https://test.local/fakelink/',
+                            'type' => 'FILE_REFERENCE',
+                            'usesystem' => true,
+                        ]
+                    ),
+                    'mock_curl' => true,
+                ],
+                'mockfunctions' => [''],
+                'expectedresult' => true
+            ],
+        ];
+    }
+
+    /**
+     * Testing sync_reference
+     *
+     * @dataProvider sync_reference_provider
+     * @param array $storedfileargs
+     * @param array $storedfilemethodsmock
+     * @param bool $expectedresult
+     * @return void
+     */
+    public function test_sync_reference(array $storedfileargs, $storedfilemethodsmock, bool $expectedresult):void {
+        $this->resetAfterTest(true);
+
+        if (isset($storedfilemethodsmock[0])) {
+            $storedfile = $this->createMock(\stored_file::class);
+
+            if ($storedfilemethodsmock[0] === 'get_referencelastsync') {
+                if (!$expectedresult) {
+                    $storedfile->method('get_referencelastsync')->willReturn(DAYSECS + time());
+                }
+            } else {
+                $storedfile->method('get_referencelastsync')->willReturn(null);
+            }
+
+            $storedfile->method('get_reference')->willReturn($storedfileargs['storedfile_reference']);
+            $storedfile->method('get_filepath')->willReturn($storedfileargs['storedfile_record']['filepath']);
+            $storedfile->method('get_filename')->willReturn($storedfileargs['storedfile_record']['filename']);
+
+            if ((isset($storedfileargs['mock_curl']) && $storedfileargs)) {
+                // Lets mock curl, else it would not serve the purpose here.
+                $curl = $this->createMock(\curl::class);
+                $curl->method('download_one')->willReturn(true);
+                $curl->method('get_info')->willReturn(['http_code' => 200]);
+
+                $reflectionproperty = new \ReflectionProperty($this->repo, 'curl');
+                $reflectionproperty->setAccessible(true);
+                $reflectionproperty->setValue($this->repo, $curl);
+            }
+        } else {
+            $fs = get_file_storage();
+            $storedfile = $fs->create_file_from_reference(
+                $storedfileargs['storedfile_record'],
+                $this->repo->id,
+                $storedfileargs['storedfile_reference']);
+        }
+
+        $actualresult = $this->repo->sync_reference($storedfile);
+        $this->assertEquals($expectedresult, $actualresult);
+    }
+
+    /**
      * Helper method, which inserts a given mock value into the repository_nextcloud object.
      *
      * @param mixed $value mock value that will be inserted.
@@ -852,7 +1000,7 @@ XML;
      * @return ReflectionProperty the resulting reflection property.
      */
     protected function set_private_property($value, $propertyname) {
-        $refclient = new ReflectionClass($this->repo);
+        $refclient = new \ReflectionClass($this->repo);
         $private = $refclient->getProperty($propertyname);
         $private->setAccessible(true);
         $private->setValue($this->repo, $value);
@@ -878,6 +1026,8 @@ XML;
         $ret['manage'] = '';
         $ret['defaultreturntype'] = FILE_INTERNAL;
         $ret['list'] = array();
+
+        $ret['filereferencewarning'] = get_string('externalpubliclinkwarning', 'repository_nextcloud');
 
         return $ret;
     }

@@ -3,7 +3,7 @@
         &> .icon{
             height: 14px;
             font-size: 14px;
-            width: auto;         
+            width: auto;
         }
     }
 }
@@ -18,11 +18,63 @@
     .moodle-dialogue{
         outline: none;
     }
-    .moodle-dialogue-wrap { 
+    .moodle-dialogue-wrap {
         background-color: #fff;
         border-radius: .285rem;
         .moodle-dialogue-hd {
             border-bottom: 0;
         }
     }
+}
+
+.moodle-dialogue-confirm {
+    .confirmation-message {
+        margin: 0 0 0.5rem 0;
+    }
+    .confirmation-buttons {
+        justify-content: space-between !important;
+    }
+}
+// Footer colors.
+body:not(.pagelayout-login) {
+    #page-footer {
+        background: '[[setting:footer-background-color]]';
+        color: '[[setting:footer-text-color]]';
+        .h1,
+        .h2,
+        .h3,
+        .h4,
+        .h5,
+        .h6,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            color: '[[setting:footer-text-color]]';
+        }
+        a {
+            &[class*="social-"] .icon {
+                color: white !important;
+            }
+            color: '[[setting:footer-link-text]]';
+            .icon {
+                color: '[[setting:footer-link-text]]';
+            }
+            &:focus .icon {
+                color: $body-color;
+            }
+        }
+        a:hover {
+            color: '[[setting:footer-link-hover-text]]';
+            .icon {
+                color: '[[setting:footer-link-hover-text]]';
+            }
+        }
+    }
+}
+
+.toast-wrapper {
+    top: $navbar-height;
 }

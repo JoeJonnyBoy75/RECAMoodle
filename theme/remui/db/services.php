@@ -13,11 +13,10 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
 /**
  * Theme external services list
  * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
@@ -66,7 +65,63 @@ $functions = array(
         'type'          => 'write',
         'ajax'          => true,
         'loginrequired' => true
-    )
+    ),
+    'theme_remui_get_tags' => array(
+        'classname'     => 'theme_remui\external\api',
+        'methodname'    => 'get_tags',
+        'description'   => 'Returns HTML of Tags element',
+        'type'          => 'read',
+        'ajax'          => true,
+        'loginrequired' => false
+    ),
+    'theme_remui_customizer_save_settings' => array(
+        'classname'     => 'theme_remui\customizer\external\api',
+        'methodname'    => 'save_settings',
+        'description'   => 'Save customizer settings',
+        'type'          => 'write',
+        'ajax'          => true,
+        'loginrequired' => true
+    ),
+    'theme_remui_customizer_get_file_from_setting' => array(
+        'classname'     => 'theme_remui\customizer\external\api',
+        'methodname'    => 'get_file_from_setting',
+        'description'   => 'Get file from setting based on item id',
+        'type'          => 'read',
+        'ajax'          => true,
+        'loginrequired' => true
+    ),
+    'theme_remui_handle_bug_feedback_report' => array(
+        'classname'     => 'theme_remui\external\api',
+        'methodname'    => 'handle_bug_feedback_report',
+        'description'   => 'Handle the one click bug/feedback report, Gets data from feedback.js and sends the data to WordPress API endpoint.',
+        'type'          => 'read',
+        'ajax'          => true,
+        'loginrequired' => true,
+        'requiredcapability' => 'moodle/site:config'
+    ),
+    'theme_remui_serve_license_data' => array(
+        'classname'     => 'theme_remui\external\api',
+        'methodname'    => 'serve_license_data',
+        'description'   => 'Edwiser RemUI Theme License Activation and Deactivation',
+        'type'          => 'write',
+        'ajax'          => true,
+        'loginrequired' => true,
+        'requiredcapability' => 'moodle/site:config'
+    ),
+    'theme_remui_save_current_step' => array(
+        'classname'     => 'theme_remui\external\api',
+        'methodname'    => 'save_current_step',
+        'description'   => 'Edwiser RemUI Setup Wizard Current Step - Data Saving Service',
+        'type'          => 'write',
+        'ajax'          => true,
+        'loginrequired' => true,
+        'requiredcapability' => 'moodle/site:config'
+    ),
+    'theme_remui_get_myoverviewcourses' => array(
+        'classname'     => 'theme_remui\external\api',
+        'methodname'    => 'get_myoverviewcourses',
+        'description'   => 'It will generate course data for block myoverview',
+        'type'          => 'write',
+        'ajax'          => true,
+    ),
 );
-
-

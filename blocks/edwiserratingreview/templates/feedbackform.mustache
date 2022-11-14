@@ -1,0 +1,41 @@
+
+<div class="feedbackform">
+    <h4>{{#str}}submitcoursereview, block_edwiserratingreview{{/str}}</h4>
+    
+    <div class="rating-stars-input">
+        <label class="ml-2">Rate us</label>
+
+        <input type="radio" class="d-none" value="5" name="rating" id="rate-5" required>
+        <label for="rate-5">
+            <i aria-hidden="true" class="fa fa-star star-icon"></i>
+        </label>
+
+        <input type="radio" class="d-none" value="4" name="rating" id="rate-4">
+        <label for="rate-4">
+            <i aria-hidden="true" class="fa fa-star star-icon"></i>
+        </label>
+
+        <input type="radio" class="d-none" value="3" name="rating" id="rate-3">
+        <label for="rate-3">
+            <i aria-hidden="true" class="fa fa-star star-icon"></i>
+        </label>
+
+        <input type="radio" class="d-none" value="2" name="rating" id="rate-2">
+        <label for="rate-2">
+            <i aria-hidden="true" class="fa fa-star star-icon"></i>
+        </label>
+
+        <input type="radio" class="d-none" value="1" name="rating" id="rate-1">
+        <label for="rate-1">
+            <i aria-hidden="true" class="fa fa-star star-icon"></i>
+        </label>
+    </div>
+    
+    <textarea class='w-100' rows="7" name="review">{{{review}}}</textarea>
+
+    <div class="my-3">
+        <input type="button" name="cancelreview" class="btn btn-secondary cancelreview" value="{{#str}}cancelbtntext,block_edwiserratingreview{{/str}}">
+
+        <input type="button" name="submitreview" class="btn btn-warning submitreview" value="{{#str}}submitbtntext,block_edwiserratingreview{{/str}}" disabled>
+    </div>
+</div>

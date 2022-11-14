@@ -131,11 +131,11 @@ class auth_plugin_db extends auth_plugin_base {
             $authdb->Close();
 
             if ($this->config->passtype === 'plaintext') {
-                return ($fromdb == $extpassword);
+                return ($fromdb === $extpassword);
             } else if ($this->config->passtype === 'md5') {
-                return (strtolower($fromdb) == md5($extpassword));
+                return (strtolower($fromdb) === md5($extpassword));
             } else if ($this->config->passtype === 'sha1') {
-                return (strtolower($fromdb) == sha1($extpassword));
+                return (strtolower($fromdb) === sha1($extpassword));
             } else if ($this->config->passtype === 'saltedcrypt') {
                 return password_verify($extpassword, $fromdb);
             } else {
@@ -454,15 +454,13 @@ class auth_plugin_db extends auth_plugin_base {
                 $user->confirmed  = 1;
                 $user->auth       = $this->authtype;
                 $user->mnethostid = $CFG->mnet_localhost_id;
-                if (empty($user->lang)) {
-                    $user->lang = $CFG->lang;
-                }
+
                 if ($collision = $DB->get_record_select('user', "username = :username AND mnethostid = :mnethostid AND auth <> :auth", array('username'=>$user->username, 'mnethostid'=>$CFG->mnet_localhost_id, 'auth'=>$this->authtype), 'id,username,auth')) {
                     $trace->output(get_string('auth_dbinsertuserduplicate', 'auth_db', array('username'=>$user->username, 'auth'=>$collision->auth)), 1);
                     continue;
                 }
                 try {
-                    $id = user_create_user($user, false); // It is truly a new user.
+                    $id = user_create_user($user, false, false); // It is truly a new user.
                     $trace->output(get_string('auth_dbinsertuser', 'auth_db', array('name'=>$user->username, 'id'=>$id)), 1);
                 } catch (moodle_exception $e) {
                     $trace->output(get_string('auth_dbinsertusererror', 'auth_db', $user->username), 1);
@@ -481,6 +479,8 @@ class auth_plugin_db extends auth_plugin_base {
 
                 // Make sure user context is present.
                 context_user::instance($id);
+
+                \core\event\user_created::create_from_userid($id)->trigger();
             }
             unset($add_users);
         }
@@ -603,9 +603,12 @@ class auth_plugin_db extends auth_plugin_base {
             }
         }
         if (!empty($update)) {
-            $authdb->Execute("UPDATE {$this->config->table}
-                                 SET ".implode(',', $update)."
-                               WHERE {$this->config->fielduser}='".$this->ext_addslashes($extusername)."'");
+            $sql = "UPDATE {$this->config->table}
+                       SET ".implode(',', $update)."
+                     WHERE {$this->config->fielduser} = ?";
+            if (!$authdb->Execute($sql, array($this->ext_addslashes($extusername)))) {
+                print_error('auth_dbupdateerror', 'auth_db');
+            }
         }
         $authdb->Close();
         return true;

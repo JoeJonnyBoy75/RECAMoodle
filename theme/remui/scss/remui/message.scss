@@ -1,0 +1,51 @@
+.mergemessagingsidebar {
+    .message-app {
+        .closewidget {
+            display: none;
+        }
+    }
+}
+.message-app {
+    padding: 0 15px;
+    .closewidget {
+        padding: 15px;
+    }
+    .content-message-container {
+        .message {
+            &.send {
+                width: fit-content;
+                align-self: end;
+            }
+            &.received {
+                width: fit-content;
+                align-self: start;
+            }
+        }
+    }
+    .emoji-picker {
+        width: 298px;
+    }
+}
+
+/*Fix - for mobile devices when mergedmessaging is enabled.*/
+body.mergemessagingsidebar{
+    #drawerTabContent {
+        [data-region=right-hand-drawer].drawer {
+            position: absolute;
+            top: 10px !important;
+            height: calc(100% - 10px) !important;
+        }
+    }
+}
+
+#page-message-index {
+    #page {
+        overflow-x: unset;
+    }
+}
+
+.message-app {
+    .lazy-load-list {
+        max-height: 500px;
+    }
+}

@@ -19,7 +19,7 @@
  *
  * @package   theme_remui
  * @copyright 2016 Frédéric Massart
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,43 +27,49 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/lib.php');
 
+$cssstyles = ['remui-min', 'custom'];
+
+if (get_config('theme_remui', 'formselementdesign') !== 'default') {
+    $cssstyles[] = 'formstyle';
+}
+
 $THEME->name = 'remui';
-$THEME->sheets = ['remui-min', 'custom'];
+$THEME->sheets = $cssstyles;
 $THEME->editor_sheets = [];
 $THEME->editor_scss = ['editor'];
 $THEME->usefallback = true;
-$THEME->scss = function($theme) {
-    return theme_remui_get_main_scss_content($theme);
-};
+// $THEME->scss = function($theme) {
+//     return theme_remui_get_main_scss_content($theme);
+// };
 
 $THEME->layouts = [
     // Most backwards compatible layout without the blocks - this is the layout used by default.
     'base' => array(
-        'file' => 'columns2.php',
+        'file' => 'drawers.php',
         'regions' => array(),
     ),
     // Standard layout with blocks, this is recommended for most pages with general information.
     'standard' => array(
-        'file' => 'columns2.php',
-        'regions' => array('side-pre'),
+        'file' => 'drawers.php',
+        'regions' => array('side-pre', 'side-top', 'side-bottom'),
         'defaultregion' => 'side-pre',
     ),
     // Main course page.
     'course' => array(
         'file' => 'course.php',
-        'regions' => array('side-pre'),
+        'regions' => array('side-pre', 'side-top', 'side-bottom'),
         'defaultregion' => 'side-pre',
         'options' => array('langmenu' => true),
     ),
     'coursecategory' => array(
-        'file' => 'coursecategory.php',
+        'file' => 'category.php',
         'regions' => array('side-pre'),
         'defaultregion' => 'side-pre',
     ),
     // Part of course, typical for modules - default page layout if $cm specified in require_login().
     'incourse' => array(
         'file' => 'incourse.php',
-        'regions' => array('side-pre'),
+        'regions' => array('side-pre', 'side-top', 'side-bottom'),
         'defaultregion' => 'side-pre',
     ),
     // The site home page.
@@ -75,16 +81,22 @@ $THEME->layouts = [
     ),
     // Server administration scripts.
     'admin' => array(
-        'file' => 'columns2.php',
+        'file' => 'drawers.php',
         'regions' => array('side-pre'),
         'defaultregion' => 'side-pre',
+    ),
+    // My courses page.
+    'mycourses' => array(
+        'file' => 'mycourses.php',
+        'regions' => array(),
+        'options' => array('nonavbar' => true),
     ),
     // My dashboard page.
     'mydashboard' => array(
         'file' => 'mydashboard.php',
-        'regions' => array('side-pre'),
+        'regions' => array('side-pre', 'side-top', 'side-bottom'),
         'defaultregion' => 'side-pre',
-        'options' => array('nonavbar' => true, 'langmenu' => true, 'nocontextheader' => true),
+        'options' => array('nonavbar' => true, 'langmenu' => true),
     ),
     // My public page.
     'mypublic' => array(
@@ -97,23 +109,37 @@ $THEME->layouts = [
         'regions' => array(),
         'options' => array('langmenu' => true),
     ),
-
-    // Pages that appear in pop-up windows - no navigation, no blocks, no header.
+    // Pages that appear in pop-up windows - no navigation, no blocks, no header and bare activity header.
     'popup' => array(
         'file' => 'columns1.php',
         'regions' => array(),
-        'options' => array('nofooter' => true, 'nonavbar' => true),
+        'options' => array(
+            'nofooter' => true,
+            'nonavbar' => true,
+            'activityheader' => [
+                'notitle' => true,
+                'nocompletion' => true,
+                'nodescription' => true
+            ]
+        )
     ),
     // No blocks and minimal footer - used for legacy frame layouts only!
     'frametop' => array(
         'file' => 'columns1.php',
         'regions' => array(),
-        'options' => array('nofooter' => true, 'nocoursefooter' => true),
+        'options' => array(
+            'nofooter' => true,
+            'nocoursefooter' => true,
+            'activityheader' => [
+                'nocompletion' => true
+            ]
+        ),
     ),
     // Embeded pages, like iframe/object embeded in moodleform - it needs as much space as possible.
     'embedded' => array(
         'file' => 'embedded.php',
-        'regions' => array()
+        'regions' => array('side-pre'),
+        'defaultregion' => 'side-pre',
     ),
     // Used during upgrade and install, and for the 'This site is undergoing maintenance' message.
     // This must not have any blocks, links, or API calls that would lead to database or cache interaction.
@@ -126,7 +152,7 @@ $THEME->layouts = [
     'print' => array(
         'file' => 'columns1.php',
         'regions' => array(),
-        'options' => array('nofooter' => true, 'nonavbar' => false),
+        'options' => array('nofooter' => true, 'nonavbar' => false, 'noactivityheader' => true),
     ),
     // The pagelayout used when a redirection is occuring.
     'redirect' => array(
@@ -135,8 +161,8 @@ $THEME->layouts = [
     ),
     // The pagelayout used for reports.
     'report' => array(
-        'file' => 'columns2.php',
-        'regions' => array('side-pre'),
+        'file' => 'drawers.php',
+        'regions' => array('side-pre', 'side-top', 'side-bottom'),
         'defaultregion' => 'side-pre',
     ),
     // The pagelayout used for safebrowser and securewindow.
@@ -149,7 +175,6 @@ $THEME->layouts = [
 
 $THEME->parents = [];
 $THEME->enable_dock = false;
-$THEME->csstreepostprocessor = 'theme_remui_css_tree_post_processor';
 $THEME->extrascsscallback = 'theme_remui_get_extra_scss';
 // $THEME->prescsscallback = 'theme_remui_get_pre_scss';
 $THEME->precompiledcsscallback = 'theme_remui_get_precompiled_css';
@@ -159,3 +184,9 @@ $THEME->rendererfactory = 'theme_overridden_renderer_factory';
 $THEME->requiredblocks = '';
 $THEME->addblockposition = BLOCK_ADDBLOCK_POSITION_FLATNAV;
 $THEME->iconsystem = \core\output\icon_system::FONTAWESOME;
+$THEME->haseditswitch = true;
+$THEME->usescourseindex = true;
+// By default, all boost theme do not need their titles displayed.
+$THEME->activityheaderconfig = [
+    'notitle' => true
+];

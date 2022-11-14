@@ -46,7 +46,7 @@ class profile_manager {
             $user = \core_user::get_user($userid, 'moodlenetprofile');
             try {
                 $userprofile = $user->moodlenetprofile ? $user->moodlenetprofile : '';
-                return (isset($user)) ? new moodlenet_user_profile($userprofile, $userid) : null;
+                return (isset($user)) ? new moodlenet_user_profile(s($userprofile), $userid) : null;
             } catch (\moodle_exception $e) {
                 // If an exception is thrown, means there isn't a valid profile set. No need to log exception.
                 return null;
@@ -59,7 +59,7 @@ class profile_manager {
             if ($field->get_category_name() == self::get_category_name()
                     && $field->inputname == 'profile_field_mnetprofile') {
                 try {
-                    return new moodlenet_user_profile($field->display_data(), $userid);
+                    return new moodlenet_user_profile(s($field->display_data()), $userid);
                 } catch (\moodle_exception $e) {
                     // If an exception is thrown, means there isn't a valid profile set. No need to log exception.
                     return null;
@@ -310,11 +310,10 @@ class profile_manager {
             'CURLOPT_HEADER' => 0,
         ];
         $content = $curl->get($url, null, $options);
-        $errno   = $curl->get_errno();
         $info = $curl->get_info();
 
         // The base cURL seems fine, let's press on.
-        if (!$errno) {
+        if (!$curl->get_errno() && !$curl->error) {
             // WebFinger gave us a 404 back so the user has no droids here.
             if ($info['http_code'] >= 400) {
                 if ($info['http_code'] === 404) {

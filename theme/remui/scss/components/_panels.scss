@@ -78,7 +78,7 @@ $panel-loading-z-index: ($zindex-base + 5) !default;
 // ========================================================================
 
 .panel-heading {
-  @include border-top-radius(calc($panel-border-radius - pxToRem(1px)));
+  @include border-top-radius(calc($panel-border-radius - pxtorem(1px)));
   position: relative;
   padding: 0;
   border-bottom: 1px solid transparent;
@@ -152,7 +152,7 @@ $panel-loading-z-index: ($zindex-base + 5) !default;
 // ========================================================================
 
 .panel-footer {
-  @include border-bottom-radius(calc($panel-border-radius - pxToRem(1px)));
+  @include border-bottom-radius(calc($panel-border-radius - pxtorem(1px)));
   padding: $panel-footer-padding;
   background-color: $panel-footer-bg;
   border-top: 1px solid transparent;
@@ -585,38 +585,38 @@ ul.panel-actions {
   }
   // Add border top radius for first one
   > .table:first-child, > .table-responsive:first-child > .table:first-child {
-    @include border-top-radius(calc($panel-border-radius - pxToRem(1px)));
+    @include border-top-radius(calc($panel-border-radius - pxtorem(1px)));
 
     > thead:first-child, > tbody:first-child {
       > tr:first-child {
-        border-top-left-radius: (calc($panel-border-radius - pxToRem(1px)));
-        border-top-right-radius: (calc($panel-border-radius - pxToRem(1px)));
+        border-top-left-radius: (calc($panel-border-radius - pxtorem(1px)));
+        border-top-right-radius: (calc($panel-border-radius - pxtorem(1px)));
 
         td:first-child, th:first-child {
-          border-top-left-radius: (calc($panel-border-radius - pxToRem(1px)));
+          border-top-left-radius: (calc($panel-border-radius - pxtorem(1px)));
         }
 
         td:last-child, th:last-child {
-          border-top-right-radius: (calc($panel-border-radius - pxToRem(1px)));
+          border-top-right-radius: (calc($panel-border-radius - pxtorem(1px)));
         }
       }
     }
   }
   // Add border bottom radius for last one
   > .table:last-child, > .table-responsive:last-child > .table:last-child {
-    @include border-bottom-radius(calc($panel-border-radius - pxToRem(1px)));
+    @include border-bottom-radius(calc($panel-border-radius - pxtorem(1px)));
 
     > tbody:last-child, > tfoot:last-child {
       > tr:last-child {
-        border-bottom-right-radius: (calc($panel-border-radius - pxToRem(1px)));
-        border-bottom-left-radius: (calc($panel-border-radius - pxToRem(1px)));
+        border-bottom-right-radius: (calc($panel-border-radius - pxtorem(1px)));
+        border-bottom-left-radius: (calc($panel-border-radius - pxtorem(1px)));
 
         td:first-child, th:first-child {
-          border-bottom-left-radius: (calc($panel-border-radius - pxToRem(1px)));
+          border-bottom-left-radius: (calc($panel-border-radius - pxtorem(1px)));
         }
 
         td:last-child, th:last-child {
-          border-bottom-right-radius: (calc($panel-border-radius - pxToRem(1px)));
+          border-bottom-right-radius: (calc($panel-border-radius - pxtorem(1px)));
         }
       }
     }
@@ -704,7 +704,7 @@ ul.panel-actions {
     // Add border top radius for first one
     &:first-child {
       .list-group-item:first-child {
-        @include border-top-radius(calc($panel-border-radius - pxToRem(1px)));
+        @include border-top-radius(calc($panel-border-radius - pxtorem(1px)));
         border-top: 0;
       }
     }
@@ -712,7 +712,7 @@ ul.panel-actions {
     // Add border bottom radius for last one
     &:last-child {
       .list-group-item:last-child {
-        @include border-bottom-radius(calc($panel-border-radius - pxToRem(1px)));
+        @include border-bottom-radius(calc($panel-border-radius - pxtorem(1px)));
         border-bottom: 0;
       }
     }

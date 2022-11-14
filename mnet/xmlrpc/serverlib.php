@@ -59,7 +59,7 @@ function mnet_server_strip_encryption($rawpostdata) {
     $payload          = '';    // Initialize payload var
 
     //                                          &$payload
-    $isOpen = openssl_open(base64_decode($data), $payload, base64_decode($key), $mnet->get_private_key());
+    $isOpen = openssl_open(base64_decode($data), $payload, base64_decode($key), $mnet->get_private_key(), 'RC4');
     if ($isOpen) {
         $remoteclient->was_encrypted();
         return $payload;
@@ -75,7 +75,7 @@ function mnet_server_strip_encryption($rawpostdata) {
     }
     foreach($openssl_history as $keyset) {
         $keyresource = openssl_pkey_get_private($keyset['keypair_PEM']);
-        $isOpen      = openssl_open(base64_decode($data), $payload, base64_decode($key), $keyresource);
+        $isOpen      = openssl_open(base64_decode($data), $payload, base64_decode($key), $keyresource, 'RC4');
         if ($isOpen) {
             // It's an older code, sir, but it checks out
             $remoteclient->was_encrypted();
@@ -257,7 +257,7 @@ function mnet_server_dispatch($payload) {
     // $method is something like: "mod/forum/lib.php/forum_add_instance"
     // $params is an array of parameters. A parameter might itself be an array.
 
-    // Whitelist characters that are permitted in a method name
+    // Check that the method name consists of allowed characters only.
     // The method name must not begin with a / - avoid absolute paths
     // A dot character . is only allowed in the filename, i.e. something.php
     if (0 == preg_match("@^[A-Za-z0-9]+/[A-Za-z0-9/_\.-]+(\.php/)?[A-Za-z0-9_-]+$@",$method)) {
@@ -530,7 +530,7 @@ function mnet_keyswap($function, $params) {
 
     if (!empty($CFG->mnet_register_allhosts)) {
         $mnet_peer = new mnet_peer();
-        @list($wwwroot, $pubkey, $application) = each($params);
+        list($wwwroot, $pubkey, $application) = $params;
         $keyok = $mnet_peer->bootstrap($wwwroot, $pubkey, $application);
         if ($keyok) {
             $mnet_peer->commit();

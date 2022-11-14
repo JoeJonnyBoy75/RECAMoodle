@@ -1,0 +1,67 @@
+/*Add block modal - block cards design*/
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
+
+.block-cards {
+  width: 100%;
+  .card-item {
+      min-height: 120px;
+      // margin: 15px 0;
+      background-color: #fff;
+      box-shadow: 0 1px 4px #0000000f;
+      transition: .15s ease all;
+      .list-group-item-action {
+          text-decoration: none;
+      }
+      .card {
+          .card-header {
+              font-family: Roboto, sans-serif;
+              font-weight: 700;
+              color: #0a0a0a;
+              border-bottom: 1px solid rgba(0,0,0,.05);
+              padding: 16px 15px;
+              letter-spacing: 0.08em;
+
+          }
+          .card-body {
+              min-height: 160px;
+              max-height: 160px;
+              img {
+                  max-height: 150px;
+              }
+          }
+      }
+      .ribbon {
+        position: absolute;
+        width: 75px;
+        padding: 4px;
+        bottom: 0;
+        font-size: 15px;
+        text-align: center;
+        background: #4db961;
+        font-weight: 600;
+        color: white;
+      }
+      &:hover{
+          transform: scale(1.07);
+          box-shadow: 0 9px 10px #0000000f, 0 1px 0 #0000000f;
+          .ribbon {
+            left: 0;
+          }
+      }
+  }
+  .info-deprecated {
+      padding: 5px 8px;
+      border: 1px solid #ccc;
+      border-radius: 50%;
+      color: #ccc;
+      cursor: pointer;
+  }
+}
+/*Add block modal - block cards design*/

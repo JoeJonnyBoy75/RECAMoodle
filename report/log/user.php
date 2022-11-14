@@ -79,6 +79,7 @@ $PAGE->set_url('/report/log/user.php', array('id' => $user->id, 'course' => $cou
 $PAGE->navigation->extend_for_user($user);
 $PAGE->navigation->set_userid_for_parent_checks($user->id); // see MDL-25805 for reasons and for full commit reference for reversal when fixed.
 $PAGE->set_title("$course->shortname: $stractivityreport");
+$PAGE->navbar->add(get_string('alllogs'));
 
 // Create the appropriate breadcrumb.
 $navigationnode = array(
@@ -92,7 +93,7 @@ if ($mode === 'today') {
 $PAGE->add_report_nodes($user->id, $navigationnode);
 
 if ($courseid == SITEID) {
-    $PAGE->set_heading(fullname($user));
+    $PAGE->set_heading(fullname($user, has_capability('moodle/site:viewfullnames', $PAGE->context)));
 } else {
     $PAGE->set_heading($course->fullname);
 }
@@ -105,10 +106,16 @@ $event->trigger();
 echo $OUTPUT->header();
 if ($courseid != SITEID) {
     $userheading = array(
+            'heading' => fullname($user, has_capability('moodle/site:viewfullnames', $PAGE->context)),
             'user' => $user,
             'usercontext' => $personalcontext,
         );
     echo $OUTPUT->context_header($userheading, 2);
+    if ($mode === 'today') {
+        echo $OUTPUT->heading(get_string('todaylogs', 'moodle'), 2, 'main mt-4 mb-4');
+    } else {
+        echo $OUTPUT->heading(get_string('alllogs', 'moodle'), 2, 'main mt-4 mb-4');
+    }
 }
 
 // Time to filter records from.

@@ -14,18 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Tests for class customfield_checkbox
- *
- * @package    customfield_checkbox
- * @copyright  2019 Marina Glancy
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace customfield_checkbox;
 
-defined('MOODLE_INTERNAL') || die();
-
-use customfield_checkbox\field_controller;
-use customfield_checkbox\data_controller;
+use core_customfield_generator;
+use core_customfield_test_instance_form;
 
 /**
  * Functional test for customfield_checkbox
@@ -34,9 +26,9 @@ use customfield_checkbox\data_controller;
  * @copyright  2019 Marina Glancy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class customfield_checkbox_plugin_testcase extends advanced_testcase {
+class plugin_test extends \advanced_testcase {
 
-    /** @var stdClass[]  */
+    /** @var \stdClass[]  */
     private $courses = [];
     /** @var \core_customfield\category_controller */
     private $cfcat;
@@ -48,7 +40,7 @@ class customfield_checkbox_plugin_testcase extends advanced_testcase {
     /**
      * Tests set up.
      */
-    public function setUp() {
+    public function setUp(): void {
         $this->resetAfterTest();
 
         $this->cfcat = $this->get_generator()->create_category();
@@ -103,21 +95,24 @@ class customfield_checkbox_plugin_testcase extends advanced_testcase {
      * Create a configuration form and submit it with the same values as in the field
      */
     public function test_config_form() {
+        $this->setAdminUser();
         $submitdata = (array)$this->cfields[1]->to_record();
         $submitdata['configdata'] = $this->cfields[1]->get('configdata');
 
-        \core_customfield\field_config_form::mock_submit($submitdata, []);
-        $handler = $this->cfcat->get_handler();
-        $form = $handler->get_field_config_form($this->cfields[1]);
+        $submitdata = \core_customfield\field_config_form::mock_ajax_submit($submitdata);
+        $form = new \core_customfield\field_config_form(null, null, 'post', '', null, true,
+            $submitdata, true);
+        $form->set_data_for_dynamic_submission();
         $this->assertTrue($form->is_validated());
-        $data = $form->get_data();
-        $handler->save_field_configuration($this->cfields[1], $data);
+        $form->process_dynamic_submission();
 
         // Try submitting with 'unique values' checked.
         $submitdata['configdata']['uniquevalues'] = 1;
-        \core_customfield\field_config_form::mock_submit($submitdata, []);
-        $handler = $this->cfcat->get_handler();
-        $form = $handler->get_field_config_form($this->cfields[1]);
+
+        $submitdata = \core_customfield\field_config_form::mock_ajax_submit($submitdata);
+        $form = new \core_customfield\field_config_form(null, null, 'post', '', null, true,
+            $submitdata, true);
+        $form->set_data_for_dynamic_submission();
         $this->assertFalse($form->is_validated());
     }
 
@@ -158,12 +153,12 @@ class customfield_checkbox_plugin_testcase extends advanced_testcase {
         $this->assertEquals('Yes', $this->cfdata[1]->export_value());
 
         // Field without data.
-        $d = core_customfield\data_controller::create(0, null, $this->cfields[2]);
+        $d = \core_customfield\data_controller::create(0, null, $this->cfields[2]);
         $this->assertEquals(0, $d->get_value());
         $this->assertEquals('No', $d->export_value());
 
         // Field without data that is checked by default.
-        $d = core_customfield\data_controller::create(0, null, $this->cfields[3]);
+        $d = \core_customfield\data_controller::create(0, null, $this->cfields[3]);
         $this->assertEquals(1, $d->get_value());
         $this->assertEquals('Yes', $d->export_value());
     }

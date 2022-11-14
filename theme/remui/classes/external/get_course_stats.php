@@ -17,7 +17,7 @@
 /**
  * Get course stats service
  * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\external;
@@ -31,7 +31,7 @@ require_once($CFG->libdir . '/completionlib.php');
 
 /**
  * Get course stats trait
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 trait get_course_stats {
@@ -58,7 +58,8 @@ trait get_course_stats {
         $context = \context_course::instance($courseid);
         self::validate_context($context);
         $course = get_course($courseid);
-        $stats = \theme_remui_coursehandler::get_course_stats($course);
+        $coursehandler = new \theme_remui_coursehandler();
+        $stats = $coursehandler->get_course_stats($course);
         return $stats;
     }
 

@@ -551,7 +551,8 @@ class comment {
         $params = array();
         $perpage = (!empty($CFG->commentsperpage))?$CFG->commentsperpage:15;
         $start = $page * $perpage;
-        $ufields = user_picture::fields('u');
+        $userfieldsapi = \core_user\fields::for_userpic();
+        $ufields = $userfieldsapi->get_sql('u', false, '', '', false)->selects;
 
         list($componentwhere, $component) = $this->get_component_select_sql('c');
         if ($component) {
@@ -586,11 +587,10 @@ class comment {
             $c->fullname = fullname($u);
             $c->time = userdate($c->timecreated, $c->strftimeformat);
             $c->content = format_text($c->content, $c->format, $formatoptions);
-            $c->avatar = $OUTPUT->user_picture($u, array('size'=>18));
+            $c->avatar = $OUTPUT->user_picture($u, array('size' => 16));
             $c->userid = $u->id;
 
-            $candelete = $this->can_delete($c->id);
-            if (($USER->id == $u->id) || !empty($candelete)) {
+            if ($this->can_delete($c)) {
                 $c->delete = true;
             }
             $comments[] = $c;
@@ -800,16 +800,22 @@ class comment {
     /**
      * Delete a comment
      *
-     * @param  int $commentid
+     * @param  int|stdClass $comment The id of a comment, or a comment record.
      * @return bool
      */
-    public function delete($commentid) {
-        global $DB, $USER;
-        $candelete = has_capability('moodle/comment:delete', $this->context);
-        if (!$comment = $DB->get_record('comments', array('id'=>$commentid))) {
+    public function delete($comment) {
+        global $DB;
+        if (is_object($comment)) {
+            $commentid = $comment->id;
+        } else {
+            $commentid = $comment;
+            $comment = $DB->get_record('comments', ['id' => $commentid]);
+        }
+
+        if (!$comment) {
             throw new comment_exception('dbupdatefailed');
         }
-        if (!($USER->id == $comment->userid || !empty($candelete))) {
+        if (!$this->can_delete($comment)) {
             throw new comment_exception('nopermissiontocomment');
         }
         $DB->delete_records('comments', array('id'=>$commentid));
@@ -922,7 +928,7 @@ class comment {
             $strdelete = get_string('deletecommentbyon', 'moodle', (object)['user' => $cmt->fullname, 'time' => $cmt->time]);
             $deletelink  = html_writer::start_tag('div', array('class'=>'comment-delete'));
             $deletelink .= html_writer::start_tag('a', array('href' => '#', 'id' => 'comment-delete-'.$this->cid.'-'.$cmt->id,
-                                                             'title' => $strdelete));
+                'class' => 'icon-no-margin', 'title' => $strdelete));
 
             $deletelink .= $OUTPUT->pix_icon('t/delete', get_string('delete'));
             $deletelink .= html_writer::end_tag('a');
@@ -976,13 +982,35 @@ class comment {
     }
 
     /**
-     * Returns true if the user can delete this comment
-     * @param int $commentid
+     * Returns true if the user can delete this comment.
+     *
+     * The user can delete comments if it is one they posted and they can still make posts,
+     * or they have the capability to delete comments.
+     *
+     * A database call is avoided if a comment record is passed.
+     *
+     * @param int|stdClass $comment The id of a comment, or a comment record.
      * @return bool
      */
-    public function can_delete($commentid) {
+    public function can_delete($comment) {
+        global $USER, $DB;
+        if (is_object($comment)) {
+            $commentid = $comment->id;
+        } else {
+            $commentid = $comment;
+        }
+
         $this->validate(array('commentid'=>$commentid));
-        return has_capability('moodle/comment:delete', $this->context);
+
+        if (!is_object($comment)) {
+            // Get the comment record from the database.
+            $comment = $DB->get_record('comments', array('id' => $commentid), 'id, userid', MUST_EXIST);
+        }
+
+        $hascapability = has_capability('moodle/comment:delete', $this->context);
+        $owncomment = $USER->id == $comment->userid;
+
+        return ($hascapability || ($owncomment && $this->can_post()));
     }
 
     /**

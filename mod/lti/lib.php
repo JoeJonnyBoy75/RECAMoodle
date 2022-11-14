@@ -51,7 +51,7 @@ defined('MOODLE_INTERNAL') || die;
 /**
  * List of features supported in URL module
  * @param string $feature FEATURE_xx constant for requested feature
- * @return mixed True if module supports feature, false if not, null if doesn't know
+ * @return mixed True if module supports feature, false if not, null if doesn't know or string for the module purpose.
  */
 function lti_supports($feature) {
     switch ($feature) {
@@ -65,6 +65,8 @@ function lti_supports($feature) {
         case FEATURE_BACKUP_MOODLE2:
         case FEATURE_SHOW_DESCRIPTION:
             return true;
+        case FEATURE_MOD_PURPOSE:
+            return MOD_PURPOSE_CONTENT;
 
         default:
             return null;
@@ -228,7 +230,7 @@ function lti_delete_instance($id) {
  * This is so you can add an external tool types directly to the activity chooser
  *
  * @deprecated since 3.9
- * @todo MDL-68011 This is to be moved from here to deprecatedlib.php in Moodle 4.3
+ * @todo MDL-68011 This is to be moved from here to deprecatedlib.php in Moodle 4.1
  * @param stdClass $defaultitem default item that would be added to the activity chooser if this callback was not present.
  *     It has properties: archetype, name, title, help, icon, link
  * @return array An array of aliases for this activity. Each element is an object with same list of properties as $defaultitem,
@@ -281,7 +283,8 @@ function lti_get_course_content_items(\core_course\local\entity\content_item $de
             $defaultmodulecontentitem->get_icon(),
             $defaultmodulecontentitem->get_help(),
             $defaultmodulecontentitem->get_archetype(),
-            $defaultmodulecontentitem->get_component_name()
+            $defaultmodulecontentitem->get_component_name(),
+            $defaultmodulecontentitem->get_purpose()
         )];
     }
 
@@ -308,7 +311,8 @@ function lti_get_course_content_items(\core_course\local\entity\content_item $de
             $preconfiguredtool->icon,
             $preconfiguredtool->help,
             $defaultmodulecontentitem->get_archetype(),
-            $defaultmodulecontentitem->get_component_name()
+            $defaultmodulecontentitem->get_component_name(),
+            $defaultmodulecontentitem->get_purpose()
         );
     }
     return $types;
@@ -333,7 +337,8 @@ function mod_lti_get_all_content_items(\core_course\local\entity\content_item $d
         $defaultmodulecontentitem->get_icon(),
         $defaultmodulecontentitem->get_help(),
         $defaultmodulecontentitem->get_archetype(),
-        $defaultmodulecontentitem->get_component_name()
+        $defaultmodulecontentitem->get_component_name(),
+        $defaultmodulecontentitem->get_purpose()
     )];
 
     foreach (lti_get_lti_types() as $ltitype) {
@@ -354,7 +359,7 @@ function mod_lti_get_all_content_items(\core_course\local\entity\content_item $d
             $type->helplink = get_string('modulename_shortcut_link', 'lti');
         }
         if (empty($ltitype->icon)) {
-            $type->icon = $OUTPUT->pix_icon('icon', '', 'lti', array('class' => 'icon'));
+            $type->icon = $OUTPUT->pix_icon('monologo', '', 'lti', array('class' => 'icon'));
         } else {
             $type->icon = html_writer::empty_tag('img', array('src' => $ltitype->icon, 'alt' => $ltitype->name, 'class' => 'icon'));
         }
@@ -368,7 +373,8 @@ function mod_lti_get_all_content_items(\core_course\local\entity\content_item $d
             $type->icon,
             $type->help,
             $defaultmodulecontentitem->get_archetype(),
-            $defaultmodulecontentitem->get_component_name()
+            $defaultmodulecontentitem->get_component_name(),
+            $defaultmodulecontentitem->get_purpose()
         );
     }
 

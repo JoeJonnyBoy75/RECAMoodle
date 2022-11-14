@@ -36,7 +36,7 @@ $string['cannotreadbackupfile'] = 'Cannot read the backup file';
 $string['cannotrenamecoursenotexist'] = 'Cannot rename a course that does not exist';
 $string['cannotrenameidnumberconflict'] = 'Cannot rename the course, the ID number conflicts with an existing course';
 $string['cannotrenameshortnamealreadyinuse'] = 'Cannot rename the course, the shortname is already used';
-$string['cannotupdatefrontpage'] = 'It is forbidden to modify the front page';
+$string['cannotupdatefrontpage'] = 'You are not allowed to change the site home.';
 $string['canonlyrenameinupdatemode'] = 'Can only rename a course when update is allowed';
 $string['canonlyresetcourseinupdatemode'] = 'Can only reset a course in update mode';
 $string['couldnotresolvecatgorybyid'] = 'Could not resolve category by ID';
@@ -70,14 +70,18 @@ $string['courseupdated'] = 'Course updated';
 $string['createall'] = 'Create all, increment shortname if needed';
 $string['createnew'] = 'Create new courses only, skip existing ones';
 $string['createorupdate'] = 'Create new courses, or update existing ones';
-$string['csvdelimiter'] = 'CSV delimiter';
-$string['csvdelimiter_help'] = 'CSV delimiter of the CSV file.';
-$string['csvfileerror'] = 'There is something wrong with the format of the CSV file. Please check the number of headings and columns match, and that the delimiter and file encoding are correct: {$a}';
+$string['csvdelimiter'] = 'CSV separator';
+$string['csvdelimiter_help'] = 'The character separating the series of data in each record.';
+$string['csvfileerror'] = 'There is something wrong with the format of the CSV file. Please check the number of headings and columns match, and that the separator and file encoding are correct. {$a}';
 $string['csvline'] = 'Line';
 $string['defaultvalues'] = 'Default course values';
 $string['defaultvaluescustomfieldcategory'] = 'Default values for \'{$a}\'';
+$string['downloadcontentnotallowed'] = 'Configuring download of course content not allowed';
 $string['encoding'] = 'Encoding';
 $string['encoding_help'] = 'Encoding of the CSV file.';
+$string['errorcannotcreateorupdateenrolment'] = 'Cannot create or update enrolment method \'{$a}\'';
+$string['errorcannotdeleteenrolment'] = 'Cannot delete enrolment method \'{$a}\'';
+$string['errorcannotdisableenrolment'] = 'Cannot disable enrolment method \'{$a}\'';
 $string['errorwhilerestoringcourse'] = 'Error while restoring the course';
 $string['errorwhiledeletingcourse'] = 'Error while deleting the course';
 $string['generatedshortnameinvalid'] = 'The generated shortname is invalid';
@@ -88,6 +92,7 @@ $string['idnumberalreadyinuse'] = 'ID number already used by a course';
 $string['invalidbackupfile'] = 'Invalid backup file';
 $string['invalidcourseformat'] = 'Invalid course format';
 $string['invalidcsvfile'] = 'Invalid input CSV file';
+$string['invaliddownloadcontent'] = 'Invalid download of course content value';
 $string['invalidencoding'] = 'Invalid encoding';
 $string['invalidmode'] = 'Invalid mode selected';
 $string['invalideupdatemode'] = 'Invalid update mode selected';
@@ -126,7 +131,7 @@ $string['uploadcourses'] = 'Upload courses';
 $string['uploadcourses_help'] = 'Courses may be uploaded via text file. The format of the file should be as follows:
 
 * Each line of the file contains one record
-* Each record is a series of data separated by commas (or other delimiters)
+* Each record is a series of data separated by the selected separator
 * The first record contains a list of fieldnames defining the format of the rest of the file
 * Required fieldnames are shortname, fullname, and category';
 $string['uploadcoursespreview'] = 'Upload courses preview';

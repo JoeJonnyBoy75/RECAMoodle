@@ -1,0 +1,33 @@
+{{#blocks}}
+<div class="col-xs-12 col-md-4 col-lg-3 col-xl-3 data mb-5 {{additionalclass}}" data-parentblock="{{name}}" data-block="{{name}}{{#section}}{{section}}{{/section}}" data-blockid="{{id}}">
+    <div class="card-item h-100 ">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <div>
+                    {{title}}
+                </div>
+                <div>
+                    {{#updateavailable}}
+                    <button class="btn btn-primary update-content " data-blockname="{{section}}" title="{{#str}}updateblockcontent, local_edwiserpagebuilder{{/str}}">
+                        <i class="fa fa-download"></i>
+                    </button>
+                    {{/updateavailable}}
+
+                    {{^visible}}
+                    <i class="fa fa-info info-deprecated" title="{{#str}}blockdeprecated, local_edwiserpagebuilder{{/str}}"></i>
+                    <button class="btn btn-warning delete-content " data-blockname="{{section}}" title="{{#str}}deleteblockcontent, local_edwiserpagebuilder{{/str}}" data-blockid="{{id}}">
+                        <i class="fa fa-trash-o"></i>
+                    </button>
+                    {{/visible}}
+                </div>
+            </div>
+            <a href="{{url}}&amp;bui_addblock={{name}}{{#section}}&amp;section={{section}}{{/section}}" class="list-group-item p-0">
+                <div class="card-body d-flex justify-content-center align-items-center">
+                    <img src="{{thumbnail}}" style="max-width: 85%;">
+                </div>
+            </a>
+        </div>
+        {{#section}}<div class="ribbon">Edwiser</div>{{/section}}
+    </div>
+</div>
+{{/blocks}}

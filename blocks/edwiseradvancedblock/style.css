@@ -1,0 +1,14 @@
+.ind-circle li {
+  border-radius: 50%;
+}
+
+.ind-dash li {
+  height: 2px;
+  width: 20px;
+}
+
+.ind-square li {
+  height: 10px;
+  width: 10px;
+  border-radius: 0;
+}

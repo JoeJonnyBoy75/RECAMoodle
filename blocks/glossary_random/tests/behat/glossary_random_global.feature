@@ -9,9 +9,14 @@ Feature: Random glossary entry block linking to global glossary
       | fullname | shortname |
       | Course 1 | C1        |
       | Course 2 | C2        |
-    And the following "activities" exist:
-      | activity   | name             | intro                          | course               | idnumber  | globalglossary | defaultapproval |
-      | glossary   | Tips and Tricks  | Frontpage glossary description | C2 | glossary0 | 1              | 1               |
+    And the following "activity" exists:
+      | activity        | glossary                       |
+      | name            | Tips and Tricks                |
+      | intro           | Frontpage glossary description |
+      | course          | C2                             |
+      | idnumber        | glossary0                      |
+      | globalglossary  | 1                              |
+      | defaultapproval | 1                              |
     And the following "users" exist:
       | username | firstname | lastname | email             |
       | student1 | Sam1      | Student1 | student1@example.com |
@@ -25,7 +30,7 @@ Feature: Random glossary entry block linking to global glossary
     When I log in as "admin"
     And I am on "Course 2" course homepage
     And I follow "Tips and Tricks"
-    And I press "Add a new entry"
+    And I press "Add entry"
     And I set the following fields to these values:
       | Concept    | Never come late               |
       | Definition | Come in time for your classes |
@@ -67,7 +72,7 @@ Feature: Random glossary entry block linking to global glossary
     And I log in as "admin"
     And I am on "Course 2" course homepage
     And I follow "Tips and Tricks"
-    And I follow "Edit settings"
+    And I follow "Settings"
     And I set the field "globalglossary" to "0"
     And I press "Save and return to course"
     And I am on "Course 1" course homepage

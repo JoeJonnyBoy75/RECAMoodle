@@ -19,6 +19,7 @@ $PAGE->set_url($url);
 if (! $cm = get_coursemodule_from_id('choice', $id)) {
     print_error('invalidcoursemodule');
 }
+$cm = cm_info::create($cm);
 
 if (! $course = $DB->get_record("course", array("id" => $cm->course))) {
     print_error('coursemisconf');
@@ -96,8 +97,9 @@ if (data_submitted() && !empty($action) && confirm_sesskey()) {
 // Completion and trigger events.
 choice_view($choice, $course, $cm, $context);
 
+$PAGE->add_body_class('limitedwidth');
+
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($choice->name), 2, null);
 
 if ($notify and confirm_sesskey()) {
     if ($notify === 'choicesaved') {
@@ -115,26 +117,17 @@ $eventdata['context'] = $context;
 /// Check to see if groups are being used in this choice
 $groupmode = groups_get_activity_groupmode($cm);
 
-if ($groupmode) {
-    groups_get_activity_group($cm, true);
-    groups_print_activity_menu($cm, $CFG->wwwroot . '/mod/choice/view.php?id='.$id);
-}
-
 // Check if we want to include responses from inactive users.
 $onlyactive = $choice->includeinactive ? false : true;
 
 $allresponses = choice_get_response_data($choice, $cm, $groupmode, $onlyactive);   // Big function, approx 6 SQL calls per user.
 
 
-if (has_capability('mod/choice:readresponses', $context)) {
+if (has_capability('mod/choice:readresponses', $context) && !$PAGE->has_secondary_navigation()) {
     choice_show_reportlink($allresponses, $cm);
 }
 
 echo '<div class="clearer"></div>';
-
-if ($choice->intro) {
-    echo $OUTPUT->box(format_module_intro('choice', $choice, $cm->id), 'generalbox', 'intro');
-}
 
 $timenow = time();
 $current = choice_get_my_response($choice);
@@ -145,21 +138,19 @@ if (isloggedin() && (!empty($current)) &&
     foreach ($current as $c) {
         $choicetexts[] = format_string(choice_get_option_text($choice, $c->optionid));
     }
-    echo $OUTPUT->box(get_string("yourselection", "choice", userdate($choice->timeopen)).": ".implode('; ', $choicetexts), 'generalbox', 'yourselection');
+    echo $OUTPUT->box(get_string("yourselection", "choice") . ": " . implode('; ', $choicetexts), 'generalbox', 'yourselection');
 }
 
 /// Print the form
 $choiceopen = true;
 if ((!empty($choice->timeopen)) && ($choice->timeopen > $timenow)) {
     if ($choice->showpreview) {
-        echo $OUTPUT->box(get_string('previewonly', 'choice', userdate($choice->timeopen)), 'generalbox alert');
+        echo $OUTPUT->box(get_string('previewing', 'choice'), 'generalbox alert');
     } else {
-        echo $OUTPUT->box(get_string("notopenyet", "choice", userdate($choice->timeopen)), "generalbox notopenyet");
         echo $OUTPUT->footer();
         exit;
     }
 } else if ((!empty($choice->timeclose)) && ($timenow > $choice->timeclose)) {
-    echo $OUTPUT->box(get_string("expired", "choice", userdate($choice->timeclose)), "generalbox expired");
     $choiceopen = false;
 }
 
@@ -237,6 +228,17 @@ if (!$choiceformshown) {
 if (choice_can_view_results($choice, $current, $choiceopen)) {
     $results = prepare_choice_show_results($choice, $course, $cm, $allresponses);
     $renderer = $PAGE->get_renderer('mod_choice');
+    if ($results->publish) { // If set to publish full results, display a heading for the responses section.
+        echo html_writer::tag('h3', format_string(get_string("responses", "choice")), ['class' => 'mt-4']);
+    }
+
+    if ($groupmode) { // If group mode is enabled, display the groups selector.
+        groups_get_activity_group($cm, true);
+        $groupsactivitymenu = groups_print_activity_menu($cm, new moodle_url('/mod/choice/view.php', ['id' => $id]),
+            true);
+        echo html_writer::div($groupsactivitymenu, 'mt-3 mb-1');
+    }
+
     $resultstable = $renderer->display_result($results);
     echo $OUTPUT->box($resultstable);
 

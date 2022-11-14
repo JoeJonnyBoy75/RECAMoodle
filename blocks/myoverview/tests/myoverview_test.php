@@ -14,16 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Online users tests
- *
- * @package    block_myoverview
- * @category   test
- * @copyright  2019 Juan Leyva <juan@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-defined('MOODLE_INTERNAL') || die();
+namespace block_myoverview;
 
 /**
  * Online users testcase
@@ -33,7 +24,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2019 Juan Leyva <juan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class block_myoverview_testcase extends advanced_testcase {
+class myoverview_test extends \advanced_testcase {
 
     /**
      * Test getting block configuration
@@ -64,17 +55,17 @@ class block_myoverview_testcase extends advanced_testcase {
         set_config('customfiltergrouping', $field->get('shortname'), 'block_myoverview');
 
         $this->setUser($user);
-        $context = context_user::instance($user->id);
+        $context = \context_user::instance($user->id);
 
-        if (!$currentpage = my_get_page($user->id, MY_PAGE_PRIVATE)) {
-            throw new moodle_exception('mymoodlesetup');
+        if (!$currentpage = my_get_page($user->id, MY_PAGE_PUBLIC, MY_PAGE_COURSES)) {
+            throw new \moodle_exception('mymoodlesetup');
         }
 
-        $PAGE->set_url('/my/index.php');    // Need this because some internal API calls require the $PAGE url to be set.
+        $PAGE->set_url('/my/courses.php');    // Need this because some internal API calls require the $PAGE url to be set.
         $PAGE->set_context($context);
         $PAGE->set_pagelayout('mydashboard');
         $PAGE->set_pagetype('my-index');
-        $PAGE->blocks->add_region('content');   // Need to add this special regition to retrieve the central blocks.
+        $PAGE->blocks->add_region('content');   // Need to add this special region to retrieve the central blocks.
         $PAGE->set_subpage($currentpage->id);
 
         // Load the block instances for all the regions.

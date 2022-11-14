@@ -1,0 +1,47 @@
+<div id="fitem_id_{{name}}" class="form-group fitem color-picker">
+    <label class="d-inline font-weight-600" for="{{name}}">
+        {{label}}
+    </label>
+    {{{help}}}
+    <div class="color-reset btn" title="{{#str}}resetdesc, theme_remui{{/str}}" data-default="{{default}}">
+        <i class="fa fa-undo"></i>
+    </div>
+    <div class="color-input" data-fieldtype="color">
+        <input type='hidden' id='id_{{name}}'
+        name='{{name}}' class='site-colorpicker d-none'
+        hidden style='display:none;'
+        value='{{default}}'>
+        <div class="form-control-feedback invalid-feedback" id="id_error_{{name}}">
+        </div>
+    </div>
+</div>
+{{#js}}
+    require(['jquery', 'theme_remui/color-picker'], function($) {
+        $('#id_{{name}}').spectrum({
+            color: '{{default}}',
+            cancelText: '{{#str}} cancel {{/str}}',
+            chooseText: '{{#str}} choose {{/str}}',
+            clickoutFiresChange: true,
+            showInput: true,
+            allowEmpty: {{#allowempty}}true{{/allowempty}}{{^allowempty}}false{{/allowempty}},
+            containerClassName: 'border-secondary',
+            replacerClassName: 'site-colorpicker-custom w-full bg-white border-0',
+            showPalette: true,
+            palette: [
+                ['#62a8ea', '#8d6658', '#57c7d4'],
+                [ '#46be8a', '#757575', '#677ae4'],
+                ['#f2a654', '#f96197', '#926dde'],
+                ['#f96868', '#3aa99e', '#000']
+            ],
+            {{#options}}
+                {{key}}: {{{value}}},
+            {{/options}}
+            change: function(color) {
+                $('#id_{{name}}').trigger('color.changed', color);
+            },
+            move: function(color) {
+                $('#id_{{name}}').trigger('color.changed', color);
+            }
+        });
+    });
+{{/js}}

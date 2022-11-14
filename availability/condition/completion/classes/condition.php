@@ -145,7 +145,7 @@ class condition extends \core_availability\condition {
         } else {
             // The completion system caches its own data so no caching needed here.
             $completiondata = $completion->get_data((object)['id' => $cmid],
-                    $grabthelot, $userid, $modinfo);
+                    $grabthelot, $userid);
 
             $allow = true;
             if ($this->expectedcompletion == COMPLETION_COMPLETE) {
@@ -354,7 +354,7 @@ class condition extends \core_availability\condition {
             if (!array_key_exists($cmid, $modinfo->cms) || $modinfo->cms[$cmid]->deletioninprogress) {
                 $modname = get_string('missing', 'availability_completion');
             } else {
-                $modname = '<AVAILABILITY_CMNAME_' . $modinfo->cms[$cmid]->id . '/>';
+                $modname = self::description_cm_name($modinfo->cms[$cmid]->id);
             }
         }
 

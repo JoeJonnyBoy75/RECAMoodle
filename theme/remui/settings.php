@@ -17,42 +17,43 @@
 /**
  * Theme settings
  * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-// License activation and deactivation handling
+// License activation and deactivation handling.
 if (optional_param('section', '', PARAM_TEXT) == 'themesettingremui') {
     // Handle license status change on form submit.
     $licensecontroller = new theme_remui\controller\LicenseController();
     $licensecontroller->serve_license_data();
+
+    // Form is submitted with changed settings. Do not want to execute when modifying a block.
+    if ($data = data_submitted() and confirm_sesskey() and isset($data->action) and $data->action == 'save-settings') {
+        if (isset($data->s_theme_remui_announcementtext)) {
+            $cfganouncetext = get_config('theme_remui', 'announcementtext');
+            $formanouncetext = $data->s_theme_remui_announcementtext;
+
+            $cfgdismisannounce = get_config('theme_remui', 'enabledismissannouncement');
+            $formdismisannounce = $data->s_theme_remui_enabledismissannouncement;
+
+            if ($cfganouncetext !== $formanouncetext || $cfgdismisannounce !== $formdismisannounce) {
+                \theme_remui\utility::remove_announcement_preferences();
+            }
+        }
+    }
 }
 
 if (optional_param('action', '', PARAM_TEXT) == 'save-settings') {
     set_config('activetab', optional_param('activetab', 'theme_remui_general', PARAM_TEXT), 'theme_remui');
 }
 
-// Form is submitted with changed settings. Do not want to execute when modifying a block.
-if ($data = data_submitted() and confirm_sesskey() and isset($data->action) and $data->action == 'save-settings') {
-    if (isset($data->s_theme_remui_announcementtext)){
-        $cfganouncetext = get_config('theme_remui', 'announcementtext');
-        $formanouncetext = $data->s_theme_remui_announcementtext;
-
-        $cfgdismisannounce = get_config('theme_remui', 'enabledismissannouncement');
-        $formdismisannounce = $data->s_theme_remui_enabledismissannouncement;
-
-        if ($cfganouncetext !== $formanouncetext || $cfgdismisannounce !== $formdismisannounce) {
-            \theme_remui\utility::remove_announcement_preferences();
-        }
-    }
-}
-
 $remuisettings = [];
-
+require_once($CFG->dirroot.'/theme/remui/lib.php');
 if ($ADMIN->fulltree) {
-    $settings = new theme_remui_admin_settingspage_tabs('themesettingremui', get_string('configtitle', 'theme_remui'));
+    $settings = new theme_remui_admin_settingspage_tabs('themesettingremui', get_string('configtitle', 'theme_remui').get_string('versionforheading', 'theme_remui', get_themereleaseinfo()));
+
     $page = new admin_settingpage('theme_remui_general', get_string('generalsettings', 'theme_remui'));
 
     $name = 'theme_remui/enableannouncement';
@@ -96,7 +97,7 @@ if ($ADMIN->fulltree) {
         $name,
         $title,
         $description,
-        1,
+        'success',
         array(
         'info'    => get_string('typeinfo', 'theme_remui'),
         'success' => get_string('typesuccess', 'theme_remui'),
@@ -104,24 +105,6 @@ if ($ADMIN->fulltree) {
         'danger'  => get_string('typedanger', 'theme_remui')
         )
     );
-    $page->add($setting);
-
-    // Setting to activate the Recent Courses Block.
-    $name = 'theme_remui/enablerecentcourses';
-    $title = get_string('enablerecentcourses', 'theme_remui');
-    $description = get_string('enablerecentcoursesdesc', 'theme_remui');
-    $default = true;
-    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    // Setting to activate the header buttons in overlay minimal view.
-    $name = 'theme_remui/enableheaderbuttons';
-    $title = get_string('enableheaderbuttons', 'theme_remui');
-    $description = get_string('enableheaderbuttonsdesc', 'theme_remui');
-    $default = false;
-    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
-    $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
 
     // Setting to merge messaging section in right sidebar.
@@ -133,73 +116,6 @@ if ($ADMIN->fulltree) {
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
 
-    // Course per page to shown.
-    $name = 'theme_remui/courseperpage';
-    $title = get_string('courseperpage', 'theme_remui');
-    $description = get_string('courseperpagedesc', 'theme_remui');
-    $setting = new admin_setting_configselect(
-        $name,
-        $title,
-        $description,
-        1,
-        array(
-            12 => get_string('twelve', 'theme_remui'),
-            8 => get_string('eight', 'theme_remui'),
-            4 => get_string('four', 'theme_remui')
-        )
-    );
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-
-    // Course animation to be shown on Archieve page.
-    $name = 'theme_remui/courseanimation';
-    $title = get_string('courseanimation', 'theme_remui');
-    $description = get_string('courseanimationdesc', 'theme_remui');
-    $setting = new admin_setting_configselect(
-        $name,
-        $title,
-        $description,
-        'none',
-        array(
-            'none' => get_string('none', 'theme_remui'),
-            'fade' => get_string('fade', 'theme_remui'),
-            'fadeslide-top' => get_string('slide-top', 'theme_remui'),
-            'slide-bottom'  => get_string('slide-bottom', 'theme_remui'),
-            'slide-right'   => get_string('slide-right', 'theme_remui'),
-            'scale-up'      => get_string('scale-up', 'theme_remui'),
-            'scale-down'    => get_string('scale-down', 'theme_remui'),
-        )
-    );
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    // Setting to enable new cards style in course archive page.
-    $name = 'theme_remui/enablenewcoursecards';
-    $title = get_string('enablenewcoursecards', 'theme_remui');
-    $description = get_string('enablenewcoursecardsdesc', 'theme_remui');
-    $default = false;
-    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
-    // Setting for next and previous button in activity.
-    $name = 'theme_remui/activitynextpreviousbutton';
-    $title = get_string('activitynextpreviousbutton', 'theme_remui');
-    $description = get_string('activitynextpreviousbuttondesc', 'theme_remui');
-    $setting = new admin_setting_configselect(
-        $name,
-        $title,
-        $description,
-        1,
-        array(
-            0 => get_string('disablenextprevious', 'theme_remui'),
-            1 => get_string('enablenextprevious', 'theme_remui'),
-            2 => get_string('enablenextpreviouswithname', 'theme_remui')
-        )
-    );
-    $page->add($setting);
-
     $name = 'theme_remui/logoorsitename';
     $title = get_string('logoorsitename', 'theme_remui');
     $description = get_string('logoorsitenamedesc', 'theme_remui');
@@ -209,7 +125,12 @@ if ($ADMIN->fulltree) {
         $title,
         $description,
         $default,
-        array('iconsitename' => get_string('iconsitename', 'theme_remui'), 'logo' => get_string('onlylogo', 'theme_remui'))
+        array(
+            'logo' => get_string('onlylogo', 'theme_remui'),
+            'logomini' => get_string('logomini', 'theme_remui'),
+            'icononly' => get_string('icononly', 'theme_remui'),
+            'iconsitename' => get_string('iconsitename', 'theme_remui')
+        )
     );
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
@@ -219,6 +140,15 @@ if ($ADMIN->fulltree) {
         'show' => ['logo', 'logomini'],
         'hide' => ['siteicon']
     ], [
+        'value'  => 'logomini',
+        'show' => ['logo', 'logomini'],
+        'hide' => ['siteicon']
+    ], [
+        'value'  => 'icononly',
+        'show' => ['siteicon'],
+        'hide' => ['logo', 'logomini']
+    ]
+    , [
         'value'  => 'iconsitename',
         'show' => ['siteicon'],
         'hide' => ['logo', 'logomini']
@@ -324,15 +254,6 @@ if ($ADMIN->fulltree) {
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
 
-    // Setting for enabling course stats visibility in course page.
-    $name = 'theme_remui/enablecoursestats';
-    $title = get_string('enablecoursestats', 'theme_remui');
-    $description = get_string('enablecoursestatsdesc', 'theme_remui');
-    $default = true;
-    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
-    $setting->set_updatedcallback('theme_reset_all_caches');
-    $page->add($setting);
-
     // Dictionary.
     $name = 'theme_remui/enabledictionary';
     $title = get_string('enabledictionary', 'theme_remui');
@@ -351,16 +272,10 @@ if ($ADMIN->fulltree) {
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
 
-    // Focus Mode Settings
-    $page->add(new admin_setting_heading(
-        'theme_remui_focusmode',
-        get_string('focusmodesettings', 'theme_remui'),
-        format_text('', FORMAT_MARKDOWN)
-    ));
-
-    $name = 'theme_remui/enablefocusmode';
-    $title = get_string('enablefocusmode', 'theme_remui');
-    $description = get_string('enablefocusmodedesc', 'theme_remui');
+    // Usage tracking GDPR setting.
+    $name = 'theme_remui/enableedwfeedback';
+    $title = get_string('enableedwfeedback', 'theme_remui');
+    $description = get_string('enableedwfeedbackdesc', 'theme_remui');
     $default = true;
     $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
     $setting->set_updatedcallback('theme_reset_all_caches');
@@ -625,9 +540,9 @@ if ($ADMIN->fulltree) {
             $description,
             1,
             array(
-                    1 => get_string('donotshowaboutus', 'theme_remui'),
-                    2 => get_string('showaboutusinrow', 'theme_remui'),
-                    3 => get_string('showaboutusingridblock', 'theme_remui'),
+                1 => get_string('donotshowaboutus', 'theme_remui'),
+                2 => get_string('showaboutusinrow', 'theme_remui'),
+                3 => get_string('showaboutusingridblock', 'theme_remui'),
             )
         );
 
@@ -894,6 +809,194 @@ if ($ADMIN->fulltree) {
 
     $settings->add($page);
 
+    // Course Page Settings.
+    $page = new admin_settingpage('theme_remui_course', get_string('coursesettings', 'theme_remui'));
+
+    // Enrolment Page settings.
+    $page->add(new admin_setting_heading(
+        'theme_remui_coursepage',
+        get_string('coursepagesettings', 'theme_remui'),
+        format_text(get_string('coursepagesettingsdesc', 'theme_remui'), FORMAT_MARKDOWN)
+    ));
+
+    // Setting to activate the Recent Courses Block.
+    $name = 'theme_remui/enablerecentcourses';
+    $title = get_string('enablerecentcourses', 'theme_remui');
+    $description = get_string('enablerecentcoursesdesc', 'theme_remui');
+    $default = true;
+    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
+
+    // Setting for enabling course stats visibility in course page.
+    $name = 'theme_remui/enablecoursestats';
+    $title = get_string('enablecoursestats', 'theme_remui');
+    $description = get_string('enablecoursestatsdesc', 'theme_remui');
+    $default = true;
+    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
+
+    $name = 'theme_remui/enablefocusmode';
+    $title = get_string('enablefocusmode', 'theme_remui');
+    $description = get_string('enablefocusmodedesc', 'theme_remui');
+    $default = true;
+    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
+
+    // Setting to enable new cards style in course archive page.
+    $name = 'theme_remui/enablenewcoursecards';
+    $title = get_string('enablenewcoursecards', 'theme_remui');
+    $description = get_string('enablenewcoursecardsdesc', 'theme_remui');
+    $setting = new admin_setting_configselect(
+        $name,
+        $title,
+        $description,
+        'coursecarddesign1',
+        array(
+            0 => get_string('coursecarddesign', 'theme_remui') . " 1",
+            1 => get_string('coursecarddesign', 'theme_remui') . " 2"
+        )
+    );
+    $page->add($setting);
+
+        // Setting for enable and disable course category menu
+        $name = 'theme_remui/enabledisablecoursecategorymenu';
+        $title = get_string('enabledisablecoursecategorymenu', 'theme_remui');
+        $description = get_string('enabledisablecoursecategorymenudesc', 'theme_remui');
+        $default = true;
+        $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+
+        // Text setting for Course Categories option in header
+        $name = 'theme_remui/coursecategoriestext';
+        $title = get_string('coursecategoriestext', 'theme_remui');
+        $description = get_string('coursecategoriestextdesc', 'theme_remui');
+        $default = get_string('coursecategories', 'theme_remui');
+        $setting = new admin_setting_configtext($name, $title, $description, $default);
+        $setting->set_updatedcallback('theme_reset_all_caches');
+        $page->add($setting);
+
+
+    // Course per page to shown.
+    $name = 'theme_remui/courseperpage';
+    $title = get_string('courseperpage', 'theme_remui');
+    $description = get_string('courseperpagedesc', 'theme_remui');
+    $setting = new admin_setting_configselect(
+        $name,
+        $title,
+        $description,
+        12,
+        array(
+            12 => get_string('twelve', 'theme_remui'),
+            9 => get_string('nine', 'theme_remui'),
+            6 => get_string('six', 'theme_remui')
+        )
+    );
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
+
+
+    // Course animation to be shown on Archieve page.
+    $name = 'theme_remui/courseanimation';
+    $title = get_string('courseanimation', 'theme_remui');
+    $description = get_string('courseanimationdesc', 'theme_remui');
+    $setting = new admin_setting_configselect(
+        $name,
+        $title,
+        $description,
+        'none',
+        array(
+            'none' => get_string('none', 'theme_remui'),
+            'fade' => get_string('fade', 'theme_remui'),
+            'slide-top' => get_string('slide-top', 'theme_remui'),
+            'slide-bottom'  => get_string('slide-bottom', 'theme_remui'),
+            'slide-right'   => get_string('slide-right', 'theme_remui'),
+            'scale-up'      => get_string('scale-up', 'theme_remui'),
+            'scale-down'    => get_string('scale-down', 'theme_remui'),
+        )
+    );
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
+
+
+    // Setting for next and previous button in activity.
+    $name = 'theme_remui/activitynextpreviousbutton';
+    $title = get_string('activitynextpreviousbutton', 'theme_remui');
+    $description = get_string('activitynextpreviousbuttondesc', 'theme_remui');
+    $setting = new admin_setting_configselect(
+        $name,
+        $title,
+        $description,
+        1,
+        array(
+            0 => get_string('disablenextprevious', 'theme_remui'),
+            1 => get_string('enablenextprevious', 'theme_remui'),
+            2 => get_string('enablenextpreviouswithname', 'theme_remui')
+        )
+    );
+    $page->add($setting);
+
+    // Enrolment Page settings.
+    $page->add(new admin_setting_heading(
+        'theme_remui_enrolpage',
+        get_string('enrolpagesettings', 'theme_remui'),
+        format_text(get_string('enrolpagesettingsdesc', 'theme_remui'), FORMAT_MARKDOWN)
+    ));
+
+    $remuisettings['enrolment_page_layout'] = [[
+        'value' => 0,
+        'hide' => ['showcoursepricing']
+    ], [
+        'value' => 1,
+        'show' => ['showcoursepricing']
+    ]];
+
+    $remuisettings['showcoursepricing'] = [[
+        'value' => 0,
+        'hide' => ['enrolment_payment']
+    ], [
+        'value' => 1,
+        'show' => ['enrolment_payment']
+    ]];
+
+    // Full Page background Settings.
+    $setting = new admin_setting_configselect('theme_remui/enrolment_page_layout',
+        get_string('enrolment_layout', 'theme_remui'),
+        get_string('enrolment_layout_desc', 'theme_remui'),
+        0,
+        array(
+            '0' => get_string('defaultlayout', 'theme_remui'),
+            '1' => get_string('enable_layout1', 'theme_remui')
+        )
+    );
+    $page->add($setting);
+
+    // Full Page background Settings.
+    $name = 'theme_remui/showcoursepricing';
+    $title = get_string('showcoursepricing', 'theme_remui');
+    $description = get_string('showcoursepricingdesc', 'theme_remui');
+    $default = true;
+    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
+
+    // Course Enrolment Settings.
+    $setting = new admin_setting_configselect('theme_remui/enrolment_payment',
+        get_string('enrolment_payment', 'theme_remui'),
+        get_string('enrolment_payment_desc', 'theme_remui'),
+        0,
+        array(
+            '0' => get_string('allrequirepayment', 'theme_remui'),
+            '1' => get_string('somearefree', 'theme_remui')
+        )
+    );
+    $page->add($setting);
+
+    $settings->add($page);
+
     // Footer Settings.
     $page = new admin_settingpage('theme_remui_footer', get_string('footersettings', 'theme_remui'));
     // Social media settings.
@@ -1073,6 +1176,55 @@ if ($ADMIN->fulltree) {
 
     $settings->add($page);
 
+    // Forms setting
+    $page = new admin_settingpage('theme_remui_forms', get_string('formsettings', 'theme_remui'));
+
+    // Course per page to shown.
+    $name = 'theme_remui/formselementdesign';
+    $title = get_string('formselementdesign', 'theme_remui');
+    $description = get_string('formsdesigndesc', 'theme_remui');
+    $setting = new admin_setting_configselect(
+        $name,
+        $title,
+        $description,
+        'default',
+        array(
+            'default' => get_string('default', 'theme_remui'),
+            'formsdesign1' => get_string('formsdesign1', 'theme_remui'),
+            'formsdesign3' => get_string('formsdesign3', 'theme_remui')
+        )
+    );
+    $page->add($setting);
+    $setting->set_updatedcallback('theme_reset_all_caches');
+
+    $settings->add($page);
+    // Forms setting
+
+    // Icons setting
+    $page = new admin_settingpage('theme_remui_icons', get_string('iconsettings', 'theme_remui'));
+
+    // Course per page to shown.
+    $name = 'theme_remui/icondesign';
+    $title = get_string('icondesign', 'theme_remui');
+    $description = get_string('icondesigndesc', 'theme_remui');
+    $setting = new admin_setting_configselect(
+        $name,
+        $title,
+        $description,
+        'default',
+        array(
+            'default' => get_string('default', 'theme_remui'),
+            'remuiicon1' => get_string('icondesign1', 'theme_remui'),
+            'remuiicon2' => get_string('icondesign2', 'theme_remui')
+        )
+    );
+    $page->add($setting);
+
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $settings->add($page);
+    // Icons setting
+
+
     // Login Page Settings.
     $page = new admin_settingpage('theme_remui_login', get_string('loginsettings', 'theme_remui'));
     $page->add(new admin_setting_heading(
@@ -1097,7 +1249,6 @@ if ($ADMIN->fulltree) {
     ));
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
-
     $name = 'theme_remui/signuptextcolor';
     $title = get_string('signuptextcolor', 'theme_remui');
     $description = get_string('signuptextcolordesc', 'theme_remui');
@@ -1107,30 +1258,75 @@ if ($ADMIN->fulltree) {
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
 
+    // Course per page to shown.
+    $name = 'theme_remui/loginpagelayout';
+    $title = get_string('loginpagelayout', 'theme_remui');
+    $description = get_string('loginpagelayoutdesc', 'theme_remui');
+    $setting = new admin_setting_configselect(
+        $name,
+        $title,
+        $description,
+        'default',
+        array(
+            'logincenter' => get_string('logincenter', 'theme_remui'),
+            'loginleft' => get_string('loginleft', 'theme_remui'),
+            'loginright' => get_string('loginright', 'theme_remui')
+        )
+    );
+    $page->add($setting);
+
     // Brand Logo Position Setting.
     $name = 'theme_remui/brandlogopos';
     $title = get_string('brandlogopos', 'theme_remui');
     $description = get_string('brandlogoposdesc', 'theme_remui');
     $default = true;
-    $setting = new admin_setting_configcheckbox($name, $title, $description, $default, true, false);
-    $setting->set_updatedcallback('theme_reset_all_caches');
+    $setting = new admin_setting_configselect(
+        $name,
+        $title,
+        $description,
+        1,
+        array(
+            0 => get_string('hiddenlogo', 'theme_remui'),
+            1 => get_string('sidebarregionlogo', 'theme_remui'),
+            2 => get_string('maincontentregionlogo', 'theme_remui')
+        )
+    );
+
     $page->add($setting);
+
+
 
     // Text with Brand Logo.
     $name = 'theme_remui/brandlogotext';
     $title = get_string('brandlogotext', 'theme_remui');
     $description = get_string('brandlogotextdesc', 'theme_remui');
-    $default = ""; // Default string will be blank.
+    $default = ""; // Default string will be Unhide
     $setting = new admin_setting_confightmleditor($name, $title, $description, $default);
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
     $settings->add($page);
 
+    $remuisettings['loginpagelayout'] = [[
+        'value'  => 'logincenter',
+        'show' => [],
+        'hide' => ['brandlogotext', 'signuptextcolor']
+    ], [
+        'value'  => 'loginleft',
+        'show' => ['brandlogopos', 'brandlogotext', 'signuptextcolor'],
+        'hide' => []
+    ], [
+        'value'  => 'loginright',
+        'show' => ['brandlogopos', 'brandlogotext', 'signuptextcolor'],
+        'hide' => []
+    ]];
+
 }
+global $PAGE;
 if (optional_param('section', '', PARAM_TEXT) == 'themesettingremui') {
-    global $PAGE;
     $PAGE->requires->data_for_js('remuisettings', $remuisettings);
     $PAGE->requires->js(new moodle_url('/theme/remui/settings.js'));
     $PAGE->requires->js_call_amd('theme_remui/settings', 'init');
 }
 
+// $PAGE->requires->js_call_amd('theme_remui/setupwizard', 'skipUpgrade');
+// $PAGE->requires->js_call_amd('theme_remui/setupwizard', 'addButtonOnsetup');

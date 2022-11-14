@@ -75,7 +75,7 @@ class mod_quiz_generator extends testing_module_generator {
             'timecreated'            => time(),
             'timemodified'           => time(),
             'timelimit'              => 0,
-            'overduehandling'        => 'autoabandon',
+            'overduehandling'        => 'autosubmit',
             'graceperiod'            => 86400,
             'quizpassword'           => '',
             'subnet'                 => '',
@@ -91,6 +91,10 @@ class mod_quiz_generator extends testing_module_generator {
             if (!isset($record->{$name})) {
                 $record->{$name} = $value;
             }
+        }
+
+        if (isset($record->gradepass)) {
+            $record->gradepass = unformat_float($record->gradepass);
         }
 
         return parent::create_instance($record, (array)$options);

@@ -189,7 +189,8 @@ class api {
         $dpos = [];
         $context = context_system::instance();
         foreach ($dporoles as $roleid) {
-            $allnames = get_all_user_name_fields(true, 'u');
+            $userfieldsapi = \core_user\fields::for_name();
+            $allnames = $userfieldsapi->get_sql('u', false, '', '', false)->selects;
             $fields = 'u.id, u.confirmed, u.username, '. $allnames . ', ' .
                       'u.maildisplay, u.mailformat, u.maildigest, u.email, u.emailstop, u.city, '.
                       'u.country, u.picture, u.idnumber, u.department, u.institution, '.
@@ -786,6 +787,18 @@ class api {
     }
 
     /**
+     * Check if user has permission to create data download request for themselves
+     *
+     * @param int|null $userid
+     * @return bool
+     */
+    public static function can_create_data_download_request_for_self(int $userid = null): bool {
+        global $USER;
+        $userid = $userid ?: $USER->id;
+        return has_capability('tool/dataprivacy:downloadownrequest', \context_user::instance($userid), $userid);
+    }
+
+    /**
      * Check if user has permisson to create data deletion request for themselves.
      *
      * @param int|null $userid ID of the user.
@@ -846,7 +859,7 @@ class api {
 
         $usercontext = \context_user::instance($userid);
         // If it's your own and you have the right capability, you can download it.
-        if ($userid == $downloaderid && has_capability('tool/dataprivacy:downloadownrequest', $usercontext, $downloaderid)) {
+        if ($userid == $downloaderid && self::can_create_data_download_request_for_self($downloaderid)) {
             return true;
         }
         // If you can download anyone's in that context, you can download it.

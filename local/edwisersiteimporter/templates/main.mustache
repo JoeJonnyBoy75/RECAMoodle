@@ -1,0 +1,57 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_edwisersiteimporter/homepage_modal
+
+    Homepage modal template.
+
+    Context variables required for this template:
+    * html - Templates content
+    
+    Example context (json):
+    {
+        "html" : "Templates"
+    }
+}}
+<div id="{{uniqid}}">
+    <div class="mt-4">
+        <label class="h4">{{#str}} templates, local_edwisersiteimporter {{/str}}</label>
+        <button type="button" id="refresh-templates" class="btn btn-default float-right">{{#str}} refresh {{/str}}</button>
+    </div>
+    {{^error}}
+    <ul class="nav nav-tabs" role="tablist">
+        {{#tabs}}
+            <li class="nav-item" role="presentation">
+                <a class="nav-link {{#active}} active {{/active}}" href="#importer-{{id}}" data-bs-toggle="tab" data-bs-target="#{{id}}" type="button" role="tab" aria-controls="{{id}}" aria-selected="true">{{label}}</a>
+            </li>
+        {{/tabs}}
+    </ul>
+    <div class="tab-content">
+        {{#content}}
+            <div class="tab-pane fade {{#active}} show active {{/active}}" id="importer-{{id}}" role="tabpanel" aria-labelledby="{{id}}-tab">{{{content}}}</div>
+        {{/content}}
+    </div>
+    {{/error}}
+    {{#error}}
+        <div>{{{.}}}</div>
+    {{/error}}
+</div>
+{{#js}}
+    require(['local_edwisersiteimporter/main'], function(importer) {
+        importer.init('#{{uniqid}}');
+    });
+{{/js}}

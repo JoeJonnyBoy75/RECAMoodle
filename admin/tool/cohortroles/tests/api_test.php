@@ -14,17 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * API tests.
- *
- * @package    tool_cohortroles
- * @copyright  2015 Damyon Wiese
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-defined('MOODLE_INTERNAL') || die();
-
-use tool_cohortroles\api;
+namespace tool_cohortroles;
 
 /**
  * API tests.
@@ -33,23 +23,23 @@ use tool_cohortroles\api;
  * @copyright  2015 Damyon Wiese
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class tool_cohortroles_api_testcase extends advanced_testcase {
-    /** @var stdClass $cohort */
+class api_test extends \advanced_testcase {
+    /** @var \stdClass $cohort */
     protected $cohort = null;
 
-    /** @var stdClass $userassignto */
+    /** @var \stdClass $userassignto */
     protected $userassignto = null;
 
-    /** @var stdClass $userassignover */
+    /** @var \stdClass $userassignover */
     protected $userassignover = null;
 
-    /** @var stdClass $role */
+    /** @var \stdClass $role */
     protected $role = null;
 
     /**
      * Setup function- we will create a course and add an assign instance to it.
      */
-    protected function setUp() {
+    protected function setUp(): void {
         $this->resetAfterTest(true);
 
         // Create some users.
@@ -60,9 +50,6 @@ class tool_cohortroles_api_testcase extends advanced_testcase {
         cohort_add_member($this->cohort->id, $this->userassignover->id);
     }
 
-    /**
-     * @expectedException required_capability_exception
-     */
     public function test_create_cohort_role_assignment_without_permission() {
         $this->setUser($this->userassignto);
         $params = (object) array(
@@ -70,12 +57,10 @@ class tool_cohortroles_api_testcase extends advanced_testcase {
             'roleid' => $this->roleid,
             'cohortid' => $this->cohort->id
         );
+        $this->expectException(\required_capability_exception::class);
         api::create_cohort_role_assignment($params);
     }
 
-    /**
-     * @expectedException core_competency\invalid_persistent_exception
-     */
     public function test_create_cohort_role_assignment_with_invalid_data() {
         $this->setAdminUser();
         $params = (object) array(
@@ -83,6 +68,7 @@ class tool_cohortroles_api_testcase extends advanced_testcase {
             'roleid' => -8,
             'cohortid' => $this->cohort->id
         );
+        $this->expectException(\core_competency\invalid_persistent_exception::class);
         api::create_cohort_role_assignment($params);
     }
 
@@ -100,9 +86,6 @@ class tool_cohortroles_api_testcase extends advanced_testcase {
         $this->assertEquals($result->get('cohortid'), $this->cohort->id);
     }
 
-    /**
-     * @expectedException required_capability_exception
-     */
     public function test_delete_cohort_role_assignment_without_permission() {
         $this->setAdminUser();
         $params = (object) array(
@@ -112,12 +95,10 @@ class tool_cohortroles_api_testcase extends advanced_testcase {
         );
         $result = api::create_cohort_role_assignment($params);
         $this->setUser($this->userassignto);
+        $this->expectException(\required_capability_exception::class);
         api::delete_cohort_role_assignment($result->get('id'));
     }
 
-    /**
-     * @expectedException dml_missing_record_exception
-     */
     public function test_delete_cohort_role_assignment_with_invalid_data() {
         $this->setAdminUser();
         $params = (object) array(
@@ -126,6 +107,7 @@ class tool_cohortroles_api_testcase extends advanced_testcase {
             'cohortid' => $this->cohort->id
         );
         $result = api::create_cohort_role_assignment($params);
+        $this->expectException(\dml_missing_record_exception::class);
         api::delete_cohort_role_assignment($result->get('id') + 1);
     }
 
@@ -282,7 +264,7 @@ class tool_cohortroles_api_testcase extends advanced_testcase {
         $this->assertEquals($sync, $expected);
 
         // Verify roles assigned by any other component are not removed.
-        $usercontext = context_user::instance($this->userassignover->id);
+        $usercontext = \context_user::instance($this->userassignover->id);
         role_assign($this->roleid, $this->userassignto->id, $usercontext->id);
         $sync = api::sync_all_cohort_roles();
 

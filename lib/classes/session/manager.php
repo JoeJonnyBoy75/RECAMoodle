@@ -61,6 +61,15 @@ class manager {
     private static $priorsession = [];
 
     /**
+     * @var bool Used to trigger the SESSION mutation warning without actually preventing SESSION mutation.
+     * This variable is used to "copy" what the $requireslock parameter  does in start_session().
+     * Once requireslock is set in start_session it's later accessible via $handler->requires_write_lock,
+     * When using $CFG->enable_read_only_sessions_debug mode, this variable serves the same purpose without
+     * actually setting the handler as requiring a write lock.
+     */
+    private static $requireslockdebug;
+
+    /**
      * If the current session is not writeable, abort it, and re-open it
      * requesting (and blocking) until a write lock is acquired.
      * If current session was already opened with an intentional write lock,
@@ -69,8 +78,16 @@ class manager {
      * if the original session was not opened with the explicit intention of being locked,
      * this will still restart your session so that code behaviour matches as closely
      * as practical across environments.
+     *
+     * @param bool $readonlysession Used by debugging logic to determine if whatever
+     *                              triggered the restart (e.g., a webservice) declared
+     *                              itself as read only.
      */
-    public static function restart_with_write_lock() {
+    public static function restart_with_write_lock(bool $readonlysession) {
+        global $CFG;
+
+        self::$requireslockdebug = !$readonlysession;
+
         if (self::$sessionactive && !self::$handler->requires_write_lock()) {
             @self::$handler->abort();
             self::$sessionactive = false;
@@ -108,6 +125,17 @@ class manager {
         } else {
             $requireslock = true; // For backwards compatibility, we default to assuming that a lock is needed.
         }
+
+        // By default make the two variables the same. This means that when they are
+        // checked below in start_session and write_close there is no possibility for
+        // the debug version to "accidentally" execute the debug mode.
+        self::$requireslockdebug = $requireslock;
+        if (defined('READ_ONLY_SESSION') && !empty($CFG->enable_read_only_sessions_debug)) {
+            // Only change the debug variable if READ_ONLY_SESSION is declared,
+            // as would happen with the real requireslock variable.
+            self::$requireslockdebug = !READ_ONLY_SESSION;
+        }
+
         self::start_session($requireslock);
     }
 
@@ -118,7 +146,7 @@ class manager {
      *                           and the session will be read-only.
      */
     private static function start_session(bool $requireslock) {
-        global $PERF;
+        global $PERF, $CFG;
 
         try {
             self::$handler->init();
@@ -138,8 +166,16 @@ class manager {
             self::$sessionactive = true; // Set here, so the session can be cleared if the security check fails.
             self::check_security();
 
-            if (!$requireslock) {
+            if (!$requireslock || !self::$requireslockdebug) {
                 self::$priorsession = (array) $_SESSION['SESSION'];
+            }
+
+            if (!empty($CFG->enable_read_only_sessions) && isset($_SESSION['SESSION']->cachestore_session)) {
+                $caches = join(', ', array_keys($_SESSION['SESSION']->cachestore_session));
+                $caches = str_replace('default_session-', '', $caches);
+                throw new \moodle_exception("The session caches can not be in the session store when "
+                    . "enable_read_only_sessions is enabled. Please map all session mode caches to be outside of the "
+                    . "default session store before enabling this features. Found these definitions in the session: $caches");
             }
 
             // Link global $USER and $SESSION,
@@ -238,8 +274,10 @@ class manager {
      * This is intended for installation scripts, unit tests and other
      * special areas. Do NOT use for logout and session termination
      * in normal requests!
+     *
+     * @param mixed $newsid only used after initialising a user session, is this a new user session?
      */
-    public static function init_empty_session() {
+    public static function init_empty_session(?bool $newsid = null) {
         global $CFG;
 
         if (isset($GLOBALS['SESSION']->notifications)) {
@@ -247,6 +285,9 @@ class manager {
             $notifications = $GLOBALS['SESSION']->notifications;
         }
         $GLOBALS['SESSION'] = new \stdClass();
+        if (isset($newsid)) {
+            $GLOBALS['SESSION']->isnewsessioncookie = $newsid;
+        }
 
         $GLOBALS['USER'] = new \stdClass();
         $GLOBALS['USER']->id = 0;
@@ -336,29 +377,23 @@ class manager {
         // Set configuration.
         session_name($sessionname);
 
-        if (version_compare(PHP_VERSION, '7.3.0', '>=')) {
-            $sessionoptions = [
-                'lifetime' => 0,
-                'path' => $CFG->sessioncookiepath,
-                'domain' => $CFG->sessioncookiedomain,
-                'secure' => $cookiesecure,
-                'httponly' => $CFG->cookiehttponly,
-            ];
+        $sessionoptions = [
+            'lifetime' => 0,
+            'path' => $CFG->sessioncookiepath,
+            'domain' => $CFG->sessioncookiedomain,
+            'secure' => $cookiesecure,
+            'httponly' => $CFG->cookiehttponly,
+        ];
 
-            if (self::should_use_samesite_none()) {
-                // If $samesite is empty, we don't want there to be any SameSite attribute.
-                $sessionoptions['samesite'] = 'None';
-            }
-
-            session_set_cookie_params($sessionoptions);
-        } else {
-            // Once PHP 7.3 becomes our minimum, drop this in favour of the alternative call to session_set_cookie_params above,
-            // as that does not require a hack to work with same site settings on cookies.
-            session_set_cookie_params(0, $CFG->sessioncookiepath, $CFG->sessioncookiedomain, $cookiesecure, $CFG->cookiehttponly);
+        if (self::should_use_samesite_none()) {
+            // If $samesite is empty, we don't want there to be any SameSite attribute.
+            $sessionoptions['samesite'] = 'None';
         }
+
+        session_set_cookie_params($sessionoptions);
+
         ini_set('session.use_trans_sid', '0');
         ini_set('session.use_only_cookies', '1');
-        ini_set('session.hash_function', '0');        // For now MD5 - we do not have room for sha-1 in sessions table.
         ini_set('session.use_strict_mode', '0');      // We have custom protection in session init.
         ini_set('session.serialize_handler', 'php');  // We can move to 'php_serialize' after we require PHP 5.5.4 form Moodle.
 
@@ -383,7 +418,7 @@ class manager {
         if (!$sid) {
             // No session, very weird.
             error_log('Missing session ID, session not started!');
-            self::init_empty_session();
+            self::init_empty_session($newsid);
             return;
         }
 
@@ -511,15 +546,13 @@ class manager {
             self::set_user($user);
             self::add_session_record($user->id);
         } else {
-            self::init_empty_session();
+            self::init_empty_session($newsid);
             self::add_session_record(0);
         }
 
         if ($timedout) {
             $_SESSION['SESSION']->has_timed_out = true;
         }
-
-        self::append_samesite_cookie_attribute();
     }
 
     /**
@@ -587,7 +620,6 @@ class manager {
 
         // Setup $USER object.
         self::set_user($user);
-        self::append_samesite_cookie_attribute();
     }
 
     /**
@@ -609,39 +641,6 @@ class manager {
             return true;
         }
         return false;
-    }
-
-    /**
-     * Conditionally append the SameSite attribute to the session cookie if necessary.
-     *
-     * Contains a hack for versions of PHP lower than 7.3 as there is no API built into PHP cookie API
-     * for adding the SameSite setting.
-     *
-     * This won't change the Set-Cookie headers if:
-     *  - PHP 7.3 or higher is being used. That already adds the SameSite attribute without any hacks.
-     *  - If the samesite setting is empty.
-     *  - If the samesite setting is None but the browser is not compatible with that setting.
-     */
-    private static function append_samesite_cookie_attribute() {
-        if (version_compare(PHP_VERSION, '7.3.0', '>=')) {
-            // This hack is only necessary if we weren't able to set the samesite flag via the session_set_cookie_params API.
-            return;
-        }
-
-        if (!self::should_use_samesite_none()) {
-            return;
-        }
-
-        $cookies = headers_list();
-        header_remove('Set-Cookie');
-        $setcookiesession = 'Set-Cookie: ' . session_name() . '=';
-
-        foreach ($cookies as $cookie) {
-            if (strpos($cookie, $setcookiesession) === 0) {
-                $cookie .= '; SameSite=None';
-            }
-            header($cookie, false);
-        }
     }
 
     /**
@@ -677,7 +676,6 @@ class manager {
         self::init_empty_session();
         self::add_session_record($_SESSION['USER']->id); // Do not use $USER here because it may not be set up yet.
         self::write_close();
-        self::append_samesite_cookie_attribute();
     }
 
     /**
@@ -685,7 +683,7 @@ class manager {
      * Unblocks the sessions, other scripts may start executing in parallel.
      */
     public static function write_close() {
-        global $PERF;
+        global $PERF, $ME, $CFG;
 
         if (self::$sessionactive) {
             // Grab the time when session lock is released.
@@ -697,7 +695,8 @@ class manager {
             self::update_recent_session_locks($PERF->sessionlock);
             self::sessionlock_debugging();
 
-            if (!self::$handler->requires_write_lock()) {
+            $requireslock = self::$handler->requires_write_lock();
+            if (!$requireslock || !self::$requireslockdebug) {
                 // Compare the array of the earlier session data with the array now, if
                 // there is a difference then a lock is required.
                 $arraydiff = self::array_session_diff(
@@ -706,16 +705,13 @@ class manager {
                 );
 
                 if ($arraydiff) {
-                    if (isset($arraydiff['cachestore_session'])) {
-                        throw new \moodle_exception('The session store can not be in the session when '
-                            . 'enable_read_only_sessions is enabled');
-                    }
-
-                    error_log('This session was started as a read-only session but writes have been detected.');
-                    error_log('The following SESSION params were either added, or were updated.');
+                    $error = "Script $ME defined READ_ONLY_SESSION but the following SESSION attributes were changed:";
                     foreach ($arraydiff as $key => $value) {
-                        error_log('SESSION key: ' . $key);
+                        $error .= ' $SESSION->' . $key;
                     }
+                    // This will emit an error if debugging is on, even if $CFG->enable_read_only_sessions
+                    // is not true as we need to surface this class of errors.
+                    error_log($error); // phpcs:ignore
                 }
             }
         }
@@ -966,12 +962,12 @@ class manager {
             $rs->close();
 
             // Kill sessions of users with disabled plugins.
-            $auth_sequence = get_enabled_auth_plugins(true);
-            $auth_sequence = array_flip($auth_sequence);
-            unset($auth_sequence['nologin']); // No login means user cannot login.
-            $auth_sequence = array_flip($auth_sequence);
+            $authsequence = get_enabled_auth_plugins();
+            $authsequence = array_flip($authsequence);
+            unset($authsequence['nologin']); // No login means user cannot login.
+            $authsequence = array_flip($authsequence);
 
-            list($notplugins, $params) = $DB->get_in_or_equal($auth_sequence, SQL_PARAMS_QM, '', false);
+            list($notplugins, $params) = $DB->get_in_or_equal($authsequence, SQL_PARAMS_QM, '', false);
             $rs = $DB->get_recordset_select('sessions', "userid IN (SELECT id FROM {user} WHERE auth $notplugins)", $params, 'id DESC', 'id, sid');
             foreach ($rs as $session) {
                 self::kill_session($session->sid);
@@ -986,7 +982,7 @@ class manager {
             $params = array('purgebefore' => (time() - $maxlifetime), 'guestid'=>$CFG->siteguest);
 
             $authplugins = array();
-            foreach ($auth_sequence as $authname) {
+            foreach ($authsequence as $authname) {
                 $authplugins[$authname] = get_auth_plugin($authname);
             }
             $rs = $DB->get_recordset_sql($sql, $params);
@@ -1271,6 +1267,12 @@ class manager {
         global $CFG, $SESSION;
 
         if (empty($CFG->debugsessionlock)) {
+            return;
+        }
+
+        $readonlysession = defined('READ_ONLY_SESSION') && READ_ONLY_SESSION;
+        $readonlydebugging = !empty($CFG->enable_read_only_sessions) || !empty($CFG->enable_read_only_sessions_debug);
+        if ($readonlysession && $readonlydebugging) {
             return;
         }
 

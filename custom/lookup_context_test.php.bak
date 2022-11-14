@@ -1,0 +1,35 @@
+<?php
+
+define('CLI_SCRIPT', true);
+
+require_once('../config.php');
+//if (!is_siteadmin()) {
+//    die('Not an admin');
+//}
+
+use mod_quiz\privacy\provider;
+
+$course_id = 103;
+$cm_quizs = $DB->get_records_sql('SELECT cm.* FROM mdl_course_modules cm WHERE cm.course = ? AND module = 16', array($course_id));
+//print_r($cm_quizs);
+
+//$contextlist = provider::get_contexts_for_userid(30442);
+//print_r($contextlist);
+
+
+
+foreach($cm_quizs as $cm_quiz) {
+	$contextmodule = context_module::instance($cm_quiz->id);
+	print_r($contextmodule);
+
+	//print_r($cm_quiz);
+	//\core_privacy\local\request\approved_contextlist
+        $approvedcontextlist = new \core_privacy\local\request\approved_contextlist(
+            \core_user::get_user(5),
+            'mod_quiz',
+            array($contextmodule->id)
+        );
+	print_r($approvedcontextlist);
+
+	provider::delete_data_for_user($approvedcontextlist);
+}

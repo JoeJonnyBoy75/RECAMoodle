@@ -14,14 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * GeoIP tests
- *
- * @package    core_iplookup
- * @category   phpunit
- * @copyright  2012 Petr Skoda {@link http://skodak.org}
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace core;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -33,9 +26,14 @@ require_once("{$CFG->dirroot}/iplookup/lib.php");
 
 /**
  * GeoIp data file parsing test.
+ *
+ * @package    core
+ * @category   test
+ * @copyright  2012 Petr Skoda {@link http://skodak.org}
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_iplookup_geoip_testcase extends advanced_testcase {
-    public function setUp() {
+class geoip_test extends \advanced_testcase {
+    public function setUp(): void {
         $this->resetAfterTest();
     }
 
@@ -62,14 +60,14 @@ class core_iplookup_geoip_testcase extends advanced_testcase {
 
         $result = iplookup_find_location($ip);
 
-        $this->assertInternalType('array', $result);
-        $this->assertInternalType('float', $result['latitude']);
-        $this->assertInternalType('float', $result['longitude']);
-        $this->assertInternalType('string', $result['city']);
-        $this->assertInternalType('string', $result['country']);
-        $this->assertInternalType('array', $result['title']);
-        $this->assertInternalType('string', $result['title'][0]);
-        $this->assertInternalType('string', $result['title'][1]);
+        $this->assertIsArray($result);
+        $this->assertIsFloat($result['latitude']);
+        $this->assertIsFloat($result['longitude']);
+        $this->assertIsString($result['city']);
+        $this->assertIsString($result['country']);
+        $this->assertIsArray($result['title']);
+        $this->assertIsString($result['title'][0]);
+        $this->assertIsString($result['title'][1]);
         $this->assertNull($result['error']);
     }
 

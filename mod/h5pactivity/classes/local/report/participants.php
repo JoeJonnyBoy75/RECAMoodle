@@ -28,6 +28,7 @@ namespace mod_h5pactivity\local\report;
 use mod_h5pactivity\local\report;
 use mod_h5pactivity\local\manager;
 use mod_h5pactivity\local\attempt;
+use core\dml\sql_join;
 use table_sql;
 use moodle_url;
 use html_writer;
@@ -60,8 +61,9 @@ class participants extends table_sql implements report {
      * Create a new participants report.
      *
      * @param manager $manager h5pactivitymanager object
+     * @param int|bool $currentgroup False if groups not used, 0 for all groups, group id (int) to filter by specific group
      */
-    public function __construct(manager $manager) {
+    public function __construct(manager $manager, $currentgroup = false) {
         parent::__construct('mod_h5pactivity-participants');
         $this->manager = $manager;
         $this->scores = $manager->get_users_scaled_score();
@@ -82,8 +84,9 @@ class participants extends table_sql implements report {
         $this->no_sorting('attempts');
         $this->pageable(true);
 
-        // Set query SQL.
-        $capjoin = get_enrolled_with_capabilities_join($this->manager->get_context(), '', 'mod/h5pactivity:submit');
+        $capjoin = $this->manager->get_active_users_join(true, $currentgroup);
+
+        // Final SQL.
         $this->set_sql(
             'DISTINCT u.id, u.picture, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic,
             u.middlename, u.alternatename, u.imagealt, u.email',
@@ -121,8 +124,6 @@ class participants extends table_sql implements report {
         global $PAGE, $OUTPUT;
 
         $this->define_baseurl($PAGE->url);
-
-        echo $OUTPUT->heading(get_string('attempts_report', 'mod_h5pactivity'));
 
         $this->out($this->get_page_size(), true);
     }

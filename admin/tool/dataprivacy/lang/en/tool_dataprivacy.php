@@ -135,6 +135,9 @@ $string['effectiveretentionperioduser'] = '{$a} (since the last time the user ac
 $string['emailsalutation'] = 'Dear {$a},';
 $string['errorcannotrequestdeleteforself'] = 'You don\'t have permission to create deletion request for yourself.';
 $string['errorcannotrequestdeleteforother'] = 'You don\'t have permission to create deletion request for this user.';
+$string['errorcannotrequestexportforself'] = 'You don\'t have permission to create export request for yourself.';
+$string['errorcontactdpodisabled'] = 'The option to contact the privacy officer is disabled.';
+$string['errorinvalidrequestcomments'] = 'The comments field may contain plain text only.';
 $string['errorinvalidrequestcreationmethod'] = 'Invalid request creation method!';
 $string['errorinvalidrequeststatus'] = 'Invalid request status!';
 $string['errorinvalidrequesttype'] = 'Invalid request type!';
@@ -157,7 +160,7 @@ $string['explanationtitle'] = 'Icons used on this page and what they mean.';
 $string['external'] = 'Additional';
 $string['externalexplanation'] = 'An additional plugin installed on this site.';
 $string['filteroption'] = '{$a->category}: {$a->name}';
-$string['frontpagecourse'] = 'Front page course';
+$string['frontpagecourse'] = 'Site home course';
 $string['gdpr_art_6_1_a_description'] = 'The data subject has given consent to the processing of his or her personal data for one or more specific purposes';
 $string['gdpr_art_6_1_a_name'] = 'Consent (GDPR Art. 6.1(a))';
 $string['gdpr_art_6_1_b_description'] = 'Processing is necessary for the performance of a contract to which the data subject is party or in order to take steps at the request of the data subject prior to entering into a contract';
@@ -343,6 +346,3 @@ $string['role_help'] = 'The role which the override should apply to.';
 $string['duplicaterole'] = 'Role already specified';
 $string['purposeoverview'] = 'A purpose describes the intended use and retention policy for stored data. The basis for storing and retaining that data is also described in the purpose.';
 $string['roleoverrideoverview'] = 'The default retention policy can be overridden for specific user roles, allowing you to specify a longer, or a shorter, retention policy. A user is only expired when all of their roles have expired.';
-
-// Deprecated since Moodle 3.6.
-$string['statuspreprocessing'] = 'Pre-processing';

@@ -1,0 +1,50 @@
+.ernr-skeleton {
+    .ernr-dummy {
+        height: 100px;
+        padding: 10px;
+        border-radius: 3px;
+        border: 1px solid lightgray;
+        margin-bottom: 15px;
+
+        .ernr-dtitle {
+            position: relative;
+            display: block;
+            height: 15px;
+            background: #eaeaea;
+        }
+
+        .ernr-dstats {
+            position: relative;
+            height: 15px;
+            margin: 10px 0px;
+            background: #eaeaea;
+        }
+
+        .ernr-dbutton {
+            position: relative;
+            height: 30px;
+            width: 70px;
+            background: #eaeaea;
+        }
+    }
+}
+
+
+.animate::before {
+    display: block;
+    content: '';
+    opacity: 1;
+    background-image: linear-gradient(to right, white , #eaeaea);
+    width: 50%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    animation: flash 1500ms infinite;
+}
+
+@keyframes flash {
+  0%   {opacity: 0; width: 0% }
+  50%  {opacity: 0.6; width: 100%;}
+  100% {opacity: 0; width: 0%;}
+}

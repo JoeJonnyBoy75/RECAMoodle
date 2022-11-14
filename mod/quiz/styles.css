@@ -14,14 +14,12 @@
 
 #page-mod-quiz-attempt .submitbtns,
 #page-mod-quiz-review .submitbtns {
-    clear: left;
-    text-align: left;
-    padding-top: 1.5em;
+    display: flex;
 }
 
 #page-mod-quiz-attempt .submitbtns .mod_quiz-next-nav,
 #page-mod-quiz-review .submitbtns .mod_quiz-next-nav {
-    float: right;
+    margin-left: auto;
 }
 
 .path-mod-quiz .mod_quiz-redo_question_button {
@@ -196,78 +194,10 @@
     margin: 0.5em 0;
 }
 
-/* Countdown timer. */
-#quiz-timer {
-    display: none;
-    margin-top: 1em;
-}
-
-#quiz-time-left {
-    font-weight: bold;
-}
-
-#quiz-timer.timeleft15 {
-    background: #fff;
-}
-
-#quiz-timer.timeleft14 {
-    background: #fee;
-}
-
-#quiz-timer.timeleft13 {
-    background: #fdd;
-}
-
-#quiz-timer.timeleft12 {
-    background: #fcc;
-}
-
-#quiz-timer.timeleft11 {
-    background: #fbb;
-}
-
-#quiz-timer.timeleft10 {
-    background: #faa;
-}
-
-#quiz-timer.timeleft9 {
-    background: #f99;
-}
-
-#quiz-timer.timeleft8 {
-    background: #f88;
-}
-
-#quiz-timer.timeleft7 {
-    background: #f77;
-}
-
-#quiz-timer.timeleft6 {
-    background: #f66;
-}
-
-#quiz-timer.timeleft5 {
-    background: #f55;
-}
-
-#quiz-timer.timeleft4 {
-    background: #f44;
-}
-
-#quiz-timer.timeleft3 {
-    background: #f33;
-}
-
-#quiz-timer.timeleft2 {
-    background: #f22;
-}
-
-#quiz-timer.timeleft1 {
-    background: #f11;
-}
-
-#quiz-timer.timeleft0 {
-    background: #f00;
+#mod_quiz_navblock.nav-disabled > * {
+    opacity: .65;
+    pointer-events: none;
+    cursor: not-allowed;
 }
 
 /** mod quiz mod **/
@@ -313,8 +243,7 @@
 
 /** Mod quiz view **/
 #page-mod-quiz-view .quizinfo,
-#page-mod-quiz-view #page .quizgradefeedback,
-#page-mod-quiz-view #page .quizattempt {
+#page-mod-quiz-view #page .quizgradefeedback {
     text-align: center;
 }
 
@@ -377,33 +306,14 @@ table.quizattemptsummary .noreviewmessage {
 .moodle-dialogue-base .moodle-dialogue.mod_quiz_preflight_popup {
     width: 600px;
 }
-
 .moodle-dialogue-base .moodle-dialogue.mod_quiz_preflight_popup .moodle-dialogue-wrap {
     overflow: hidden;
 }
 
 .moodle-dialogue-base .moodle-dialogue.mod_quiz_preflight_popup .moodle-dialogue-bd {
-    padding: 0;
+    padding: 1rem;
 }
 
-.moodle-dialogue-base .moodle-dialogue.mod_quiz_preflight_popup .moodle-dialogue-bd #mod_quiz_preflight_form legend {
-    padding: 0 10px;
-    margin: 0;
-    border: 0 none;
-}
-
-.moodle-dialogue-base .moodle-dialogue.mod_quiz_preflight_popup .moodle-dialogue-bd #mod_quiz_preflight_form .fitem {
-    margin-left: 10px;
-}
-
-.moodle-dialogue-base .moodle-dialogue.mod_quiz_preflight_popup .moodle-dialogue-bd #mod_quiz_preflight_form #fgroup_id_buttonar {
-    padding: 10px 0 0;
-    margin: 0;
-}
-
-.moodle-dialogue-base .moodle-dialogue.mod_quiz_preflight_popup .moodle-dialogue-content .moodle-dialogue-ft {
-    margin: 0;
-}
 /* Standard Moodle rule that needs to be more specific here. */
 .moodle-dialogue-bd #mod_quiz_preflight_form fieldset.hidden {
     display: inherit;
@@ -445,6 +355,11 @@ body.path-mod-quiz table tbody tr.gradedattempt > td {
 
 #page-mod-quiz-summary .submitbtns {
     margin-top: 1.5em;
+}
+
+#page-mod-quiz-edit .section .activity .actions .version-selection {
+    width: 8em;
+    padding: 0;
 }
 
 @media print {
@@ -878,6 +793,7 @@ table.quizreviewsummary td.cell {
     display: flex;
     flex: 1 1 auto;
     min-height: 1.7em;
+    padding-right: 2px;
 }
 
 #page-mod-quiz-edit ul.slots li.section li.activity .mod-indent-outer {
@@ -950,14 +866,6 @@ table.quizreviewsummary td.cell {
     display: none;
 }
 
-#categoryquestions > tbody > tr:nth-of-type(even) {
-    background: #e4e4e4;
-}
-
-#categoryquestions > tbody > tr.highlight {
-    background-color: #afa;
-}
-
 #categoryquestions .header {
     text-align: center;
     padding: 0 2px;
@@ -992,6 +900,7 @@ table.quizreviewsummary td.cell {
 table#categoryquestions {
     width: 100%;
     table-layout: fixed;
+    overflow-x: visible;
 }
 
 #categoryquestions .iconcol {
@@ -1068,16 +977,6 @@ table#categoryquestions {
 
 .mod_quiz_qbank_dialogue #advancedsearch label {
     font-size: 100%;
-}
-
-.modulespecificbuttonscontainer {
-    padding-left: 0.3em;
-    padding-right: 0.3em;
-}
-
-.questionbankformforpopup .modulespecificbuttonscontainer {
-    padding-top: 10px;
-    padding-left: 0;
 }
 
 .quizquestionlistcontrols {

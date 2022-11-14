@@ -2,9 +2,7 @@
 define([
     'jquery',
     'core/ajax',
-    'core/notification',
-    'theme_remui/jquery-asPieProgress',
-    'theme_remui/aspieprogress'
+    'core/notification'
 ], function($, Ajax) {
     $('#editprofile .form-horizontal #btn-save-changes').click(function() {
         var SELECTORS = {
@@ -66,8 +64,4 @@ define([
         return false;
     });
 
-    // Initiliaze coruse progress in profile.
-    $('.remui-course-progress').asPieProgress({
-        namespace: 'asPieProgress'
-    });
 });

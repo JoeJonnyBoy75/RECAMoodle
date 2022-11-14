@@ -51,52 +51,36 @@
 {{> theme_remui/common_start }}
 
 <section id="region-main" {{#hasblocks}}class="has-blocks mb-3"{{/hasblocks}} aria-label="{{#str}}content{{/str}}">
-    <div class="card card-body">
-        {{{ output.activity_navigation }}}
-        {{#hasregionmainsettingsmenu}}
-            <div class="region_main_settings_menu_proxy"></div>
-        {{/hasregionmainsettingsmenu}}
-        {{{ output.course_content_header }}}
+
+    {{#hasregionmainsettingsmenu}}
+        <div class="region_main_settings_menu_proxy"></div>
+    {{/hasregionmainsettingsmenu}}
+    {{{ output.course_content_header }}}
+    {{#headercontent}}
+        {{> core/activity_header }}
+    {{/headercontent}}
+    
+    {{#overflow}}
+        <div class="container-fluid tertiary-navigation">
+            <div class="navitem">
+                {{> core/url_select}}
+            </div>
+        </div>
+    {{/overflow}}
+    
+    {{^enrollmentpage}}
         {{{ output.main_content }}}
-        {{{ output.course_content_footer }}}
-    </div>
+    {{/enrollmentpage}}
+    
+    <!-- Enrolment page things -->
+    {{#enrollmentpage}}
+    {{>  theme_remui/enrolpageextension}}
+    {{/enrollmentpage}}
+    <!-- Enrolment page things -->
+
+    {{{ output.activity_navigation }}}
+    {{{ output.course_content_footer }}}
+    
 </section>
 
 {{> theme_remui/common_end }}
-{{#js}}
-require(['theme_remui/loader', 'theme_remui/TimeCircles'], function (loader, TimeCircles) {
-    Breakpoints();
-
-    // quiz time circles for timed quizzes
-    jQuery("#quiztimer").TimeCircles({
-        time: {
-            Days: {
-                show: false
-            },
-            Hours: {
-                color: "#3c8dbc"
-            },
-            Minutes: {
-                color: "#00a65a"
-            },
-            Seconds: {
-                color: "#f56954"
-            }
-        },
-        bg_width: 0.9,
-        fg_width: 0.1,
-        circle_bg_color: "#797D82",
-        number_size: 0.24,
-        text_size: 0.11,
-        refresh_interval: 1,
-        animation_interval: "ticks"
-    }).addListener(quizTimeEllapsed);
-
-    // listner for quiz timer
-    function quizTimeEllapsed(unit, value, total) {
-        if (total <= 0) {
-            jQuery(this).fadeOut('medium').replaceWith('<div style="text-align: center; background: rgba(0, 0, 0, 0.13); border-radius: 5px; height: 80px; line-height: 80px; font-size: 18px; color: red;">' + M.util.get_string('timesup', 'quiz') + '</div>');
-        }
-    }
-});
-{{/js}}

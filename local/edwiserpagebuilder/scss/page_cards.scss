@@ -1,0 +1,87 @@
+.page-cards-group {
+    width: 85%;
+    margin: auto;
+    .page-group-category {
+        &__heading {
+            font-size: 18px;
+            padding: 10px 15px;
+            color: #ccc;
+            letter-spacing: 0.3rem;
+            text-decoration: underline;
+            text-underline-offset: 5px;
+        }
+    }
+    .epb-pcard {
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+        
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+
+        &__container {
+            margin-bottom: 3rem;
+        }
+
+        &__img {
+            
+            box-shadow: 0 0.1rem 1rem #7a7878;
+            border-radius: 3px;
+
+            img {
+                width: 100%;
+                padding: 10px;
+            }
+        }
+        &__body {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background: rgba(0,0,0,0.5);
+            opacity: 0;
+
+            transition: opacity 0.5s;
+            color: white;
+        }
+
+        &:hover > .epb-pcard__body {
+            opacity: 1;
+        }
+
+        &__preview {
+            color: white;
+            transform: translate(-50%, -50%);
+            left: 50%;
+            top: 50%;
+            position: absolute;
+            text-align: center;
+
+            .page-name {
+                color: inherit;
+                font-size: 16px;
+                font-weight: 400;
+                letter-spacing: 1px;
+            }
+            .btn-outline-color {
+                color: inherit;
+                font-size: 13px;
+                letter-spacing: 1px;
+                border: 1px solid;
+                font-weight: 400;
+
+                &:hover {
+                    background-color: #62a8ea;
+                    border-color: #62a8ea;
+                }
+            }
+            .btn-delete {
+                color: inherit;
+                &:hover {
+                    color: #62a8ea;
+                }
+            }
+        }
+
+    }
+}

@@ -17,7 +17,7 @@
 /**
  * Send message service
  * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\external;
@@ -30,7 +30,7 @@ use context_system;
 
 /**
  * Send message trait
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 trait send_message {
@@ -55,7 +55,12 @@ trait send_message {
      */
     public static function send_message($studentid, $messagetext) {
         global $USER, $DB, $SITE, $PAGE;
-        $PAGE->set_context(context_system::instance());
+        // $PAGE->set_context(context_system::instance());
+
+        // Validation for context is needed.
+        $context = context_system::instance();
+        self::validate_context($context);
+
         $userfrom = $DB->get_record('user', array('id' => $USER->id), '*', MUST_EXIST);
         $userto = $DB->get_record('user', array('id' => $studentid), '*', MUST_EXIST);
 

@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Course and category management helper class tests.
- *
- * @package    core_course
- * @copyright  2013 Sam Hemelryk
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace core_course;
+
+use core_course_category;
+use core_course_list_element;
+use course_capability_assignment;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -29,11 +27,13 @@ require_once($CFG->dirroot.'/course/lib.php');
 require_once($CFG->dirroot.'/course/tests/fixtures/course_capability_assignment.php');
 
 /**
- * Class core_course_management_helper_test
+ * Course and category management helper class tests.
  *
- * This class tests \core_course\management\helper
+ * @package    core_course
+ * @copyright  2013 Sam Hemelryk
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_course_management_helper_test extends advanced_testcase {
+class management_helper_test extends \advanced_testcase {
 
     /** Category management capability: moodle/category:manage */
     const CATEGORY_MANAGE = 'moodle/category:manage';
@@ -51,7 +51,7 @@ class core_course_management_helper_test extends advanced_testcase {
      * @param $contextid
      * @return array The user object and the role ID
      */
-    protected function get_user_objects(testing_data_generator $generator, $contextid) {
+    protected function get_user_objects(\testing_data_generator $generator, $contextid) {
         global $USER;
 
         if (empty($USER->id)) {
@@ -145,7 +145,7 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::action_category_hide($category);
             $this->fail('Expected exception did not occur when trying to hide a category without permission.');
-        } catch (moodle_exception $ex) {
+        } catch (\moodle_exception $ex) {
             // The category must still be visible.
             $cat = core_course_category::get($category->id);
             $subcat = core_course_category::get($subcategory->id);
@@ -176,7 +176,7 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::action_category_show($category);
             $this->fail('Expected exception did not occur when trying to show a category without permission.');
-        } catch (moodle_exception $ex) {
+        } catch (\moodle_exception $ex) {
             // The category must still be hidden.
             $cat = core_course_category::get($category->id);
             $subcat = core_course_category::get($subcategory->id);
@@ -223,7 +223,7 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::action_category_hide($category);
             $this->fail('Expected exception did not occur when trying to hide a category without permission.');
-        } catch (moodle_exception $ex) {
+        } catch (\moodle_exception $ex) {
             // The category must still be visible.
             $this->assertEquals(1, core_course_category::get($category->id)->visible);
         }
@@ -303,7 +303,7 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::action_category_hide_by_id($category->id);
             $this->fail('Expected exception did not occur when trying to hide a category without permission.');
-        } catch (moodle_exception $ex) {
+        } catch (\moodle_exception $ex) {
             // The category must still be visible.
             $cat = core_course_category::get($category->id);
             $subcat = core_course_category::get($subcategory->id);
@@ -333,7 +333,7 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::action_category_show_by_id($category->id);
             $this->fail('Expected exception did not occur when trying to show a category without permission.');
-        } catch (moodle_exception $ex) {
+        } catch (\moodle_exception $ex) {
             // The category must still be hidden.
             $cat = core_course_category::get($category->id);
             $subcat = core_course_category::get($subcategory->id);
@@ -380,7 +380,7 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::action_category_hide_by_id($category->id);
             $this->fail('Expected exception did not occur when trying to hide a category without permission.');
-        } catch (moodle_exception $ex) {
+        } catch (\moodle_exception $ex) {
             // The category must still be visible.
             $this->assertEquals(1, core_course_category::get($category->id)->visible);
         }
@@ -403,7 +403,7 @@ class core_course_management_helper_test extends advanced_testcase {
         $course3 = $generator->create_course(array('category' => $sub1->id));
         $course4 = $generator->create_course(array('category' => $cat2->id));
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
 
         list($user, $roleid) = $this->get_user_objects($generator, $syscontext->id);
 
@@ -456,7 +456,7 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::action_category_move_courses_into($cat2, $sub2, array($course4->id));
             $this->fail('Moved a course from a category it wasn\'t within');
-        } catch (moodle_exception $exception) {
+        } catch (\moodle_exception $exception) {
             // Check that everything is as it was.
             $this->assertEquals(1, $cat1->get_courses_count());
             $this->assertEquals(0, $cat2->get_courses_count());
@@ -468,7 +468,7 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::action_category_move_courses_into($cat2, $sub2, array($course4->id, $course1->id));
             $this->fail('Moved a course from a category it wasn\'t within');
-        } catch (moodle_exception $exception) {
+        } catch (\moodle_exception $exception) {
             // Check that everything is as it was. Nothing should have been moved.
             $this->assertEquals(1, $cat1->get_courses_count());
             $this->assertEquals(0, $cat2->get_courses_count());
@@ -494,7 +494,7 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::action_category_move_courses_into($sub1, $sub2, array($course2->id));
             $this->fail('Invalid move of course between categories, action can\'t be undone.');
-        } catch (moodle_exception $ex) {
+        } catch (\moodle_exception $ex) {
             $this->assertEquals(get_string('cannotmovecourses', 'error'), $ex->getMessage());
         }
         // Nothing should have changed.
@@ -509,7 +509,7 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::action_category_move_courses_into($sub2, $cat2, array($course4->id));
             $this->fail('Invalid move of course between categories, action can\'t be undone.');
-        } catch (moodle_exception $ex) {
+        } catch (\moodle_exception $ex) {
             $this->assertEquals(get_string('cannotmovecourses', 'error'), $ex->getMessage());
         }
         // Nothing should have changed.
@@ -534,7 +534,7 @@ class core_course_management_helper_test extends advanced_testcase {
         $cat2 = $generator->create_category(array('parent' => $parent->id, 'name' => 'Two'));
         $cat3 = $generator->create_category(array('parent' => $parent->id, 'name' => 'Three'));
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
         list($user, $roleid) = $this->get_user_objects($generator, $syscontext->id);
         course_capability_assignment::allow(self::CATEGORY_MANAGE, $roleid, $syscontext->id);
 
@@ -636,7 +636,7 @@ class core_course_management_helper_test extends advanced_testcase {
         course_capability_assignment::prevent(self::CATEGORY_MANAGE, $roleid, $parent->get_context()->id);
         try {
             \core_course\management\helper::action_category_change_sortorder_up_one($cat1);
-        } catch (moodle_exception $exception) {
+        } catch (\moodle_exception $exception) {
             // Check everything is still where it should be.
             $this->assertEquals(
                 array('Three', 'One', 'Two'),
@@ -645,7 +645,7 @@ class core_course_management_helper_test extends advanced_testcase {
         }
         try {
             \core_course\management\helper::action_category_change_sortorder_down_one($cat3);
-        } catch (moodle_exception $exception) {
+        } catch (\moodle_exception $exception) {
             // Check everything is still where it should be.
             $this->assertEquals(
                 array('Three', 'One', 'Two'),
@@ -671,7 +671,7 @@ class core_course_management_helper_test extends advanced_testcase {
             'shortname' => 'Beginning Jade', 'idnumber' => '10003'));
         $course3 = $generator->create_course(array('category' => $category->id, 'fullname' => 'Advanced algebra',
             'shortname' => 'Advanced algebra', 'idnumber' => '10002'));
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
 
         // Update category object from DB so the course count is correct.
         $category = core_course_category::get($category->id);
@@ -681,14 +681,14 @@ class core_course_management_helper_test extends advanced_testcase {
 
         // Check that sort order in the DB matches what we've got in the cache.
         $courses = $category->get_courses();
-        $this->assertInternalType('array', $courses);
+        $this->assertIsArray($courses);
         $dbcourses = $DB->get_records('course', array('category' => $category->id), 'sortorder');
         $this->assertEquals(array_keys($dbcourses), array_keys($courses));
 
         // Resort by fullname.
         \core_course\management\helper::action_category_resort_courses($category, 'fullname');
         $courses = $category->get_courses();
-        $this->assertInternalType('array', $courses);
+        $this->assertIsArray($courses);
         $this->assertEquals(array($course3->id, $course1->id, $course2->id), array_keys($courses));
         $dbcourses = $DB->get_records('course', array('category' => $category->id), 'sortorder');
         $this->assertEquals(array_keys($dbcourses), array_keys($courses));
@@ -696,7 +696,7 @@ class core_course_management_helper_test extends advanced_testcase {
         // Resort by shortname.
         \core_course\management\helper::action_category_resort_courses($category, 'shortname');
         $courses = $category->get_courses();
-        $this->assertInternalType('array', $courses);
+        $this->assertIsArray($courses);
         $this->assertEquals(array($course3->id, $course2->id, $course1->id), array_keys($courses));
         $dbcourses = $DB->get_records('course', array('category' => $category->id), 'sortorder');
         $this->assertEquals(array_keys($dbcourses), array_keys($courses));
@@ -704,7 +704,7 @@ class core_course_management_helper_test extends advanced_testcase {
         // Resort by idnumber.
         \core_course\management\helper::action_category_resort_courses($category, 'idnumber');
         $courses = $category->get_courses();
-        $this->assertInternalType('array', $courses);
+        $this->assertIsArray($courses);
         $this->assertEquals(array($course1->id, $course3->id, $course2->id), array_keys($courses));
         $dbcourses = $DB->get_records('course', array('category' => $category->id), 'sortorder');
         $this->assertEquals(array_keys($dbcourses), array_keys($courses));
@@ -713,10 +713,10 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::action_category_resort_courses($category, 'category');
             $this->fail('Category courses resorted by invalid sort field.');
-        } catch (coding_exception $exception) {
+        } catch (\coding_exception $exception) {
             // Test things are as they were before.
             $courses = $category->get_courses();
-            $this->assertInternalType('array', $courses);
+            $this->assertIsArray($courses);
             $this->assertEquals(array($course1->id, $course3->id, $course2->id), array_keys($courses));
             $dbcourses = $DB->get_records('course', array('category' => $category->id), 'sortorder');
             $this->assertEquals(array_keys($dbcourses), array_keys($courses));
@@ -726,10 +726,10 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::action_category_resort_courses($category, 'monkeys');
             $this->fail('Category courses resorted by completely ridiculous field.');
-        } catch (coding_exception $exception) {
+        } catch (\coding_exception $exception) {
             // Test things are as they were before.
             $courses = $category->get_courses();
-            $this->assertInternalType('array', $courses);
+            $this->assertIsArray($courses);
             $this->assertEquals(array($course1->id, $course3->id, $course2->id), array_keys($courses));
             $dbcourses = $DB->get_records('course', array('category' => $category->id), 'sortorder');
             $this->assertEquals(array_keys($dbcourses), array_keys($courses));
@@ -744,12 +744,12 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::action_category_resort_courses($category, 'shortname');
             $this->fail('Courses sorted without having the required permission.');
-        } catch (moodle_exception $exception) {
+        } catch (\moodle_exception $exception) {
             // Check its the right exception.
             $this->assertEquals('core_course_category::can_resort', $exception->debuginfo);
             // Test things are as they were before.
             $courses = $category->get_courses();
-            $this->assertInternalType('array', $courses);
+            $this->assertIsArray($courses);
             $this->assertEquals(array($course1->id, $course3->id, $course2->id), array_keys($courses));
             $dbcourses = $DB->get_records('course', array('category' => $category->id), 'sortorder');
             $this->assertEquals(array_keys($dbcourses), array_keys($courses));
@@ -771,19 +771,19 @@ class core_course_management_helper_test extends advanced_testcase {
         $cat2 = $generator->create_category(array('parent' => $parent->id, 'name' => 'School of Commerce', 'idnumber' => '10003'));
         $cat3 = $generator->create_category(array('parent' => $parent->id, 'name' => 'School of Arts', 'idnumber' => '10002'));
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
         list($user, $roleid) = $this->get_user_objects($generator, $syscontext->id);
         $caps = course_capability_assignment::allow(self::CATEGORY_MANAGE, $roleid, $syscontext->id);
 
         $categories = $parent->get_children();
-        $this->assertInternalType('array', $categories);
+        $this->assertIsArray($categories);
         $dbcategories = $DB->get_records('course_categories', array('parent' => $parent->id), 'sortorder');
         $this->assertEquals(array_keys($dbcategories), array_keys($categories));
 
         // Test sorting by name.
         \core_course\management\helper::action_category_resort_subcategories($parent, 'name');
         $categories = $parent->get_children();
-        $this->assertInternalType('array', $categories);
+        $this->assertIsArray($categories);
         $this->assertEquals(array($cat3->id, $cat2->id, $cat1->id), array_keys($categories));
         $dbcategories = $DB->get_records('course_categories', array('parent' => $parent->id), 'sortorder');
         $this->assertEquals(array_keys($dbcategories), array_keys($categories));
@@ -791,7 +791,7 @@ class core_course_management_helper_test extends advanced_testcase {
         // Test sorting by idnumber.
         \core_course\management\helper::action_category_resort_subcategories($parent, 'idnumber');
         $categories = $parent->get_children();
-        $this->assertInternalType('array', $categories);
+        $this->assertIsArray($categories);
         $this->assertEquals(array($cat1->id, $cat3->id, $cat2->id), array_keys($categories));
         $dbcategories = $DB->get_records('course_categories', array('parent' => $parent->id), 'sortorder');
         $this->assertEquals(array_keys($dbcategories), array_keys($categories));
@@ -800,10 +800,10 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::action_category_resort_subcategories($parent, 'summary');
             $this->fail('Categories resorted by invalid field.');
-        } catch (coding_exception $exception) {
+        } catch (\coding_exception $exception) {
             // Check that nothing was changed.
             $categories = $parent->get_children();
-            $this->assertInternalType('array', $categories);
+            $this->assertIsArray($categories);
             $this->assertEquals(array($cat1->id, $cat3->id, $cat2->id), array_keys($categories));
             $dbcategories = $DB->get_records('course_categories', array('parent' => $parent->id), 'sortorder');
             $this->assertEquals(array_keys($dbcategories), array_keys($categories));
@@ -813,10 +813,10 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::action_category_resort_subcategories($parent, 'monkeys');
             $this->fail('Categories resorted by completely bogus field.');
-        } catch (coding_exception $exception) {
+        } catch (\coding_exception $exception) {
             // Check that nothing was changed.
             $categories = $parent->get_children();
-            $this->assertInternalType('array', $categories);
+            $this->assertIsArray($categories);
             $this->assertEquals(array($cat1->id, $cat3->id, $cat2->id), array_keys($categories));
             $dbcategories = $DB->get_records('course_categories', array('parent' => $parent->id), 'sortorder');
             $this->assertEquals(array_keys($dbcategories), array_keys($categories));
@@ -826,7 +826,7 @@ class core_course_management_helper_test extends advanced_testcase {
         $topcat = core_course_category::get(0);
         \core_course\management\helper::action_category_resort_subcategories($topcat, 'name');
         $categories = $topcat->get_children();
-        $this->assertInternalType('array', $categories);
+        $this->assertIsArray($categories);
         $dbcategories = $DB->get_records('course_categories', array('parent' => '0'), 'sortorder');
         $this->assertEquals(array_keys($dbcategories), array_keys($categories));
 
@@ -839,12 +839,12 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::action_category_resort_subcategories($parent, 'idnumber');
             $this->fail('Categories sorted without having the required permission.');
-        } catch (moodle_exception $exception) {
+        } catch (\moodle_exception $exception) {
             // Check its the right exception.
             $this->assertEquals('core_course_category::can_resort', $exception->debuginfo);
             // Test things are as they were before.
             $categories = $parent->get_children();
-            $this->assertInternalType('array', $categories);
+            $this->assertIsArray($categories);
             $this->assertEquals(array($cat1->id, $cat3->id, $cat2->id), array_keys($categories));
             $dbcategories = $DB->get_records('course_categories', array('parent' => $parent->id), 'sortorder');
             $this->assertEquals(array_keys($dbcategories), array_keys($categories));
@@ -864,7 +864,7 @@ class core_course_management_helper_test extends advanced_testcase {
         $category = $generator->create_category();
         $course = $generator->create_course();
 
-        $coursecontext = context_course::instance($course->id);
+        $coursecontext = \context_course::instance($course->id);
 
         list($user, $roleid) = $this->get_user_objects($generator, $coursecontext->id);
         $caps = array(self::COURSE_VIEW, self::COURSE_VIEWHIDDEN);
@@ -910,7 +910,7 @@ class core_course_management_helper_test extends advanced_testcase {
 
         try {
             \core_course\management\helper::action_course_show($course);
-        } catch (moodle_exception $exception) {
+        } catch (\moodle_exception $exception) {
             $this->assertEquals('core_course_list_element::can_change_visbility', $exception->debuginfo);
         }
     }
@@ -928,7 +928,7 @@ class core_course_management_helper_test extends advanced_testcase {
         $category = $generator->create_category();
         $course = $generator->create_course();
 
-        $coursecontext = context_course::instance($course->id);
+        $coursecontext = \context_course::instance($course->id);
 
         list($user, $roleid) = $this->get_user_objects($generator, $coursecontext->id);
         $caps = array(self::COURSE_VIEW, self::COURSE_VIEWHIDDEN);
@@ -974,7 +974,7 @@ class core_course_management_helper_test extends advanced_testcase {
 
         try {
             \core_course\management\helper::action_course_show_by_record($course);
-        } catch (moodle_exception $exception) {
+        } catch (\moodle_exception $exception) {
             $this->assertEquals('core_course_list_element::can_change_visbility', $exception->debuginfo);
         }
     }
@@ -1001,7 +1001,7 @@ class core_course_management_helper_test extends advanced_testcase {
         $caps = course_capability_assignment::allow(self::CATEGORY_MANAGE, $roleid, $context->id);
 
         $courses = $category->get_courses();
-        $this->assertInternalType('array', $courses);
+        $this->assertIsArray($courses);
         $this->assertEquals(array($course1->id, $course2->id, $course3->id), array_keys($courses));
         $dbcourses = $DB->get_records('course', array('category' => $category->id), 'sortorder', 'id');
         $this->assertEquals(array_keys($dbcourses), array_keys($courses));
@@ -1012,7 +1012,7 @@ class core_course_management_helper_test extends advanced_testcase {
                 new core_course_list_element(get_course($course1->id)), $category)
         );
         $courses = $category->get_courses();
-        $this->assertInternalType('array', $courses);
+        $this->assertIsArray($courses);
         $this->assertEquals(array($course2->id, $course1->id, $course3->id), array_keys($courses));
         $dbcourses = $DB->get_records('course', array('category' => $category->id), 'sortorder', 'id');
         $this->assertEquals(array_keys($dbcourses), array_keys($courses));
@@ -1023,7 +1023,7 @@ class core_course_management_helper_test extends advanced_testcase {
                 new core_course_list_element(get_course($course3->id)), $category)
         );
         $courses = $category->get_courses();
-        $this->assertInternalType('array', $courses);
+        $this->assertIsArray($courses);
         $this->assertEquals(array($course2->id, $course3->id, $course1->id), array_keys($courses));
         $dbcourses = $DB->get_records('course', array('category' => $category->id), 'sortorder', 'id');
         $this->assertEquals(array_keys($dbcourses), array_keys($courses));
@@ -1033,7 +1033,7 @@ class core_course_management_helper_test extends advanced_testcase {
             \core_course\management\helper::action_course_change_sortorder_down_one_by_record(get_course($course2->id), $category)
         );
         $courses = $category->get_courses();
-        $this->assertInternalType('array', $courses);
+        $this->assertIsArray($courses);
         $this->assertEquals(array($course3->id, $course2->id, $course1->id), array_keys($courses));
         $dbcourses = $DB->get_records('course', array('category' => $category->id), 'sortorder', 'id');
         $this->assertEquals(array_keys($dbcourses), array_keys($courses));
@@ -1043,7 +1043,7 @@ class core_course_management_helper_test extends advanced_testcase {
             \core_course\management\helper::action_course_change_sortorder_up_one_by_record(get_course($course2->id), $category)
         );
         $courses = $category->get_courses();
-        $this->assertInternalType('array', $courses);
+        $this->assertIsArray($courses);
         $this->assertEquals(array($course2->id, $course3->id, $course1->id), array_keys($courses));
         $dbcourses = $DB->get_records('course', array('category' => $category->id), 'sortorder', 'id');
         $this->assertEquals(array_keys($dbcourses), array_keys($courses));
@@ -1054,7 +1054,7 @@ class core_course_management_helper_test extends advanced_testcase {
                 new core_course_list_element(get_course($course1->id)), $category)
         );
         $courses = $category->get_courses();
-        $this->assertInternalType('array', $courses);
+        $this->assertIsArray($courses);
         $this->assertEquals(array($course2->id, $course3->id, $course1->id), array_keys($courses));
         $dbcourses = $DB->get_records('course', array('category' => $category->id), 'sortorder', 'id');
         $this->assertEquals(array_keys($dbcourses), array_keys($courses));
@@ -1065,7 +1065,7 @@ class core_course_management_helper_test extends advanced_testcase {
                 new core_course_list_element(get_course($course2->id)), $category)
         );
         $courses = $category->get_courses();
-        $this->assertInternalType('array', $courses);
+        $this->assertIsArray($courses);
         $this->assertEquals(array($course2->id, $course3->id, $course1->id), array_keys($courses));
         $dbcourses = $DB->get_records('course', array('category' => $category->id), 'sortorder', 'id');
         $this->assertEquals(array_keys($dbcourses), array_keys($courses));
@@ -1079,10 +1079,10 @@ class core_course_management_helper_test extends advanced_testcase {
             \core_course\management\helper::action_course_change_sortorder_down_one(
                 new core_course_list_element(get_course($course2->id)), $category);
             $this->fail('Course moved without having the required permissions.');
-        } catch (moodle_exception $exception) {
+        } catch (\moodle_exception $exception) {
             // Check nothing has changed.
             $courses = $category->get_courses();
-            $this->assertInternalType('array', $courses);
+            $this->assertIsArray($courses);
             $this->assertEquals(array($course2->id, $course3->id, $course1->id), array_keys($courses));
             $dbcourses = $DB->get_records('course', array('category' => $category->id), 'sortorder', 'id');
             $this->assertEquals(array_keys($dbcourses), array_keys($courses));
@@ -1096,11 +1096,11 @@ class core_course_management_helper_test extends advanced_testcase {
         global $PAGE;
         $this->resetAfterTest(true);
 
-        $PAGE->set_url(new moodle_url('/course/management.php'));
+        $PAGE->set_url(new \moodle_url('/course/management.php'));
 
         $generator = $this->getDataGenerator();
         $category = $generator->create_category();
-        $context = context_system::instance();
+        $context = \context_system::instance();
         list($user, $roleid) = $this->get_user_objects($generator, $context->id);
         course_capability_assignment::allow(array(
             self::CATEGORY_MANAGE,
@@ -1111,14 +1111,13 @@ class core_course_management_helper_test extends advanced_testcase {
         ), $roleid, $context->id);
 
         $actions = \core_course\management\helper::get_category_listitem_actions($category);
-        $this->assertInternalType('array', $actions);
+        $this->assertIsArray($actions);
         $this->assertArrayHasKey('edit', $actions);
         $this->assertArrayHasKey('hide', $actions);
         $this->assertArrayHasKey('show', $actions);
         $this->assertArrayHasKey('moveup', $actions);
         $this->assertArrayHasKey('movedown', $actions);
         $this->assertArrayHasKey('delete', $actions);
-        $this->assertArrayHasKey('assignroles', $actions);
         $this->assertArrayHasKey('permissions', $actions);
         $this->assertArrayHasKey('cohorts', $actions);
         $this->assertArrayHasKey('filters', $actions);
@@ -1133,7 +1132,7 @@ class core_course_management_helper_test extends advanced_testcase {
         $generator = $this->getDataGenerator();
         $category = $generator->create_category();
         $course = $generator->create_course();
-        $context = context_system::instance();
+        $context = \context_system::instance();
         list($user, $roleid) = $this->get_user_objects($generator, $context->id);
         $generator->enrol_user($user->id, $course->id, $roleid);
         course_capability_assignment::allow(array(
@@ -1147,7 +1146,7 @@ class core_course_management_helper_test extends advanced_testcase {
         ), $roleid, $context->id);
 
         $actions = \core_course\management\helper::get_course_detail_actions(new core_course_list_element($course));
-        $this->assertInternalType('array', $actions);
+        $this->assertIsArray($actions);
         $this->assertArrayHasKey('view', $actions);
         $this->assertArrayHasKey('edit', $actions);
         $this->assertArrayHasKey('enrolledusers', $actions);
@@ -1166,7 +1165,7 @@ class core_course_management_helper_test extends advanced_testcase {
         $generator = $this->getDataGenerator();
         $category = $generator->create_category();
         $course = $generator->create_course();
-        $context = context_system::instance();
+        $context = \context_system::instance();
         list($user, $roleid) = $this->get_user_objects($generator, $context->id);
         $generator->enrol_user($user->id, $course->id, $roleid);
         course_capability_assignment::allow(array(
@@ -1181,7 +1180,7 @@ class core_course_management_helper_test extends advanced_testcase {
         ), $roleid, $context->id);
 
         $details = \core_course\management\helper::get_course_detail_array(new core_course_list_element($course));
-        $this->assertInternalType('array', $details);
+        $this->assertIsArray($details);
         $this->assertArrayHasKey('format', $details);
         $this->assertArrayHasKey('fullname', $details);
         $this->assertArrayHasKey('shortname', $details);
@@ -1209,7 +1208,7 @@ class core_course_management_helper_test extends advanced_testcase {
         $course3 = $generator->create_course(array('category' => $sub1->id));
         $course4 = $generator->create_course(array('category' => $cat2->id));
 
-        $syscontext = context_system::instance();
+        $syscontext = \context_system::instance();
 
         list($user, $roleid) = $this->get_user_objects($generator, $syscontext->id);
 
@@ -1276,7 +1275,7 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::move_courses_into_category($sub2->id, array($course2->id));
             $this->fail('Invalid move of course between categories, action can\'t be undone.');
-        } catch (moodle_exception $ex) {
+        } catch (\moodle_exception $ex) {
             $this->assertEquals(get_string('cannotmovecourses', 'error'), $ex->getMessage());
         }
         // Nothing should have changed.
@@ -1291,7 +1290,7 @@ class core_course_management_helper_test extends advanced_testcase {
         try {
             \core_course\management\helper::move_courses_into_category($cat2->id, array($course4->id));
             $this->fail('Invalid move of course between categories, action can\'t be undone.');
-        } catch (moodle_exception $ex) {
+        } catch (\moodle_exception $ex) {
             $this->assertEquals(get_string('cannotmovecourses', 'error'), $ex->getMessage());
         }
         // Nothing should have changed.

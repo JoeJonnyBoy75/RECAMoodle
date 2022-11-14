@@ -33,6 +33,7 @@ require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
  *
  * @copyright 2009 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers \qtype_multichoice_multi_question
  */
 class qtype_multichoice_multi_question_test extends advanced_testcase {
 
@@ -116,9 +117,9 @@ class qtype_multichoice_multi_question_test extends advanced_testcase {
 
         $qsummary = $mc->get_question_summary();
 
-        $this->assertRegExp('/' . preg_quote($mc->questiontext, '/') . '/', $qsummary);
+        $this->assertMatchesRegularExpression('/' . preg_quote($mc->questiontext, '/') . '/', $qsummary);
         foreach ($mc->answers as $answer) {
-            $this->assertRegExp('/' . preg_quote($answer->answer, '/') . '/', $qsummary);
+            $this->assertMatchesRegularExpression('/' . preg_quote($answer->answer, '/') . '/', $qsummary);
         }
     }
 
@@ -127,8 +128,7 @@ class qtype_multichoice_multi_question_test extends advanced_testcase {
         $mc->shuffleanswers = false;
         $mc->start_attempt(new question_attempt_step(), 1);
 
-        $summary = $mc->summarise_response($mc->prepare_simulated_post_data(array('B' => 1, 'C' => 1)),
-                test_question_maker::get_a_qa($mc));
+        $summary = $mc->summarise_response($mc->prepare_simulated_post_data(['B' => 1, 'C' => 1]));
 
         $this->assertEquals('B; C', $summary);
     }
@@ -138,10 +138,19 @@ class qtype_multichoice_multi_question_test extends advanced_testcase {
         $mc->shuffleanswers = false;
         $mc->start_attempt(new question_attempt_step(), 1);
 
-        $summary = $mc->summarise_response($mc->prepare_simulated_post_data(array('clearchoice' => -1)),
-            test_question_maker::get_a_qa($mc));
+        $summary = $mc->summarise_response($mc->prepare_simulated_post_data(['clearchoice' => -1]));
 
         $this->assertNull($summary);
+    }
+
+    public function test_un_summarise_response() {
+        $mc = test_question_maker::make_a_multichoice_multi_question();
+        $mc->shuffleanswers = false;
+        $mc->start_attempt(new question_attempt_step(), 1);
+
+        $this->assertEquals(['choice1' => '1', 'choice2' => '1'], $mc->un_summarise_response('B; C'));
+
+        $this->assertEquals([], $mc->un_summarise_response(''));
     }
 
     public function test_classify_response() {
@@ -171,8 +180,23 @@ class qtype_multichoice_multi_question_test extends advanced_testcase {
         foreach ($correctanswers as $correctanswer) {
             $postdata = $mc->prepare_simulated_post_data($correctanswer);
             $simulatedreponse = $mc->get_student_response_values_for_simulation($postdata);
-            $this->assertEquals($correctanswer, $simulatedreponse, '', 0, 10, true);
+            $this->assertEqualsCanonicalizing($correctanswer, $simulatedreponse);
         }
     }
 
+    /**
+     * test_get_question_definition_for_external_rendering
+     */
+    public function test_get_question_definition_for_external_rendering() {
+        $question = test_question_maker::make_a_multichoice_multi_question();
+        $question->start_attempt(new question_attempt_step(), 1);
+        $qa = test_question_maker::get_a_qa($question);
+        $displayoptions = new question_display_options();
+
+        $options = $question->get_question_definition_for_external_rendering($qa, $displayoptions);
+        $this->assertEquals(1, $options['shuffleanswers']);
+        $this->assertEquals('abc', $options['answernumbering']);
+        $this->assertEquals(0, $options['showstandardinstruction']);
+        $this->assertEquals(1, $options['shuffleanswers']);
+    }
 }

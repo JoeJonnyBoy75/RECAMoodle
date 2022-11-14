@@ -25,5 +25,5 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'customfield_select';
-$plugin->version   = 2020061500;
-$plugin->requires  = 2020060900;
+$plugin->version   = 2022041900;
+$plugin->requires  = 2022041200;

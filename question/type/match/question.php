@@ -107,6 +107,46 @@ class qtype_match_question extends question_graded_automatically_with_countback 
         }
     }
 
+    public function validate_can_regrade_with_other_version(question_definition $otherversion): ?string {
+        $basemessage = parent::validate_can_regrade_with_other_version($otherversion);
+        if ($basemessage) {
+            return $basemessage;
+        }
+
+        if (count($this->stems) != count($otherversion->stems)) {
+            return get_string('regradeissuenumstemschanged', 'qtype_match');
+        }
+
+        if (count($this->choices) != count($otherversion->choices)) {
+            return get_string('regradeissuenumchoiceschanged', 'qtype_match');
+        }
+
+        return null;
+    }
+
+    public function update_attempt_state_data_for_new_version(
+            question_attempt_step $oldstep, question_definition $otherversion) {
+        parent::update_attempt_state_data_for_new_version($oldstep, $otherversion);
+
+        // Process stems.
+        $mapping = array_combine(array_keys($otherversion->stems), array_keys($this->stems));
+        $oldstemorder = explode(',', $oldstep->get_qt_var('_stemorder'));
+        $newstemorder = [];
+        foreach ($oldstemorder as $oldid) {
+            $newstemorder[] = $mapping[$oldid] ?? $oldid;
+        }
+
+        // Process choices.
+        $mapping = array_combine(array_keys($otherversion->choices), array_keys($this->choices));
+        $oldchoiceorder = explode(',', $oldstep->get_qt_var('_choiceorder'));
+        $newchoiceorder = [];
+        foreach ($oldchoiceorder as $oldid) {
+            $newchoiceorder[] = $mapping[$oldid] ?? $oldid;
+        }
+
+        return ['_stemorder' => implode(',', $newstemorder), '_choiceorder' => implode(',', $newchoiceorder)];
+    }
+
     public function get_question_summary() {
         $question = $this->html_to_text($this->questiontext, $this->questiontextformat);
         $stems = array();
@@ -353,5 +393,22 @@ class qtype_match_question extends question_graded_automatically_with_countback 
             return parent::check_file_access($qa, $options, $component, $filearea,
                     $args, $forcedownload);
         }
+    }
+
+    /**
+     * Return the question settings that define this question as structured data.
+     *
+     * @param question_attempt $qa the current attempt for which we are exporting the settings.
+     * @param question_display_options $options the question display options which say which aspects of the question
+     * should be visible.
+     * @return mixed structure representing the question settings. In web services, this will be JSON-encoded.
+     */
+    public function get_question_definition_for_external_rendering(question_attempt $qa, question_display_options $options) {
+        // This is a partial implementation, returning only the most relevant question settings for now,
+        // ideally, we should return as much as settings as possible (depending on the state and display options).
+
+        return [
+            'shufflestems' => $this->shufflestems,
+        ];
     }
 }

@@ -68,6 +68,18 @@ class admin_uploaduser_form1 extends moodleform {
 
         $this->add_action_buttons(false, get_string('uploadusers', 'tool_uploaduser'));
     }
+
+    /**
+     * Returns list of elements and their default values, to be used in CLI
+     *
+     * @return array
+     */
+    public function get_form_for_cli() {
+        $elements = array_filter($this->_form->_elements, function($element) {
+            return !in_array($element->getName(), ['buttonar', 'userfile', 'previewrows']);
+        });
+        return [$elements, $this->_form->_defaultValues];
+    }
 }
 
 
@@ -135,6 +147,11 @@ class admin_uploaduser_form2 extends moodleform {
 
         $mform->addElement('selectyesno', 'uuallowdeletes', get_string('allowdeletes', 'tool_uploaduser'));
         $mform->setDefault('uuallowdeletes', 0);
+        // Ensure user is able to perform user deletion.
+        if (!has_capability('moodle/user:delete', context_system::instance())) {
+            $mform->hardFreeze('uuallowdeletes');
+            $mform->setConstant('uuallowdeletes', 0);
+        }
         $mform->hideIf('uuallowdeletes', 'uutype', 'eq', UU_USER_ADDNEW);
         $mform->hideIf('uuallowdeletes', 'uutype', 'eq', UU_USER_ADDINC);
 
@@ -288,12 +305,8 @@ class admin_uploaduser_form2 extends moodleform {
         $mform->addHelpButton('description', 'userdescription');
         $mform->setAdvanced('description');
 
-        $mform->addElement('text', 'url', get_string('webpage'), 'maxlength="255" size="50"');
-        $mform->setType('url', PARAM_URL);
-        $mform->setAdvanced('url');
-
         $mform->addElement('text', 'idnumber', get_string('idnumber'), 'maxlength="255" size="25"');
-        $mform->setType('idnumber', PARAM_NOTAGS);
+        $mform->setType('idnumber', core_user::get_property_type('idnumber'));
         $mform->setForceLtr('idnumber');
 
         $mform->addElement('text', 'institution', get_string('institution'), 'maxlength="255" size="25"');
@@ -433,5 +446,26 @@ class admin_uploaduser_form2 extends moodleform {
         }
 
         return $data;
+    }
+
+    /**
+     * Returns list of elements and their default values, to be used in CLI
+     *
+     * @return array
+     */
+    public function get_form_for_cli() {
+        $elements = array_filter($this->_form->_elements, function($element) {
+            return !in_array($element->getName(), ['buttonar', 'uubulk']);
+        });
+        return [$elements, $this->_form->_defaultValues];
+    }
+
+    /**
+     * Returns validation errors (used in CLI)
+     *
+     * @return array
+     */
+    public function get_validation_errors(): array {
+        return $this->_form->_errors;
     }
 }

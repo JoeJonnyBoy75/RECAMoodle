@@ -1,0 +1,21 @@
+.edwisersiteimporter-preview-frame a,
+.edwisersiteimporter-preview-frame button,
+.edwisersiteimporter-preview-frame #toggleFullscreen,
+.edwisersiteimporter-preview-frame [data-action="toggle-drawer"],
+.edwisersiteimporter-preview-frame [data-region="popover-region-toggle"] {
+    pointer-events: none;
+}
+
+.edwisersiteimporter-preview-frame .navarrows,
+.edwisersiteimporter-preview-frame .carousel-control {
+    pointer-events: all;
+}
+
+.edwisersiteimporter-preview-frame .default-sections,
+.edwisersiteimporter-preview-frame #page-footer,
+.edwisersiteimporter-preview-frame section.page-aside,
+.edwisersiteimporter-preview-frame .editing-alert,
+.edwisersiteimporter-preview-frame .edit-menu,
+.edwisersiteimporter-preview-frame #nav-drawer {
+    display: none !important;
+}

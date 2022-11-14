@@ -14,13 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Tests for cache.
- *
- * @package    tool_usertours
- * @copyright  2016 Andrew Nicols <andrew@nicols.co.uk>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace tool_usertours;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -34,9 +28,9 @@ require_once(__DIR__ . '/helper_trait.php');
  * @copyright  2016 Andrew Nicols <andrew@nicols.co.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class cache_testcase extends advanced_testcase {
+class cache_test extends \advanced_testcase {
     // There are shared helpers for these tests in the helper trait.
-    use tool_usertours_helper_trait;
+    use \tool_usertours_helper_trait;
 
     /**
      * Test that get_enabled_tourdata does not return disabled tours.
@@ -199,7 +193,7 @@ class cache_testcase extends advanced_testcase {
             $this->helper_create_step((object) ['tourid' => $tour->get_id()]);
         }
 
-        $matches = \tool_usertours\cache::get_matching_tourdata(new moodle_url($targetmatch));
+        $matches = \tool_usertours\cache::get_matching_tourdata(new \moodle_url($targetmatch));
         $this->assertCount(count($expected), $matches);
 
         for ($i = 0; $i < count($matches); $i++) {
@@ -248,7 +242,7 @@ class cache_testcase extends advanced_testcase {
         $tour = $this->helper_create_tour((object)['enabled' => false]);
 
         $data = \tool_usertours\cache::get_stepdata($tour->get_id());
-        $this->assertInternalType('array', $data);
+        $this->assertIsArray($data);
         $this->assertEmpty($data);
     }
 
@@ -265,11 +259,11 @@ class cache_testcase extends advanced_testcase {
         $tour2 = $this->helper_create_tour((object)['enabled' => false]);
 
         $data = \tool_usertours\cache::get_stepdata($tour1->get_id());
-        $this->assertInternalType('array', $data);
+        $this->assertIsArray($data);
         $this->assertCount(3, $data);
 
         $data = \tool_usertours\cache::get_stepdata($tour2->get_id());
-        $this->assertInternalType('array', $data);
+        $this->assertIsArray($data);
         $this->assertEmpty($data);
     }
 
@@ -292,7 +286,7 @@ class cache_testcase extends advanced_testcase {
         $steps[0]->set_sortorder(10)->persist();
 
         $data = \tool_usertours\cache::get_stepdata($tour->get_id());
-        $this->assertInternalType('array', $data);
+        $this->assertIsArray($data);
         $this->assertCount(4, $data);
 
         // Re-order the steps.

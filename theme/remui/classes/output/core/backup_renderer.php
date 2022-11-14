@@ -16,7 +16,7 @@
 
 /**
  * Renderer for remui theme
- * @copyright  (c) 2020 WisdmLabs (https://wisdmlabs.com/)
+ * @copyright  (c) 2022 WisdmLabs (https://wisdmlabs.com/)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\output\core;

@@ -99,11 +99,15 @@ class core_component {
         'MatthiasMullie\\Minify' => 'lib/minify/matthiasmullie-minify/src/',
         'MatthiasMullie\\PathConverter' => 'lib/minify/matthiasmullie-pathconverter/src/',
         'IMSGlobal\LTI' => 'lib/ltiprovider/src',
+        'Packback\\Lti1p3' => 'lib/lti1p3/src',
         'Phpml' => 'lib/mlbackend/php/phpml/src/Phpml',
         'PHPMailer\\PHPMailer' => 'lib/phpmailer/src',
         'RedeyeVentures\\GeoPattern' => 'lib/geopattern-php/GeoPattern',
         'MongoDB' => 'cache/stores/mongodb/MongoDB',
         'Firebase\\JWT' => 'lib/php-jwt/src',
+        'ZipStream' => 'lib/zipstream/src/',
+        'MyCLabs\\Enum' => 'lib/php-enum/src',
+        'Psr\\Http\\Message' => 'lib/http-message/src',
     );
 
     /**
@@ -440,7 +444,7 @@ $cache = '.var_export($cache, true).';
                     $path = $CFG->admin;
                 }
                 if (strpos($path, 'admin/') === 0) {
-                    $path = $CFG->admin . substr($path, 0, 5);
+                    $path = $CFG->admin . substr($path, 5);
                 }
             }
 
@@ -461,7 +465,7 @@ $cache = '.var_export($cache, true).';
         foreach (self::fetch_component_source('plugintypes') as $plugintype => $path) {
             // Replace admin/ with the config setting.
             if ($CFG->admin !== 'admin' && strpos($path, 'admin/') === 0) {
-                $path = $CFG->admin . substr($path, 0, 5);
+                $path = $CFG->admin . substr($path, 5);
             }
             $types[$plugintype] = "{$CFG->dirroot}/{$path}";
         }
@@ -730,7 +734,7 @@ $cache = '.var_export($cache, true).';
     /**
      * List all core subsystems and their location
      *
-     * This is a whitelist of components that are part of the core and their
+     * This is a list of components that are part of the core and their
      * language strings are defined in /lang/en/<<subsystem>>.php. If a given
      * plugin is not listed here and it does not have proper plugintype prefix,
      * then it is considered as course activity module.
@@ -1199,9 +1203,13 @@ $cache = '.var_export($cache, true).';
      * and the value is the new class name.
      * It is only included when we are populating the component cache. After that is not needed.
      *
-     * @param string $fulldir
+     * @param string|null $fulldir The directory to the renamed classes.
      */
-    protected static function load_renamed_classes($fulldir) {
+    protected static function load_renamed_classes(?string $fulldir) {
+        if (is_null($fulldir)) {
+            return;
+        }
+
         $file = $fulldir . '/db/renamedclasses.php';
         if (is_readable($file)) {
             $renamedclasses = null;

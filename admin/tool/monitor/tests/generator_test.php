@@ -14,16 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * PHPUnit data generator tests.
- *
- * @package    tool_monitor
- * @category   test
- * @copyright  2014 onwards Simey Lameze <simey@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-defined('MOODLE_INTERNAL') || die();
+namespace tool_monitor;
 
 /**
  * PHPUnit data generator test case.
@@ -34,12 +25,12 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2014 onwards Simey Lameze <simey@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class tool_monitor_generator_testcase extends advanced_testcase {
+class generator_test extends \advanced_testcase {
 
     /**
      * Set up method.
      */
-    public function setUp() {
+    public function setUp(): void {
         // Enable monitor.
         set_config('enablemonitor', 1, 'tool_monitor');
     }
@@ -55,7 +46,7 @@ class tool_monitor_generator_testcase extends advanced_testcase {
 
         $rulegenerator = $this->getDataGenerator()->get_plugin_generator('tool_monitor');
 
-        $record = new stdClass();
+        $record = new \stdClass();
         $record->courseid = $course->id;
         $record->userid = $user->id;
 
@@ -77,7 +68,7 @@ class tool_monitor_generator_testcase extends advanced_testcase {
         $monitorgenerator = $this->getDataGenerator()->get_plugin_generator('tool_monitor');
         $rule = $monitorgenerator->create_rule();
 
-        $record = new stdClass();
+        $record = new \stdClass();
         $record->courseid = $course->id;
         $record->userid = $user->id;
         $record->ruleid = $rule->id;

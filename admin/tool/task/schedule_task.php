@@ -47,22 +47,32 @@ $taskname = required_param('task', PARAM_RAW_TRIMMED);
 require_admin();
 $context = context_system::instance();
 
-if (!get_config('tool_task', 'enablerunnow')) {
-    print_error('nopermissions', 'error', '', get_string('runnow', 'tool_task'));
-}
-
 // Check input parameter against all existing tasks (this ensures it isn't possible to
 // create some kind of security problem by specifying a class that isn't a task or whatever).
 $task = \core\task\manager::get_scheduled_task($taskname);
 if (!$task) {
-    print_error('cannotfindinfo', 'error', $taskname);
+    throw new moodle_exception('cannotfindinfo', 'error', new moodle_url('/admin/tool/task/scheduledtasks.php'), $taskname);
+}
+
+if (!\core\task\manager::is_runnable()) {
+    $redirecturl = new \moodle_url('/admin/settings.php', ['section' => 'systempaths']);
+    throw new moodle_exception('cannotfindthepathtothecli', 'tool_task', $redirecturl->out());
+}
+
+if (!get_config('tool_task', 'enablerunnow') || !$task->can_run()) {
+    throw new moodle_exception('nopermissions', 'error', new moodle_url('/admin/tool/task/scheduledtasks.php'),
+        get_string('runnow', 'tool_task'), $task->get_name());
 }
 
 // Start output.
-$PAGE->set_url(new moodle_url('/admin/tool/task/schedule_task.php'));
+$PAGE->set_url(new moodle_url('/admin/tool/task/schedule_task.php', ['task' => $taskname]));
 $PAGE->set_context($context);
-$PAGE->navbar->add(get_string('scheduledtasks', 'tool_task'), new moodle_url('/admin/tool/task/scheduledtasks.php'));
+$PAGE->set_heading($SITE->fullname);
+$PAGE->set_title($task->get_name());
+
+navigation_node::override_active_url(new moodle_url('/admin/tool/task/scheduledtasks.php'));
 $PAGE->navbar->add(s($task->get_name()));
+
 echo $OUTPUT->header();
 echo $OUTPUT->heading($task->get_name());
 
@@ -82,6 +92,8 @@ if (!optional_param('confirm', 0, PARAM_INT)) {
 
 // Action requires session key.
 require_sesskey();
+
+\core\session\manager::write_close();
 
 // Prepare to handle output via mtrace.
 echo html_writer::start_tag('pre');

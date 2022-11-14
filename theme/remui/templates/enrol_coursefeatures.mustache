@@ -1,0 +1,43 @@
+<div class="inner-container p-4 col-lg-12 col-sm-12 mb-4">
+    <div class="feature_course_widget">
+      <ul class="list-group">
+        <h4 class="title">{{#str}}coursefeatures, theme_remui{{/str}}</h4>
+        {{#lectures}}
+        <li class="d-flex justify-content-between align-items-center">
+            {{#str}}lectures, theme_remui{{/str}}<span class="float-right">{{lectures}}</span>
+        </li>
+        {{/lectures}}
+
+        {{#totalquizzes}}
+        <li class="d-flex justify-content-between align-items-center">
+            {{#str}}quizzes, theme_remui{{/str}}<span class="float-right">{{totalquizzes}}</span>
+        </li>
+        {{/totalquizzes}}
+
+        {{#startdate}}
+        <li class="d-flex justify-content-between align-items-center">
+            {{#str}}startdate, theme_remui{{/str}}<span class="float-right">{{startdate}}</span>
+        </li>
+        {{/startdate}}
+
+        {{#skilllevel}}
+        <li class="d-flex justify-content-between align-items-center">
+            {{#str}}skilllevel, theme_remui{{/str}} <span class="float-right">{{skilllevel}}</span>
+        </li>
+        {{/skilllevel}}
+
+        {{#language}}
+        <li class="d-flex justify-content-between align-items-center">
+            {{#str}}language, theme_remui{{/str}} <span class="float-right">{{language}}</span>
+        </li>
+        {{/language}}
+
+        
+        <li class="d-flex justify-content-between align-items-center">
+            {{#str}}assessments, theme_remui{{/str}} 
+            {{#completion}}<span class="float-right">{{#str}} true, theme_remui {{/str}}</span>{{/completion}}
+            {{^completion}}<span class="float-right">{{#str}} false, theme_remui {{/str}}</span>{{/completion}}
+        </li>
+      </ul>
+    </div>
+</div>

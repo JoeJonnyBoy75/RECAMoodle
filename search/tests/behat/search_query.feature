@@ -45,6 +45,21 @@ Feature: Use global search interface
     And I should see "ForumName1" in the ".breadcrumb" "css_element"
 
   @javascript
+  Scenario: Search from search page with quotes
+    Given I search for "zombies" using the header global search box
+    And I should see "No results"
+    When I set the field "id_q" to "\"amphibians\""
+    # You cannot press "Search" because there's a fieldset with the same name that gets in the way.
+    And I press "id_submitbutton"
+    Then I should see "ForumName1"
+    And I should see "ForumDesc1"
+    And I should see "PageName1"
+    And I should see "PageDesc1"
+    # Check the link works.
+    And I follow "ForumName1"
+    And I should see "ForumName1" in the ".breadcrumb" "css_element"
+
+  @javascript
   Scenario: Search starting from site context (no within option)
     When I search for "frogs" using the header global search box
     And I expand all fieldsets
@@ -64,10 +79,9 @@ Feature: Use global search interface
 
   @javascript
   Scenario: Search starting from forum context (within option lists course and forum)
-    When I am on "Amphibians" course homepage
-    And I follow "ForumName1"
-    And I search for "frogs" using the header global search box
-    And I expand all fieldsets
+    Given I am on the "ForumName1 toads amphibians" "Forum activity" page
+    When I search for "frogs" using the header global search box
+    Then I expand all fieldsets
     And I should see "Search within"
     And I select "Everywhere you can access" from the "Search within" singleselect
     And I should see "Courses" in the "region-main" "region"
@@ -88,8 +102,7 @@ Feature: Use global search interface
     And the following "activities" exist:
       | activity | name    | intro      | course | idnumber | groupmode |
       | forum    | ForumSG | ForumDesc1 | F1     | FORUM2   | 1         |
-    When I am on "Amphibians" course homepage
-    And I follow "ForumSG"
+    When I am on the ForumSG "Forum activity" page
     And global search expects the query "frogs" and will return:
       | type     | idnumber |
       | activity | PAGE1    |
@@ -101,8 +114,7 @@ Feature: Use global search interface
     And I set the field "Groups" to "A Group"
     And I select "Forum: ForumSG" from the "Search within" singleselect
     And I should see "A Group" in the "region-main" "region"
-    And I am on "Amphibians" course homepage
-    And I follow "ForumName1"
+    And I am on the "ForumName1 toads amphibians" "Forum activity" page
     And global search expects the query "frogs" and will return:
       | type     | idnumber |
       | activity | PAGE1    |

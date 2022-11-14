@@ -1,0 +1,35 @@
+<div id="epb_preview_window" class="modal moodle-has-zindex epb_custom_modal" data-region="modal-container" role="dialog" tabindex="-1" style="z-index: 1052;">
+    <div class="modal-dialog modal-dialog-scrollable" role="document" data-region="modal" aria-labelledby="1-modal-title" tabindex="0">
+         <div class="modal-content">
+            <div class="modal-body p-0 m-0" data-region="body">
+                <div class="expand-preview"><i class="fa fa-expand"></i></div>
+                <div class="preview_image_container">
+                    <img src="{{previewurl}}" class="w-100">
+                </div>
+                <div class="page-template-form">
+                    {{> local_edwiserpagebuilder/page_form}}
+                </div>
+            </div>
+
+            <div class="modal-footer d-flex justify-content-between" data-region="footer">
+                <div></div>
+                <div>
+                    <button type="button" class="btn btn-secondary cancel mr-2" data-modal-id="epb_preview_window" data-action="cancel">{{#str}}close, core_contentbank{{/str}}</button>
+
+                    <button type="button" class="btn btn-primary actionbtn" data-modal-id="epb_preview_window" data-action="usetemplate">
+                        <span class="actionbtnlabel active" data-action="usetemplate">
+                            {{#str}}usetemplate, local_edwiserpagebuilder{{/str}}
+                        </span>
+                        <span class="actionbtnlabel" data-action="update">
+                            {{#str}}updatepage, local_edwiserpagebuilder{{/str}}
+                        </span>
+                        <span class="actionbtnlabel" data-action="create">
+                            {{#str}}createnewpage, local_edwiserpagebuilder{{/str}}
+                        </span>
+                    </button>
+                </div>
+            </div>
+         </div>
+    </div>
+</div>
+

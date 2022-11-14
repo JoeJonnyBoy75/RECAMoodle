@@ -19,7 +19,7 @@
  *
  * @package   theme_remui
  * @copyright 2012 Bas Brands, www.basbrands.nl
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -28,11 +28,13 @@ namespace theme_remui\output;
 use moodle_url;
 use moodle_page;
 use html_writer;
+use get_string;
 use pix_icon;
 use context_course;
 use core_text;
 use stdClass;
 use action_menu;
+use context_system;
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -46,12 +48,194 @@ defined('MOODLE_INTERNAL') || die;
 class core_renderer extends \core_renderer {
 
     /**
+     * Renders the "breadcrumb" for all pages in boost.
+     *
+     * @return string the HTML for the navbar.
+     */
+    public function navbar(): string {
+        $newnav = new \theme_boost\boostnavbar($this->page);
+        return $this->render_from_template('core/navbar', $newnav);
+    }
+
+    /**
+     * Renders the context header for the page.
+     *
+     * @param array $headerinfo Heading information.
+     * @param int $headinglevel What 'h' level to make the heading.
+     * @return string A rendered context header.
+     */
+    public function context_header($headerinfo = null, $headinglevel = 1): string {
+        global $DB, $USER, $CFG, $SITE;
+        require_once($CFG->dirroot . '/user/lib.php');
+        $context = $this->page->context;
+        $heading = null;
+        $imagedata = null;
+        $subheader = null;
+        $userbuttons = null;
+
+        // Make sure to use the heading if it has been set.
+        if (isset($headerinfo['heading'])) {
+            $heading = $headerinfo['heading'];
+        } else {
+            $heading = $this->page->heading;
+        }
+
+        // The user context currently has images and buttons. Other contexts may follow.
+        if ((isset($headerinfo['user']) || $context->contextlevel == CONTEXT_USER) && $this->page->pagetype !== 'my-index') {
+            if (isset($headerinfo['user'])) {
+                $user = $headerinfo['user'];
+            } else {
+                // Look up the user information if it is not supplied.
+                $user = $DB->get_record('user', array('id' => $context->instanceid));
+            }
+
+            // If the user context is set, then use that for capability checks.
+            if (isset($headerinfo['usercontext'])) {
+                $context = $headerinfo['usercontext'];
+            }
+
+            // Only provide user information if the user is the current user, or a user which the current user can view.
+            // When checking user_can_view_profile(), either:
+            // If the page context is course, check the course context (from the page object) or;
+            // If page context is NOT course, then check across all courses.
+            $course = ($this->page->context->contextlevel == CONTEXT_COURSE) ? $this->page->course : null;
+
+            if (user_can_view_profile($user, $course)) {
+                // Use the user's full name if the heading isn't set.
+                if (empty($heading)) {
+                    $heading = fullname($user);
+                }
+
+                $imagedata = $this->user_picture($user, array('size' => 100));
+
+                // Check to see if we should be displaying a message button.
+                if (!empty($CFG->messaging) && has_capability('moodle/site:sendmessage', $context)) {
+                    $userbuttons = array(
+                        'messages' => array(
+                            'buttontype' => 'message',
+                            'title' => get_string('message', 'message'),
+                            'url' => new moodle_url('/message/index.php', array('id' => $user->id)),
+                            'image' => 'message',
+                            'linkattributes' => \core_message\helper::messageuser_link_params($user->id),
+                            'page' => $this->page
+                        )
+                    );
+
+                    if ($USER->id != $user->id) {
+                        $iscontact = \core_message\api::is_contact($USER->id, $user->id);
+                        $contacttitle = $iscontact ? 'removefromyourcontacts' : 'addtoyourcontacts';
+                        $contacturlaction = $iscontact ? 'removecontact' : 'addcontact';
+                        $contactimage = $iscontact ? 'removecontact' : 'addcontact';
+                        $userbuttons['togglecontact'] = array(
+                            'buttontype' => 'togglecontact',
+                            'title' => get_string($contacttitle, 'message'),
+                            'url' => new moodle_url('/message/index.php', array(
+                                    'user1' => $USER->id,
+                                    'user2' => $user->id,
+                                    $contacturlaction => $user->id,
+                                    'sesskey' => sesskey())
+                            ),
+                            'image' => $contactimage,
+                            'linkattributes' => \core_message\helper::togglecontact_link_params($user, $iscontact),
+                            'page' => $this->page
+                        );
+                    }
+
+                    $this->page->requires->string_for_js('changesmadereallygoaway', 'moodle');
+                }
+            } else {
+                $heading = null;
+            }
+        }
+
+        $prefix = null;
+        if ($context->contextlevel == CONTEXT_MODULE) {
+            if ($this->page->course->format === 'singleactivity') {
+                $heading = $this->page->course->fullname;
+            } else {
+                $heading = $this->page->cm->get_formatted_name();
+                $imagedata = $this->pix_icon('icon', '', $this->page->activityname, ['class' => 'activityicon']);
+                $purposeclass = plugin_supports('mod', $this->page->activityname, FEATURE_MOD_PURPOSE);
+                $purposeclass .= ' activityiconcontainer';
+                $purposeclass .= ' modicon_' . $this->page->activityname;
+                $imagedata = html_writer::tag('div', $imagedata, ['class' => $purposeclass]);
+                $prefix = get_string('modulename', $this->page->activityname);
+            }
+        }
+
+        $contextheader = new \context_header($heading, $headinglevel, $imagedata, $userbuttons, $prefix);
+        return $this->render_context_header($contextheader);
+    }
+     /**
+      * Renders the header bar.
+      *
+      * @param context_header $contextheader Header bar object.
+      * @return string HTML for the header bar.
+      */
+    protected function render_context_header(\context_header $contextheader) {
+
+        // Generate the heading first and before everything else as we might have to do an early return.
+        if (!isset($contextheader->heading)) {
+            $heading = $this->heading($this->page->heading, $contextheader->headinglevel, 'h2');
+        } else {
+            $heading = $this->heading($contextheader->heading, $contextheader->headinglevel, 'h2');
+        }
+
+        // All the html stuff goes here.
+        $html = html_writer::start_div('page-context-header');
+
+        // Image data.
+        if (isset($contextheader->imagedata)) {
+            // Header specific image.
+            $html .= html_writer::div($contextheader->imagedata, 'page-header-image mr-2');
+        }
+
+        // Headings.
+        if (isset($contextheader->prefix)) {
+            $prefix = html_writer::div($contextheader->prefix, 'text-muted text-uppercase small line-height-3');
+            $heading = $prefix . $heading;
+        }
+        $html .= html_writer::tag('div', $heading, array('class' => 'page-header-headings'));
+
+        // Buttons.
+        if (isset($contextheader->additionalbuttons)) {
+            $html .= html_writer::start_div('btn-group header-button-group');
+            foreach ($contextheader->additionalbuttons as $button) {
+                if (!isset($button->page)) {
+                    // Include js for messaging.
+                    if ($button['buttontype'] === 'togglecontact') {
+                        \core_message\helper::togglecontact_requirejs();
+                    }
+                    if ($button['buttontype'] === 'message') {
+                        \core_message\helper::messageuser_requirejs();
+                    }
+                    $image = $this->pix_icon($button['formattedimage'], $button['title'], 'moodle', array(
+                        'class' => 'iconsmall',
+                        'role' => 'presentation'
+                    ));
+                    $image .= html_writer::span($button['title'], 'header-button-title');
+                } else {
+                    $image = html_writer::empty_tag('img', array(
+                        'src' => $button['formattedimage'],
+                        'role' => 'presentation'
+                    ));
+                }
+                $html .= html_writer::link($button['url'], html_writer::tag('span', $image), $button['linkattributes']);
+            }
+            $html .= html_writer::end_div();
+        }
+        $html .= html_writer::end_div();
+
+        return $html;
+    }
+
+    /**
      * Theme configuration
      * @var object
      */
     protected $themeconfig;
 
-    /**
+   /**
      * Constructor
      *
      * @param moodle_page $page the page we are doing output for.
@@ -71,24 +255,6 @@ class core_renderer extends \core_renderer {
     }
 
     /**
-     * Renders an action menu component.
-     *
-     * @param action_menu $menu
-     * @return string HTML
-     */
-    public function render_action_menu(action_menu $menu) {
-        if ($menu->is_empty()) {
-            return '';
-        }
-        $context = $menu->export_for_template($this);
-        if (get_config('theme_remui', 'courseeditbutton') == '1') {
-            $context->courseeditbutton = true;
-        }
-
-        return $this->render_from_template('core/action_menu', $context);
-    }
-
-    /**
      * Show license or update notice
      *
      * @return HTML for license notice.
@@ -99,7 +265,7 @@ class core_renderer extends \core_renderer {
         $getlidatafromdb = $lcontroller->get_data_from_db();
         if (isloggedin() && !isguestuser()) {
             $content = '';
-            $classes = ['alert', 'text-center', 'text-white'];
+            $classes = ['alert', 'text-center', 'text-white', 'license-notice'];
             if ('available' != $getlidatafromdb) {
                 $classes[] = 'bg-danger';
                 if (is_siteadmin()) {
@@ -131,17 +297,7 @@ class core_renderer extends \core_renderer {
             }
             if ($content != '') {
                 $content .= '<button type="button" class="close text-white" data-dismiss="alert" aria-hidden="true">×</button>';
-                return html_writer::tag('div', $content, array(
-                    'class' => implode(' ', $classes),
-                    'style' => 'position: fixed;
-                                z-index: 9999;
-                                width: 100%;
-                                top: 60px;
-                                left: 0;
-                                right: 0;
-                                border: 0;
-                                border-radius: 0;'
-                ));
+                return html_writer::tag('div', $content, array('class' => implode(' ', $classes)));
             }
         }
         return '';
@@ -154,7 +310,7 @@ class core_renderer extends \core_renderer {
      * @return string HTML fragment.
      */
     public function standard_after_main_region_html() {
-        global $CFG;
+        global $CFG, $OUTPUT;
         $output = '';
         if ($this->page->pagelayout !== 'embedded' && !empty($CFG->additionalhtmlbottomofbody)) {
             $output .= "\n".$CFG->additionalhtmlbottomofbody;
@@ -163,12 +319,17 @@ class core_renderer extends \core_renderer {
         // Merge messaging panel into right sidebar or not.
         $mergemessagingsidebar = \theme_remui\toolbox::get_setting('mergemessagingsidebar');
 
+        // Page aside blocks
+        $blockshtml = $OUTPUT->blocks('side-pre');
+        $hasblocks = (strpos($blockshtml, 'data-block=') !== false || !empty($addblockbutton));
+
         // Give subsystems an opportunity to inject extra html content. The callback
         // must always return a string containing valid html.
         foreach (\core_component::get_core_subsystems() as $name => $path) {
             if ($path) {
+
                 // Remui, because messages are in sidebar, so skip here.
-                if ($mergemessagingsidebar  && $name == 'message') {
+                if ($mergemessagingsidebar  && $name == 'message' && $hasblocks) {
                     continue;
                 }
                 $output .= component_callback($name, 'standard_after_main_region_html', [], '');
@@ -188,378 +349,16 @@ class core_renderer extends \core_renderer {
     }
 
     /**
-     * Whether we should display the logo in the navbar.
-     *
-     * We will when there are no main logos, and we have compact logo.
-     *
-     * @return bool
-     */
-    public function should_display_logo() {
-        global $SITE;
-
-        $logoorsitename = \theme_remui\toolbox::get_setting('logoorsitename');
-        $context = array('islogo' => false, 'issitename' => false, 'isiconsitename' => false);
-        $checklogo = \theme_remui\toolbox::setting_file_url('logo', 'logo');
-        $checklogomini = \theme_remui\toolbox::setting_file_url('logomini', 'logomini');
-
-        if (!empty($checklogo)) {
-            $logo = $checklogo;
-        } else {
-            $logo = \theme_remui\toolbox::image_url('logo', 'theme');
-        }
-
-        if (!empty($checklogomini)) {
-            $logomini = $checklogomini;
-        } else {
-            $logomini = \theme_remui\toolbox::image_url('logomini', 'theme');
-        }
-
-        if ($logoorsitename == 'logo') {
-            $context['islogo'] = true;
-            $context['logourl'] = $logo;
-            $context['logominiurl'] = $logomini;
-        } else {
-            $context['isiconsitename'] = true;
-            $context['siteicon'] = \theme_remui\toolbox::get_setting('siteicon');
-            $context['sitename'] = format_string($SITE->shortname);
-        }
-        return $context;
-    }
-
-    /**
-     * Renders the login form.
-     *
-     * @param \core_auth\output\login $form The renderable.
-     * @return string
-     */
-    public function render_login(\core_auth\output\login $form) {
-        global $CFG, $SITE;
-        $context = $form->export_for_template($this);
-
-        // Override because rendering is not supported in template yet.
-        if ($CFG->rememberusername == 0) {
-            $context->cookieshelpiconformatted = $this->help_icon('cookiesenabledonlysession');
-        } else {
-            $context->cookieshelpiconformatted = $this->help_icon('cookiesenabled');
-        }
-        $context->errorformatted = $this->error_text($context->error);
-        $url = $this->get_logo_url();
-        if ($url) {
-            $url = $url->out(false);
-        }
-        $context->logourl = $url;
-        $context->sitename = format_string($SITE->fullname, true,
-            ['context' => \context_course::instance(SITEID), "escape" => false]);
-        $context->siteicon = \theme_remui\toolbox::get_setting('siteicon');
-        $context->loginpage_context = $this->should_display_logo();
-        $context->loginsocial_context = \theme_remui\utility::get_footer_data(1);
-        $context->logopos = get_config('theme_remui', 'brandlogopos');
-        $sitetext = get_config('theme_remui', 'brandlogotext');
-        if ($sitetext != '') {
-            $context->sitedesc = $sitetext;
-        }
-
-        return $this->render_from_template('core/loginform', $context);
-    }
-
-    /**
-     * Render the login signup form into a nice template for the theme.
-     *
-     * @param mform $form
-     * @return string
-     */
-    public function render_login_signup_form($form) {
-        global $SITE;
-
-        $context = $form->export_for_template($this);
-        $url = $this->get_logo_url();
-        if ($url) {
-            $url = $url->out(false);
-        }
-        $context['logourl'] = $url;
-        $context['sitename'] = format_string(
-            $SITE->fullname,
-            true,
-            ['context' => context_course::instance(SITEID), "escape" => false]);
-
-        // Modify form html.
-        $context['formhtml'] = str_replace(
-            array('form-inline', 'col-md-9', 'col-md-3', 'btn-primary', 'btn-secondary'),
-            array('', 'col-md-11', 'col-md-1 p-0', 'btn-primary btn-block', 'btn-default btn-block'),
-            $context['formhtml']
-        );
-        $context['loginpage_context'] = $this->should_display_logo();
-        $context['logopos'] = get_config('theme_remui', 'brandlogopos');
-        $sitetext = get_config('theme_remui', 'brandlogotext');
-        if ($sitetext != '') {
-            $context['sitedesc'] = $sitetext;
-        }
-        return $this->render_from_template('core/signup_form_layout', $context);
-    }
-
-    /**
-     * Construct a user menu, returning HTML that can be echoed out by a
-     * layout file.
-     *
-     * @param stdClass $user A user object, usually $USER.
-     * @param bool $withlinks true if a dropdown should be built.
-     * @return string HTML fragment.
-     */
-    public function user_menu($user = null, $withlinks = null) {
-        global $USER, $CFG;
-        require_once($CFG->dirroot . '/user/lib.php');
-        require_once($CFG->dirroot . '/lib/moodlelib.php');
-
-        if (is_null($user)) {
-            $user = $USER;
-        }
-
-        // Note: this behaviour is intended to match that of core_renderer::login_info,
-        // but should not be considered to be good practice; layout options are
-        // intended to be theme-specific. Please don't copy this snippet anywhere else.
-        if (is_null($withlinks)) {
-            $withlinks = empty($this->page->layout_options['nologinlinks']);
-        }
-
-        // Add a class for when $withlinks is false.
-        $usermenuclasses = array('class' => 'usermenu nav-item dropdown user-menu login-menu');
-        if (!$withlinks) {
-            $usermenuclasses = array('class' => ' nav-item dropdown user-menu login-menu withoutlinks');
-        }
-
-        $returnstr = "";
-
-        // If during initial install, return the empty return string.
-        if (during_initial_install()) {
-            return $returnstr;
-        }
-
-        $logindropdown = \theme_remui\toolbox::get_setting('navlogin_popup');
-        $loginpage = $this->is_login_page();
-        $loginurl = get_login_url();
-        $forgotpasswordurl = new moodle_url('/login/forgot_password.php');
-        $loginurldatatoggle = '';
-        if ($logindropdown) {
-            $loginurl = '#';
-            $loginurldatatoggle = 'data-toggle="dropdown"';
-        }
-
-        $logintoken = \core\session\manager::get_login_token();
-        $tokenhtml = '<div class="form-group">
-                <input type="hidden" name="logintoken" value="'.$logintoken.'">
-            </div>';
-
-        // Sign in popup.
-        $signinformhtml = '<div class="dropdown-menu  dropdown-menu-right loginddown p-15" role="menu"
-                    data-region="popover-region-container">
-                    <form class="mb-0" action="'.get_login_url().'" method="post" id="login">
-                        <div class="form-group">
-                            <label for="username" class="sr-only">'.get_string('username').'</label>
-                            <input type="text" class="form-control" id="username" name="username"
-                            placeholder="'.get_string('username').'">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="password" class="sr-only">'.get_string('password').'</label>
-                            <input type="password" name="password" id="password" value=""
-                            class="form-control"placeholder='.get_string('password').'>
-                        </div>
-                        '.$tokenhtml.'
-                        <div class="form-group clearfix">
-                            <div class="checkbox-custom checkbox-inline checkbox-primary float-left rememberpass">
-                                <input type="checkbox" id="rememberusername" name="rememberusername" value="1" />
-                                <label for="rememberusername">'.get_string('rememberusername', 'admin').'</label>
-                            </div>
-                            <a class="float-right" href="'.$forgotpasswordurl.'">'.get_string("forgotpassword", "theme_remui").'</a>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary btn-block" id="loginbtn">'.get_string('login').'</button>
-                    </form>';
-
-        $authsequence = get_enabled_auth_plugins(true); // Get all auths, in sequence.
-
-        $potentialidps = array();
-        foreach ($authsequence as $authname) {
-            $authplugin = get_auth_plugin($authname);
-            $potentialidps = array_merge($potentialidps, $authplugin->loginpage_idp_list($this->page->url->out(false)));
-        }
-        if (!empty($potentialidps)) {
-            $signinformhtml .= '<div class="potentialidp my-10 text-center">';
-            $signinformhtml .= '<label class="w-full">Log in using your account on</label>';
-            $signinformhtml .= '<div class="button-group ">';
-            foreach ($potentialidps as $idp) {
-                $signinformhtml .= '<a class="btn btn-icon" href="' . $idp['url']->out()
-                . '" title="' . s($idp['name']) . ' Login">';
-                if (!empty($idp['iconurl'])) {
-                    $signinformhtml .= '<img src="' . s($idp['iconurl']) . '" width="24" height="24" />';
-                }
-                $signinformhtml .= '</a>';
-            }
-            $signinformhtml .= '</div>';
-            $signinformhtml .= '</div>';
-        }
-        $signinformhtml .= '</div>';
-
-        // If not logged in, show the typical not-logged-in string.
-        if (!isloggedin()) {
-            $returnstr = '';
-            if (!$loginpage) {
-                $returnstr = '<a href="'.$loginurl.'" class="nav-link" '.$loginurldatatoggle.' data-animation="scale-up">
-                <i class="icon fa fa-user"></i>'.get_string('login').'</a>';
-
-                if ($logindropdown) {
-                    $returnstr  .= $signinformhtml;
-                }
-            }
-
-            return html_writer::tag('div', $returnstr, $usermenuclasses);
-        }
-
-        // If logged in as a guest user, show a string to that effect.
-        if (isguestuser()) {
-            $returnstr = '';
-            if (!$loginpage && $withlinks) {
-                $returnstr = '<a href="'.$loginurl.'" class="nav-link" '.$loginurldatatoggle.' data-animation="scale-up">
-                <i class="icon fa fa-user"></i>'.get_string('login').'</a>';
-
-                if ($logindropdown) {
-                    $returnstr  .= $signinformhtml;
-                }
-            }
-            return html_writer::tag('div', $returnstr, $usermenuclasses);
-        }
-
-        // Get some navigation opts.
-
-        $opts = user_get_user_navigation_info($user, $this->page);
-
-        $avatarclasses = "avatars";
-        $avatarcontents = html_writer::span($opts->metadata['useravatar'], 'avatar current');
-        $usertextcontents = $opts->metadata['userfullname'];
-
-        // Other user.
-        if (!empty($opts->metadata['asotheruser'])) {
-            $avatarcontents .= html_writer::span(
-                $opts->metadata['realuseravatar'],
-                'avatar realuser'
-            );
-            $usertextcontents = $opts->metadata['realuserfullname'];
-            $usertextcontents .= html_writer::tag(
-                'span',
-                get_string(
-                    'loggedinas',
-                    'moodle',
-                    html_writer::span(
-                        $opts->metadata['userfullname'],
-                        'value'
-                    )
-                ),
-                array('class' => 'meta viewingas')
-            );
-        }
-
-        // Role.
-        if (!empty($opts->metadata['asotherrole'])) {
-            $role = core_text::strtolower(preg_replace('#[ ]+#', '-', trim($opts->metadata['rolename'])));
-            $usertextcontents .= html_writer::span(
-                ' ('. $opts->metadata['rolename'] .')',
-                'meta text-uppercase font-size-12 role role-' . $role
-            );
-        }
-
-        // User login failures.
-        if (!empty($opts->metadata['userloginfail'])) {
-            $usertextcontents .= html_writer::span(
-                $opts->metadata['userloginfail'],
-                'meta loginfailures'
-            );
-        }
-
-        // MNet.
-        if (!empty($opts->metadata['asmnetuser'])) {
-            $mnet = strtolower(preg_replace('#[ ]+#', '-', trim($opts->metadata['mnetidprovidername'])));
-            $usertextcontents .= html_writer::span(
-                $opts->metadata['mnetidprovidername'],
-                'meta mnet mnet-' . $mnet
-            );
-        }
-
-        $returnstr .= html_writer::span(
-            html_writer::span($usertextcontents, 'usertext') .
-            html_writer::span($avatarcontents, $avatarclasses),
-            'userbutton'
-        );
-
-        // Create a divider.
-        $divider = '<div class="dropdown-divider" role="presentation"></div>';
-
-        $usermenu = '';
-        $usermenu .= '<a class="nav-link navbar-avatar" data-toggle="dropdown" href="#"
-            aria-expanded="false" data-animation="scale-up" role="button">
-            <span class="username pr-1">'.$usertextcontents.'</span>
-            <span class="avatar avatar-online current">
-            '.$opts->metadata['useravatar'].'
-            <i style="border-color: white;"></i>
-            </span>
-        </a>';
-
-        $usermenu .= '<div class="dropdown-menu  dropdown-menu-right" role="menu">';
-        if ($withlinks) {
-            $navitemcount = count($opts->navitems);
-            $idx = 0;
-            foreach ($opts->navitems as $key => $value) {
-                switch ($value->itemtype) {
-                    case 'divider':
-                        // If the nav item is a divider, add one and skip link processing.
-                        $usermenu .= $divider;
-                        break;
-
-                    case 'invalid':
-                        // Silently skip invalid entries (should we post a notification?).
-                        break;
-
-                    case 'link':
-                        // Process this as a link item.
-                        $pix = null;
-                        if (isset($value->pix) && !empty($value->pix)) {
-                            $pix = new pix_icon($value->pix, $value->title, null, array('class' => 'iconsmall'));
-                        } else if (isset($value->imgsrc) && !empty($value->imgsrc)) {
-                            $value->title = html_writer::img(
-                                $value->imgsrc,
-                                $value->title,
-                                array('class' => 'iconsmall')
-                            ) . $value->title;
-                        }
-
-                        $icon = $this->pix_icon($pix->pix, '', 'moodle', $pix->attributes);
-                        $usermenu .= '<a class="dropdown-item" href="'.$value->url.'" role="menuitem">'.$icon.$value->title.'</a>';
-                        break;
-                }
-
-                $idx++;
-
-                // Add dividers after the first item and before the last item.
-                if ($idx == 1 || $idx == $navitemcount - 1) {
-                    $usermenu .= $divider;
-                }
-            }
-        }
-        $usermenu .= '</div>';
-
-        return html_writer::tag('div', $usermenu, $usermenuclasses);
-    }
-
-    /**
      * The standard tags that should be included in the <head> tag
      * including a meta description for the front page
      *
      * @return string HTML fragment.
      */
     public function standard_head_html() {
-        global $SITE, $PAGE;
+        global $SITE;
 
         $output = parent::standard_head_html();
-        if ($PAGE->pagelayout == 'frontpage') {
+        if ($this->page->pagelayout == 'frontpage') {
             $summary = s(strip_tags(format_text($SITE->summary, FORMAT_HTML)));
             if (!empty($summary)) {
                 $output .= "<meta name=\"description\" content=\"$summary\" />\n";
@@ -607,142 +406,556 @@ class core_renderer extends \core_renderer {
     }
 
     /**
-     * Renders the header bar.
+     * Return HTML for site announcement.
      *
-     * @param context_header $contextheader Header bar object.
-     * @return string HTML for the header bar.
+     * @return string Site announcement HTML
      */
-    protected function render_context_header(\context_header $contextheader) {
-        global $PAGE;
-
-        // All the html stuff goes here.
-        $html = '';
-        $htmltemp = ''; // Prepare html based on overlay is on or off.
-
-        // Moved from full_header for proper remui html structure.
-        $pageheadingbutton = $this->page_heading_button();
-
-        // $contextheader->headinglevel, before it was used instead $heading_level
-        $heading_level = 3;
-
-        // Headings.
-        if (!isset($contextheader->heading)) {
-            $headings = $this->heading($this->page->heading, $heading_level, 'page-title mb-0');
-        } else {
-            $headings = $this->heading($contextheader->heading, $heading_level, 'page-title mb-0');
-        }
-
-        $html .= "<div class='mr-2'>";
-        $html .= $headings;
-        if (empty($PAGE->layout_options['nonavbar'])) {
-            $html .= $this->navbar();
-        } else {
-            $html .= '<ol class="breadcrumb"><li class="breadcrumb-item"><a href="#"><p></p></a></li></ol>';
-        }
-        $html .= "</div>";
-
-        // Little hack for now, to always show overlay buttons for mobile devices
-        // will be transfered to html and css later.
-        $actualdevice = \core_useragent::get_device_type();
-        $currentdevice = $this->page->devicetypeinuse;
-        $overlay = \theme_remui\toolbox::get_setting('enableheaderbuttons');
-        if (!$overlay) {
-            if ($actualdevice == 'mobile' && $currentdevice == 'mobile') {
-                $overlay = 1;
+    public function render_site_announcement() {
+        $enableannouncement = \theme_remui\toolbox::get_setting('enableannouncement');
+        $announcement = '';
+        if ($enableannouncement && !get_user_preferences('remui_dismised_announcement')) {
+            $type = \theme_remui\toolbox::get_setting('announcementtype');
+            $message = \theme_remui\toolbox::get_setting('announcementtext');
+            $dismissable = \theme_remui\toolbox::get_setting('enabledismissannouncement');
+            $extraclass = '';
+            $buttonhtml = '';
+            if ($dismissable) {
+                $buttonhtml .= '<button id="dismiss_announcement" type="button" class="close" data-dismiss="alert" aria-label="Close">';
+                $buttonhtml .= '<span aria-hidden="true">&times;</span>';
+                $buttonhtml .= '</button>';
+                $extraclass = 'alert-dismissible';
             }
+
+            $announcement .= "<div class='alert alert-{$type} dark text-center rounded-0 site-announcement m-b-0 $extraclass' role='alert'>";
+            $announcement .= $buttonhtml;
+            $announcement .= $message;
+            $announcement .= "</div>";
         }
-        // Add heading and additional buttons in temp var
-        // additional context header buttons.
-        if ($overlay && !strpos($PAGE->bodyclasses, 'path-mod-forum')) {
-            $htmltemp .= $pageheadingbutton;
-        }
-        if (isset($contextheader->additionalbuttons)) {
-            foreach ($contextheader->additionalbuttons as $button) {
-                if (!isset($button->page)) {
-                    // Include js for messaging.
-                    if ($button['buttontype'] === 'togglecontact') {
-                        \core_message\helper::togglecontact_requirejs();
-                    }
-
-                    $image = $this->pix_icon($button['formattedimage'], $button['title'], 'moodle', array(
-                        'class' => 'iconsize-button',
-                        'role' => 'presentation'
-                    ));
-
-                    $image = html_writer::span($image.'&nbsp;&nbsp;'.$button['title']);
-                } else {
-                    $image = html_writer::empty_tag('img', array(
-                        'src' => $button['formattedimage'],
-                        'role' => 'presentation'
-                    ));
-                }
-
-                $button['linkattributes']['class'] .= ' btn-secondary ';
-                $htmltemp .= html_writer::start_tag('div', array('class' => 'singlebutton'));
-                $htmltemp .= html_writer::link($button['url'], $image, $button['linkattributes']);
-                $htmltemp .= html_writer::end_tag('div');
-            }
-        }
-
-        // Page header actions.
-        $html .= html_writer::start_div('page-header-actionss position-relative d-flex ml-1');
-
-        $html .= $this->context_header_settings_menu();
-
-        if ($overlay && strpos($PAGE->bodyclasses, 'path-mod-forum') || !$overlay) {
-            $html .= $pageheadingbutton;
-        }
-        if (!$overlay) {
-            $html .= $htmltemp;
-        }
-
-	// Extra Dropdown button, available on content bank page
-	// Do not move this code anywhere else in the function.
-	// This code must be in between !overlay and $overlay condition
-	// Here our setting for merging the action buttons in dropdown is satisfied.  
-	$headeractionbuttons = '';
-        $headeractionbuttons .= '<div class="header-actions-container flex-shrink-0" data-region="header-actions-container">';
-        foreach ($this->page->get_header_actions() as $key => $value) {
-            $headeractionbuttons .= '<div class="header-action ml-2">' .$value. '</div>';
-            
-        }
-        $headeractionbuttons .= '</div>';
-	
-	$html .= $headeractionbuttons;
-
-        // Show overlay menu icon if overlay is enabled and there are menu items (in html temp).
-        if ($overlay) {
-            if ($htmltemp != '') {
-                $html .= '<span class="overlay-menu m-1 mr-1">';
-                $html .= '<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false">
-                <i class="fa fa-ellipsis-v px-1" aria-hidden="true"></i></button>';
-                $html .= '<div class="dropdown-menu p-2 dropdown-menu-right">';
-                $html .= $htmltemp;
-                $html .= '</div>';
-                $html .= '</span>';
-            }
-        }
-        $html .= html_writer::end_div();
-        return $html;
+        return $announcement;
     }
 
     /**
-     * Wrapper for header elements.
+     * See if this is the first view of the current cm in the session if it has fake blocks.
      *
-     * @return string HTML to display the main header.
+     * (We track up to 100 cms so as not to overflow the session.)
+     * This is done for drawer regions containing fake blocks so we can show blocks automatically.
+     *
+     * @return boolean true if the page has fakeblocks and this is the first visit.
      */
-    public function full_header() {
-        $html = html_writer::start_tag('header', array('id' => 'page-header', 'class' => 'row'));
-        $html .= html_writer::start_tag('div', array('class' => 'col-12'));
-        $html .= html_writer::start_tag('div', array('class' => 'card'));
-        $html .= html_writer::start_tag('div', array('class' => 'card-body d-flex justify-content-between flex-wrap'));
-        $html .= $this->context_header();
-        $html .= html_writer::end_tag('div');
-        $html .= html_writer::end_tag('div');
-        $html .= html_writer::end_tag('div');
-        $html .= html_writer::end_tag('header');
-        return $html;
+    public function firstview_fakeblocks(): bool {
+        global $SESSION;
+
+        $firstview = false;
+        if ($this->page->cm) {
+            if (!$this->page->blocks->region_has_fakeblocks('side-pre')) {
+                return false;
+            }
+            if (!property_exists($SESSION, 'firstview_fakeblocks')) {
+                $SESSION->firstview_fakeblocks = [];
+            }
+            if (array_key_exists($this->page->cm->id, $SESSION->firstview_fakeblocks)) {
+                $firstview = false;
+            } else {
+                $SESSION->firstview_fakeblocks[$this->page->cm->id] = true;
+                $firstview = true;
+                if (count($SESSION->firstview_fakeblocks) > 100) {
+                    array_shift($SESSION->firstview_fakeblocks);
+                }
+            }
+        }
+        return $firstview;
+    }
+
+    /**
+     * Whether we should display the logo in the navbar.
+     *
+     * We will when there are no main logos, and we have compact logo.
+     *
+     * @return bool
+     */
+    public function should_display_navbar_logo() {
+        global $SITE;
+
+        $customizer = \theme_remui\customizer\customizer::instance();
+
+        $logoorsitename = \theme_remui\toolbox::get_setting('logoorsitename');
+        $context = array('islogo' => false, 'issitename' => false, 'isiconsitename' => false);
+        $logo = \theme_remui\toolbox::setting_file_url('logo', 'logo');
+        $logomini = \theme_remui\toolbox::setting_file_url('logomini', 'logomini');
+
+        if (empty($logo)) {
+            $logo = \theme_remui\toolbox::image_url('logo', 'theme');
+        }
+
+        if (empty($logomini)) {
+            $logomini = \theme_remui\toolbox::image_url('logomini', 'theme');
+        }
+
+        $context['logourl'] = $logo;
+        $context['logominiurl'] = $logomini;
+
+        // Login page logo fetch.
+        if ($this->page->pagelayout == 'login') {
+            $customlogo = $customizer->get_config('login-panel-logo');
+
+            if ($customlogo != '') {
+                $context['logourl'] = $customlogo->out(false);
+                $context['logominiurl'] = $customlogo->out(false);
+            }
+        }
+
+        $customizer = \theme_remui\customizer\customizer::instance();
+        $context['siteicon'] = $customizer->get_config('siteicon');
+        $context['sitename'] = format_string($SITE->shortname);
+        $context['logoorsitename'] = $logoorsitename;
+        return $context;
+    }
+
+    /**
+     * Generate the add block button when editing mode is turned on and the user can edit blocks.
+     *
+     * @param string $region where new blocks should be added.
+     * @return string html for the add block button.
+     */
+    public function addblockbutton($region = ''): string {
+        $addblockbutton = '';
+        if (isset($this->page->theme->addblockposition) &&
+                $this->page->user_is_editing() &&
+                $this->page->user_can_edit_blocks() &&
+                $this->page->pagelayout !== 'mycourses'
+        ) {
+            $params = ['bui_addblock' => '', 'sesskey' => sesskey()];
+            if (!empty($region)) {
+                $params['bui_blockregion'] = $region;
+            }
+            $url = new moodle_url($this->page->url, $params);
+            $btncontext = [
+                'link' => $url->out(false),
+                'escapedlink' => "?{$url->get_query_string(false)}",
+                'pageType' => $this->page->pagetype,
+                'pageLayout' => $this->page->pagelayout,
+                'subPage' => $this->page->subpage,
+                'issiteadmin' => is_siteadmin() && is_plugin_available('block_edwiseradvancedblock') ,
+                'edwpbf' => is_plugin_available('filter_edwiserpbf'),
+                'pbfnotenable' => filter_get_active_state('edwiserpbf') != 1
+            ];
+
+            $templatename = 'core/add_block_button';
+
+            // Block editing and addition will be available if and only if both plugins are available.
+            if (is_plugin_available('local_edwiserpagebuilder') && is_plugin_available('block_edwiseradvancedblock')) {
+                $templatename = 'local_edwiserpagebuilder/add_block_button';
+            }
+
+            $addblockbutton = $this->render_from_template($templatename, $btncontext);
+        }
+        return $addblockbutton;
+    }
+
+    /**
+     * Create a navbar switch for toggling editing mode.
+     *
+     * @return string Html containing the edit switch
+     */
+    public function render_customizer_nav () {
+        global $CFG;
+        $navlink = '';
+        if (is_siteadmin()) {
+
+            $divider = '<div class="divider h-75 align-self-center mx-1"></div>';
+
+            $icondesign = get_config('theme_remui', 'icondesign');
+
+            $bghover = "";
+            $remuiicon = "";
+
+            if ($icondesign != 'default') {
+                $bghover = "no-bghover";
+                $remuiicon = "remuiicon";
+            }
+
+            $navlink = $divider .'<li class="nav-item '.$bghover.'" role="none" data-forceintomoremenu="false">';
+            $navlink .= '<a role="menuitem" class="nav-link '.$remuiicon.'" href="';
+            $navlink .= $CFG->wwwroot . "/theme/remui/customizer.php?url=" . urlencode($this->page->url->out());
+            $navlink .= '" aria-current="true" tabindex="-1">';
+            $navlink .= '<i class="fa fa-paint-brush customizer-editing-icon"></i>';
+            $navlink .= '</a></li>';
+        }
+        return $navlink;
+    }
+
+    /**
+     * Renders the login form.
+     *
+     * @param \core_auth\output\login $form The renderable.
+     * @return string
+     */
+    public function render_login(\core_auth\output\login $form) {
+        global $CFG, $SITE;
+        $context = $form->export_for_template($this);
+
+        $customizer = \theme_remui\customizer\customizer::instance();
+
+        // Override because rendering is not supported in template yet.
+        if ($CFG->rememberusername == 0) {
+            $context->cookieshelpiconformatted = $this->help_icon('cookiesenabledonlysession');
+        } else {
+            $context->cookieshelpiconformatted = $this->help_icon('cookiesenabled');
+        }
+        $context->errorformatted = $this->error_text($context->error);
+        $url = $this->get_logo_url();
+        if ($url) {
+            $url = $url->out(false);
+        }
+
+        $context->output = $this;
+
+        $context->siteicon = $customizer->get_config('siteicon');
+        $context->loginpage_context = $this->should_display_navbar_logo();
+
+        $context->loginlayout = get_config('theme_remui', 'loginpagelayout');
+        $context->loginsocial_context = \theme_remui\utility::get_footer_data(1);
+
+        // This section is to remove unnecessary footer sections.
+        $footersections = $context->loginsocial_context['sections'];
+        $socialfound = false;
+        foreach ($footersections as $key => $value) {
+            if ($value['type'] == 'social' && !$socialfound) {
+                $socialfound = true;
+                continue;
+            }
+            unset($footersections[$key]);
+        }
+        $context->loginsocial_context['sections'] = array_values($footersections);
+        if (get_config('theme_remui', 'brandlogopos') == 1 || get_config('theme_remui', 'loginpagelayout') == 'logincenter') {
+            $context->hidelogo = true;
+        }
+        if (get_config('theme_remui', 'brandlogopos') == 0) {
+            $context->hidelogo = false;
+        }
+        return $this->render_from_template('core/loginform', $context);
+    }
+
+    /**
+     * Render the login signup form into a nice template for the theme.
+     *
+     * @param mform $form
+     * @return string
+     */
+    public function render_login_signup_form($form) {
+        global $SITE;
+
+        $context = $form->export_for_template($this);
+        $url = $this->get_logo_url();
+        if ($url) {
+            $url = $url->out(false);
+        }
+        $context['output'] = $this;
+        $context['logourl'] = $url;
+        $context['sitename'] = format_string($SITE->fullname, true,
+                ['context' => context_course::instance(SITEID), "escape" => false]);
+        if (get_config('theme_remui', 'brandlogopos') == 1 || get_config('theme_remui', 'loginpagelayout') == 'logincenter') {
+            $context['hidelogo'] = true;
+        }
+        if (get_config('theme_remui', 'brandlogopos') == 0) {
+            $context['hidelogo'] = false;
+        }
+
+        return $this->render_from_template('core/signup_form_layout', $context);
+    }
+
+    /**
+     * Returns a search box.
+     *
+     * @param  string $id     The search box wrapper div id, defaults to an autogenerated one.
+     * @return string         HTML with the search form hidden by default.
+     */
+    public function search_box($id = false) {
+        global $CFG;
+
+        // Accessing $CFG directly as using \core_search::is_global_search_enabled would
+        // result in an extra included file for each site, even the ones where global search
+        // is disabled.
+        if (empty($CFG->enableglobalsearch) || !has_capability('moodle/search:query', context_system::instance())) {
+            return '';
+        }
+
+        $data = [
+            'action' => new moodle_url('/search/index.php'),
+            'hiddenfields' => (object) ['name' => 'context', 'value' => $this->page->context->id],
+            'inputname' => 'q',
+            'searchstring' => get_string('search'),
+        ];
+
+        $icondesign = get_config('theme_remui', 'icondesign');
+
+        if ($icondesign != 'default') {
+            $data['icondesign'] = true;
+        }
+
+        return $this->render_from_template('core/search_input_navbar', $data);
+    }
+
+    /**
+     * Returns the Moodle docs link to use for this page.
+     *
+     * @since Moodle 2.5.1 2.6
+     * @param string $text
+     * @return string
+     */
+    public function page_doc_link($text = null) {
+        if ($text === null) {
+            $text = get_string('moodledocslink');
+        }
+        $path = page_get_doc_link_path($this->page);
+        if (!$path) {
+            return '';
+        }
+        return $this->edw_custom_doc_link($path, $text);
+    }
+    /**
+     * [Edwiser - RemUI changes to the function]
+     * Returns a string containing a link to the user documentation.
+     * Also contains an icon by default. Shown to teachers and admin only.
+     *
+     * @param string $path The page link after doc root and language, no leading slash.
+     * @param string $text The text to be displayed for the link
+     * @param boolean $forcepopup Whether to force a popup regardless of the value of $CFG->doctonewwindow
+     * @param array $attributes htm attributes
+     * @return string
+     */
+    public function edw_custom_doc_link($path, $text = '', $forcepopup = false, array $attributes = []) {
+        global $CFG;
+
+        $icon = $this->pix_icon('book', '', 'moodle', array('class' => 'iconhelp icon-pre', 'role' => 'presentation'));
+
+        $attributes['href'] = new moodle_url(get_docs_url($path));
+        $newwindowicon = '';
+        if (!empty($CFG->doctonewwindow) || $forcepopup) {
+            $attributes['target'] = '_blank';
+            $newwindowicon = $this->pix_icon('i/externallink', get_string('opensinnewwindow'), 'moodle',
+            ['class' => 'fa fa-externallink fa-fw']);
+        }
+
+        $attributes["data-toggle"] = "tooltip";
+        $attributes["data-placement"] = "bottom";
+        $attributes["title"] = $text;
+
+        return html_writer::tag('a', $icon . $newwindowicon, $attributes);
+    }
+    /**
+     * Returns the services and support link for the help pop-up.
+     *
+     * @return string
+     */
+    public function services_support_link(): string {
+        global $CFG;
+
+        if (during_initial_install() ||
+            (isset($CFG->showservicesandsupportcontent) && $CFG->showservicesandsupportcontent == false) ||
+            !is_siteadmin()) {
+            return '';
+        }
+
+        $liferingicon = $this->pix_icon('t/life-ring', '', 'moodle', ['class' => 'fa fa-life-ring']);
+        $newwindowicon = '';
+        // $newwindowicon = $this->pix_icon('i/externallink', get_string('opensinnewwindow'), 'moodle', ['class' => 'fa fa-externallink fa-fw']);
+        $link = 'https://moodle.com/help/?utm_source=CTA-banner&utm_medium=platform&utm_campaign=name~Moodle4+cat~lms+mp~no';
+        $content = $liferingicon . $newwindowicon;
+
+        return html_writer::tag('a', $content, [
+            'target' => '_blank',
+            'href' => $link,
+            "data-toggle" => "tooltip",
+            "data-placement" => "bottom",
+            "title" => get_string('moodleservicesandsupport')
+        ]);
+    }
+    /**
+     * Returns the HTML for the site support email link
+     *
+     * @param array $customattribs Array of custom attributes for the support email anchor tag.
+     * @return string The html code for the support email link.
+     */
+    public function supportemail(array $customattribs = []): string {
+        global $CFG;
+
+        $label = get_string('contactsitesupport', 'admin');
+        $icon = $this->pix_icon('t/email', '', 'moodle', ['class' => 'iconhelp icon-pre']);
+        $content = $icon;
+
+        if (!empty($CFG->supportpage)) {
+            $attributes = [
+                "href" => $CFG->supportpage,
+                "target" => 'blank',
+                "data-toggle" => "tooltip",
+                "data-placement" => "bottom",
+                "title" => $label
+            ];
+            $content .= $this->pix_icon('i/externallink', '', 'moodle', ['class' => 'iconhelp icon-pre']);
+        } else {
+            $attributes = [
+                'href' => $CFG->wwwroot . '/user/contactsitesupport.php',
+                "data-toggle" => "tooltip",
+                "data-placement" => "bottom",
+                "title" => $label
+            ];
+        }
+
+        $attributes += $customattribs;
+
+        return html_writer::tag('a', $content, $attributes);
+    }
+
+    /**
+     * Returns the HTML for the site support email link
+     *
+     * @return string The html code for support and feedback.
+     */
+    public function edw_feedback_and_support() {
+        if (is_siteadmin() && get_config('theme_remui', 'enableedwfeedback')) {
+
+            $icon = "<i class=\"icon fa fa-question-circle-o\"></i>";
+            $attributes = [
+                'href' => "#",
+                "data-toggle" => "tooltip",
+                "data-placement" => "bottom",
+                "title" => get_string('sendfeedback', 'theme_remui'),
+                "class" => "send-remui-feedback"
+            ];
+
+            return html_writer::tag('a', $icon, $attributes);
+        }
+        return null;
+    }
+
+    /**
+     * Returns the HTML for the site support email link
+     *
+     * @return string The html code for check FAQ.
+     */
+    public function edwiser_check_faq() {
+        if (is_siteadmin() && get_config('theme_remui', 'enableedwfeedback')) {
+            $attributes = [
+                'href' => "https://edwiser.helpscoutdocs.com/category/83-product-support",
+                'target' => "_blank",
+                'rel' => "nofollow"
+            ];
+
+            return html_writer::tag('a', get_string('checkfaq', 'theme_remui'), $attributes);
+        }
+        return null;
+    }
+    /**
+     * Return the standard string that says whether you are logged in (and switched
+     * roles/logged in as another user).
+     * @param bool $withlinks if false, then don't include any links in the HTML produced.
+     * If not set, the default is the nologinlinks option from the theme config.php file,
+     * and if that is not set, then links are included.
+     * @return string HTML fragment.
+     */
+    public function login_info($withlinks = null) {
+        global $USER, $CFG, $DB, $SESSION;
+
+        if (during_initial_install()) {
+            return '';
+        }
+
+        if (is_null($withlinks)) {
+            $withlinks = empty($this->page->layout_options['nologinlinks']);
+        }
+
+        $course = $this->page->course;
+        if (\core\session\manager::is_loggedinas()) {
+            $realuser = \core\session\manager::get_realuser();
+            $fullname = fullname($realuser);
+            if ($withlinks) {
+                $loginastitle = get_string('loginas') . "<br>";
+                $realuserinfo = " [<a href=\"$CFG->wwwroot/course/loginas.php?id=$course->id&amp;sesskey=".sesskey()."\"";
+                $realuserinfo .= "title =\"".$loginastitle."\">$fullname</a>] ";
+            } else {
+                $realuserinfo = " [$fullname] ";
+            }
+        } else {
+            $realuserinfo = '';
+        }
+
+        $loginpage = $this->is_login_page();
+        $loginurl = get_login_url();
+
+        if (empty($course->id)) {
+            // $course->id is not defined during installation
+            return '';
+        } else if (isloggedin()) {
+            $context = context_course::instance($course->id);
+
+            $fullname = fullname($USER);
+            // Since Moodle 2.0 this link always goes to the public profile page (not the course profile page)
+            if ($withlinks) {
+                $linktitle = get_string('viewprofile');
+                $username = "<br><a href=\"$CFG->wwwroot/user/profile.php?id=$USER->id\" title=\"$linktitle\">$fullname</a>";
+            } else {
+                $username = $fullname;
+            }
+            if (is_mnet_remote_user($USER) and $idprovider = $DB->get_record('mnet_host', array('id'=>$USER->mnethostid))) {
+                if ($withlinks) {
+                    $username .= " from <a href=\"{$idprovider->wwwroot}\">{$idprovider->name}</a>";
+                } else {
+                    $username .= " from {$idprovider->name}";
+                }
+            }
+            if (isguestuser()) {
+                $loggedinas = $realuserinfo.get_string('loggedinasguest');
+                if (!$loginpage && $withlinks) {
+                    $loggedinas .= " (<a href=\"$loginurl\">".get_string('login').'</a>)';
+                }
+            } else if (is_role_switched($course->id)) { // Has switched roles
+                $rolename = '';
+                if ($role = $DB->get_record('role', array('id'=>$USER->access['rsw'][$context->path]))) {
+                    $rolename = ': '.role_get_name($role, $context);
+                }
+                $loggedinas = get_string('loggedinas', 'moodle', $username).$rolename;
+                if ($withlinks) {
+                    $url = new moodle_url('/course/switchrole.php', array('id'=>$course->id,'sesskey'=>sesskey(), 'switchrole'=>0, 'returnurl'=>$this->page->url->out_as_local_url(false)));
+                    $loggedinas .= ' ('.html_writer::tag('a', get_string('switchrolereturn'), array('href' => $url)).')';
+                }
+            } else {
+                $loggedinas = $realuserinfo.get_string('loggedinas', 'moodle', $username);
+                if ($withlinks) {
+                    $loggedinas .= " (<a href=\"$CFG->wwwroot/login/logout.php?sesskey=".sesskey()."\">".get_string('logout').'</a>)';
+                }
+            }
+        } else {
+            $loggedinas = get_string('loggedinnot', 'moodle');
+            if (!$loginpage && $withlinks) {
+                $loggedinas .= " (<a href=\"$loginurl\">".get_string('login').'</a>)';
+            }
+        }
+
+        $loggedinas = '<div class="logininfo">'.$loggedinas.'</div>';
+
+        if (isset($SESSION->justloggedin)) {
+            unset($SESSION->justloggedin);
+            if (!empty($CFG->displayloginfailures)) {
+                if (!isguestuser()) {
+                    // Include this file only when required.
+                    require_once($CFG->dirroot . '/user/lib.php');
+                    if ($count = user_count_login_failures($USER)) {
+                        $loggedinas .= '<div class="loginfailures">';
+                        $a = new stdClass();
+                        $a->attempts = $count;
+                        $loggedinas .= get_string('failedloginattempts', '', $a);
+                        if (file_exists("$CFG->dirroot/report/log/index.php") and has_capability('report/log:view', context_system::instance())) {
+                            $loggedinas .= ' ('.html_writer::link(new moodle_url('/report/log/index.php', array('chooselog' => 1,
+                                    'id' => 0 , 'modid' => 'site_errors')), get_string('logs')).')';
+                        }
+                        $loggedinas .= '</div>';
+                    }
+                }
+            }
+        }
+
+        return $loggedinas;
     }
 
     /**
@@ -769,8 +982,17 @@ class core_renderer extends \core_renderer {
             return '';
         }
 
-        // Get a list of all the activities in the course.
         $course = $this->page->cm->get_course();
+        $courseformat = course_get_format($course);
+
+        // If the theme implements course index and the current course format uses course index and the current
+        // page layout is not 'frametop' (this layout does not support course index), show no links.
+        // if ($this->page->theme->usescourseindex && $courseformat->uses_course_index() &&
+        // $this->page->pagelayout !== 'frametop') {
+        // return '';
+        // }
+
+        // Get a list of all the activities in the course.
         $modules = get_fast_modinfo($course->id)->get_cms();
 
         // Put the modules into an array in order by the position they are shown in the course.
@@ -778,9 +1000,7 @@ class core_renderer extends \core_renderer {
         $activitylist = [];
         foreach ($modules as $module) {
             // Only add activities the user can access, aren't in stealth mode and have a url (eg. mod_label does not).
-	    // (gav) JCA 20200216 removed uservisible ccheck because it screwed with the next button.
-            //if (!$module->uservisible || $module->is_stealth() || empty($module->url)) {
-            if ($module->is_stealth() || empty($module->url)) {
+            if (!$module->uservisible || $module->is_stealth() || empty($module->url)) {
                 continue;
             }
             $mods[$module->id] = $module;
@@ -842,36 +1062,15 @@ class core_renderer extends \core_renderer {
             }
         }
 
+        if (isset($activitynav->nextlink->text) && strlen($activitynav->nextlink->text) > 40) {
+            $activitynav->nextlink->text = substr($activitynav->nextlink->text, 0, 36) . "... &#9658;";
+        }
+
+        if (isset($activitynav->prevlink->text) && strlen($activitynav->prevlink->text) > 40) {
+            $activitynav->prevlink->text = substr($activitynav->prevlink->text, 0, 36) . "...";
+        }
+
         $renderer = $this->page->get_renderer('core', 'course');
         return $renderer->render($activitynav);
-    }
-
-    /**
-     * Return HTML for site announcement.
-     *
-     * @return string Site announcement HTML
-     */
-    public function render_site_announcement() {
-        $enableannouncement = \theme_remui\toolbox::get_setting('enableannouncement');
-        $announcement = '';
-        if ($enableannouncement && !get_user_preferences('remui_dismised_announcement')) {
-            $type = \theme_remui\toolbox::get_setting('announcementtype');
-            $message = \theme_remui\toolbox::get_setting('announcementtext');
-            $dismissable = \theme_remui\toolbox::get_setting('enabledismissannouncement');
-            $extraclass = '';
-            $buttonhtml = '';
-            if ($dismissable) {
-                $buttonhtml .= '<button id="dismiss_announcement" type="button" class="close" data-dismiss="alert" aria-label="Close">';
-                $buttonhtml .= '<span aria-hidden="true">&times;</span>';
-                $buttonhtml .= '</button>';
-                $extraclass = 'alert-dismissible';
-            }
-
-            $announcement .= "<div class='alert alert-{$type} dark text-center rounded-0 site-announcement m-b-0 $extraclass' role='alert'>";
-            $announcement .= $buttonhtml;
-            $announcement .= $message;
-            $announcement .= "</div>";
-        }
-        return $announcement;
     }
 }

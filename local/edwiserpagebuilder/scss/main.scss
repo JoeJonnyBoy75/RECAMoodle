@@ -1,0 +1,29 @@
+@import "custom_modal";
+@import "block_card";
+//@import "page_cards";
+
+/*Hide Add a block menu from sidebar - Only theme_remui*/
+// body:not(.latest-frontpage) {
+//     #nav-drawer {
+//         #nav-drawer-container {
+//             [data-key="addblock"] {
+//                 display: none;
+//             }
+//         }
+//     }
+// }
+// .block-content {
+//     margin: 0 0!important;
+// }
+// .block_edwiseradvancedblock .card-body.p-3 {
+//     padding: 0 !important;
+//     .block-controls.header {
+//         margin: 15px;
+//     }
+//     .card-text.content {
+//         margin-top: 0 !important;
+//         .live-customizer-btn {
+//             margin-right: 15px;
+//         }
+//     }
+// }

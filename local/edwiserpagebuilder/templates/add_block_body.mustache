@@ -1,0 +1,92 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template core/add_block_body
+
+    Template for the body of the add block modal.
+
+    Context variables required for this template:
+    * blocks - list of blocks containing name and title
+    * url - base url for links back to same page.
+
+    Example context (json):
+    {
+        "blocks" : [ { "name": "test", "title": "Test block" } ],
+        "url" : "?a=b"
+    }
+
+}}
+
+<div class="modal-subheader bg-white d-flex justify-content-between">
+    <ul class="nav nav-tabs" id="epbTab" role="tablist">
+        <li class="nav-item d-none" role="presentation">
+            <a class="nav-link active" id="block-tab" data-toggle="tab" href="#blocktab" role="tab" aria-controls="blocktab" aria-selected="true">Blocks</a>
+        </li>
+
+        <li class="nav-item d-none" role="presentation">
+            <a class="nav-link loadpagelayouts" id="pagelayout-tab" data-toggle="tab" href="#pagelayout" role="tab" aria-controls="pagelayout" aria-selected="false">Page Layouts</a>
+        </li>
+    </ul>
+    <div class="action-buttons-modal">
+        <button type="button" class="btn btn-primary update updateblocklist" data-action="updateblocklist" aria-label="Update Block List" title="{{#str}}updateblocklistonly, local_edwiserpagebuilder{{/str}}">
+            <i class="fa fa-download mr-1"></i>
+            <span>{{#str}}fetchblocklist, local_edwiserpagebuilder{{/str}}</span>
+        </button>
+
+        <input type="hidden" name="edwpageurl" value="{{edwpageurl}}">
+    </div>
+</div>
+{{#isadmin}}
+{{#pbfpluginexist}}
+{{#edwpbfnotenable}}
+<div class="alert alert-info alert-dismissible fade show alerthandler" role="alert">
+  {{#str}}epbfpluginexistinfo,local_edwiserpagebuilder{{/str}}
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+{{/edwpbfnotenable}}
+{{/pbfpluginexist}}
+{{^pbfpluginexist}}
+<div class="alert alert-info alert-dismissible fade show" role="alert">
+ {{#str}}epbfpluginnotexistinfo,local_edwiserpagebuilder{{/str}}
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+{{/pbfpluginexist}}
+{{/isadmin}}
+<div class="tab-content" id="epbTabContent">
+  <div class="tab-pane show active" id="blocktab" role="tabpanel" aria-labelledby="block-tab">
+    <div class="list-group addblock-modal-body blocks-list">
+      <div class="tab-content">
+        <div class="row block-cards default-blocks m-auto">
+            {{> local_edwiserpagebuilder/block_card }}
+        </div>
+        <div class="row page-cards m-auto"></div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-pane " id="pagelayout" role="tabpanel" aria-labelledby="pagelayout-tab">
+    <div class="list-group addpage-modal-body pages-list">
+      <div class="spinner-border transition-center" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
+    </div>
+  </div>
+</div>
+</div>

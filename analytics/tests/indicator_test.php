@@ -14,13 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Unit tests for the indicator API.
- *
- * @package   core_analytics
- * @copyright 2019 David Monllaó {@link http://www.davidmonllao.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace core_analytics;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -35,7 +29,7 @@ require_once(__DIR__ . '/fixtures/test_indicator_min.php');
  * @copyright 2017 David Monllaó {@link http://www.davidmonllao.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class analytics_indicator_testcase extends advanced_testcase {
+class indicator_test extends \advanced_testcase {
 
     /**
      * test_validate_calculated_value
@@ -70,16 +64,16 @@ class analytics_indicator_testcase extends advanced_testcase {
      * @param string $indicatorclass
      * @param string $willreturn
      * @dataProvider validate_calculated_value_exceptions
-     * @expectedException \coding_exception
      * @return null
      */
     public function test_validate_calculated_value_exceptions($indicatorclass, $willreturn) {
 
         $indicator = new $indicatorclass();
         $indicatormock = $this->getMockBuilder(get_class($indicator))
-            ->setMethods(['calculate_sample'])
+            ->onlyMethods(['calculate_sample'])
             ->getMock();
         $indicatormock->method('calculate_sample')->willReturn($willreturn);
+        $this->expectException(\coding_exception::class);
         list($values, $unused) = $indicatormock->calculate([1], 'notrelevanthere');
 
     }

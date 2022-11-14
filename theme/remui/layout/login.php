@@ -17,19 +17,40 @@
 /**
  * Edwiser RemUI login layout
  * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$bodyattributes = $OUTPUT->body_attributes();
+$templatecontext = [];
+$extraclasses = [];
 
-$templatecontext = [
-    'sitename' => format_string($SITE->shortname, true, ['context' => context_course::instance(SITEID), "escape" => false]),
-    'output' => $OUTPUT,
-    'bodyattributes' => $bodyattributes
-];
+$customizer = \theme_remui\customizer\customizer::instance();
+
+if (get_config('theme_remui', 'loginpagelayout') !== 'logincenter') {
+    $templatecontext['hasdesc'] = true;
+    if (get_config('theme_remui', 'brandlogopos') != 0) {
+        $templatecontext['logopos'] = true;
+        if (get_config('theme_remui', 'brandlogopos') == 1) {
+            $templatecontext['logopos'] = false;
+        }
+        $extraclasses[] = 'header-site-identity-' . $customizer->get_config('logoorsitename');
+    }
+
+    $sitetext = get_config('theme_remui', 'brandlogotext');
+
+    if (isset($sitetext) && $sitetext != '') {
+        $templatecontext['sitedesc'] = $sitetext;
+    }
+}
+$extraclasses[] = 'logoposenabled';
+
+$templatecontext['sitename'] = format_string($SITE->shortname, true, ['context' => context_course::instance(SITEID), "escape" => false]);
+$templatecontext['output'] = $OUTPUT;
+$templatecontext['loginlayout'] = get_config('theme_remui', 'loginpagelayout');
+$extraclasses[] = 'body' . $templatecontext['loginlayout'];
+$templatecontext['bodyattributes'] = $OUTPUT->body_attributes($extraclasses);
 
 echo $OUTPUT->render_from_template('theme_remui/login', $templatecontext);
 

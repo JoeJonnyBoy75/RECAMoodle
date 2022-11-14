@@ -10,7 +10,18 @@
 
     #page-footer {
         position: absolute;
-        left: 0;
-        bottom: 0;        
+        bottom: 0;
+    }
+    &.panel-position-left {
+        #page-footer {
+            right: 0;
+            text-align: right;
+        }
+    }
+    &.panel-position-right {
+        #page-footer {
+            left: 0;
+            text-align: left;
+        }
     }
 }

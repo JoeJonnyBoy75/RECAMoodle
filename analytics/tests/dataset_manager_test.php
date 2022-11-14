@@ -14,15 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Unit tests for the dataset manager.
- *
- * @package   core_analytics
- * @copyright 2017 David Monllaó {@link http://www.davidmonllao.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-defined('MOODLE_INTERNAL') || die();
+namespace core_analytics;
 
 /**
  * Unit tests for the dataset manager.
@@ -31,14 +23,14 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright 2017 David Monllaó {@link http://www.davidmonllao.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class dataset_manager_testcase extends advanced_testcase {
+class dataset_manager_test extends \advanced_testcase {
 
     /**
      * setUp
      *
      * @return null
      */
-    public function setUp() {
+    public function setUp(): void {
         $this->resetAfterTest(true);
 
         $this->sharedtoprows = array(
@@ -60,10 +52,10 @@ class dataset_manager_testcase extends advanced_testcase {
         $f1 = $dataset1->store($dataset1data);
 
         $f1contents = $f1->get_content();
-        $this->assertContains('yeah', $f1contents);
-        $this->assertContains('var1', $f1contents);
-        $this->assertContains('value1', $f1contents);
-        $this->assertContains('header1', $f1contents);
+        $this->assertStringContainsString('yeah', $f1contents);
+        $this->assertStringContainsString('var1', $f1contents);
+        $this->assertStringContainsString('value1', $f1contents);
+        $this->assertStringContainsString('header1', $f1contents);
     }
 
     /**
@@ -86,11 +78,11 @@ class dataset_manager_testcase extends advanced_testcase {
             \core_analytics\dataset_manager::LABELLED_FILEAREA);
 
         $mergedfilecontents = $merged->get_content();
-        $this->assertContains('yeah', $mergedfilecontents);
-        $this->assertContains('no', $mergedfilecontents);
-        $this->assertContains('var1', $mergedfilecontents);
-        $this->assertContains('value1', $mergedfilecontents);
-        $this->assertContains('header1', $mergedfilecontents);
+        $this->assertStringContainsString('yeah', $mergedfilecontents);
+        $this->assertStringContainsString('no', $mergedfilecontents);
+        $this->assertStringContainsString('var1', $mergedfilecontents);
+        $this->assertStringContainsString('value1', $mergedfilecontents);
+        $this->assertStringContainsString('header1', $mergedfilecontents);
     }
 
     /**

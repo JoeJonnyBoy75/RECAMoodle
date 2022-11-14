@@ -3,9 +3,9 @@
         <ul class="mt-1 pagination flex-wrap" data-page-size="{{pagesize}}">
             {{#previous}}
                 <li class="page-item" data-page-number="{{page}}">
-                    <a href="{{url}}" class="page-link btn mr-2 mb-2 border-0" aria-label="Previous">
+                    <a href="{{url}}" class="page-link btn mr-2 mb-2 border-0" aria-label="{{# str }} previouspage, moodle {{/ str }}">
                         <span aria-hidden="true"><i class="fa fa-chevron-left" aria-hidden="true"></i></span>
-                        <span class="sr-only">{{#str}}previous{{/str}}</span>
+                        <span class="sr-only">{{#str}}previouspage, moodle{{/str}}</span>
                     </a>
                 </li>
             {{/previous}}
@@ -37,9 +37,9 @@
             {{/last}}
             {{#next}}
                 <li class="page-item" data-page-number="{{page}}">
-                    <a href="{{url}}" class="page-link btn mr-2 mb-2 border-0" aria-label="Next">
+                    <a href="{{url}}" class="page-link btn mr-2 mb-2 border-0" aria-label="{{# str }} nextpage, moodle {{/ str }}">
                         <span aria-hidden="true"><i class="fa fa-chevron-right" aria-hidden="true"></i></span>
-                        <span class="sr-only">{{#str}}next{{/str}}</span>
+                        <span class="sr-only">{{#str}}nextpage, moodle{{/str}}</span>
                     </a>
                 </li>
             {{/next}}

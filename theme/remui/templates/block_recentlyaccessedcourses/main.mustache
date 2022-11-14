@@ -36,7 +36,7 @@
 require(
 [
     'jquery',
-    'theme_remui/recentlyaccessedcourses'
+    'block_recentlyaccessedcourses/main'
 ],
 function(
     $,
@@ -44,7 +44,6 @@ function(
 ) {
     var root = $('#block-recentlyaccessedcourses-{{uniqid}}');
     var userid = root.attr('data-userid');
-
-    Main.init(userid, root);
+    Main.init(userid, root,'{{coursecarddesignsetting}}','{{cardanimationsetting}}');
 });
 {{/js}}

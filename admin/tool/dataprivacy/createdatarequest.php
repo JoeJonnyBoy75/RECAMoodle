@@ -67,8 +67,8 @@ if (!$manage && !\tool_dataprivacy\api::can_contact_dpo()) {
     redirect($returnurl, get_string('contactdpoviaprivacypolicy', 'tool_dataprivacy'), 0, \core\output\notification::NOTIFY_ERROR);
 }
 
-$mform = new tool_dataprivacy_data_request_form($url->out(false), ['manage' => !empty($manage)]);
-$mform->set_data(['type' => $requesttype]);
+$mform = new tool_dataprivacy_data_request_form($url->out(false), ['manage' => !empty($manage),
+    'persistent' => new \tool_dataprivacy\data_request(0, (object) ['type' => $requesttype])]);
 
 // Data request cancelled.
 if ($mform->is_cancelled()) {
@@ -95,6 +95,11 @@ if ($data = $mform->get_data()) {
             && !\tool_dataprivacy\api::can_create_data_deletion_request_for_children($data->userid)) {
             throw new moodle_exception('nopermissions', 'error', '',
                 get_string('errorcannotrequestdeleteforother', 'tool_dataprivacy'));
+        }
+    } else if ($data->type == \tool_dataprivacy\api::DATAREQUEST_TYPE_EXPORT) {
+        if ($data->userid == $USER->id && !\tool_dataprivacy\api::can_create_data_download_request_for_self()) {
+            throw new moodle_exception('nopermissions', 'error', '',
+                get_string('errorcannotrequestexportforself', 'tool_dataprivacy'));
         }
     }
 

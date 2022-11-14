@@ -1,0 +1,18 @@
+{{#inputs}}
+<div id="fitem_id_{{name}}" class="form-group row fitem {{classes}}">
+    <div class="col-md-3 pr-5">
+        <label class="col-form-label d-inline " for="id_{{name}}">
+            {{label}}
+        </label>  
+        {{{help}}}
+    </div>
+    <div class="input-reset btn" title="{{#str}}resetdesc, theme_remui{{/str}}" data-default="{{default}}">
+        <i class="fa fa-undo"></i>
+    </div>
+    <div class="col-md-9 form-inline felement" data-fieldtype="{{type}}" id="yui_3_17_2_1_1606564568615_1166">
+        <input type="{{type}}" class="form-control " name="{{name}}" id="id_{{name}}" value="{{default}}" {{{options}}}>
+        <div class="form-control-feedback invalid-feedback" id="id_error_{{name}}">
+        </div>
+    </div>
+</div>
+{{/inputs}}

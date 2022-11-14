@@ -135,7 +135,7 @@ abstract class quiz_attempts_report_table extends table_sql {
     public function col_picture($attempt) {
         global $OUTPUT;
         $user = new stdClass();
-        $additionalfields = explode(',', user_picture::fields());
+        $additionalfields = explode(',', implode(',', \core_user\fields::get_picture_fields()));
         $user = username_load_fields_from_object($user, $attempt, null, $additionalfields);
         $user->id = $attempt->userid;
         return $OUTPUT->user_picture($user);
@@ -246,7 +246,7 @@ abstract class quiz_attempts_report_table extends table_sql {
      * @param int $slot the number used to identify this question within this usage.
      */
     public function make_review_link($data, $attempt, $slot) {
-        global $OUTPUT;
+        global $OUTPUT, $CFG;
 
         $flag = '';
         if ($this->is_flagged($attempt->usageid, $slot)) {
@@ -256,7 +256,7 @@ abstract class quiz_attempts_report_table extends table_sql {
 
         $feedbackimg = '';
         $state = $this->slot_state($attempt, $slot);
-        if ($state->is_finished() && $state != question_state::$needsgrading) {
+        if ($state && $state->is_finished() && $state != question_state::$needsgrading) {
             $feedbackimg = $this->icon_for_fraction($this->slot_fraction($attempt, $slot));
         }
 
@@ -273,6 +273,16 @@ abstract class quiz_attempts_report_table extends table_sql {
                         array('height' => 450, 'width' => 650)),
                 array('title' => get_string('reviewresponse', 'quiz')));
 
+        if (!empty($CFG->enableplagiarism)) {
+            require_once($CFG->libdir . '/plagiarismlib.php');
+            $output .= plagiarism_get_links([
+                'context' => $this->context->id,
+                'component' => 'qtype_'.$this->questions[$slot]->qtype,
+                'cmid' => $this->context->instanceid,
+                'area' => $attempt->usageid,
+                'itemid' => $slot,
+                'userid' => $attempt->userid]);
+        }
         return $output;
     }
 
@@ -385,8 +395,13 @@ abstract class quiz_attempts_report_table extends table_sql {
 
     /**
      * Get any fields that might be needed when sorting on date for a particular slot.
+     *
+     * Note: these values are only used for sorting. The values displayed are taken
+     * from $this->lateststeps loaded in load_extra_data().
+     *
      * @param int $slot the slot for the column we want.
      * @param string $alias the table alias for latest state information relating to that slot.
+     * @return string definitions of extra fields to add to the SELECT list of the query.
      */
     protected function get_required_latest_state_fields($slot, $alias) {
         return '';
@@ -408,20 +423,20 @@ abstract class quiz_attempts_report_table extends table_sql {
             $fields .= "\n(CASE WHEN $this->qmsubselect THEN 1 ELSE 0 END) AS gradedattempt,";
         }
 
-        $extrafields = get_extra_user_fields_sql($this->context, 'u', '',
-                array('id', 'idnumber', 'firstname', 'lastname', 'picture',
-                'imagealt', 'institution', 'department', 'email'));
-        $allnames = get_all_user_name_fields(true, 'u');
+        $userfieldsapi = \core_user\fields::for_identity($this->context)->with_name()
+                ->excluding('id', 'idnumber', 'picture', 'imagealt', 'institution', 'department', 'email');
+        $userfields = $userfieldsapi->get_sql('u', true, '', '', false);
+
         $fields .= '
                 quiza.uniqueid AS usageid,
                 quiza.id AS attempt,
                 u.id AS userid,
-                u.idnumber, ' . $allnames . ',
+                u.idnumber,
                 u.picture,
                 u.imagealt,
                 u.institution,
                 u.department,
-                u.email' . $extrafields . ',
+                u.email,' . $userfields->selects . ',
                 quiza.state,
                 quiza.sumgrades,
                 quiza.timefinish,
@@ -435,9 +450,10 @@ abstract class quiz_attempts_report_table extends table_sql {
 
         // This part is the same for all cases. Join the users and quiz_attempts tables.
         $from = " {user} u";
+        $from .= "\n{$userfields->joins}";
         $from .= "\nLEFT JOIN {quiz_attempts} quiza ON
                                     quiza.userid = u.id AND quiza.quiz = :quizid";
-        $params = array('quizid' => $this->quiz->id);
+        $params = array_merge($userfields->params, ['quizid' => $this->quiz->id]);
 
         if ($this->qmsubselect && $this->options->onlygraded) {
             $from .= " AND (quiza.state <> :finishedstate OR $this->qmsubselect)";

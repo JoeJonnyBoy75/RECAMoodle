@@ -24,12 +24,12 @@
   text-align: inherit; // For `<button>`s (anchors inherit)
 
   // Hover state
-  // @include hover-focus() {
-  //  z-index: 1; // Place hover/focus items above their siblings for proper border styling
-  //  color: $list-group-action-hover-color;
-  //  text-decoration: none;
-  //  background-color: $list-group-hover-bg;
-  // }
+  @include hover-focus() {
+    z-index: 1; // Place hover/focus items above their siblings for proper border styling
+    color: $list-group-action-hover-color;
+    text-decoration: none;
+    background-color: $list-group-hover-bg;
+  }
 
   &:active {
     color: $list-group-action-active-color;
@@ -111,7 +111,7 @@
           margin-top: 0;
         }
 
-        & + .list-group-item {
+        + .list-group-item {
           border-top-width: $list-group-border-width;
           border-left-width: 0;
 

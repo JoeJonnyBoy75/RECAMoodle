@@ -1,0 +1,9 @@
+.rating-short-design {
+    a.rnr-link {
+        color: orange;
+        &:hover {
+            color: $link-color;
+            text-decoration: none;
+        }
+    }
+}

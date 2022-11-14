@@ -1,4 +1,15 @@
 
 html {
-  font-size: 14px;
+  font-size: '[[setting:global-typography-body-fontsize]]';
+  text-transform: '[[setting:global-typography-body-text-transform]]';
+}
+
+body {
+  font-weight: '[[setting:global-typography-body-fontweight]]';
+  line-height: '[[setting:global-typography-body-lineheight]]';
+}
+a {
+  @include hover() {
+    color: '[[global-typography-body-linkhovercolor]]';
+  }
 }

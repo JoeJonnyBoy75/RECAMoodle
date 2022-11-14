@@ -26,7 +26,6 @@
 $string['actual'] = 'Actual';
 $string['actualclass'] = 'Class actual';
 $string['actualstudent'] = '{$a} actual';
-$string['allquestions'] = 'All questions in order, all students';
 $string['allscales'] = 'All scales, all students';
 $string['alreadysubmitted'] = 'You have already submitted this survey';
 $string['analysisof'] = 'Analysis of {$a}';
@@ -82,7 +81,8 @@ $string['attls9short'] = 'argue with authors';
 $string['cannotfindanswer'] = 'There are no answers for this survey yet.';
 $string['cannotfindquestion'] = 'Question doesn\'t exist';
 $string['cannotfindsurveytmpt'] = 'No survey templates found!';
-$string['completionsubmit'] = 'Student must submit to this activity to complete it';
+$string['completiondetail:submit'] = 'Submit answers';
+$string['completionsubmit'] = 'Student must make a submission';
 $string['ciqintro'] = 'While thinking about recent events in this class, answer the questions below.';
 $string['ciqname'] = 'Critical incidents';
 $string['ciq1'] = 'At what moment in class were you most engaged as a learner?';
@@ -95,7 +95,6 @@ $string['ciq4'] = 'What action from anyone in the forums did you find most puzzl
 $string['ciq4short'] = 'Confusing moment';
 $string['ciq5'] = 'What event surprised you most?';
 $string['ciq5short'] = 'Suprising moment';
-$string['clicktocontinue'] = 'Click here to continue';
 $string['clicktocontinuecheck'] = 'Click here to check and continue';
 $string['collesaintro'] = 'The purpose of this survey is to help us understand how well the online delivery of this unit enabled you to learn.
 
@@ -280,6 +279,10 @@ $string['surveytype_help'] = 'There are 3 available survey types:
 $string['surveytype_link'] = 'mod/survey/mod';
 $string['thanksforanswers'] = 'Thanks for answering this survey, {$a}';
 $string['time'] = 'Time';
-$string['viewsurveyresponses'] = 'View {$a} survey responses';
 $string['notyetanswered'] = 'Not yet answered';
 $string['allquestionrequireanswer'] = 'All questions are required and must be answered.';
+
+// Deprecated since Moodle 4.0.
+$string['clicktocontinue'] = 'Click here to continue';
+$string['viewsurveyresponses'] = 'View {$a} survey responses';
+$string['allquestions'] = 'All questions in order, all students';

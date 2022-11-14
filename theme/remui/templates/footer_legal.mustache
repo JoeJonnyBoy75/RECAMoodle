@@ -1,0 +1,41 @@
+<div class="site-footer-legal pt-2">
+    <nav class="nav navbar-nav d-none" aria-label="{{#str}}custommenu, admin{{/str}}">
+        {{# output.custom_menu_flat }}
+            <ul class="list-unstyled pt-3">
+                {{> theme_remui/custom_menu_footer }}
+            </ul>
+        {{/ output.custom_menu_flat }}
+    </nav>
+    <a href="{{footerdata.bottomlink }}">{{{ footerdata.bottomtext }}}</a>
+
+    {{# output.should_display_navbar_logo }}
+        <a class="secondary-footer-logo {{^footerdata.footershowlogo}}d-none{{/footerdata.footershowlogo}}" href="" aria-label="{{ sitename }} - {{#str}}brandname, theme_remui{{/str}}">
+            <img src="{{ logourl }}" class="navbar-brand-logo logo">
+            <img src="{{ logominiurl }}" class="navbar-brand-logo logomini">
+            <span class="navbar-brand-logo icononly"><i class="fa fa-{{siteicon}}"></i></span>
+            <span class="navbar-brand-logo font-weight-bold iconsitename">
+                <i class="fa fa-{{siteicon}}"></i>&nbsp;
+                {{{ sitename }}}
+            </span>
+        </a>
+    {{/ output.should_display_navbar_logo }}
+    {{#footerdata}}
+    <a class="footer-privacy-policy
+        {{^footerprivacypolicyshow}}d-none{{/footerprivacypolicyshow}}
+        {{#footerprivacypolicyshow}}d-block{{/footerprivacypolicyshow}}"
+        href="
+        {{^footerprivacypolicyshow}}#{{/footerprivacypolicyshow}}
+        {{#footerprivacypolicyshow}}{{footerprivacypolicy}}{{/footerprivacypolicyshow}}"
+        target="_blank">{{#str}} privacypolicy, theme_remui {{/str}}
+    </a>
+    
+    <a class="footer-terms-and-conditions
+        {{^footertermsandconditionsshow}}d-none{{/footertermsandconditionsshow}}
+        {{#footertermsandconditionsshow}}d-block{{/footertermsandconditionsshow}}"
+        href="
+        {{^footertermsandconditionsshow}}#{{/footertermsandconditionsshow}}
+        {{#footertermsandconditionsshow}}{{footertermsandconditions}}{{/footertermsandconditionsshow}}"
+        target="_blank">{{#str}} termsandconditions, theme_remui {{/str}}
+    </a>
+    {{/footerdata}}
+</div>

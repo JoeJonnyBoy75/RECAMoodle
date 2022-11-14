@@ -17,7 +17,7 @@
 /**
  * Save user profile settings service
  * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\external;
@@ -25,11 +25,12 @@ namespace theme_remui\external;
 defined('MOODLE_INTERNAL') || die;
 
 use external_function_parameters;
+use context_user;
 use external_value;
 
 /**
  * Save user profile settings trait
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 trait save_user_profile_settings {
@@ -59,6 +60,11 @@ trait save_user_profile_settings {
      * @return mixxed              Result
      */
     public static function save_user_profile_settings($fname, $lname, $description, $city, $country) {
+        global $USER;
+        // Validation for context is needed.
+        $context = context_user::instance($USER->id);
+        self::validate_context($context);
+
         return array('success' => \theme_remui\usercontroller::save_user_profile_info(
             $fname,
             $lname,

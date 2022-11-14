@@ -51,7 +51,7 @@ class behat_mod_quiz extends behat_question_base {
      * @throws Exception with a meaningful error message if the specified page cannot be found.
      */
     protected function resolve_page_url(string $page): moodle_url {
-        switch ($page) {
+        switch (strtolower($page)) {
             default:
                 throw new Exception('Unrecognised quiz page type "' . $page . '."');
         }
@@ -68,6 +68,7 @@ class behat_mod_quiz extends behat_question_base {
      * | User overrides    | Quiz name                                   | The manage user overrides page               |
      * | Grades report     | Quiz name                                   | The overview report for a quiz               |
      * | Responses report  | Quiz name                                   | The responses report for a quiz              |
+     * | Manual grading report | Quiz name                               | The manual grading report for a quiz         |
      * | Statistics report | Quiz name                                   | The statistics report for a quiz             |
      * | Attempt review    | Quiz name > username > [Attempt] attempt no | Review page for a given attempt (review.php) |
      *
@@ -79,40 +80,54 @@ class behat_mod_quiz extends behat_question_base {
     protected function resolve_page_instance_url(string $type, string $identifier): moodle_url {
         global $DB;
 
-        switch ($type) {
-            case 'View':
+        switch (strtolower($type)) {
+            case 'view':
                 return new moodle_url('/mod/quiz/view.php',
                         ['id' => $this->get_cm_by_quiz_name($identifier)->id]);
 
-            case 'Edit':
+            case 'edit':
                 return new moodle_url('/mod/quiz/edit.php',
                         ['cmid' => $this->get_cm_by_quiz_name($identifier)->id]);
 
-            case 'Group overrides':
+            case 'group overrides':
                 return new moodle_url('/mod/quiz/overrides.php',
                     ['cmid' => $this->get_cm_by_quiz_name($identifier)->id, 'mode' => 'group']);
 
-            case 'User overrides':
+            case 'user overrides':
                 return new moodle_url('/mod/quiz/overrides.php',
                     ['cmid' => $this->get_cm_by_quiz_name($identifier)->id, 'mode' => 'user']);
 
-            case 'Grades report':
+            case 'grades report':
                 return new moodle_url('/mod/quiz/report.php',
                     ['id' => $this->get_cm_by_quiz_name($identifier)->id, 'mode' => 'overview']);
 
-            case 'Responses report':
+            case 'responses report':
                 return new moodle_url('/mod/quiz/report.php',
                     ['id' => $this->get_cm_by_quiz_name($identifier)->id, 'mode' => 'responses']);
 
-            case 'Statistics report':
+            case 'statistics report':
                 return new moodle_url('/mod/quiz/report.php',
                     ['id' => $this->get_cm_by_quiz_name($identifier)->id, 'mode' => 'statistics']);
 
-            case 'Manual grading report':
+            case 'manual grading report':
                 return new moodle_url('/mod/quiz/report.php',
                         ['id' => $this->get_cm_by_quiz_name($identifier)->id, 'mode' => 'grading']);
-
-            case 'Attempt review':
+            case 'attempt view':
+                list($quizname, $username, $attemptno, $pageno) = explode(' > ', $identifier);
+                $pageno = intval($pageno);
+                $pageno = $pageno > 0 ? $pageno - 1 : 0;
+                $attemptno = (int) trim(str_replace ('Attempt', '', $attemptno));
+                $quiz = $this->get_quiz_by_name($quizname);
+                $quizcm = get_coursemodule_from_instance('quiz', $quiz->id, $quiz->course);
+                $user = $DB->get_record('user', ['username' => $username], '*', MUST_EXIST);
+                $attempt = $DB->get_record('quiz_attempts',
+                    ['quiz' => $quiz->id, 'userid' => $user->id, 'attempt' => $attemptno], '*', MUST_EXIST);
+                return new moodle_url('/mod/quiz/attempt.php', [
+                    'attempt' => $attempt->id,
+                    'cmid' => $quizcm->id,
+                    'page' => $pageno
+                ]);
+            case 'attempt review':
                 if (substr_count($identifier, ' > ') !== 2) {
                     throw new coding_exception('For "attempt review", name must be ' .
                             '"{Quiz name} > {username} > Attempt {attemptnumber}", ' .
@@ -212,7 +227,12 @@ class behat_mod_quiz extends behat_question_base {
             }
 
             // Question id, category and type.
-            $question = $DB->get_record('question', array('name' => $questiondata['question']), 'id, category, qtype', MUST_EXIST);
+            $sql = 'SELECT q.id AS id, qbe.questioncategoryid AS category, q.qtype AS qtype
+                      FROM {question} q
+                      JOIN {question_versions} qv ON qv.questionid = q.id
+                      JOIN {question_bank_entries} qbe ON qbe.id = qv.questionbankentryid
+                     WHERE q.name = :name';
+            $question = $DB->get_record_sql($sql, ['name' => $questiondata['question']], MUST_EXIST);
 
             // Page number.
             $page = clean_param($questiondata['page'], PARAM_INT);
@@ -233,8 +253,8 @@ class behat_mod_quiz extends behat_question_base {
             if (!array_key_exists('maxmark', $questiondata) || $questiondata['maxmark'] === '') {
                 $maxmark = null;
             } else {
-                $maxmark = clean_param($questiondata['maxmark'], PARAM_FLOAT);
-                if (!is_numeric($questiondata['maxmark']) || $maxmark < 0) {
+                $maxmark = clean_param($questiondata['maxmark'], PARAM_LOCALISEDFLOAT);
+                if (!is_numeric($maxmark) || $maxmark < 0) {
                     throw new ExpectationException('The max mark for question "' .
                             $questiondata['question'] . '" must be a positive number.',
                             $this->getSession());
@@ -364,14 +384,12 @@ class behat_mod_quiz extends behat_question_base {
      */
     public function i_add_question_to_the_quiz_with($questiontype, $quizname, TableNode $questiondata) {
         $quizname = $this->escape($quizname);
-        $editquiz = $this->escape(get_string('editquiz', 'quiz'));
-        $quizadmin = $this->escape(get_string('pluginadministration', 'quiz'));
         $addaquestion = $this->escape(get_string('addaquestion', 'quiz'));
 
-        $this->execute('behat_general::click_link', $quizname);
-
-        $this->execute("behat_navigation::i_navigate_to_in_current_page_administration",
-                $quizadmin . ' > ' . $editquiz);
+        $this->execute('behat_navigation::i_am_on_page_instance', [
+            $quizname,
+            'mod_quiz > Edit',
+        ]);
 
         if ($this->running_javascript()) {
             $this->execute("behat_action_menu::i_open_the_action_menu_in", array('.slots', "css_element"));
@@ -397,7 +415,8 @@ class behat_mod_quiz extends behat_question_base {
 
         $this->execute('behat_general::assert_page_contains_text', $this->escape(get_string('edittitleinstructions')));
 
-        $this->execute('behat_forms::i_set_the_field_to', array('maxmark', $this->escape($newmark) . chr(10)));
+        $this->execute('behat_general::i_type', [$newmark]);
+        $this->execute('behat_general::i_press_named_key', ['', 'enter']);
     }
 
     /**
@@ -416,7 +435,8 @@ class behat_mod_quiz extends behat_question_base {
         } else if (preg_match('~Page (\d+)~', $pageorlast, $matches)) {
             $xpath = "//li[@id = 'page-{$matches[1]}']//a[contains(@data-toggle, 'dropdown') and contains(., 'Add')]";
         } else {
-            throw new ExpectationException("The I open the add to quiz menu step must specify either 'Page N' or 'last'.");
+            throw new ExpectationException("The I open the add to quiz menu step must specify either 'Page N' or 'last'.",
+                $this->getSession());
         }
         $this->find('xpath', $xpath)->click();
     }
@@ -429,8 +449,8 @@ class behat_mod_quiz extends behat_question_base {
      */
     public function i_should_see_on_quiz_page($questionname, $pagenumber) {
         $xpath = "//li[contains(., '" . $this->escape($questionname) .
-                "')][./preceding-sibling::li[contains(@class, 'pagenumber')][1][contains(., 'Page " .
-                $pagenumber . "')]]";
+            "')][./preceding-sibling::li[contains(@class, 'pagenumber')][1][contains(., 'Page " .
+            $pagenumber . "')]]";
 
         $this->execute('behat_general::should_exist', array($xpath, 'xpath_element'));
     }
@@ -457,8 +477,8 @@ class behat_mod_quiz extends behat_question_base {
      * @param string $secondquestionname the name of the question that should come immediately after it in order.
      */
     public function i_should_see_before_on_the_edit_quiz_page($firstquestionname, $secondquestionname) {
-        $xpath = "//li[contains(@class, ' slot ') and contains(., '" . $this->escape($firstquestionname) .
-                "')]/following-sibling::li[contains(@class, ' slot ')][1]" .
+        $xpath = "//li[contains(., '" . $this->escape($firstquestionname) .
+                "')]/following-sibling::li" .
                 "[contains(., '" . $this->escape($secondquestionname) . "')]";
 
         $this->execute('behat_general::should_exist', array($xpath, 'xpath_element'));
@@ -653,7 +673,9 @@ class behat_mod_quiz extends behat_question_base {
 
         $this->execute('behat_general::assert_page_contains_text', $this->escape(get_string('edittitleinstructions')));
 
-        $this->execute('behat_forms::i_set_the_field_to', array('section', $this->escape($sectionheading) . chr(10)));
+        $this->execute('behat_general::i_press_named_key', ['', 'backspace']);
+        $this->execute('behat_general::i_type', [$sectionheading]);
+        $this->execute('behat_general::i_press_named_key', ['', 'enter']);
     }
 
     /**
@@ -935,5 +957,17 @@ class behat_mod_quiz extends behat_question_base {
         $attemptobj->process_finish(time(), true);
 
         $this->set_user();
+    }
+
+    /**
+     * Return a list of the exact named selectors for the component.
+     *
+     * @return behat_component_named_selector[]
+     */
+    public static function get_exact_named_selectors(): array {
+        return [
+            new behat_component_named_selector('Edit slot',
+            ["//li[contains(@class,'qtype')]//span[@class='slotnumber' and contains(., %locator%)]/.."])
+        ];
     }
 }

@@ -2,57 +2,28 @@
 var gulp = require('gulp');
 
 // Sass/CSS stuff.
-var sass = require('gulp-sass');
-var concat = require('gulp-concat');
-var prefix = require('gulp-autoprefixer');
-var minifycss = require('gulp-minify-css');
-var exec  = require('gulp-exec');
+var gulpSass = require('gulp-sass');
+var dartSass = require('sass');
+var exec = require('gulp-exec');
 var notify = require("gulp-notify");
 var rename = require('gulp-rename');
-const babel = require('gulp-babel');
-const sourcemaps = require('gulp-sourcemaps');
-const gulpStylelint = require('gulp-stylelint');
-const gulpEslint = require('gulp-eslint');
-const mediaGroup = require('gulp-group-css-media-queries');
-const mediaMerge = require('gulp-merge-media-queries');
-const cleanCSS = require('gulp-clean-css');
+var gulpStylelint = require('gulp-stylelint');
+var mediaGroup = require('gulp-group-css-media-queries');
+var mediaMerge = require('gulp-merge-media-queries');
+var cleanCSS = require('gulp-clean-css');
+var frep = require('gulp-frep');
 
-// JS stuff.
-const minify = require('gulp-minify');
+const sass = gulpSass(dartSass);
 
-var jssrc = 'amd/src/*.js';
-
-var jsIgnoreLint = [
-    '!amd/src/alert.js',
-    '!amd/src/aria.js',
-    '!amd/src/aspieprogress.js',
-    '!amd/src/babel-external-helpers.js',
-    '!amd/src/bootstrap-select.js',
-    '!amd/src/breakpoints.js',
-    '!amd/src/button.js',
-    '!amd/src/carousel.js',
-    '!amd/src/collapse.js',
-    '!amd/src/color-picker.js',
-    '!amd/src/dropdown.js',
-    '!amd/src/jquery-asPieProgress.js',
-    '!amd/src/jquery-floatingscroll.js',
-    '!amd/src/jquery-toolbar.js',
-    '!amd/src/modal.js',
-    '!amd/src/Plugin.js',
-    '!amd/src/popover.js',
-    '!amd/src/scrollspy.js',
-    '!amd/src/slick.js',
-    '!amd/src/tab.js',
-    '!amd/src/tether.js',
-    '!amd/src/TimeCircles.js',
-    '!amd/src/tooltip.js',
-    '!amd/src/util.js'
-];
-
-function copyFiles(src, dest) {
-    return gulp.src(src)
-    .pipe(gulp.dest(dest))
-}
+// Check production mode.
+// eslint-disable-next-line no-undef
+var PRODUCTION = process.argv.includes('-production');
+// var PRODUCTION = true;
+// Pattern for newline replacement for windows development environment.
+var pattern = [{
+    pattern: /\\r\\n/g,
+    replacement: '\\n'
+}];
 
 gulp.task('lint-styles', function lintStyles() {
     return gulp.src('scss/**/*.scss')
@@ -73,72 +44,48 @@ gulp.task('fix-styles', function fixCssTask() {
 });
 
 gulp.task('styles', function() {
-    return gulp.src('scss/preset/default.scss')
+    var task = gulp.src('scss/preset/default.scss')
     .pipe(sass({
-        outputStyle: 'compressed'
-    }))
-    .pipe(mediaMerge())
-    .pipe(mediaGroup())
-    .pipe(cleanCSS({compatibility: 'ie8'}))
-    .pipe(rename('remui-min.css'))
+        outputStyle: 'compressed',
+    }));
+    if (PRODUCTION) {
+        task = task.pipe(mediaMerge())
+        .pipe(mediaGroup());
+    }
+
+    task = task.pipe(cleanCSS({compatibility: 'ie8'}));
+
+    if (PRODUCTION) {
+        task = task.pipe(frep(pattern));
+    }
+    return task.pipe(rename('remui-min.css'))
     .pipe(gulp.dest('./style/'));
 });
 
-gulp.task('lint-js', function() {
-    return gulp.src([jssrc].concat(jsIgnoreLint))
-        // Note: eslint() attaches the lint output to the "eslint" property.
-        // Of the file object so it can be used by other modules.
-        .pipe(gulpEslint())
-        // Note: eslint.format() outputs the lint results to the console.
-        // Alternatively use eslint.formatEach() (see Docs).
-        .pipe(gulpEslint.format());
-        // To have the process exit with an error code (1) on.
-        // lint error, return the stream and pipe to failAfterError last.
-        // .pipe(gulpEslint.failAfterError());
-});
-
-gulp.task('compress', function() {
-    return gulp.src(jssrc)
-    .pipe(sourcemaps.init())
-    .pipe(babel({ presets: [["@babel/preset-env"]] }))
-    .pipe(minify({
-        ext:{
-            min: '.min.js'
-        },
-        noSource: true,
-        ignoreFiles: []
+gulp.task('formstyles', function(){
+    return gulp.src('scss/formstyles/**/*.scss')
+    .pipe(sass({
+        outputStyle: 'compressed'
     }))
-    .pipe(sourcemaps.write('.'))
-    .pipe(gulp.dest('amd/build'));
+    .pipe(gulp.dest('./style/'));
 });
 
 gulp.task('purge', gulp.series(function() {
     return gulp.src('.')
-    .pipe(exec('php ' + __dirname + '/../../admin/cli/purge_caches.php'))
-    .pipe(notify('Purged All'))
-}));
-
-gulp.task('purgejs', gulp.series(function() {
-    return gulp.src('.')
-    .pipe(exec('php ' + __dirname + '/../../admin/cli/purge_caches.php --js=true'))
-    .pipe(notify('Purged JS'))
+    .pipe(exec('php /var/www/remui/html/v40/admin/cli/purge_caches.php'))
+    .pipe(notify('Purged All'));
 }));
 
 gulp.task('purgelang', gulp.series(function() {
     return gulp.src('.')
-    .pipe(exec('php ' + __dirname + '/../../admin/cli/purge_caches.php --lang=true'))
-    .pipe(notify('Purged Language Packs'))
+    .pipe(exec('php /var/www/remui/html/v40/admin/cli/purge_caches.php --lang=true'))
+    .pipe(notify('Purged Language Packs'));
 }));
 
 
-gulp.task('dist-remuicss', gulp.series('styles', 'purge'));
+gulp.task('dist-remuicss', gulp.series('styles', 'formstyles', 'purge'));
 
 gulp.task('watch', function(done) {
-    var watcher = gulp.watch('./amd/src/*.js', gulp.series('compress', 'purgejs'));
-    watcher.on('change', function(obj){
-        jssrc = obj;
-        return gulp.series('compress');
-    });
     gulp.watch([
         './scss/**/*.scss',
         './scss/**/*.css'
@@ -147,12 +94,6 @@ gulp.task('watch', function(done) {
         './lang/**/*.php',
         './templates/**/*'
     ], gulp.series('purge'));
-    gulp.watch('./amd/build/*.js', gulp.series('purgejs'));
-    done();
-});
-
-gulp.task('watchlintjs', function(done) {
-    gulp.watch('./amd/src/*.js', gulp.series('lint-js'));
     done();
 });
 
@@ -161,8 +102,6 @@ gulp.task('watchlintstyles', function(done) {
     done();
 });
 
-gulp.task('default', gulp.series('styles', 'compress', 'purge', 'watch'));
-
-gulp.task('lintjs', gulp.series('watchlintjs', 'lint-js'));
+gulp.task('default', gulp.series('styles', 'purge', 'watch'));
 
 gulp.task('lintstyles', gulp.series('watchlintstyles', 'lint-styles'));

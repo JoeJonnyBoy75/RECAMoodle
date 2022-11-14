@@ -14,33 +14,45 @@
     You should have received a copy of the GNU General Public License
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
+        
+        {{#canaddbottomblocks}}
+        <section id="region-bottom-blocks" class="has-blocks" aria-label="region bottom blocks">
+            <div role="main">
+                {{{addblockbuttonbottom}}}
+                {{{ sidebottomblocks }}}
             </div>
+        </section>
+        {{/canaddbottomblocks}}
+
         </div>
     </div>
     {{{ output.standard_after_main_region_html }}}
     </div>
     {{> theme_remui/footer }}
-    
+    </div>
+    {{#epb_add_blocks}}{{{epb_add_blocks}}}{{/epb_add_blocks}}
 </div>
 </body>
 </html>
 {{#js}}
+
+    M.util.js_pending('theme_remui/loader');
+    require(['theme_remui/loader', 'theme_remui/drawer'], function(Loader, Drawer) {
+        Drawer.init();
+        M.util.js_complete('theme_remui/loader');
+    });
+
     {{#enabledictionary}}
-        {{^editingenabled}}
-        require(['theme_remui/dictionary'], function(dictionary) {
-            dictionary.init();
-        });
-        {{/editingenabled}}
+    require(['theme_remui/dictionary'], function(dictionary) {
+        dictionary.init();
+    });
     {{/enabledictionary}}
-    
+
     {{#focusdata.enabled}}
-        require(['theme_remui/course'], function(course){
-            course.init({{focusdata.on}});
-        });
+    require(['theme_remui/focusmode'], function(focusmode){
+        focusmode.init({{focusdata.on}});
+    });
     {{/focusdata.enabled}}
 
-    require(['theme_remui/loader']);
-    require(['theme_remui/drawer'], function(mod) {
-        mod.init();
-    });
+
 {{/js}}

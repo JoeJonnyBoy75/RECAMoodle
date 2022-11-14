@@ -181,7 +181,8 @@ function theme_get_css_filename($themename, $globalrevision, $themerevision, $di
  * @param bool           $cache        Should the generated files be stored in local cache.
  * @return array         The built theme content in a multi-dimensional array of name => direction => content
  */
-function theme_build_css_for_themes($themeconfigs = [], $directions = ['rtl', 'ltr'], $cache = true): array {
+function theme_build_css_for_themes($themeconfigs = [], $directions = ['rtl', 'ltr'],
+        $cache = true, $mtraceprogress = false): array {
     global $CFG;
 
     if (empty($themeconfigs)) {
@@ -202,6 +203,11 @@ function theme_build_css_for_themes($themeconfigs = [], $directions = ['rtl', 'l
 
         // First generate all the new css.
         foreach ($directions as $direction) {
+            if ($mtraceprogress) {
+                $timestart = microtime(true);
+                mtrace('Building theme CSS for ' . $themeconfig->name . ' [' .
+                        $direction . '] ...', '');
+            }
             // Lock it on. Technically we should build all themes for SVG and no SVG - but ie9 is out of support.
             $themeconfig->force_svg_use(true);
             $themeconfig->set_rtl_mode(($direction === 'rtl'));
@@ -211,6 +217,9 @@ function theme_build_css_for_themes($themeconfigs = [], $directions = ['rtl', 'l
                 $themeconfig->set_css_content_cache($themecss[$direction]);
                 $filename = theme_get_css_filename($themeconfig->name, $themerev, $newrevision, $direction);
                 css_store_css($themeconfig, $filename, $themecss[$direction]);
+            }
+            if ($mtraceprogress) {
+                mtrace(' done in ' . round(microtime(true) - $timestart, 2) . ' seconds.');
             }
         }
         $themescss[$themeconfig->name] = $themecss;
@@ -268,6 +277,16 @@ function theme_reset_all_caches() {
     if ($PAGE) {
         $PAGE->reload_theme();
     }
+}
+
+/**
+ * Reset static caches.
+ *
+ * This method indicates that all running cron processes should exit at the
+ * next opportunity.
+ */
+function theme_reset_static_caches() {
+    \core\task\manager::clear_static_caches();
 }
 
 /**
@@ -659,6 +678,18 @@ class theme_config {
     public $precompiledcsscallback = null;
 
     /**
+     * Whether the theme uses course index.
+     * @var bool
+     */
+    public $usescourseindex = false;
+
+    /**
+     * Configuration for the page activity header
+     * @var array
+     */
+    public $activityheaderconfig = [];
+
+    /**
      * Load the config.php file for a particular theme, and return an instance
      * of this class. (That is, this is a factory method.)
      *
@@ -728,14 +759,16 @@ class theme_config {
             $baseconfig = $config;
         }
 
-        $configurable = array(
+        $configurable = [
             'parents', 'sheets', 'parents_exclude_sheets', 'plugins_exclude_sheets', 'usefallback',
             'javascripts', 'javascripts_footer', 'parents_exclude_javascripts',
             'layouts', 'enablecourseajax', 'requiredblocks',
             'rendererfactory', 'csspostprocess', 'editor_sheets', 'editor_scss', 'rarrow', 'larrow', 'uarrow', 'darrow',
             'hidefromselector', 'doctype', 'yuicssmodules', 'blockrtlmanipulations', 'blockrendermethod',
             'scss', 'extrascsscallback', 'prescsscallback', 'csstreepostprocessor', 'addblockposition',
-            'iconsystem', 'precompiledcsscallback');
+            'iconsystem', 'precompiledcsscallback', 'haseditswitch', 'usescourseindex', 'activityheaderconfig',
+            'removedprimarynavitems',
+        ];
 
         foreach ($config as $key=>$value) {
             if (in_array($key, $configurable)) {
@@ -924,12 +957,25 @@ class theme_config {
 
         // First editor plugins.
         $plugins = core_component::get_plugin_list('editor');
-        foreach ($plugins as $plugin=>$fulldir) {
+        foreach ($plugins as $plugin => $fulldir) {
             $sheetfile = "$fulldir/editor_styles.css";
             if (is_readable($sheetfile)) {
                 $files['plugin_'.$plugin] = $sheetfile;
             }
+
+            $subplugintypes = core_component::get_subplugins("editor_{$plugin}");
+            // Fetch sheets for any editor subplugins.
+            foreach ($subplugintypes as $plugintype => $subplugins) {
+                foreach ($subplugins as $subplugin) {
+                    $plugindir = core_component::get_plugin_directory($plugintype, $subplugin);
+                    $sheetfile = "{$plugindir}/editor_styles.css";
+                    if (is_readable($sheetfile)) {
+                        $files["{$plugintype}_{$subplugin}"] = $sheetfile;
+                    }
+                }
+            }
         }
+
         // Then parent themes - base first, the immediate parent last.
         foreach (array_reverse($this->parent_configs) as $parent_config) {
             if (empty($parent_config->editor_sheets)) {
@@ -1430,17 +1476,33 @@ class theme_config {
 
         // TODO: MDL-62757 When changing anything in this method please do not forget to check
         // if the validate() method in class admin_setting_configthemepreset needs updating too.
-        $cacheoptions = '';
+
+        $cachedir = make_localcache_directory('scsscache-' . $this->name, false);
+        $cacheoptions = [];
         if ($themedesigner) {
-            $scsscachedir = $CFG->localcachedir . '/scsscache/';
             $cacheoptions = array(
-                  'cacheDir' => $scsscachedir,
+                  'cacheDir' => $cachedir,
                   'prefix' => 'scssphp_',
                   'forceRefresh' => false,
             );
+        } else {
+            if (file_exists($cachedir)) {
+                remove_dir($cachedir);
+            }
         }
+
         // Set-up the compiler.
         $compiler = new core_scss($cacheoptions);
+
+        if ($this->supports_source_maps($themedesigner)) {
+            // Enable source maps.
+            $compiler->setSourceMapOptions([
+                'sourceMapBasepath' => str_replace('\\', '/', $CFG->dirroot),
+                'sourceMapRootpath' => $CFG->wwwroot . '/'
+            ]);
+            $compiler->setSourceMap($compiler::SOURCE_MAP_INLINE);
+        }
+
         $compiler->prepend_raw_scss($this->get_pre_scss_code());
         if (is_string($scss)) {
             $compiler->set_file($scss);
@@ -2054,24 +2116,45 @@ class theme_config {
 
         } else {
             if (strpos($component, '_') === false) {
-                $component = 'mod_'.$component;
+                $component = "mod_{$component}";
             }
             list($type, $plugin) = explode('_', $component, 2);
 
-            if ($imagefile = $this->image_exists("$this->dir/pix_plugins/$type/$plugin/$image", $svg)) {
-                return $imagefile;
-            }
-            foreach (array_reverse($this->parent_configs) as $parent_config) { // base first, the immediate parent last
-                if ($imagefile = $this->image_exists("$parent_config->dir/pix_plugins/$type/$plugin/$image", $svg)) {
-                    return $imagefile;
+            // In Moodle 4.0 we introduced a new image format.
+            // Support that image format here.
+            $candidates = [$image];
+
+            if ($type === 'mod') {
+                if ($image === 'icon' || $image === 'monologo') {
+                    $candidates = ['monologo', 'icon'];
+                    if ($image === 'icon') {
+                        debugging(
+                            "The 'icon' image for activity modules has been replaced with a new 'monologo'. " .
+                                "Please update your calling code to fetch the new icon where possible. " .
+                                "Called for component {$component}.",
+                            DEBUG_DEVELOPER
+                        );
+                    }
                 }
             }
-            if ($imagefile = $this->image_exists("$CFG->dataroot/pix_plugins/$type/$plugin/$image", $svg)) {
-                return $imagefile;
-            }
-            $dir = core_component::get_plugin_directory($type, $plugin);
-            if ($imagefile = $this->image_exists("$dir/pix/$image", $svg)) {
-                return $imagefile;
+            foreach ($candidates as $image) {
+                if ($imagefile = $this->image_exists("$this->dir/pix_plugins/$type/$plugin/$image", $svg)) {
+                    return $imagefile;
+                }
+
+                // Base first, the immediate parent last.
+                foreach (array_reverse($this->parent_configs) as $parentconfig) {
+                    if ($imagefile = $this->image_exists("$parentconfig->dir/pix_plugins/$type/$plugin/$image", $svg)) {
+                        return $imagefile;
+                    }
+                }
+                if ($imagefile = $this->image_exists("$CFG->dataroot/pix_plugins/$type/$plugin/$image", $svg)) {
+                    return $imagefile;
+                }
+                $dir = core_component::get_plugin_directory($type, $plugin);
+                if ($imagefile = $this->image_exists("$dir/pix/$image", $svg)) {
+                    return $imagefile;
+                }
             }
             return null;
         }
@@ -2180,6 +2263,19 @@ class theme_config {
      */
     public function set_rtl_mode($inrtl = true) {
         $this->rtlmode = $inrtl;
+    }
+
+    /**
+     * Checks if source maps are supported
+     *
+     * @param bool $themedesigner True if theme designer is enabled.
+     * @return boolean True if source maps are supported.
+     */
+    public function supports_source_maps($themedesigner): bool {
+        if (empty($this->rtlmode) && $themedesigner) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -2403,22 +2499,22 @@ class theme_config {
      * @return string
      */
     protected function get_region_name($region, $theme) {
-        $regionstring = get_string('region-' . $region, 'theme_' . $theme);
-        // A name exists in this theme, so use it
-        if (substr($regionstring, 0, 1) != '[') {
-            return $regionstring;
+
+        $stringman = get_string_manager();
+
+        // Check if the name is defined in the theme.
+        if ($stringman->string_exists('region-' . $region, 'theme_' . $theme)) {
+            return get_string('region-' . $region, 'theme_' . $theme);
         }
 
-        // Otherwise, try to find one elsewhere
-        // Check parents, if any
+        // Check the theme parents.
         foreach ($this->parents as $parentthemename) {
-            $regionstring = get_string('region-' . $region, 'theme_' . $parentthemename);
-            if (substr($regionstring, 0, 1) != '[') {
-                return $regionstring;
+            if ($stringman->string_exists('region-' . $region, 'theme_' . $parentthemename)) {
+                return get_string('region-' . $region, 'theme_' . $parentthemename);
             }
         }
 
-        // Last resort, try the boost theme for names
+        // Last resort, try the boost theme for names.
         return get_string('region-' . $region, 'theme_boost');
     }
 

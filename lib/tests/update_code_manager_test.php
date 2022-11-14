@@ -14,14 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Provides core_update_code_manager_testcase class.
- *
- * @package     core_plugin
- * @category    test
- * @copyright   2015 David Mudrak <david@moodle.com>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace core;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -31,10 +24,12 @@ require_once(__DIR__.'/fixtures/testable_update_code_manager.php');
 /**
  * Tests for \core\update\code_manager features.
  *
+ * @package   core_plugin
+ * @category  test
  * @copyright 2015 David Mudrak <david@moodle.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_update_code_manager_testcase extends advanced_testcase {
+class update_code_manager_test extends \advanced_testcase {
 
     public function test_get_remote_plugin_zip() {
         $codeman = new \core\update\testable_code_manager();
@@ -77,7 +72,7 @@ class core_update_code_manager_testcase extends advanced_testcase {
 
         $files = $codeman->unzip_plugin_file($zipfilepath, $targetdir);
 
-        $this->assertInternalType('array', $files);
+        $this->assertIsArray($files);
         $this->assertCount(4, $files);
         $this->assertSame(true, $files['invalid-root/']);
         $this->assertSame(true, $files['invalid-root/lang/']);
@@ -93,7 +88,7 @@ class core_update_code_manager_testcase extends advanced_testcase {
 
         $files = $codeman->unzip_plugin_file($zipfilepath, $targetdir, 'fixed_root');
 
-        $this->assertInternalType('array', $files);
+        $this->assertIsArray($files);
         $this->assertCount(4, $files);
         $this->assertSame(true, $files['fixed_root/']);
         $this->assertSame(true, $files['fixed_root/lang/']);
@@ -111,14 +106,12 @@ class core_update_code_manager_testcase extends advanced_testcase {
         $files = $codeman->unzip_plugin_file($zipfilepath, $targetdir, 'bar');
     }
 
-    /**
-     * @expectedException moodle_exception
-     */
     public function test_unzip_plugin_file_multidir() {
         $codeman = new \core\update\testable_code_manager();
         $zipfilepath = __DIR__.'/fixtures/update_validator/zips/multidir.zip';
         $targetdir = make_request_directory();
         // Attempting to rename the root folder if there are multiple ones should lead to exception.
+        $this->expectException(\moodle_exception::class);
         $files = $codeman->unzip_plugin_file($zipfilepath, $targetdir, 'foo');
     }
 
@@ -139,7 +132,7 @@ class core_update_code_manager_testcase extends advanced_testcase {
         $fixtures = __DIR__.'/fixtures/update_validator/plugindir';
         $codeman = new \core\update\testable_code_manager();
         $files = $codeman->list_plugin_folder_files($fixtures.'/foobar');
-        $this->assertInternalType('array', $files);
+        $this->assertIsArray($files);
         $this->assertEquals(6, count($files));
         $fixtures = str_replace(DIRECTORY_SEPARATOR, '/', $fixtures);
         $this->assertEquals($files['foobar/'], $fixtures.'/foobar');

@@ -1,0 +1,47 @@
+<section>
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-12 px-0">
+                    {{^ hascourses }}
+                    <li class="list-group-item border-0">
+                        <div class="media">
+                            <div class="media-body">
+                                {{# str }} notenrolledanycourse, theme_remui {{/ str }}
+                            </div>
+                        </div>
+                    </li>
+                    {{/ hascourses }}
+                    {{# hascourses }}
+                    <div class="profile-cards-wrapper">
+                        {{# courses }}
+                        <div class="course-card hor-1 d-md-flex" id="course-{{ id }}">
+                            <div class="first-half p-0 col-3"  style="background-image: url({{{ courseimage }}});">
+                            </div>
+                            <div class="course-info p-4 col-9">
+
+                                <p class="cat-name">{{#userdate}} {{startdate}}, %A, %d %B %Y {{/userdate}}</p>
+                                
+                                <h5 class="course-title">{{{ fullname }}}</h5>
+                               
+                                <p class="course-desc-{{id}} course-desc ellipsis ellipsis-3">{{{ summary }}}</p>
+
+                                <div class="course-footer">
+                                    <div class="progress-wrapper">
+                                    {{# enablecompletion }}
+                                        <div class="progress">
+                                            <div class="progress-bar bg-info" role="progressbar" style="width: {{#progress}}{{progress}}{{/progress}}{{^progress}}0{{/progress}}%" aria-valuenow="{{#progress}}{{progress}}{{/progress}}{{^progress}}0{{/progress}}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        {{#progress}}{{progress}}{{/progress}}{{^progress}}0{{/progress}}%
+                                    {{/enablecompletion }}
+                                    </div>
+                                    <a class="btn " href="{{ link }}" role="button">{{#str}}viewcourselow, theme_remui{{/str}}</a>
+                                </div>
+                            </div>
+                        </div>
+                        {{/ courses }}
+                    </div>
+                    {{/ hascourses }}
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,5 @@
+CHANGES LOG
+
+Version 4.0.0
+=============
+Moodle 4.0 compatible Version of Edwiser Advanced Block compatible. Edwiser Advanced Block integrates with Edwiser Page builder Plugin and allow users to create dynamic html blocks.

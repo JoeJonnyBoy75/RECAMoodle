@@ -18,7 +18,7 @@
  * Admin settings tab
  * @package   theme_remui
  * @copyright 2016 Ryan Wyllie
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -98,6 +98,26 @@ class theme_remui_admin_settingspage_tabs extends admin_settingpage {
                 'active' => $active,
             );
         }
+
+        // Add edwiser importer.
+        $importer = '';
+        $pluginman = \core_plugin_manager::instance();
+        if (array_key_exists("edwisersiteimporter", $pluginman->get_installed_plugins('local'))) {
+            ob_start();
+            include_once($CFG->dirroot . '/local/edwisersiteimporter/index.php');
+            $importer = ob_get_clean();
+        } else {
+            $importer = get_string('importer-missing', 'theme_remui');
+        }
+
+        // Information center.
+        $context['tabs'][] = array(
+            'name' => 'edwisersiteimporter',
+            'displayname' => get_string('importer', 'theme_remui'),
+            'html' => $importer,
+            'active' => $activetab == 'edwisersiteimporter',
+            'customclass' => 'remuitab'
+        );
 
         // Announcements tab content.
         ob_start();

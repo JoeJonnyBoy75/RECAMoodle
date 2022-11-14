@@ -57,7 +57,7 @@ class qbehaviour_interactive_renderer extends qbehaviour_renderer {
             'id' => $qa->get_behaviour_field_name('tryagain'),
             'name' => $qa->get_behaviour_field_name('tryagain'),
             'value' => get_string('tryagain', 'qbehaviour_interactive'),
-            'class' => 'submit btn',
+            'class' => 'submit btn btn-secondary',
         );
         if ($options->readonly === qbehaviour_interactive::TRY_AGAIN_VISIBLE_READONLY) {
             // This means the question really was rendered with read-only option.
@@ -66,7 +66,7 @@ class qbehaviour_interactive_renderer extends qbehaviour_renderer {
         $output = html_writer::empty_tag('input', $attributes);
         if (empty($attributes['disabled'])) {
             $this->page->requires->js_init_call('M.core_question_engine.init_submit_button',
-                    array($attributes['id'], $qa->get_slot()));
+                    array($attributes['id']));
         }
         return $output;
     }

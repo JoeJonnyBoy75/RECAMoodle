@@ -1,3 +1,10 @@
+/*eslint-disable babel/no-unused-expressions*/
+/*eslint-disable no-undef*/
+/*eslint-disable babel/semi*/
+/*eslint-disable jsdoc/require-jsdoc*/
+/*eslint-disable no-unused-vars*/
+
+
 /*
      _ _      _       _
  ___| (_) ___| | __  (_)___

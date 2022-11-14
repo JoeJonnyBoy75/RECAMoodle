@@ -1,0 +1,70 @@
+<div id="epb_custom_modal" class="epb_custom_modal modal d-none">
+  <div class="modal-content blocks-list blocklist">
+    <div class="modal-header " data-region="header">
+      <div class="left-side d-flex">
+          <h5 id="1-modal-title" class="modal-title" data-region="title">Add a block</h5>
+          <div class="tab-button-group d-flex justify-content-center align-items-center ml-5">
+            
+            <ul class="nav nav-tabs" id="epbTab" role="tablist">
+              {{#can_fetch_pages}}
+              <li class="nav-item" role="presentation">
+                <a class="nav-link active" id="block-tab" data-toggle="tab" href="#blocktab" role="tab" aria-controls="blocktab" aria-selected="true">Blocks</a>
+              </li>
+              
+              <li class="nav-item " role="presentation">
+                <a class="nav-link loadpagelayouts" id="pagelayout-tab" data-toggle="tab" href="#pagelayout" role="tab" aria-controls="pagelayout" aria-selected="false">Page Layouts</a>
+              </li>
+              {{/can_fetch_pages}}
+            </ul>
+
+          </div>
+      </div>
+
+      {{#can_fetch_blocks}}
+        <div class="action-buttons-modal">
+          <button type="button" class="btn btn-primary update updateblocklist" data-action="updateblocklist" aria-label="Update Block List" title="{{#str}}updateblocklistonly, local_edwiserpagebuilder{{/str}}">
+            <i class="fa fa-download mr-1"></i>
+            <span>{{#str}}fetchblocklist, local_edwiserpagebuilder{{/str}}</span>
+          </button>
+
+          <input type="hidden" name="edwpageurl" value="{{edwpageurl}}">
+          <button type="button" class="close" data-action="hide" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      {{/can_fetch_blocks}}
+
+    </div>
+
+    <div class="modal-body" data-region="body">
+      
+      <div class="tab-content" id="epbTabContent">
+        <div class="tab-pane show active" id="blocktab" role="tabpanel" aria-labelledby="block-tab">
+          <div class="list-group addblock-modal-body blocks-list">
+            <div class="tab-content">
+              <div class="row block-cards default-blocks m-auto">
+                  {{> local_edwiserpagebuilder/block_card }}
+              </div>
+              <div class="row page-cards m-auto"></div>
+            </div>
+          </div>
+        </div>
+        {{#can_fetch_pages}}
+        <div class="tab-pane " id="pagelayout" role="tabpanel" aria-labelledby="pagelayout-tab">
+          <div class="list-group addpage-modal-body pages-list">
+            <div class="spinner-border transition-center" role="status">
+              <span class="sr-only">Loading...</span>
+            </div>
+          </div>
+        </div>
+        {{/can_fetch_pages}}
+      </div>
+      
+    </div>
+
+    <div class="modal-footer d-flex justify-content-between" data-region="footer">
+      <div></div>
+      <button type="button" class="btn btn-secondary cancel" data-action="cancel" data-modal-id="epb_custom_modal">{{#str}}close, local_edwiserpagebuilder{{/str}}</button>
+    </div>
+  </div>
+</div>

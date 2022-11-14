@@ -99,6 +99,13 @@ class backup_root_task extends backup_task {
         $this->add_setting($roleassignments);
         $users->add_dependency($roleassignments);
 
+        // Define permission.
+        if ($this->plan->get_mode() == backup::MODE_IMPORT) {
+            $permissions = new backup_permissions_setting('permissions', base_setting::IS_BOOLEAN, false);
+            $permissions->set_ui(new backup_setting_ui_checkbox($permissions, get_string('rootsettingpermissions', 'backup')));
+            $this->add_setting($permissions);
+        }
+
         // Define activities
         $activities = new backup_activities_setting('activities', base_setting::IS_BOOLEAN, true);
         $activities->set_ui(new backup_setting_ui_checkbox($activities, get_string('rootsettingactivities', 'backup')));
@@ -184,5 +191,10 @@ class backup_root_task extends backup_task {
         $contentbank = new backup_contentbankcontent_setting('contentbankcontent', base_setting::IS_BOOLEAN, true);
         $contentbank->set_ui(new backup_setting_ui_checkbox($contentbank, get_string('rootsettingcontentbankcontent', 'backup')));
         $this->add_setting($contentbank);
+
+        // Define legacy file inclusion setting.
+        $legacyfiles = new backup_generic_setting('legacyfiles', base_setting::IS_BOOLEAN, true);
+        $legacyfiles->set_ui(new backup_setting_ui_checkbox($legacyfiles, get_string('rootsettinglegacyfiles', 'backup')));
+        $this->add_setting($legacyfiles);
     }
 }

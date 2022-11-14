@@ -28,6 +28,7 @@ use core_text;
 use stored_file;
 use stdClass;
 use coding_exception;
+use context;
 use moodle_url;
 use core\event\contentbank_content_updated;
 
@@ -39,6 +40,17 @@ use core\event\contentbank_content_updated;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class content {
+    /**
+     * @var int Visibility value. Public content is visible to all users with access to the content bank of the
+     * appropriate context.
+     */
+    public const VISIBILITY_PUBLIC = 1;
+
+    /**
+     * @var int Visibility value. Unlisted content is only visible to the author and to users with
+     * moodle/contentbank:viewunlistedcontent capability.
+     */
+    public const VISIBILITY_UNLISTED = 2;
 
     /** @var stdClass $content The content of the current instance. **/
     protected $content  = null;
@@ -86,6 +98,17 @@ abstract class content {
     }
 
     /**
+     * Return the contenttype instance of this content.
+     *
+     * @return contenttype The content type instance
+     */
+    public function get_content_type_instance(): contenttype {
+        $context = context::instance_by_id($this->content->contextid);
+        $contenttypeclass = "\\{$this->content->contenttype}\\contenttype";
+        return new $contenttypeclass($context);
+    }
+
+    /**
      * Returns $this->content->timemodified.
      *
      * @return int  $this->content->timemodified.
@@ -127,7 +150,8 @@ abstract class content {
      * @throws \coding_exception if not loaded.
      */
     public function set_name(string $name): bool {
-        if (empty($name)) {
+        $name = trim($name);
+        if ($name === '') {
             return false;
         }
 
@@ -238,6 +262,66 @@ abstract class content {
     }
 
     /**
+     * Sets a new content visibility and saves it to database.
+     *
+     * @param int $visibility Must be self::PUBLIC or self::UNLISTED
+     * @return bool
+     * @throws coding_exception
+     */
+    public function set_visibility(int $visibility): bool {
+        if (!in_array($visibility, [self::VISIBILITY_PUBLIC, self::VISIBILITY_UNLISTED])) {
+            return false;
+        }
+        $this->content->visibility = $visibility;
+        return $this->update_content();
+    }
+
+    /**
+     * Return true if the content may be shown to other users in the content bank.
+     *
+     * @return boolean
+     */
+    public function get_visibility(): int {
+        return $this->content->visibility;
+    }
+
+    /**
+     * Import a file as a valid content.
+     *
+     * By default, all content has a public file area to interact with the content bank
+     * repository. This method should be overridden by contentypes which does not simply
+     * upload to the public file area.
+     *
+     * If any, the method will return the final stored_file. This way it can be invoked
+     * as parent::import_file in case any plugin want to store the file in the public area
+     * and also parse it.
+     *
+     * @throws file_exception If file operations fail
+     * @param stored_file $file File to store in the content file area.
+     * @return stored_file|null the stored content file or null if the file is discarted.
+     */
+    public function import_file(stored_file $file): ?stored_file {
+        $originalfile = $this->get_file();
+        if ($originalfile) {
+            $originalfile->replace_file_with($file);
+            return $originalfile;
+        } else {
+            $itemid = $this->get_id();
+            $fs = get_file_storage();
+            $filerecord = [
+                'contextid' => $this->get_contextid(),
+                'component' => 'contentbank',
+                'filearea' => 'public',
+                'itemid' => $this->get_id(),
+                'filepath' => '/',
+                'filename' => $file->get_filename(),
+                'timecreated' => time(),
+            ];
+            return $fs->create_file_from_storedfile($filerecord, $file);
+        }
+    }
+
+    /**
      * Returns the $file related to this content.
      *
      * @return stored_file  File stored in content bank area related to the given itemid.
@@ -259,6 +343,24 @@ abstract class content {
             return $file;
         }
         return null;
+    }
+
+    /**
+     * Returns the places where the file associated to this content is used or an empty array if the content has no file.
+     *
+     * @return array of stored_file where current file content is used or empty array if it hasn't any file.
+     * @since 3.11
+     */
+    public function get_uses(): ?array {
+        $references = [];
+
+        $file = $this->get_file();
+        if ($file != null) {
+            $fs = get_file_storage();
+            $references = $fs->get_references_by_storedfile($file);
+        }
+
+        return $references;
     }
 
     /**
@@ -289,8 +391,12 @@ abstract class content {
      * @return bool     True if content could be accessed. False otherwise.
      */
     public function is_view_allowed(): bool {
-        // There's no capability at content level to check,
-        // but plugins can overwrite this method in case they want to check something related to content properties.
-        return true;
+        // Plugins can overwrite this method in case they want to check something related to content properties.
+        global $USER;
+        $context = \context::instance_by_id($this->get_contextid());
+
+        return $USER->id == $this->content->usercreated ||
+            $this->get_visibility() == self::VISIBILITY_PUBLIC ||
+            has_capability('moodle/contentbank:viewunlistedcontent', $context);
     }
 }

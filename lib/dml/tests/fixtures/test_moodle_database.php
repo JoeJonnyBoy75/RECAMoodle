@@ -23,6 +23,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace core;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__.'/../../moodle_database.php');
@@ -38,7 +40,7 @@ require_once(__DIR__.'/test_sql_generator.php');
  * @copyright  2018 Catalyst IT
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class test_moodle_database extends moodle_database {
+abstract class test_moodle_database extends \moodle_database {
 
     /** @var string */
     private $error;
@@ -53,7 +55,7 @@ abstract class test_moodle_database extends moodle_database {
     public function __construct($external = false) {
         parent::__construct($external);
 
-        $this->temptables = new moodle_temptables($this);
+        $this->temptables = new \moodle_temptables($this);
     }
 
     /**
@@ -249,7 +251,7 @@ abstract class test_moodle_database extends moodle_database {
     /**
      * Default implementation, throws Exception
      * @param string $table
-     * @param StdObject $dataobject
+     * @param object|array $dataobject
      * @param bool $returnid
      * @param bool $bulk
      * @return bool|int true or new id
@@ -338,6 +340,19 @@ abstract class test_moodle_database extends moodle_database {
      */
     public function sql_concat_join($separator = "' '", $elements = []) {
         throw new Exception("sql_concat_join() not implemented");
+    }
+
+    /**
+     * Default implementation, throws Exception
+     *
+     * @param string $field
+     * @param string $separator
+     * @param string $sort
+     * @return string
+     * @throws Exception
+     */
+    public function sql_group_concat(string $field, string $separator = ', ', string $sort = ''): string {
+        throw new Exception('sql_group_concat() not implemented');
     }
 
     /**

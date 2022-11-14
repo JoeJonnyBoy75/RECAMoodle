@@ -13,7 +13,7 @@
 
     Edwiser RemUI
     @package   theme_remui
-    @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/)
+    @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/)
     @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
 
 }}
@@ -36,13 +36,12 @@
     }
 
 }}
-<div class="popover-region collapsed {{$classes}}{{/classes}} dropdown"
+<div class="popover-region collapsed {{$classes}}{{/classes}} no-bghover"
     {{$attributes}}{{/attributes}}
     data-region="popover-region">
-    <div class="popover-region-toggle nav-link"
-        data-toggle="dropdown"
+    <div class="popover-region-toggle nav-link remuiicon"
         data-region="popover-region-toggle"
-        aria-role="button"
+        role="button"
         aria-controls="popover-region-container-{{uniqid}}"
         aria-haspopup="true"
         aria-label="{{$togglelabel}}{{#str}}showpopovermenu{{/str}}{{/togglelabel}}"
@@ -51,17 +50,17 @@
     </div>
     <div {{$containerattributes}}{{/containerattributes}}
         id="popover-region-container-{{uniqid}}"
-        class="dropdown-menu dropdown-menu-right dropdown-menu-media p-0"
+        class="popover-region-container"
         data-region="popover-region-container"
         aria-expanded="false"
         aria-hidden="true"
         aria-label="{{$containerlabel}}{{/containerlabel}}"
         role="region">
-        <div class="popover-region-header-container d-flex h-auto p-3 justify-content-between">
+        <div class="popover-region-header-container p-3 h-auto">
             <h3 class="popover-region-header-text" data-region="popover-region-header-text">{{$headertext}}{{/headertext}}</h3>
             <div class="popover-region-header-actions" data-region="popover-region-header-actions">{{$headeractions}}{{/headeractions}}</div>
         </div>
-        <div class="popover-region-content-container" style="min-height: 200px;" data-region="popover-region-content-container">
+        <div class="popover-region-content-container" data-region="popover-region-content-container">
             <div class="popover-region-content" data-region="popover-region-content">
                 {{$content}}{{/content}}
             </div>
@@ -69,9 +68,9 @@
         </div>
         {{$anchor}}
             {{#urls.seeall}}
-                <a class="see-all-link d-flex p-2 justify-content-center border-top"
+                <a class="see-all-link"
                     href="{{{.}}}">
-                    <div class="popover-region-footer-container border-0">
+                    <div class="popover-region-footer-container p-2 justify-content-center h-auto">
                         <div class="popover-region-seeall-text">{{#str}} seeall, message {{/str}}</div>
                     </div>
                 </a>

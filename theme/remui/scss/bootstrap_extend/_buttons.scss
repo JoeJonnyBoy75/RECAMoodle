@@ -13,19 +13,19 @@
 }
 
 $shadow-5-bottom : 0 6px 10px rgba($black, .15);
-$btn-floating-size: pxToRem(56px) !default;
-$btn-floating-padding: pxToRem(14px) !default;
-$btn-floating-font-size: pxToRem(24px) !default;
+$btn-floating-size: pxtorem(56px) !default;
+$btn-floating-padding: pxtorem(14px) !default;
+$btn-floating-font-size: pxtorem(24px) !default;
 $btn-floating-shadow: $shadow-5-bottom !default;
-$btn-floating-xs-size: pxToRem(30px) !default;
+$btn-floating-xs-size: pxtorem(30px) !default;
 /*$btn-floating-xs-padding:                10px !default;*/
-$btn-floating-xs-font-size: pxToRem(13px) !default;
-$btn-floating-sm-size: pxToRem(40px) !default;
+$btn-floating-xs-font-size: pxtorem(13px) !default;
+$btn-floating-sm-size: pxtorem(40px) !default;
 /*$btn-floating-sm-padding:                13px !default;*/
-$btn-floating-sm-font-size: pxToRem(15px) !default;
-$btn-floating-lg-size: pxToRem(70px) !default;
+$btn-floating-sm-font-size: pxtorem(15px) !default;
+$btn-floating-lg-size: pxtorem(70px) !default;
 /*$btn-floating-lg-padding:                15px !default;*/
-$btn-floating-lg-font-size: pxToRem(30px) !default;
+$btn-floating-lg-font-size: pxtorem(30px) !default;
 
 // Modifier: `btn-floating`
 // ========================================================================

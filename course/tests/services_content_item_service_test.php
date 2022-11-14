@@ -22,12 +22,12 @@
  * @copyright  2020 Jake Dallimore <jrhdallimore@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace tests\course;
+namespace core_course;
 
 defined('MOODLE_INTERNAL') || die();
 
-use \core_course\local\service\content_item_service;
-use \core_course\local\repository\content_item_readonly_repository;
+use core_course\local\service\content_item_service;
+use core_course\local\repository\content_item_readonly_repository;
 
 /**
  * The tests for the content_item_service class.
@@ -35,7 +35,7 @@ use \core_course\local\repository\content_item_readonly_repository;
  * @copyright  2020 Jake Dallimore <jrhdallimore@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class services_content_item_service_testcase extends \advanced_testcase {
+class services_content_item_service_test extends \advanced_testcase {
 
     /**
      * Test confirming that content items are returned by the service.
@@ -121,7 +121,8 @@ class services_content_item_service_testcase extends \advanced_testcase {
 
         // The call to get_all_content_items() should return the same items as for the course,
         // given the user in an editing teacher and can add manual lti instances.
-        $this->assertEquals(array_column($allcontentitems, 'name'), array_column($coursecontentitems, 'name'));
+        $this->assertContains('lti', array_column($coursecontentitems, 'name'));
+        $this->assertContains('lti', array_column($allcontentitems, 'name'));
 
         // Now removing the cap 'mod/lti:addinstance'. This will restrict those items returned by the course-specific method.
         $teacherrole = $DB->get_record('role', array('shortname' => 'editingteacher'));
@@ -153,9 +154,12 @@ class services_content_item_service_testcase extends \advanced_testcase {
         $matchingcontentitems1 = $cis->get_content_items_by_name_pattern($user, $pattern1);
         $matchingcontentitems2 = $cis->get_content_items_by_name_pattern($user, $pattern2);
 
-        // The pattern "assign" should return 1 content item ("Assignment").
-        $this->assertCount(1, $matchingcontentitems1);
-        $this->assertEquals("Assignment", $matchingcontentitems1[0]->title);
+        // The pattern "assign" should return at least 1 content item (ex. "Assignment").
+        $this->assertGreaterThanOrEqual(1, count($matchingcontentitems1));
+        // Verify the pattern "assign" can be found in the title of each returned content item.
+        foreach ($matchingcontentitems1 as $contentitem) {
+            $this->assertEquals(1, preg_match("/$pattern1/i", $contentitem->title));
+        }
         // The pattern "random string" should not return any content items.
         $this->assertEmpty($matchingcontentitems2);
     }

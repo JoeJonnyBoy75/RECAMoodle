@@ -1,13 +1,13 @@
 /* override the list item style in profile page */
 .page-profile .page-content {
-  .list-group-item {
-    .media .avatar {
-        width: 75px;
+    .list-group-item {
+        .media .avatar {
+            width: 75px;
+        }
+        &:last-child {
+            border-bottom-color: transparent;
+        }
     }
-    &:last-child {
-      border-bottom-color: transparent;
-    }
-  }
 }
 
 .card-header {
@@ -42,21 +42,22 @@
         }
     }
 }
-.alert>:last-child {
+.alert > :last-child {
     margin-bottom: 0 !important;
 }
 
 .editor_atto {
-    .editor_atto_toolbar, .editor_atto_content_wrap {
-        border: 0;
+    .editor_atto_toolbar,
+    .editor_atto_content_wrap {
+        // border: 0;
         .atto_group {
             border: 0;
-            margin: 9px 9px 0px 9px;
+            margin: 9px 9px 0 9px;
             button {
                 &:active, &:hover {
                     background-image: none;
                 }
-                +button {
+                + button {
                     border: 0;
                     background-image: none;
                 }
@@ -75,8 +76,8 @@
     } 
 }
 /** Datatable header in course progress block **/
-table.dataTable thead th, table.dataTable tfoot th{
-    background-color: $brand-primary ;
+table.dataTable thead th, table.dataTable tfoot th {
+    background-color: $brand-primary;
     color: #fff !important;
 }
 
@@ -85,20 +86,23 @@ table.dataTable thead th, table.dataTable tfoot th{
 }
 
 .btn-group > .btn:first-child {
-  margin-left: 0; }
+    margin-left: 0;
+}
 
 .btn-group > .btn:not(:last-child):not(.dropdown-toggle),
 .btn-group > .btn-group:not(:last-child) > .btn,
 .tool-items > .btn:not(:last-child) {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0; }
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
 
 .btn-group > .btn:not(:first-child),
 .btn-group > .btn-group:not(:first-child) > .btn,
 .tool-items > .btn:not(:first-child) {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0; }
-.message-app .body-container>* {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+.message-app .body-container > * {
     position: absolute;
     right: 0;
     left: 0;
@@ -119,7 +123,7 @@ table.dataTable thead th, table.dataTable tfoot th{
                     padding: .572rem 1.072rem;
                     font-weight: 400;
                     line-height: 1.57142857;
-                    color: #526069;
+                    color: $text-color;
                     white-space: nowrap;
                     border-radius: .215rem;
                     &:hover {
@@ -158,14 +162,27 @@ table.dataTable thead th, table.dataTable tfoot th{
     }
 }
 
-input[type="text"] {
-    @extend .form-control;
-}
+// input[type="text"] {
+//     @extend .form-control;
+// }
 
 .btn-group-vertical {
-  > .btn,
-  > .btn-group {
-    width: 100%;
-    margin-left: 0 !important;
-  }
+    > .btn,
+    > .btn-group {
+        width: 100%;
+        margin-left: 0 !important;
+    }
+}
+
+.navbar .navbar-options {
+    .primary-navigation .moremenu ul li .catselector-menu {
+        &+.dropdown-menu {
+            max-height: 195px;
+            width: max-content;
+            max-width: 600px;
+            .dropdown-item {
+                white-space: unset;
+            }
+        }
+    }
 }

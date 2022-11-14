@@ -1,0 +1,13 @@
+Change Log:
+===========
+
+Version 1.0.1
+Fix - Dashboard blocks will not reset on plugin installation.
+Fix - Course rating and review fixes for enrollment page.
+
+Version 1.0.0
+
+Initial Version of Edwiser Rating and Review
+Edwiser Rating and Review allow users to rate available courses. Users can also add reviews for each course.
+This plugin will help admins and teachers to understand the loopholes in course, and will help them to improve courses.
+

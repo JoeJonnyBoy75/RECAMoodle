@@ -155,7 +155,8 @@ class core_tag_manage_table extends table_sql {
             $sort = "tg.name";
         }
 
-        $allusernames = get_all_user_name_fields(true, 'u');
+        $userfieldsapi = \core_user\fields::for_name();
+        $allusernames = $userfieldsapi->get_sql('u', false, '', '', false)->selects;
         $sql = "
             SELECT tg.id, tg.name, tg.rawname, tg.isstandard, tg.flag, tg.timemodified,
                        u.id AS owner, $allusernames,
@@ -182,7 +183,7 @@ class core_tag_manage_table extends table_sql {
      * @return string added to the class="" attribute of the tr.
      */
     public function get_row_class($row) {
-        return $row->flag ? 'flagged-tag' : '';
+        return $row->flag ? 'table-warning' : '';
     }
 
     /**

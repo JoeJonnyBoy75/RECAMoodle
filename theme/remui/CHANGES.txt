@@ -1,29 +1,48 @@
 Change Log:
 ===========
 
-Version 3.9.1
+Version 4.0.3
 
-Fix - "No Course Found" string on Course Archive page made translation ready.
-Fix - Course stats on course page were showing release without considering the completion criteria.
-Fix - Issue in activity icon size in the competencies page.
-Fix - Error with "Configurable Reports" plugin.
-Fix - Activity Navigation in Focus Mode not working properly with restricted activities.
-Fix - Course Name in Focus Mode, when too long styling issue with ellipsis.
-Fix - Activity Navigation in Focus Mode made translation ready.
-Fix - Left Sidebar Activity Navigation, List item styling issue with restricted activities.
-Fix - Clear Choice Button not available on Quiz page for Multiple choice questions.
-Fix - Bullets points are not visible in Topic Description.
-Fix - Date Picker from Restrict Access in activity edit setting was having style issue.
-Fix - Missing option to rename in content bank issue.
-Fix - Dropdown overlapping issue on Course activity page.
-Fix - Quiz Question flag issue.
-Fix - Grading page Action buttons position issue.
-Tweak - Site Wide announcements, Made dismissible.
-Tweak - Removed Unnecessary CSS from Theme.
-Tweak - Code Optimization.
+Feature - Updated Login page logo position settings now have 3 options as Disable, On the login card and On the central region.
+Tweak   - Now Live customizer will not reset Custom CSS when they hit the Reset button. Added note for same
+Tweak   - User Profile page now showing [fullnamedisplay] instead of firstname  + lastname.
+Tweak   - Now Course stats will show data as moodle's course completion criteria to calculate course completion.
+Tweak   - Removed Powered by Edwiser RemUI link from footer for non admin users.
+Tweak   - Added Placeholder text for category dropdown with supported languages.
+Tweak   - Displayed  the current version number on the Edwiser RemUI setting page and Information Center tab.
+Tweak   - Removed Powered by Edwiser RemUI link from footer for non admin users.
+Fix     - Removed follow us text from the login page if there are no social links added.
+Fix     - Fixed messaging panel issue to load all conversations on scroll.
 
-Version 3.9.0
+Version 4.0.2
 
-Initial Version of Edwiser RemUI, made compatible with latest version of Moodle 3.9
+Feature - Edwiser RemUI Course archive page design implemented in Moodle 4.0.
+Feature - Edwiser Course cards designs implemented on:
+            1) Course archive page cards
+            2) My courses page
+            3) Course overview block (dashboard page)
+            4) Starred Courses
+Feature - Categories based navigation to Course archive page added in header.
+Feature - Following Course archive page settings added:
+            1) Course cards per page
+            2) Course cards animation
+            3) Course Card design layout
 
-Fix - Admins could not edit the sidebar blocks when homepage is active.
+Tweak - Teacher information made available on course overview block.
+Tweak - Integration of Edwiser Ratings & Review block with all course card designs.
+Tweak - "View all courses" button added on available courses on home page.
+Tweak - Block region tweaks for Site homepage
+
+Version 4.0.1
+
+Feature - Edwiser rating and review feature and block integration on Course card and Enrolment page.
+Feature - Added enrolment page design with few improvements.
+Feature - Added Profile page design with few improvements.
+Feature - Course card design integrated to Available courses block for Homepage.
+Feature - Next/Prev activity navigation added to in course page.
+Feature - New setting added for login/signup page logo.
+Feature - New setting added for login/signup page background image opacity.
+
+Version 4.0.0
+
+Initial Version of Edwiser RemUI, made compatible with latest version of Moodle 4.0.

@@ -1,3 +1,8 @@
+/*eslint-disable no-tabs*/
+/*eslint-disable no-inner-declarations*/
+/*eslint-disable no-extra-semi*/
+/*eslint-disable no-unused-vars*/
+/*eslint-disable jsdoc/require-jsdoc */
 /**
  * Toolbar.js
  *

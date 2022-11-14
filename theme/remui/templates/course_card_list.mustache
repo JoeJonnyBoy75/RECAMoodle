@@ -18,23 +18,31 @@
 
 }}
 {{#old_card}}
-<div class=" col-lg-12  animation-{{animation}}" data-plugin="appear" data-animate="{{animation}}" data-course-id="{{id}}">
-    <div class="row no-space my-2 bg-white mx-0">
+<div class="edw-card animation-{{animation}} mb-4" data-plugin="appear" data-animate="{{animation}}" data-course-id="{{id}}">
+    <div class="row no-space bg-white mx-0">
         <div class="col-lg-3 col-md-4 p-0">
-            <a href="{{ courseurl }}">
-            <div class="rounded-top" style="background-image: url('{{ courseimage }}');background-size: cover;background-position: center; position: relative;height:200px;"></div>
-            {{^visible}}<i class="hidden-icon fa fa-eye-slash text-white" aria-hidden="true" title="{{#str}} hiddencourse, theme_remui {{/str}}"></i>{{/visible}}
+            <a href="{{ courseurl }}" aria-label="Course - {{{ coursename }}}">
+            <div class="courseimage" style="background-image: url('{{ courseimage }}');background-size: cover;background-position: center; position: relative;height:200px;"></div>
             </a>
 
             {{# instructors }}
-            <a href="{{ url }}" class="d-flex justify-content-end instructor-img {{ imgStyle }}" data-toggle="tooltip" title="{{{name}}}">
-                <img src="{{ picture }}" style="border: 2px solid white; cursor: pointer;" class="rounded-circle" alt="{{ name }}" />
+            <a href="{{ url }}" class="d-flex justify-content-end instructor-img {{ imgStyle }}" data-toggle="tooltip" title="{{{name}}}" aria-label="Instructor for {{coursename}} is - {{name}}">
+                <img src="{{ picture }}" style="border: 2px solid white; cursor: pointer;z-index: 500;" class="rounded-circle" alt="{{ name }}" />
             </a>
             {{/ instructors }}
+            <div class="left-top-menu">
+                {{^visible}}
+                <div class="visibilityicon">
+                    <i class="hidden-icon fa fa-eye-slash visible text-white" aria-hidden="true"
+                        title="{{#str}} hiddencourse, theme_remui {{/str}}"></i>
+                </div>
+                {{/visible}}
+            </div>
         </div>
         <div class="col-lg-9 col-md-8 p-0">
             <div class="card-body h-full p-3"  title="{{{ coursename }}}">
-                <h4 class="card-title mt-1 ellipsis ellipsis-2"><a href="{{ courseurl }}" class="font-weight-400 text-dark font-size-18">{{{ coursename }}}</a></h4>
+                <div class='font-size-10'>{{{ernrshortdesign}}}</div>
+                <h4 class="card-title mt-1 ellipsis ellipsis-2"><a href="{{ courseurl }}" class="font-weight-400  font-size-18" tabindex="-1">{{{ coursename }}}</a></h4>
                 <p class="card-text"><span class="text-muted">{{{ categoryname }}}</span></p>
                 <p class="card-text">{{{ coursesummary }}}</p>
 
@@ -42,7 +50,7 @@
                     <div class="w-200 pull-right">
                         {{# coursecompleted }}
                             <div class="card-footer bg-transparent border-0 p-0 activity-btn {{listbuttons}}">
-                                <a href="{{ courseurl }}" class="btn btn-success btn-block p-10 bg-green-500 border-0 rounded-0 text-white font-weight-800" href="">
+                                <a href="{{ courseurl }}" class="btn btn-success btn-block p-10 bg-green-500 border-0 rounded-0 text-white font-weight-800" href="" aria-label="Course Completed 100%" >
                                 <i class="fa fa-check" aria-hidden="true"></i>
                                 {{coursecompleted}}</a>
                             </div>
@@ -54,14 +62,14 @@
                                 </div>
                             </div>
                             <div class="card-footer bg-transparent border-0 p-0 activity-btn {{listbuttons}}">
-                                <a href="{{# lastaccessactivity}} {{lastaccessactivity}} {{/ lastaccessactivity}}{{^ lastaccessactivity}} {{ courseurl }} {{/ lastaccessactivity}}" class="btn btn-default btn-block p-10 bg-purple-500 border-0 rounded-0 text-white font-weight-800" href=""><i class="fa fa-refresh" aria-hidden="true"></i>
+                                <a href="{{# lastaccessactivity}} {{lastaccessactivity}} {{/ lastaccessactivity}}{{^ lastaccessactivity}} {{ courseurl }} {{/ lastaccessactivity}}" class="btn btn-default btn-block p-10 bg-purple-500 border-0 rounded-0 text-white font-weight-800" href="" aria-label="Course Completed {{percentage}}%, Resume the course" role="button"><i class="fa fa-refresh" aria-hidden="true"></i>
                                 {{courseinprogress}}</a>
                             </div>
                         {{/ courseinprogress }}
 
                         {{# coursetostart }}
                             <div class="card-footer bg-transparent border-0 p-0 activity-btn {{listbuttons}}">
-                                <a href="{{ courseurl }}" class="btn btn-info btn-block p-10 border-0 rounded-0 text-white font-weight-800" href=""><i class="fa fa-play-circle" aria-hidden="true"></i>
+                                <a href="{{ courseurl }}" class="btn btn-info btn-block p-10 border-0 rounded-0 text-white font-weight-800" href=""  aria-label="Start the course - {{coursename}}" role="button"><i class="fa fa-play-circle" aria-hidden="true"></i>
                                 {{coursetostart}}</a>
                             </div>
                         {{/ coursetostart }}
@@ -76,9 +84,9 @@
                             </div>
 
                             <button type="button"
-                                class="btn btn-icon btn-outline-primary btn-sm btn-round float-right showoptions "
+                                class="btn btn-icon {{^icondesign}}btn-outline-primary{{/icondesign}} btn-sm btn-round float-right showoptions "
                                 data-plugin="toolbar"
-                                data-toolbar="#course-{{ id }}-options">
+                                data-toolbar="#course-{{ id }}-options" title="">
                                 <i class="icon fa fa-cog" aria-hidden="true"></i>
                             </button>
                         </div>
@@ -91,7 +99,7 @@
                     {{/ usercanmanage }}
 
                     {{^ usercanmanage }}
-                        <div class="card-footer bg-transparent text-muted">
+                        <div class="card-footer bg-transparent text-muted border-0">
                             <div class="enrolmenticons">
                                 {{{ enrollmenticons }}}
                             </div>

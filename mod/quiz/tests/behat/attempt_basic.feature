@@ -22,7 +22,7 @@ Feature: Attempt a quiz
       | quiz       | Quiz 1 | Quiz 1 description | C1     | quiz1    |
 
   @javascript
-  Scenario: Attempt a quiz with a single unnamed section
+  Scenario: Attempt a quiz with a single unnamed section, review and re-attempt
     Given the following "questions" exist:
       | questioncategory | qtype       | name  | questiontext    |
       | Test questions   | truefalse   | TF1   | First question  |
@@ -37,11 +37,22 @@ Feature: Attempt a quiz
       |   2  | False    |
     When I am on the "Quiz 1" "mod_quiz > View" page logged in as "student"
     And I follow "Review"
-    Then I should see "25.00 out of 100.00"
+    Then I should see "Started on"
+    And I should see "State"
+    And I should see "Completed on"
+    And I should see "Time taken"
+    And I should see "Marks"
+    And I should see "Grade"
+    And I should see "25.00 out of 100.00"
+    And I follow "Finish review"
+    And I press "Re-attempt quiz"
 
   @javascript
-  Scenario: Attempt a quiz with mulitple sections
-    Given the following "questions" exist:
+  Scenario: Attempt a quiz with multiple sections
+    Given the following "activities" exist:
+      | activity   | name   | course | idnumber | grade |
+      | quiz       | Quiz 2 | C1     | quiz2    | 6     |
+    And the following "questions" exist:
       | questioncategory | qtype       | name  | questiontext    |
       | Test questions   | truefalse   | TF1   | First question  |
       | Test questions   | truefalse   | TF2   | Second question |
@@ -49,7 +60,7 @@ Feature: Attempt a quiz
       | Test questions   | truefalse   | TF4   | Fourth question |
       | Test questions   | truefalse   | TF5   | Fifth question  |
       | Test questions   | truefalse   | TF6   | Sixth question  |
-    And quiz "Quiz 1" contains the following questions:
+    And quiz "Quiz 2" contains the following questions:
       | question | page |
       | TF1      | 1    |
       | TF2      | 1    |
@@ -57,43 +68,56 @@ Feature: Attempt a quiz
       | TF4      | 3    |
       | TF5      | 4    |
       | TF6      | 4    |
-    And quiz "Quiz 1" contains the following sections:
+    And quiz "Quiz 2" contains the following sections:
       | heading   | firstslot | shuffle |
-      | Section 1 | 1         | 1       |
+      | Section 1 | 1         | 0       |
       | Section 2 | 3         | 0       |
       |           | 4         | 1       |
-      | Section 3 | 5         | 0       |
+      | Section 3 | 5         | 1       |
 
-    When I am on the "Quiz 1" "mod_quiz > View" page logged in as "student"
-    And I press "Attempt quiz now"
+    When I am on the "Quiz 2" "mod_quiz > View" page logged in as "student"
+    And I press "Attempt quiz"
 
     Then I should see "Section 1" in the "Quiz navigation" "block"
     And I should see question "1" in section "Section 1" in the quiz navigation
     And I should see question "2" in section "Section 1" in the quiz navigation
     And I should see question "3" in section "Section 2" in the quiz navigation
-    And I should see question "4" in section "Section 2" in the quiz navigation
+    And I should see question "4" in section "Untitled section" in the quiz navigation
     And I should see question "5" in section "Section 3" in the quiz navigation
     And I should see question "6" in section "Section 3" in the quiz navigation
+    And I click on "True" "radio" in the "First question" "question"
 
     And I follow "Finish attempt ..."
     And I should see question "1" in section "Section 1" in the quiz navigation
     And I should see question "2" in section "Section 1" in the quiz navigation
     And I should see question "3" in section "Section 2" in the quiz navigation
-    And I should see question "4" in section "Section 2" in the quiz navigation
+    And I should see question "4" in section "Untitled section" in the quiz navigation
     And I should see question "5" in section "Section 3" in the quiz navigation
     And I should see question "6" in section "Section 3" in the quiz navigation
     And I should see "Section 1" in the "quizsummaryofattempt" "table"
     And I should see "Section 2" in the "quizsummaryofattempt" "table"
+    And I should see "Untitled section" in the "quizsummaryofattempt" "table"
     And I should see "Section 3" in the "quizsummaryofattempt" "table"
 
     And I press "Submit all and finish"
     And I click on "Submit all and finish" "button" in the "Confirmation" "dialogue"
+    And I should see "1.00 out of 6.00 (16.67%)" in the "Grade" "table_row"
     And I should see question "1" in section "Section 1" in the quiz navigation
     And I should see question "2" in section "Section 1" in the quiz navigation
     And I should see question "3" in section "Section 2" in the quiz navigation
-    And I should see question "4" in section "Section 2" in the quiz navigation
+    And I should see question "4" in section "Untitled section" in the quiz navigation
     And I should see question "5" in section "Section 3" in the quiz navigation
     And I should see question "6" in section "Section 3" in the quiz navigation
+
+    And I follow "Show one page at a time"
+    And I should see "First question"
+    And I should not see "Third question"
+    And I should see "Next page"
+
+    And I follow "Show all questions on one page"
+    And I should see "Fourth question"
+    And I should see "Sixth question"
+    And I should not see "Next page"
 
   @javascript
   Scenario: Next and previous navigation
@@ -106,7 +130,7 @@ Feature: Attempt a quiz
       | TF1      | 1    |
       | TF2      | 2    |
     When I am on the "Quiz 1" "mod_quiz > View" page logged in as "student"
-    And I press "Attempt quiz now"
+    And I press "Attempt quiz"
     Then I should see "Text of the first question"
     And I should not see "Text of the second question"
     And I press "Next page"

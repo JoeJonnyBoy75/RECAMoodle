@@ -24,6 +24,9 @@
  */
 namespace core\task;
 
+use core_component;
+use core_plugin_manager;
+
 /**
  * Abstract class for common properties of scheduled_task and adhoc_task.
  *
@@ -49,6 +52,15 @@ abstract class task_base {
 
     /** @var int $nextruntime - When this task is due to run next */
     private $nextruntime = 0;
+
+    /** @var int $timestarted - When this task was started */
+    private $timestarted = null;
+
+    /** @var string $hostname - Hostname where this task was started and PHP process ID */
+    private $hostname = null;
+
+    /** @var int $pid - PHP process ID that is running the task */
+    private $pid = null;
 
     /**
      * Set the current lock for this task.
@@ -127,6 +139,28 @@ abstract class task_base {
      * @return string
      */
     public function get_component() {
+        if (empty($this->component)) {
+            // The component should be the root of the class namespace.
+            $classname = get_class($this);
+            $parts = explode('\\', $classname);
+
+            if (count($parts) === 1) {
+                $component = substr($classname, 0, strpos($classname, '_task'));
+            } else {
+                [$component] = $parts;
+            }
+
+            // Load component information from plugin manager.
+            if ($component !== 'core' && strpos($component, 'core_') !== 0) {
+                $plugininfo = \core_plugin_manager::instance()->get_plugin_info($component);
+                if ($plugininfo && $plugininfo->component) {
+                    $this->set_component($plugininfo->component);
+                } else {
+                    debugging("Component not set and the class namespace does not match a valid component ({$component}).");
+                }
+            }
+        }
+
         return $this->component;
     }
 
@@ -151,4 +185,69 @@ abstract class task_base {
      * Throw exceptions on errors (the job will be retried).
      */
     public abstract function execute();
+
+    /**
+     * Setter for $timestarted.
+     * @param int $timestarted
+     */
+    public function set_timestarted($timestarted = null) {
+        $this->timestarted = $timestarted;
+    }
+
+    /**
+     * Getter for $timestarted.
+     * @return int
+     */
+    public function get_timestarted() {
+        return $this->timestarted;
+    }
+
+    /**
+     * Setter for $hostname.
+     * @param string $hostname
+     */
+    public function set_hostname($hostname = null) {
+        $this->hostname = $hostname;
+    }
+
+    /**
+     * Getter for $hostname.
+     * @return string
+     */
+    public function get_hostname() {
+        return $this->hostname;
+    }
+
+    /**
+     * Setter for $pid.
+     * @param int $pid
+     */
+    public function set_pid($pid = null) {
+        $this->pid = $pid;
+    }
+
+    /**
+     * Getter for $pid.
+     * @return int
+     */
+    public function get_pid() {
+        return $this->pid;
+    }
+
+    /**
+     * Informs whether the task's component is enabled.
+     * @return bool true when enabled. false otherwise.
+     */
+    public function is_component_enabled(): bool {
+        $component = $this->get_component();
+
+        // An entire core component type cannot be explicitly disabled.
+        [$componenttype] = core_component::normalize_component($component);
+        if ($componenttype === 'core') {
+            return true;
+        } else {
+            $plugininfo = core_plugin_manager::instance()->get_plugin_info($component);
+            return $plugininfo && $plugininfo->is_enabled();
+        }
+    }
 }

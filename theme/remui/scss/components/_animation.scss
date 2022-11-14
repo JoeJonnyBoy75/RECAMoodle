@@ -31,6 +31,11 @@
   animation-fill-mode: both;
 }
 
+[class*="edwanimate-"] {
+  animation-duration: .5s;
+  animation-timing-function: ease-out;
+}
+
 .animation-hover:not(:hover), .animation-hover:not(:hover) [class*="animation-"], .touch .animation-hover:not(.hover), .touch .animation-hover:not(.hover) [class*="animation-"] {
   animation-name: none;
 }
@@ -50,7 +55,8 @@
 // Modifier: `animation-fade`
 // -------------------------
 
-.animation-fade {
+.animation-fade,
+.edwanimate-fade {
   animation-name: fade;
   animation-duration: .8s;
   animation-timing-function: linear;
@@ -59,56 +65,64 @@
 // Modifier: `animation-scale`
 // -------------------------
 
-.animation-scale {
+.animation-scale,
+.edwanimate-scale {
   animation-name: scale-12;
 }
 
 // Modifier: `animation-scale-up`
 // -------------------------
 
-.animation-scale-up {
+.animation-scale-up,
+.edwanimate-scale-up {
   animation-name: fade-scale-02;
 }
 
 // Modifier: `animation-scale-down`
 // -------------------------
 
-.animation-scale-down {
+.animation-scale-down,
+.edwanimate-scale-down {
   animation-name: fade-scale-18;
 }
 
 // Modifier: `animation-slide-top`
 // -------------------------
 
-.animation-slide-top {
+.animation-slide-top,
+.edwanimate-slide-top {
   animation-name: slide-top;
 }
 
 // Modifier: `animation-slide-bottom`
 // -------------------------
 
-.animation-slide-bottom {
+.animation-slide-bottom,
+.edwanimate-slide-bottom {
   animation-name: slide-bottom;
 }
 
 // Modifier: `animation-slide-left`
 // -------------------------
 
-.animation-slide-left {
+.animation-slide-left,
+.edwanimate-slide-left {
   animation-name: slide-left;
 }
 
 // Modifier: `animation-slide-right`
 // -------------------------
 
-.animation-slide-right {
+.animation-slide-right,
+.edwanimate-slide-right {
   animation-name: slide-right;
 }
 
 // Modifier: `animation-shake`
 // -------------------------
 
-.animation-shake {
+.animation-shake,
+.edwanimate-shake {
   animation-name: shake;
 }
 

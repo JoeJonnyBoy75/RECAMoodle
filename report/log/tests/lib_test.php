@@ -21,6 +21,7 @@
  * @copyright  2014 onwards Ankit agarwal <ankit.agrr@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
  */
+namespace report_log;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -33,7 +34,7 @@ global $CFG;
  * @copyright  2014 onwards Ankit agarwal <ankit.agrr@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
  */
-class report_log_lib_testcase extends advanced_testcase {
+class lib_test extends \advanced_testcase {
 
     /**
      * @var stdClass The user.
@@ -50,7 +51,7 @@ class report_log_lib_testcase extends advanced_testcase {
      */
     private $tree;
 
-    public function setUp() {
+    public function setUp(): void {
         $this->user = $this->getDataGenerator()->create_user();
         $this->course = $this->getDataGenerator()->create_course();
         $this->tree = new \core_user\output\myprofile\tree();
@@ -89,7 +90,7 @@ class report_log_lib_testcase extends advanced_testcase {
 
         // Check the node tree is correct.
         report_log_myprofile_navigation($this->tree, $this->user, $iscurrentuser, $this->course);
-        $reflector = new ReflectionObject($this->tree);
+        $reflector = new \ReflectionObject($this->tree);
         $nodes = $reflector->getProperty('nodes');
         $nodes->setAccessible(true);
         $this->assertArrayHasKey('alllogs', $nodes->getValue($this->tree));
@@ -106,7 +107,7 @@ class report_log_lib_testcase extends advanced_testcase {
 
         // Check the node tree is correct.
         report_log_myprofile_navigation($this->tree, $this->user, $iscurrentuser, $this->course);
-        $reflector = new ReflectionObject($this->tree);
+        $reflector = new \ReflectionObject($this->tree);
         $nodes = $reflector->getProperty('nodes');
         $nodes->setAccessible(true);
         $this->assertArrayNotHasKey('alllogs', $nodes->getValue($this->tree));

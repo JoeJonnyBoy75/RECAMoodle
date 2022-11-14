@@ -51,29 +51,144 @@
 {{> theme_remui/head }}
 
 <body {{{ bodyattributes }}}>
+    {{> core/local/toast/wrapper}}
+<div id="page-wrapper" class="d-print-block">
+    {{{ output.standard_top_of_body_html }}}
 
     {{#focusdata.enabled}} {{> theme_remui/navbar_fm }} {{/focusdata.enabled}}
     {{> theme_remui/navbar }}
-    {{> theme_remui/nav-drawer }}
 
-<div id="page-wrapper">
-    {{{ output.standard_top_of_body_html }}}
-    <div id="page">
+    {{#courseindex}}
+        {{< theme_remui/drawer }}
+            {{$id}}theme_remui-drawers-courseindex{{/id}}
+            {{$drawerclasses}}drawer drawer-left {{#courseindexopen}}show{{/courseindexopen}}{{/drawerclasses}}
+            {{$drawercontent}}
+                {{{courseindex}}}
+            {{/drawercontent}}
+            {{$drawerpreferencename}}drawer-open-index{{/drawerpreferencename}}
+            {{$drawerstate}}show-drawer-left{{/drawerstate}}
+            {{$tooltipplacement}}right{{/tooltipplacement}}
+            {{$closebuttontext}}{{#str}}closecourseindex, core{{/str}}{{/closebuttontext}}
+        {{/ theme_remui/drawer}}
+    {{/courseindex}}
+
+    {{#hasdrawer}}
+        {{< theme_remui/drawer }}
+            {{$id}}theme_remui-drawers-blocks{{/id}}
+            {{$drawerclasses}}drawer drawer-right{{#blockdraweropen}} show{{/blockdraweropen}}{{/drawerclasses}}
+            {{$tabs}}
+                <ul class="nav nav-tabs" role="tablist">
+                    {{#hasblocks}}
+                    <li class="nav-item" role="presentation">
+                        <a id="block-tab" class="nav-link active" data-toggle="tab" href="#sidebar-blocks" role="tab" aria-controls="Post Side Blocks" aria-selected="true">
+                            <i class="icon fa fa-th-large" aria-hidden="true"></i>
+                        </a>
+                    </li>
+                    {{/hasblocks}}
+
+                    {{#hasmessaging}} {{{ messagetoggle }}} {{/hasmessaging}}
+
+                </ul>
+            {{/tabs}}
+            {{$drawercontent}}
+                <section class="d-print-none" aria-label="{{#str}}blocks{{/str}}">
+                    <div class="tab-content" id="drawerTabContent">
+                        
+                        {{#hasblocks}}
+                            <div class="tab-pane fade show active" id="sidebar-blocks" role="tabpanel" aria-labelledby="block-tab">
+                                {{{ addblockbutton }}}
+                                {{{ sidepreblocks }}}
+                            </div>
+                        {{/hasblocks}}
+
+                        {{#hasmessaging}}
+                        <div class="tab-pane fade {{^hasblocks}}show active {{/hasblocks}}" id="sidebar-message" role="tabpanel">
+                            {{{ messagedrawer }}}
+                        </div>
+                        {{/hasmessaging}}
+                    </div>
+                </section>
+            {{/drawercontent}}
+            {{$drawerpreferencename}}drawer-open-block{{/drawerpreferencename}}
+            {{$forceopen}}{{#forceblockdraweropen}}1{{/forceblockdraweropen}}{{/forceopen}}
+            {{$drawerstate}}show-drawer-right{{/drawerstate}}
+            {{$tooltipplacement}}left{{/tooltipplacement}}
+            {{$drawercloseonresize}}1{{/drawercloseonresize}}
+            {{$closebuttontext}}{{#str}}closeblockdrawer, core{{/str}}{{/closebuttontext}}
+        {{/ theme_remui/drawer}}
+    {{/hasdrawer}}
+
+    <div id="page" data-region="mainpage" data-usertour="scroller" class="drawers {{#courseindexopen}}show-drawer-left{{/courseindexopen}} {{#blockdraweropen}}show-drawer-right{{/blockdraweropen}}">
+        <div id="topofscroll" class="main-inner">
+        <div class="drawer-toggles d-flex">
+            {{#courseindex}}
+                <div class="drawer-toggler drawer-left-toggle open-nav">
+                    <button
+                        class="btn icon-no-margin"
+                        data-toggler="drawers"
+                        data-action="toggle"
+                        data-target="theme_remui-drawers-courseindex"
+                        data-toggle="tooltip"
+                        data-placement="right"
+                        title="{{#str}}opendrawerindex, core{{/str}}"
+                    >
+                        <span class="sr-only">{{#str}}opendrawerindex, core{{/str}}</span>
+                        {{#pix}} t/index_drawer, moodle {{/pix}}
+                    </button>
+                </div>
+            {{/courseindex}}
+            {{#hasdrawer}}
+                <div class="drawer-toggler drawer-right-toggle ml-auto">
+                    <button
+                        class="btn icon-no-margin"
+                        data-toggler="drawers"
+                        data-action="toggle"
+                        data-target="theme_remui-drawers-blocks"
+                        data-toggle="tooltip"
+                        data-placement="right"
+                        title="{{#str}}opendrawerblocks, core{{/str}}"
+                    >
+                        <span class="sr-only">{{#str}}opendrawerblocks, core{{/str}}</span>
+                        {{#pix}}t/blocks_drawer, core, {{#str}}opendrawerblocks, core{{/str}}{{/pix}}
+                    </button>
+                </div>
+            {{/hasdrawer}}
+        </div>
+
         <div class="edwiser-notice position-fixed mt-10" style="display: none; z-index: 1500;left: 50%;transform: translateX(-50%);" role="alert">
         </div>
         {{{ output.render_site_announcement }}}
-        {{#homepage}}
-            <div>
-        {{/homepage}}
-        {{^homepage}}
-            <div class="container">
-            {{{ output.full_header }}}
-        {{/homepage}}
-        <div id="page-content" class="row {{^homepage}}pb-3{{/homepage}} {{#homepage}}m-0 w-p10 pb-0{{/homepage}}">
-            <div id="region-main-box" class="col-12">
+
+        {{#notification}}{{> theme_remui/product_notification}}{{/notification}}
+
+        {{{ output.full_header }}}
+
+        {{#notstudent}}
+            {{#iscoursestatsshow}}
+                {{> theme_remui/course_stats }}
+            {{/iscoursestatsshow}}
+        {{/notstudent}}
+        
+        {{#secondarymoremenu}}
+            <div class="secondary-navigation">
+                {{> core/moremenu}}
+            </div>
+        {{/secondarymoremenu}}
+        
+        <div id="page-content" class="pb-3 d-print-block">
+                <div id="region-main-box">
+                
                 {{#hasregionmainsettingsmenu}}
                 <div id="region-main-settings-menu" class="d-print-none {{#hasblocks}}has-blocks{{/hasblocks}}">
                     <div> {{{ output.region_main_settings_menu }}} </div>
                 </div>
                 {{/hasregionmainsettingsmenu}}
-                {{> theme_remui/page_aside}}
+
+                {{#canaddtopblocks}}
+                <section id="region-top-blocks" class="has-blocks" aria-label="region top blocks">
+                    <div role="main">
+                        {{{addblockbuttontop}}}
+                        {{{ sidetopblocks }}}
+                    </div>
+                </section>
+                {{/canaddtopblocks}}

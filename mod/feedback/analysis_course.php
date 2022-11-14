@@ -71,10 +71,9 @@ $strfeedback  = get_string("modulename", "feedback");
 $PAGE->set_heading($course->fullname);
 $PAGE->set_title($feedback->name);
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($feedback->name));
-
-/// print the tabs
-require('tabs.php');
+if (!$PAGE->has_secondary_navigation()) {
+    echo $OUTPUT->heading(format_string($feedback->name));
+}
 
 //get the groupid
 //lstgroupid is the choosen id
@@ -119,7 +118,7 @@ if ($courseitemfilter > 0) {
 
             echo '<tr>';
             echo '<td>'.$shortname.'</td>';
-            echo '<td align="right">';
+            echo '<td class="text-right">';
             echo format_float(($c->sumvalue / $c->countvalue), 2);
             echo '</td>';
             echo '</tr>';

@@ -63,23 +63,37 @@
             <div class="row">
                 <h4>{{displayname}}</h4>
             </div>
-            <div class="row h5">
-                {{#str}} currentrelease, theme_remui, {{release}} {{/str}} -
-                &nbsp;<strong>{{#str}} updateavailable, theme_remui, {{update}} {{/str}}</strong>
-            </div>
-            {{#msg}}
+            {{#error}}
+                <div class="row text-danger">
+                    {{{error}}}
+                </div>
+            {{/error}}
+            {{^error}}
+                <div class="row h5">
+                    {{#str}} currentrelease, theme_remui, {{release}} {{/str}} -
+                    {{#uptodate}}
+                        &nbsp;<strong>{{#str}} uptodate, theme_remui {{/str}}</strong>
+                    {{/uptodate}}
+                    {{^uptodate}}
+                        &nbsp;<strong>{{#str}} updateavailable, theme_remui, {{update}} {{/str}}</strong>
+                    {{/uptodate}}
+                </div>
+                {{^uptodate}}
+                {{#msg}}
+                    <div class="row">
+                        {{{msg}}}
+                    </div>
+                {{/msg}}
                 <div class="row">
-                    {{{#msg}}}
+                    {{{install}}}
+                    <div class="changelog btn">
+                        <a class="showchangelog" target="_target" data-log="{{changelog}}" href="#">
+                            {{#str}} changelog, theme_remui {{/str}}
+                        </a>
+                    </div>
                 </div>
-            {{/msg}}
-            <div class="row">
-                {{{install}}}
-                <div class="changelog btn">
-                    <a class="showchangelog" target="_target" data-log="{{changelog}}" href="#">
-                        {{#str}} changelog, theme_remui {{/str}}
-                    </a>
-                </div>
-            </div>
+                {{/uptodate}}
+            {{/error}}
         </div>
     </div>
 {{/list}}

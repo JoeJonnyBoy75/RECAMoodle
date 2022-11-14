@@ -28,10 +28,11 @@ Feature: Teachers can override the grade for any question
     And quiz "Quiz 1" contains the following questions:
       | question | page |
       | TF1      | 1    |
-    And I log in as "student1"
-    And I am on "Course 1" course homepage
-    And I am on the "Quiz 1" "mod_quiz > View" page
-    And I press "Attempt quiz now"
+    And the following "blocks" exist:
+      | blockname     | contextlevel | reference | pagetypepattern | defaultregion |
+      | private_files | System       | 1         | my-index        | side-post     |
+    And I am on the "Quiz 1" "mod_quiz > View" page logged in as "student1"
+    And I press "Attempt quiz"
     And I follow "Finish attempt ..."
     And I press "Submit all and finish"
     And I click on "Submit all and finish" "button" in the "Confirmation" "dialogue"
@@ -39,8 +40,7 @@ Feature: Teachers can override the grade for any question
 
   @javascript @_switch_window @_bug_phantomjs
   Scenario: Validating the marking of an essay question attempt.
-    When I log in as "teacher1"
-    And I am on the "Quiz 1 > student1 > Attempt 1" "mod_quiz > Attempt review" page
+    When I am on the "Quiz 1 > student1 > Attempt 1" "mod_quiz > Attempt review" page logged in as "teacher1"
     And I follow "Make comment or override mark"
     And I switch to "commentquestion" window
     And I set the field "Mark" to "25"
@@ -52,8 +52,9 @@ Feature: Teachers can override the grade for any question
     And I set the field "Mark" to "10.0"
     And I press "Save" and switch to main window
     And I should see "Complete" in the "Manually graded 10 with comment: " "table_row"
-    # This time is same as time the window is open. So wait for it to close before proceeding.
-    And I wait "2" seconds
+    And I follow "Make comment or override mark"
+    And I switch to "commentquestion" window
+    And I should see "Teacher 1" in the "Manually graded 10 with comment: " "table_row"
 
   @javascript @_switch_window @_file_upload @_bug_phantomjs
   Scenario: Comment on a response to an essay question attempt.
@@ -76,7 +77,7 @@ Feature: Teachers can override the grade for any question
     And I click on "Save image" "button"
     # Editor is not inserting the html for the image correctly
     # when running under behat so line below manually inserts it.
-    And I set the field "Comment" to "<img src=\"@@PLUGINFILE@@/moodle_logo.jpg\" alt=\"It's the logo\" width=\"48\" height=\"48\" class=\"img-responsive atto_image_button_text-bottom\"><!-- File hash: a8e3ffba4ab315b3fb9187ebbf122fe9 -->"
+    And I set the field "Comment" to "<img src=\"@@PLUGINFILE@@/moodle_logo.jpg\" alt=\"It's the logo\" width=\"48\" height=\"48\" class=\"img-fluid atto_image_button_text-bottom\"><!-- File hash: a8e3ffba4ab315b3fb9187ebbf122fe9 -->"
     And I press "Save" and switch to main window
     And I switch to the main window
     And I should see "Commented: [It's the logo]" in the ".history table" "css_element"

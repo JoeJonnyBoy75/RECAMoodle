@@ -1,0 +1,24 @@
+<div class="actionbuttons" data-id="{{reviewid}}">
+    {{#approved}}
+        <span class='instantapprove' title="instant approve" data-id="{{reviewid}}" style="color:grey">
+            <i class="fa fa-check" aria-hidden="true"></i>
+        </span>
+        <span class='reviewapprovebtn' title="view review" data-id="{{reviewid}}">
+            <i class="fa fa-bars" aria-hidden="true"></i>
+        </span>
+    {{/approved}}
+
+    {{#deny}}
+        <span class='deniedapproval' title="unapprove review" data-id="{{reviewid}}" style="color:#00dd56">
+            <i class="fa fa-check" aria-hidden="true"></i>
+        </span>
+        <span class='denyapprovemodal' title="view review" data-id="{{reviewid}}">
+            <i class="fa fa-bars" aria-hidden="true"></i>
+        </span>
+    {{/deny}}
+
+    <span class='reviewremovebtn' title="delete review" data-id="{{reviewid}}">
+        <i class="fa fa-trash" aria-hidden="true"></i>
+    </span>
+
+</div>

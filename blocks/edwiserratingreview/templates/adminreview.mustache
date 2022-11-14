@@ -1,0 +1,59 @@
+<div class="review-approval-container">
+    <div class="ernr-skeleton d-none">
+        <div class="ernr-dummy">
+            <div class="ernr-dtitle animate"></div>
+            <div class="ernr-dstats animate"></div>
+            <div class="ernr-dbutton animate"></div>
+        </div>
+        <div class="ernr-dummy">
+            <div class="ernr-dtitle animate"></div>
+            <div class="ernr-dstats animate"></div>
+            <div class="ernr-dbutton animate"></div>
+        </div>
+        <div class="ernr-dummy">
+            <div class="ernr-dtitle animate"></div>
+            <div class="ernr-dstats animate"></div>
+            <div class="ernr-dbutton animate"></div>
+        </div>
+    </div>
+
+    <div class="review_table_filers d-md-flex justify-content-between d-sm-block">
+
+        <div class="approval_filter">
+            {{#str}}pendingforapproval, block_edwiserratingreview{{/str}}
+            <input id="pendingforapproval" type="checkbox" name="pendingforapproval">
+        </div>
+        <div class="date_filter d-md-flex  d-sm-block">
+            <span>{{#str}}rangebetween, block_edwiserratingreview{{/str}}</span>
+            <div class="from ml-2">
+                <input type="date" id="min" name="min" onkeydown="return false">
+            </div>
+            <span class="ml-2">{{#str}}to, block_edwiserratingreview{{/str}}</span>
+            <div class="to ml-2">
+                <input type="date" id="max" name="max" onkeydown="return false">
+            </div>
+        </div>
+    </div>
+
+    <table id="example" class="display" style="width:100%">
+        <thead>
+            <tr>
+                <th>{{#str}}reviewfor, block_edwiserratingreview{{/str}}</th>
+                <th>{{#str}}name, block_edwiserratingreview{{/str}}</th>
+                <th>{{#str}}email, block_edwiserratingreview{{/str}}</th>
+                <th>{{#str}}ratings, block_edwiserratingreview{{/str}}</th>
+                <th>{{#str}}review, block_edwiserratingreview{{/str}}</th>
+                <th>{{#str}}date, block_edwiserratingreview{{/str}}</th>
+                <th>{{#str}}action, block_edwiserratingreview{{/str}}</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+{{#js}}
+    require(['block_edwiserratingreview/reviewapprover'], function(RApprover){
+        RApprover.init();
+    });
+{{/js}}

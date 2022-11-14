@@ -14,17 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Unit tests for the date condition.
- *
- * @package availability_date
- * @copyright 2014 The Open University
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace availability_date;
 
-defined('MOODLE_INTERNAL') || die();
-
-use availability_date\condition;
 use core_availability\tree;
 
 /**
@@ -34,11 +25,11 @@ use core_availability\tree;
  * @copyright 2014 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class availability_date_condition_testcase extends advanced_testcase {
+class condition_test extends \advanced_testcase {
     /**
      * Load required classes.
      */
-    public function setUp() {
+    public function setUp(): void {
         // Load the mock info class so that it can be used.
         global $CFG;
         require_once($CFG->dirroot . '/availability/tests/fixtures/mock_info.php');
@@ -75,7 +66,7 @@ class availability_date_condition_testcase extends advanced_testcase {
 
         // Note: PM is normally upper-case, but an issue with PHP on Mac means
         // that on that platform, it is reported lower-case.
-        $this->assertRegExp('~from.*18 February 2014, 7:20 (PM|pm)~', $information);
+        $this->assertMatchesRegularExpression('~from.*18 February 2014, 7:20 (PM|pm)~', $information);
 
         // Check if available (when available).
         condition::set_current_time_for_test($time);
@@ -95,8 +86,8 @@ class availability_date_condition_testcase extends advanced_testcase {
         try {
             $date = new condition($structure);
             $this->fail();
-        } catch (coding_exception $e) {
-            $this->assertContains('Missing or invalid ->d', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertStringContainsString('Missing or invalid ->d', $e->getMessage());
         }
 
         // Invalid ->d.
@@ -104,8 +95,8 @@ class availability_date_condition_testcase extends advanced_testcase {
         try {
             $date = new condition($structure);
             $this->fail();
-        } catch (coding_exception $e) {
-            $this->assertContains('Missing or invalid ->d', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertStringContainsString('Missing or invalid ->d', $e->getMessage());
         }
 
         // Missing ->t.
@@ -113,8 +104,8 @@ class availability_date_condition_testcase extends advanced_testcase {
         try {
             $date = new condition($structure);
             $this->fail();
-        } catch (coding_exception $e) {
-            $this->assertContains('Missing or invalid ->t', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertStringContainsString('Missing or invalid ->t', $e->getMessage());
         }
 
         // Invalid ->t.
@@ -122,8 +113,8 @@ class availability_date_condition_testcase extends advanced_testcase {
         try {
             $date = new condition($structure);
             $this->fail();
-        } catch (coding_exception $e) {
-            $this->assertContains('Missing or invalid ->t', $e->getMessage());
+        } catch (\coding_exception $e) {
+            $this->assertStringContainsString('Missing or invalid ->t', $e->getMessage());
         }
 
         // Valid conditions of both types.
@@ -192,36 +183,36 @@ class availability_date_condition_testcase extends advanced_testcase {
         // Test with >=.
         $date = new condition((object)array('d' => '>=', 't' => $time));
         $information = $date->get_description(true, false, $info);
-        $this->assertRegExp('~after.*18 February 2014, 2:55 (PM|pm)~', $information);
+        $this->assertMatchesRegularExpression('~after.*18 February 2014, 2:55 (PM|pm)~', $information);
         $information = $date->get_description(true, true, $info);
-        $this->assertRegExp('~before.*18 February 2014, 2:55 (PM|pm)~', $information);
+        $this->assertMatchesRegularExpression('~before.*18 February 2014, 2:55 (PM|pm)~', $information);
         $information = $date->get_standalone_description(true, false, $info);
-        $this->assertRegExp('~from.*18 February 2014, 2:55 (PM|pm)~', $information);
+        $this->assertMatchesRegularExpression('~from.*18 February 2014, 2:55 (PM|pm)~', $information);
         $information = $date->get_standalone_description(true, true, $info);
-        $this->assertRegExp('~until.*18 February 2014, 2:55 (PM|pm)~', $information);
+        $this->assertMatchesRegularExpression('~until.*18 February 2014, 2:55 (PM|pm)~', $information);
 
         // Test with <.
         $date = new condition((object)array('d' => '<', 't' => $time));
         $information = $date->get_description(true, false, $info);
-        $this->assertRegExp('~before.*18 February 2014, 2:55 (PM|pm)~', $information);
+        $this->assertMatchesRegularExpression('~before.*18 February 2014, 2:55 (PM|pm)~', $information);
         $information = $date->get_description(true, true, $info);
-        $this->assertRegExp('~after.*18 February 2014, 2:55 (PM|pm)~', $information);
+        $this->assertMatchesRegularExpression('~after.*18 February 2014, 2:55 (PM|pm)~', $information);
         $information = $date->get_standalone_description(true, false, $info);
-        $this->assertRegExp('~until.*18 February 2014, 2:55 (PM|pm)~', $information);
+        $this->assertMatchesRegularExpression('~until.*18 February 2014, 2:55 (PM|pm)~', $information);
         $information = $date->get_standalone_description(true, true, $info);
-        $this->assertRegExp('~from.*18 February 2014, 2:55 (PM|pm)~', $information);
+        $this->assertMatchesRegularExpression('~from.*18 February 2014, 2:55 (PM|pm)~', $information);
 
         // Test special case for dates that are midnight.
         $date = new condition((object)array('d' => '>=',
                 't' => strtotime('2014-03-05 00:00 GMT')));
         $information = $date->get_description(true, false, $info);
-        $this->assertRegExp('~on or after.*5 March 2014([^0-9]*)$~', $information);
+        $this->assertMatchesRegularExpression('~on or after.*5 March 2014([^0-9]*)$~', $information);
         $information = $date->get_description(true, true, $info);
-        $this->assertRegExp('~before.*end of.*4 March 2014([^0-9]*)$~', $information);
+        $this->assertMatchesRegularExpression('~before.*end of.*4 March 2014([^0-9]*)$~', $information);
         $information = $date->get_standalone_description(true, false, $info);
-        $this->assertRegExp('~from.*5 March 2014([^0-9]*)$~', $information);
+        $this->assertMatchesRegularExpression('~from.*5 March 2014([^0-9]*)$~', $information);
         $information = $date->get_standalone_description(true, true, $info);
-        $this->assertRegExp('~until end of.*4 March 2014([^0-9]*)$~', $information);
+        $this->assertMatchesRegularExpression('~until end of.*4 March 2014([^0-9]*)$~', $information);
 
         // In the 'until' case for midnight, it shows the previous day. (I.e.
         // if the date is 5 March 00:00, then we show it as available until 4
@@ -229,13 +220,13 @@ class availability_date_condition_testcase extends advanced_testcase {
         $date = new condition((object)array('d' => '<',
                 't' => strtotime('2014-03-05 00:00 GMT')));
         $information = $date->get_description(true, false, $info);
-        $this->assertRegExp('~before end of.*4 March 2014([^0-9]*)$~', $information);
+        $this->assertMatchesRegularExpression('~before end of.*4 March 2014([^0-9]*)$~', $information);
         $information = $date->get_description(true, true, $info);
-        $this->assertRegExp('~on or after.*5 March 2014([^0-9]*)$~', $information);
+        $this->assertMatchesRegularExpression('~on or after.*5 March 2014([^0-9]*)$~', $information);
         $information = $date->get_standalone_description(true, false, $info);
-        $this->assertRegExp('~until end of.*4 March 2014([^0-9]*)$~', $information);
+        $this->assertMatchesRegularExpression('~until end of.*4 March 2014([^0-9]*)$~', $information);
         $information = $date->get_standalone_description(true, true, $info);
-        $this->assertRegExp('~from.*5 March 2014([^0-9]*)$~', $information);
+        $this->assertMatchesRegularExpression('~from.*5 March 2014([^0-9]*)$~', $information);
     }
 
     /**

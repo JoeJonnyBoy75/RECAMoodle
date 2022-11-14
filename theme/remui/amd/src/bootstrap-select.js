@@ -1,3 +1,12 @@
+/*eslint-disable no-undef*/
+/*eslint-disable no-self-compare*/
+/*eslint-disable no-extend-native*/
+/*eslint-disable babel/no-unused-expressions*/
+/*eslint-disable no-unused-vars*/
+/*eslint-disable no-eq-null*/
+/*eslint-disable jsdoc/require-param-type*/
+/*eslint-disable no-extra-boolean-cast*/
+/*eslint-disable jsdoc/require-jsdoc*/
 /*!
  * Bootstrap-select v1.12.4 (http://silviomoreto.github.io/bootstrap-select)
  *
@@ -5,21 +14,7 @@
  * Licensed under MIT (https://github.com/silviomoreto/bootstrap-select/blob/master/LICENSE)
  */
 "use strict";
-(function(root, factory) {
-    if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module unless amdModuleId is set.
-        define(["jquery"], function(a0) {
-            return (factory(a0));
-        });
-    } else if (typeof module === 'object' && module.exports) {
-        // Node. Does not work with strict CommonJS, but.
-        // Only CommonJS-like environments that support module.exports.
-        // Like Node.
-        module.exports = factory(require("jquery"));
-    } else {
-        factory(root["jQuery"]);
-    }
-}(this, function(jQuery) {
+define(["jquery"], function(jQuery) {
     (function($) {
         'use strict';
         if (!String.prototype.includes) {
@@ -1682,4 +1677,4 @@
             });
         });
     })(jQuery);
-}));
+});

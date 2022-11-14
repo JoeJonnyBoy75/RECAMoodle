@@ -106,7 +106,7 @@
 
 <div class="insight-container" data-context-id="{{contextid}}" data-model-id="{{modelid}}">
 
-    <h2 class="mb-2">{{insightname}}</h2>
+    <h3 class="mb-2">{{insightname}}</h3>
 
     {{{insightdescription}}}
 
@@ -138,15 +138,15 @@
             <thead>
                 <tr class="d-flex">
                     {{#multiplepredictions}}
-                        <th class="col-xs-1{{^bulkactions}} hidden{{/bulkactions}}">
+                        <th class="col-1{{^bulkactions}} hidden{{/bulkactions}}">
                             {{{checkboxtoggleall}}}
                         </th>
                     {{/multiplepredictions}}
                     {{^multiplepredictions}}
-                        <th class="col-xs-1{{^bulkactions}} hidden{{/bulkactions}}">
+                        <th class="col-1{{^bulkactions}} hidden{{/bulkactions}}">
                     {{/multiplepredictions}}
-                    <th scope="col" class="col-xs-8">{{#str}}description{{/str}}</th>
-                    <th scope="col" class="col-xs-3">{{#str}}actions{{/str}}</th>
+                    <th scope="col" class="col-8">{{#str}}description{{/str}}</th>
+                    <th scope="col" class="col-3">{{#str}}actions{{/str}}</th>
                 </tr>
             </thead>
             <tbody>

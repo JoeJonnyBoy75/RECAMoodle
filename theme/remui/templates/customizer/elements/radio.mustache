@@ -1,0 +1,31 @@
+<div id="fitem_id_{{name}}" class="form-group row fitem">
+    <div class="col-md-3 pr-5">
+        <label class="col-form-label d-inline " for="id_{{name}}">
+            {{label}}
+        </label>
+        {{{help}}}
+    </div>
+    <div class="select-reset btn" title="{{#str}}resetdesc, theme_remui{{/str}}" data-default="{{default}}">
+        <i class="fa fa-undo"></i>
+    </div>
+    <div class="col-md-9 form-inline felement" data-fieldtype="select">
+
+        {{#options}}
+        <label  name="option_{{name}}" class="cust-sele" title="{{name}}" id="radio_{{key}}">
+            <input name="radio_{{groupname}}" class="cust-sele-input {{#selected}}selected{{/selected}}" type="radio" data-value="{{key}}">
+            <img class="cust-sele-img border {{#selected}}selected{{/selected}}" src="{{img}}" alt='{{value}}' title='{{value}}' data-value="{{key}}">
+        </label>
+        <h4 style="text-transform: uppercase;">{{value}}</h4>
+        {{/options}}
+
+        <select {{#multiple}}multiple{{/multiple}} class="form-control d-none" name="{{name}}" id="select_{{name}}">
+            {{#options}}
+                <option value="{{key}}" {{selected}}>{{value}}</option>
+            {{/options}}
+        </select>
+
+        <div class="form-control-feedback invalid-feedback" id="id_error_{{name}}">
+
+        </div>
+    </div>
+</div>

@@ -51,9 +51,12 @@ class qtype_essay_test_helper extends question_test_helper {
         $q->responseformat = 'editor';
         $q->responserequired = 1;
         $q->responsefieldlines = 10;
+        $q->minwordlimit = null;
+        $q->maxwordlimit = null;
         $q->attachments = 0;
         $q->attachmentsrequired = 0;
-        $q->filetypeslist = '';
+        $q->maxbytes = 0;
+        $q->filetypeslist = null;
         $q->graderinfo = '';
         $q->graderinfoformat = FORMAT_HTML;
         $q->qtype = question_bank::get_qtype('essay');
@@ -88,9 +91,11 @@ class qtype_essay_test_helper extends question_test_helper {
         $fromform->responsefieldlines = 10;
         $fromform->attachments = 0;
         $fromform->attachmentsrequired = 0;
-        $fromform->filetypeslist = '';
+        $fromform->maxbytes = 0;
+        $fromform->filetypeslist = ''; // Although once saved in the DB, this becomes null, the form returns '' here.
         $fromform->graderinfo = array('text' => '', 'format' => FORMAT_HTML);
         $fromform->responsetemplate = array('text' => '', 'format' => FORMAT_HTML);
+        $fromform->status = \core_question\local\bank\question_version_status::QUESTION_STATUS_READY;
 
         return $fromform;
     }
@@ -139,9 +144,11 @@ class qtype_essay_test_helper extends question_test_helper {
         $fromform->responsefieldlines = 10;
         $fromform->attachments = 3;
         $fromform->attachmentsrequired = 0;
-        $fromform->filetypeslist = '';
+        $fromform->maxbytes = 0;
+        $fromform->filetypeslist = ''; // Although once saved in the DB, this becomes null, the form returns '' here.
         $fromform->graderinfo = array('text' => '', 'format' => FORMAT_HTML);
         $fromform->responsetemplate = array('text' => '', 'format' => FORMAT_HTML);
+        $fromform->status = \core_question\local\bank\question_version_status::QUESTION_STATUS_READY;
 
         return $fromform;
     }
@@ -175,9 +182,11 @@ class qtype_essay_test_helper extends question_test_helper {
         $fromform->responsefieldlines = 10;
         $fromform->attachments = 0;
         $fromform->attachmentsrequired = 0;
-        $fromform->filetypeslist = '';
+        $fromform->maxbytes = 0;
+        $fromform->filetypeslist = ''; // Although once saved in the DB, this becomes null, the form returns '' here.
         $fromform->graderinfo = array('text' => '', 'format' => FORMAT_HTML);
         $fromform->responsetemplate = array('text' => '', 'format' => FORMAT_HTML);
+        $fromform->status = \core_question\local\bank\question_version_status::QUESTION_STATUS_READY;
 
         return $fromform;
     }
@@ -209,6 +218,7 @@ class qtype_essay_test_helper extends question_test_helper {
         $q->attachments = 3;
         $q->attachmentsrequired = 1;
         $q->filetypeslist = '';
+        $q->maxbytes = 0;
         return $q;
     }
 

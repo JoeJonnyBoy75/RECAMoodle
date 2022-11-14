@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace auth_db;
+
 /**
  * External database auth sync tests, this also tests adodb drivers
  * that are matching our four supported Moodle database drivers.
@@ -23,16 +25,23 @@
  * @copyright  2012 Petr Skoda {@link http://skodak.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
-
-
-class auth_db_testcase extends advanced_testcase {
+class db_test extends \advanced_testcase {
     /** @var string Original error log */
     protected $oldlog;
 
     /** @var int The amount of users to create for the large user set deletion test  */
     protected $largedeletionsetsize = 128;
+
+    public static function tearDownAfterClass(): void {
+        global $DB;
+        // Apply sqlsrv native driver error and logging default
+        // settings while finishing the AdoDB tests.
+        if ($DB->get_dbfamily() === 'mssql') {
+            sqlsrv_configure("WarningsReturnAsErrors", false);
+            sqlsrv_configure("LogSubsystems", SQLSRV_LOG_SYSTEM_OFF);
+            sqlsrv_configure("LogSeverity", SQLSRV_LOG_SEVERITY_ERROR);
+        }
+    }
 
     protected function init_auth_database() {
         global $DB, $CFG;
@@ -112,13 +121,14 @@ class auth_db_testcase extends advanced_testcase {
                 throw new exception('Unknown database family ' . $DB->get_dbfamily());
         }
 
-        $table = new xmldb_table('auth_db_users');
+        $table = new \xmldb_table('auth_db_users');
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('name', XMLDB_TYPE_CHAR, '255', null, null, null);
         $table->add_field('pass', XMLDB_TYPE_CHAR, '255', null, null, null);
         $table->add_field('email', XMLDB_TYPE_CHAR, '255', null, null, null);
         $table->add_field('firstname', XMLDB_TYPE_CHAR, '255', null, null, null);
         $table->add_field('lastname', XMLDB_TYPE_CHAR, '255', null, null, null);
+        $table->add_field('animal', XMLDB_TYPE_CHAR, '255', null, null, null);
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
         if ($dbman->table_exists($table)) {
             $dbman->drop_table($table);
@@ -137,6 +147,14 @@ class auth_db_testcase extends advanced_testcase {
         set_config('field_updateremote_email', '0', 'auth_db');
         set_config('field_lock_email', 'unlocked', 'auth_db');
 
+        // Create a user profile field and add mapping to it.
+        $this->getDataGenerator()->create_custom_profile_field(['shortname' => 'pet', 'name' => 'Pet', 'datatype' => 'text']);
+
+        set_config('field_map_profile_field_pet', 'animal', 'auth_db');
+        set_config('field_updatelocal_profile_field_pet', 'oncreate', 'auth_db');
+        set_config('field_updateremote_profile_field_pet', '0', 'auth_db');
+        set_config('field_lock_profile_field_pet', 'unlocked', 'auth_db');
+
         // Init the rest of settings.
         set_config('passtype', 'plaintext', 'auth_db');
         set_config('changepasswordurl', '', 'auth_db');
@@ -148,7 +166,7 @@ class auth_db_testcase extends advanced_testcase {
         global $DB;
 
         $dbman = $DB->get_manager();
-        $table = new xmldb_table('auth_db_users');
+        $table = new \xmldb_table('auth_db_users');
         $dbman->drop_table($table);
 
         ini_set('error_log', $this->oldlog);
@@ -156,6 +174,7 @@ class auth_db_testcase extends advanced_testcase {
 
     public function test_plugin() {
         global $DB, $CFG;
+        require_once($CFG->dirroot . '/user/profile/lib.php');
 
         $this->resetAfterTest(true);
 
@@ -193,7 +212,7 @@ class auth_db_testcase extends advanced_testcase {
 
         // Test bulk user account creation.
 
-        $user2 = (object)array('name'=>'u2', 'pass'=>'heslo', 'email'=>'u2@example.com');
+        $user2 = (object)['name' => 'u2', 'pass' => 'heslo', 'email' => 'u2@example.com', 'animal' => 'cat'];
         $user2->id = $DB->insert_record('auth_db_users', $user2);
 
         $user3 = (object)array('name'=>'admin', 'pass'=>'heslo', 'email'=>'admin@example.com'); // Should be skipped.
@@ -201,14 +220,25 @@ class auth_db_testcase extends advanced_testcase {
 
         $this->assertCount(2, $DB->get_records('user'));
 
-        $trace = new null_progress_trace();
-        $auth->sync_users($trace, false);
+        $trace = new \null_progress_trace();
 
+        // Sync users and make sure that two events user_created werer triggered.
+        $sink = $this->redirectEvents();
+        $auth->sync_users($trace, false);
+        $events = $sink->get_events();
+        $sink->close();
+        $this->assertCount(2, $events);
+        $this->assertTrue($events[0] instanceof  \core\event\user_created);
+        $this->assertTrue($events[1] instanceof  \core\event\user_created);
+
+        // Assert the two users were created.
         $this->assertEquals(4, $DB->count_records('user'));
         $u1 = $DB->get_record('user', array('username'=>$user1->name, 'auth'=>'db'));
         $this->assertSame($user1->email, $u1->email);
+        $this->assertEmpty(profile_user_record($u1->id)->pet);
         $u2 = $DB->get_record('user', array('username'=>$user2->name, 'auth'=>'db'));
         $this->assertSame($user2->email, $u2->email);
+        $this->assertSame($user2->animal, profile_user_record($u2->id)->pet);
         $admin = $DB->get_record('user', array('username'=>'admin', 'auth'=>'manual'));
         $this->assertNotEmpty($admin);
 
@@ -217,12 +247,14 @@ class auth_db_testcase extends advanced_testcase {
 
         $user2b = clone($user2);
         $user2b->email = 'u2b@example.com';
+        $user2b->animal = 'dog';
         $DB->update_record('auth_db_users', $user2b);
 
         $auth->sync_users($trace, false);
         $this->assertEquals(4, $DB->count_records('user'));
         $u2 = $DB->get_record('user', array('username'=>$user2->name));
         $this->assertSame($user2->email, $u2->email);
+        $this->assertSame($user2->animal, profile_user_record($u2->id)->pet);
 
         $auth->sync_users($trace, true);
         $this->assertEquals(4, $DB->count_records('user'));
@@ -231,6 +263,8 @@ class auth_db_testcase extends advanced_testcase {
 
         set_config('field_updatelocal_email', 'onlogin', 'auth_db');
         $auth->config->field_updatelocal_email = 'onlogin';
+        set_config('field_updatelocal_profile_field_pet', 'onlogin', 'auth_db');
+        $auth->config->field_updatelocal_profile_field_pet = 'onlogin';
 
         $auth->sync_users($trace, false);
         $this->assertEquals(4, $DB->count_records('user'));
@@ -241,6 +275,7 @@ class auth_db_testcase extends advanced_testcase {
         $this->assertEquals(4, $DB->count_records('user'));
         $u2 = $DB->get_record('user', array('username'=>$user2->name));
         $this->assertSame($user2b->email, $u2->email);
+        $this->assertSame($user2b->animal, profile_user_record($u2->id)->pet);
 
 
         // Test sync deletes and suspends.
@@ -308,11 +343,27 @@ class auth_db_testcase extends advanced_testcase {
         $DB->update_record('auth_db_users', $user3);
         $this->assertTrue($auth->user_login('u3', 'heslo'));
 
+        // Test user created to see if the checking happens strictly.
+        $usermd5 = (object)['name' => 'usermd5', 'pass' => '0e462097431906509019562988736854'];
+        $usermd5->id = $DB->insert_record('auth_db_users', $usermd5);
+
+        // md5('240610708') === '0e462097431906509019562988736854'.
+        $this->assertTrue($auth->user_login('usermd5', '240610708'));
+        $this->assertFalse($auth->user_login('usermd5', 'QNKCDZO'));
+
         set_config('passtype', 'sh1', 'auth_db');
         $auth->config->passtype = 'sha1';
         $user3->pass = sha1('heslo');
         $DB->update_record('auth_db_users', $user3);
         $this->assertTrue($auth->user_login('u3', 'heslo'));
+
+        // Test user created to see if the checking happens strictly.
+        $usersha1 = (object)['name' => 'usersha1', 'pass' => '0e66507019969427134894567494305185566735'];
+        $usersha1->id = $DB->insert_record('auth_db_users', $usersha1);
+
+        // sha1('aaroZmOk') === '0e66507019969427134894567494305185566735'.
+        $this->assertTrue($auth->user_login('usersha1', 'aaroZmOk'));
+        $this->assertFalse($auth->user_login('usersha1', 'aaK1STfY'));
 
         set_config('passtype', 'saltedcrypt', 'auth_db');
         $auth->config->passtype = 'saltedcrypt';
@@ -430,7 +481,7 @@ class auth_db_testcase extends advanced_testcase {
         $extdbuser3 = (object)array('name'=>'u3', 'pass'=>'heslo', 'email'=>'u3@example.com',
                 'lastname' => 'user<script>alert(1);</script>xss');
         $extdbuser3->id = $DB->insert_record('auth_db_users', $extdbuser3);
-        $trace = new null_progress_trace();
+        $trace = new \null_progress_trace();
 
         // Let's test user sync make sure still works as expected..
         $auth->sync_users($trace, true);
@@ -476,7 +527,7 @@ class auth_db_testcase extends advanced_testcase {
         }
 
         // Sync to moodle.
-        $trace = new null_progress_trace();
+        $trace = new \null_progress_trace();
         $auth->sync_users($trace, true);
 
         // Check user is there.

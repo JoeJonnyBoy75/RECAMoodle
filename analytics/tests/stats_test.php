@@ -14,14 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Provides the {@link analytics_stats_testcase} class.
- *
- * @package     core_analytics
- * @category    test
- * @copyright   2019 David Mudrák <david@moodle.com>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace core_analytics;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -31,15 +24,17 @@ require_once(__DIR__ . '/fixtures/test_target_shortname.php');
 /**
  * Unit tests for the analytics stats.
  *
+ * @package     core_analytics
+ * @category    test
  * @copyright 2019 David Mudrák <david@moodle.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class analytics_stats_testcase extends advanced_testcase {
+class stats_test extends \advanced_testcase {
 
     /**
      * Set up the test environment.
      */
-    public function setUp() {
+    public function setUp(): void {
 
         $this->setAdminUser();
     }

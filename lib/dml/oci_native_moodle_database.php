@@ -245,12 +245,12 @@ class oci_native_moodle_database extends moodle_database {
     /**
      * Called before each db query.
      * @param string $sql
-     * @param array array of parameters
+     * @param array|null $params An array of parameters.
      * @param int $type type of query
      * @param mixed $extrainfo driver specific extra information
      * @return void
      */
-    protected function query_start($sql, array $params=null, $type, $extrainfo=null) {
+    protected function query_start($sql, ?array $params, $type, $extrainfo=null) {
         parent::query_start($sql, $params, $type, $extrainfo);
         // oci driver tents to send debug to output, we do not need that ;-)
         $this->last_error_reporting = error_reporting(0);
@@ -345,14 +345,16 @@ class oci_native_moodle_database extends moodle_database {
 
     /**
      * Prepare the statement for execution
-     * @throws dml_connection_exception
+     *
      * @param string $sql
      * @return resource
+     *
+     * @throws dml_exception
      */
     protected function parse_query($sql) {
         $stmt = oci_parse($this->oci, $sql);
         if ($stmt == false) {
-            throw new dml_connection_exception('Can not parse sql query'); //TODO: maybe add better info
+            throw new dml_exception('dmlparseexception', null, $this->get_last_error());
         }
         return $stmt;
     }
@@ -436,9 +438,10 @@ class oci_native_moodle_database extends moodle_database {
         $indexes = array();
         $tablename = strtoupper($this->prefix.$table);
 
-        $sql = "SELECT i.INDEX_NAME, i.UNIQUENESS, c.COLUMN_POSITION, c.COLUMN_NAME, ac.CONSTRAINT_TYPE
+        $sql = "SELECT i.INDEX_NAME, i.INDEX_TYPE, i.UNIQUENESS, c.COLUMN_POSITION, c.COLUMN_NAME, e.COLUMN_EXPRESSION, ac.CONSTRAINT_TYPE
                   FROM ALL_INDEXES i
                   JOIN ALL_IND_COLUMNS c ON c.INDEX_NAME=i.INDEX_NAME
+             LEFT JOIN ALL_IND_EXPRESSIONS e ON (e.INDEX_NAME = c.INDEX_NAME AND e.COLUMN_POSITION = c.COLUMN_POSITION)
              LEFT JOIN ALL_CONSTRAINTS ac ON (ac.TABLE_NAME=i.TABLE_NAME AND ac.CONSTRAINT_NAME=i.INDEX_NAME AND ac.CONSTRAINT_TYPE='P')
                  WHERE i.TABLE_NAME = '$tablename'
               ORDER BY i.INDEX_NAME, c.COLUMN_POSITION";
@@ -461,6 +464,20 @@ class oci_native_moodle_database extends moodle_database {
                                              'unique'  => ($record['UNIQUENESS'] === 'UNIQUE'),
                                              'columns' => array());
             }
+
+            // If this is an unique, function-based, index, then we have to look to the expression
+            // and calculate the column name by parsing it.
+            if ($record['UNIQUENESS'] === 'UNIQUE' && $record['INDEX_TYPE'] === 'FUNCTION-BASED NORMAL') {
+                // Only if there is an expression to look.
+                if (!empty($record['COLUMN_EXPRESSION'])) {
+                    // Let's parse the usual code used for these unique indexes.
+                    $regex = '/^CASE *WHEN .* THEN "(?<column_name>[^"]+)" ELSE NULL END *$/';
+                    if (preg_match($regex, $record['COLUMN_EXPRESSION'], $matches)) {
+                        $record['COLUMN_NAME'] = $matches['column_name'] ?? $record['COLUMN_NAME'];
+                    }
+                }
+            }
+
             $indexes[$indexname]['columns'][] = strtolower($record['COLUMN_NAME']);
         }
 
@@ -1282,7 +1299,7 @@ class oci_native_moodle_database extends moodle_database {
      * If the return ID isn't required, then this just reports success as true/false.
      * $data is an object containing needed data
      * @param string $table The database table to be inserted into
-     * @param object $data A data object with values for one or more fields in the record
+     * @param object|array $dataobject A data object with values for one or more fields in the record
      * @param bool $returnid Should the id of the newly created record entry be returned? If this option is not requested then true/false is returned.
      * @return bool|int true or new id
      * @throws dml_exception A DML specific exception is thrown for any errors.
@@ -1611,6 +1628,19 @@ class oci_native_moodle_database extends moodle_database {
         }
         $s = $this->recursive_concat($elements);
         return " MOODLELIB.UNDO_MEGA_HACK($s) ";
+    }
+
+    /**
+     * Return SQL for performing group concatenation on given field/expression
+     *
+     * @param string $field
+     * @param string $separator
+     * @param string $sort
+     * @return string
+     */
+    public function sql_group_concat(string $field, string $separator = ', ', string $sort = ''): string {
+        $fieldsort = $sort ?: '1';
+        return "LISTAGG({$field}, '{$separator}') WITHIN GROUP (ORDER BY {$fieldsort})";
     }
 
     /**

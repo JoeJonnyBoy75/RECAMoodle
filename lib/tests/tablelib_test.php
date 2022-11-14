@@ -14,14 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Test tablelib.
- *
- * @package    core
- * @category   phpunit
- * @copyright  2013 Damyon Wiese <damyon@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace core;
+
+use flexible_table;
+use testable_flexible_table;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -33,11 +29,11 @@ require_once($CFG->libdir . '/tests/fixtures/testable_flexible_table.php');
  * Test some of tablelib.
  *
  * @package    core
- * @category   phpunit
+ * @category   test
  * @copyright  2013 Damyon Wiese <damyon@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_tablelib_testcase extends advanced_testcase {
+class tablelib_test extends \advanced_testcase {
     protected function generate_columns($cols) {
         $columns = array();
         foreach (range(0, $cols - 1) as $j) {
@@ -142,7 +138,7 @@ class core_tablelib_testcase extends advanced_testcase {
         $headers = $this->generate_headers(2);
 
         // Search for pagination controls containing 'page-link"\saria-label="Next"'.
-        $this->expectOutputRegex('/page-link"\saria-label="Next"/');
+        $this->expectOutputRegex('/page-link"\saria-label="Next page"/');
 
         $this->run_table_test(
             $columns,
@@ -198,7 +194,7 @@ class core_tablelib_testcase extends advanced_testcase {
         );
         $output = ob_get_contents();
         ob_end_clean();
-        $this->assertNotContains(get_string('hide'), $output);
+        $this->assertStringNotContainsString(get_string('hide'), $output);
     }
 
     public function test_has_sort() {
@@ -243,7 +239,7 @@ class core_tablelib_testcase extends advanced_testcase {
         );
         $output = ob_get_contents();
         ob_end_clean();
-        $this->assertNotContains(get_string('sortby'), $output);
+        $this->assertStringNotContainsString(get_string('sortby'), $output);
     }
 
     public function test_has_not_next_pagination() {
@@ -268,7 +264,7 @@ class core_tablelib_testcase extends advanced_testcase {
 
         $output = ob_get_contents();
         ob_end_clean();
-        $this->assertNotContains(get_string('next'), $output);
+        $this->assertStringNotContainsString(get_string('next'), $output);
     }
 
     public function test_1_col() {
@@ -382,7 +378,7 @@ class core_tablelib_testcase extends advanced_testcase {
         $user = $this->getDataGenerator()->create_user();
 
         $table = $this->create_and_setup_table(['fullname'], [], true, false, [], []);
-        $this->assertContains(fullname($user, true), $table->format_row($user)['fullname']);
+        $this->assertStringContainsString(fullname($user, true), $table->format_row($user)['fullname']);
     }
 
     /**
@@ -405,12 +401,12 @@ class core_tablelib_testcase extends advanced_testcase {
 
         // Prohibit the viewfullnames from the default user role.
         $userrole = $DB->get_record('role', ['id' => $CFG->defaultuserroleid]);
-        role_change_permission($userrole->id, context_system::instance(), 'moodle/site:viewfullnames', CAP_PROHIBIT);
+        role_change_permission($userrole->id, \context_system::instance(), 'moodle/site:viewfullnames', CAP_PROHIBIT);
 
         $user = $this->getDataGenerator()->create_user();
 
         $table = $this->create_and_setup_table(['fullname'], [], true, false, [], []);
-        $this->assertContains(fullname($user, false), $table->format_row($user)['fullname']);
+        $this->assertStringContainsString(fullname($user, false), $table->format_row($user)['fullname']);
     }
 
     public function test_get_row_html() {
@@ -425,9 +421,9 @@ class core_tablelib_testcase extends advanced_testcase {
         $table->define_baseurl('/invalid.php');
 
         $row = $table->get_row_html($data);
-        $this->assertRegExp('/row 0 col 0/', $row);
-        $this->assertRegExp('/<tr class=""/', $row);
-        $this->assertRegExp('/<td class="cell c0"/', $row);
+        $this->assertMatchesRegularExpression('/row 0 col 0/', $row);
+        $this->assertMatchesRegularExpression('/<tr class=""/', $row);
+        $this->assertMatchesRegularExpression('/<td class="cell c0"/', $row);
     }
 
     public function test_persistent_table() {

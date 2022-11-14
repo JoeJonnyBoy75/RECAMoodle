@@ -1,0 +1,65 @@
+<div id="reviewarea">
+    {{>block_edwiserratingreview/showrating}}
+
+    <div class="feedbackform-container"></div>
+    
+    <div class="reviews-container">
+
+        <div class="reviewheader m-3">
+            <h4>{{#str}}reviews,block_edwiserratingreview{{/str}}</h4>
+
+            <div class="inner-flex align-items-center">
+                {{#canapprovelink}}
+                <div class="approval-page-link mr-2 mb-2">
+                    <a href="{{canapprovelink}}" class="btn btn-outline-secondary" role="button">{{#str}}approvalpage, block_edwiserratingreview{{/str}}</a>
+                </div>
+                {{/canapprovelink}}
+                
+                <Select class="form-control reviewselector mb-2">
+                    <option value="0" selected>
+                        {{#str}}allratings,block_edwiserratingreview{{/str}}
+                    </option>
+                    
+                    <option value="5" >
+                        {{#str}}fivestars,block_edwiserratingreview{{/str}}
+                    </option>
+                    
+                    <option value="4">
+                        {{#str}}fourstars,block_edwiserratingreview{{/str}}
+                    </option>
+                    
+                    <option value="3">
+                        {{#str}}threestars,block_edwiserratingreview{{/str}}
+                    </option>
+                    
+                    <option value="2" >
+                        {{#str}}twostars,block_edwiserratingreview{{/str}}
+                    </option>
+                    
+                    <option value="1">
+                        {{#str}}onestar,block_edwiserratingreview{{/str}}
+                    </option>
+                </Select>
+            </div>
+        </div>
+        
+        <div class="reviewdata"></div>
+    </div>
+    <div  id="showmorereviewclass">
+
+    </div>
+</div>
+
+{{#js}}
+    require([
+        'block_edwiserratingreview/formhandler',
+        'block_edwiserratingreview/reviewfilter',
+        'block_edwiserratingreview/famehandler'
+        ],
+        function(Formhandler, Reviewfilter, FameHandler) {
+        Formhandler.init();
+        Reviewfilter.init();
+        FameHandler.init();
+    });
+{{/js}}
+

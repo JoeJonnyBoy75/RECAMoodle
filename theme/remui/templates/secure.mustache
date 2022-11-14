@@ -54,7 +54,6 @@
 
                 <div id="page-content" class="row pb-30">
                     <div id="region-main-box" class="col-12">
-                        {{> theme_remui/page_aside}}
                         <section id="region-main" {{#hasblocks}}class="has-blocks"{{/hasblocks}} aria-label="{{#str}}content{{/str}}">
                             <div class="card card-body">
                                 {{{ output.course_content_header }}}
@@ -77,41 +76,3 @@
 
 </body>
 </html>
-
-{{#js}}
-require(['theme_remui/loader', 'theme_remui/TimeCircles'], function (loader, TimeCircles) {
-    Breakpoints();
-
-    // quiz time circles for timed quizzes
-    jQuery(".quiztimer").TimeCircles({
-        time: {
-            Days: {
-                show: false
-            },
-            Hours: {
-                color: "#3c8dbc"
-            },
-            Minutes: {
-                color: "#00a65a"
-            },
-            Seconds: {
-                color: "#f56954"
-            }
-        },
-        bg_width: 0.9,
-        fg_width: 0.1,
-        circle_bg_color: "#797D82",
-        number_size: 0.24,
-        text_size: 0.11,
-        refresh_interval: 1,
-        animation_interval: "ticks"
-    }).addListener(quizTimeEllapsed);
-
-    // listner for quiz timer
-    function quizTimeEllapsed(unit, value, total) {
-        if (total <= 0) {
-            jQuery(this).fadeOut('medium').replaceWith('<div style="text-align: center; background: rgba(0, 0, 0, 0.13); border-radius: 5px; height: 80px; line-height: 80px; font-size: 18px; color: red;">' + M.util.get_string('timesup', 'quiz') + '</div>');
-        }
-    }
-});
-{{/js}}

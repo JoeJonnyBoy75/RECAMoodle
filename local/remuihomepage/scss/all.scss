@@ -1,0 +1,11 @@
+@import 'frontpage';
+@import 'frontpage-rtl';
+
+
+.courses-slider:not(.slick-slider) {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill,minmax(250px,1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(250px,1fr);
+    overflow-x: auto;
+}

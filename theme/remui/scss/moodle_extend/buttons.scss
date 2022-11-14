@@ -1,6 +1,10 @@
-.btn.btn-icon{
-    @include hover-focus {
-        background-color: $primary;
-        color: white;
+.ftoggler {
+    .btn.btn-icon {
+        @include hover-focus {
+            background-color: transparent !important;
+        }
+        &:active {
+            box-shadow: none!important;
+        }
     }
 }

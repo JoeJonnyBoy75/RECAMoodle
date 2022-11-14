@@ -19,6 +19,7 @@
     section {
         @extend .card;
         @extend .card-body;
+        padding: 0;
         display: inline-block;
         width: 100%;
         margin-bottom: 1rem;
@@ -60,6 +61,7 @@
 
     li {
         margin-top: 5px;
+
     }
 
     .editprofile,
@@ -67,7 +69,6 @@
         text-align: left;
     }
 }
-
 .ajax-contact-button {
     box-sizing: border-box;
     position: relative;
@@ -333,4 +334,10 @@
 img.userpicture
 {
     border-radius : 50%;
+}
+
+// User profile field long text 
+
+.userprofile .profile_tree .node_category .contentnode a {
+    word-break: break-all;
 }

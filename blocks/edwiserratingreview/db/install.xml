@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="blocks/edwiserratingreview/db" VERSION="20220523" COMMENT="XMLDB file for Moodle blocks/edwiserratingreview"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="block_edwiserratingreview" COMMENT="This table has the data of ratings and reviews">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="user_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Id of the commenting user"/>
+        <FIELD NAME="star_ratings" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="count of stars given by user"/>
+        <FIELD NAME="review" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Review written by user"/>
+        <FIELD NAME="date_created" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date of review given by user"/>
+        <FIELD NAME="date_updated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Edited review data"/>
+        <FIELD NAME="for_type" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Review for course,teacher or activity."/>
+        <FIELD NAME="for_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Id of the review item"/>
+        <FIELD NAME="approved" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Will be shown on site only if it is approved."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="block_ernr_likedlike" COMMENT="This table has the data of likes and dislikes in  ratings and reviews plugin">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="reviewid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Review Id - reference to table block_edwiserratingreview"/>
+        <FIELD NAME="user_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="User Id who liked or disliked the particular review."/>
+        <FIELD NAME="liked" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" COMMENT="Like on the review true/false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="reviewid" TYPE="foreign" FIELDS="reviewid" REFTABLE="block_edwiserratingreview" REFFIELDS="id" COMMENT="Referrence to block_edwiserratingreview table"/>
+        <KEY NAME="user_id" TYPE="foreign" FIELDS="user_id" REFTABLE="user" REFFIELDS="id" COMMENT="User Id who liked or disliked the particular review"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>

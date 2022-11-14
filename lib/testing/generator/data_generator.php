@@ -87,10 +87,18 @@ EOD;
      * @return void
      */
     public function reset() {
+        $this->gradecategorycounter = 0;
+        $this->gradeitemcounter = 0;
+        $this->gradeoutcomecounter = 0;
         $this->usercounter = 0;
         $this->categorycount = 0;
+        $this->cohortcount = 0;
         $this->coursecount = 0;
         $this->scalecount = 0;
+        $this->groupcount = 0;
+        $this->groupingcount = 0;
+        $this->rolecount = 0;
+        $this->tagcount = 0;
 
         foreach ($this->generators as $generator) {
             $generator->reset();
@@ -103,6 +111,9 @@ EOD;
      * @return component_generator_base or rather an instance of the appropriate subclass.
      */
     public function get_plugin_generator($component) {
+        // Note: This global is included so that generator have access to it.
+        // CFG is widely used in require statements.
+        global $CFG;
         list($type, $plugin) = core_component::normalize_component($component);
         $cleancomponent = $type . '_' . $plugin;
         if ($cleancomponent != $component) {
@@ -118,19 +129,20 @@ EOD;
         $dir = core_component::get_component_directory($component);
         $lib = $dir . '/tests/generator/lib.php';
         if (!$dir || !is_readable($lib)) {
-            throw new coding_exception("Component {$component} does not support " .
-                    "generators yet. Missing tests/generator/lib.php.");
+            $this->generators[$component] = $this->get_default_plugin_generator($component);
+
+            return $this->generators[$component];
         }
 
         include_once($lib);
         $classname = $component . '_generator';
 
-        if (!class_exists($classname)) {
-            throw new coding_exception("Component {$component} does not support " .
-                    "data generators yet. Class {$classname} not found.");
+        if (class_exists($classname)) {
+            $this->generators[$component] = new $classname($this);
+        } else {
+            $this->generators[$component] = $this->get_default_plugin_generator($component, $classname);
         }
 
-        $this->generators[$component] = new $classname($this);
         return $this->generators[$component];
     }
 
@@ -509,7 +521,7 @@ EOD;
         require_once($CFG->dirroot . '/group/lib.php');
 
         $this->groupcount++;
-        $i = $this->groupcount;
+        $i = str_pad($this->groupcount, 4, '0', STR_PAD_LEFT);
 
         $record = (array)$record;
 
@@ -999,6 +1011,57 @@ EOD;
     }
 
     /**
+     * Create a grade_grade.
+     *
+     * @param array $record
+     * @return grade_grade the grade record
+     */
+    public function create_grade_grade(?array $record = null): grade_grade {
+        global $DB, $USER;
+
+        $item = $DB->get_record('grade_items', ['id' => $record['itemid']]);
+        $userid = $record['userid'] ?? $USER->id;
+
+        unset($record['itemid']);
+        unset($record['userid']);
+
+        if ($item->itemtype === 'mod') {
+            $cm = get_coursemodule_from_instance($item->itemmodule, $item->iteminstance);
+            $module = new $item->itemmodule(context_module::instance($cm->id), $cm, false);
+            $record['attemptnumber'] = $record['attemptnumber'] ?? 0;
+
+            $module->save_grade($userid, (object) $record);
+
+            $grade = grade_grade::fetch(['userid' => $userid, 'itemid' => $item->id]);
+        } else {
+            $grade = grade_grade::fetch(['userid' => $userid, 'itemid' => $item->id]);
+            $record['rawgrade'] = $record['rawgrade'] ?? $record['grade'] ?? null;
+            $record['finalgrade'] = $record['finalgrade'] ?? $record['grade'] ?? null;
+
+            unset($record['grade']);
+
+            if ($grade) {
+                $fields = $grade->required_fields + array_keys($grade->optional_fields);
+
+                foreach ($fields as $field) {
+                    $grade->{$field} = $record[$field] ?? $grade->{$field};
+                }
+
+                $grade->update();
+            } else {
+                $record['userid'] = $userid;
+                $record['itemid'] = $item->id;
+
+                $grade = new grade_grade($record, false);
+
+                $grade->insert();
+            }
+        }
+
+        return $grade;
+    }
+
+    /**
      * Create a grade_item.
      *
      * @param array|stdClass $record
@@ -1093,10 +1156,15 @@ EOD;
             $data->status = ENROL_INSTANCE_ENABLED;
         }
 
+        // Default to legacy lti version.
+        if (empty($data->ltiversion) || !in_array($data->ltiversion, ['LTI-1p0/LTI-2p0', 'LTI-1p3'])) {
+            $data->ltiversion = 'LTI-1p0/LTI-2p0';
+        }
+
         // Add some extra necessary fields to the data.
-        $data->name = 'Test LTI';
-        $data->roleinstructor = $studentrole->id;
-        $data->rolelearner = $teacherrole->id;
+        $data->name = $data->name ?? 'Test LTI';
+        $data->roleinstructor = $teacherrole->id;
+        $data->rolelearner = $studentrole->id;
 
         // Get the enrol LTI plugin.
         $enrolplugin = enrol_get_plugin('lti');
@@ -1187,6 +1255,123 @@ EOD;
     }
 
     /**
+     * Create a new category for custom profile fields.
+     *
+     * @param array $data Array with 'name' and optionally 'sortorder'
+     * @return \stdClass New category object
+     */
+    public function create_custom_profile_field_category(array $data): \stdClass {
+        global $DB;
+
+        // Pick next sortorder if not defined.
+        if (!array_key_exists('sortorder', $data)) {
+            $data['sortorder'] = (int)$DB->get_field_sql('SELECT MAX(sortorder) FROM {user_info_category}') + 1;
+        }
+
+        $category = (object)[
+            'name' => $data['name'],
+            'sortorder' => $data['sortorder']
+        ];
+        $category->id = $DB->insert_record('user_info_category', $category);
+
+        return $category;
+    }
+
+    /**
+     * Creates a new custom profile field.
+     *
+     * Optional fields are:
+     *
+     * categoryid (or use 'category' to specify by name). If you don't specify
+     * either, it will add the field to a 'Testing' category, which will be created for you if
+     * necessary.
+     *
+     * sortorder (if you don't specify this, it will pick the next one in the category).
+     *
+     * all the other database fields (if you don't specify this, it will pick sensible defaults
+     * based on the data type).
+     *
+     * @param array $data Array with 'datatype', 'shortname', and 'name'
+     * @return \stdClass Database object from the user_info_field table
+     */
+    public function create_custom_profile_field(array $data): \stdClass {
+        global $DB, $CFG;
+        require_once($CFG->dirroot . '/user/profile/lib.php');
+
+        // Set up category if necessary.
+        if (!array_key_exists('categoryid', $data)) {
+            if (array_key_exists('category', $data)) {
+                $data['categoryid'] = $DB->get_field('user_info_category', 'id',
+                        ['name' => $data['category']], MUST_EXIST);
+            } else {
+                // Make up a 'Testing' category or use existing.
+                $data['categoryid'] = $DB->get_field('user_info_category', 'id', ['name' => 'Testing']);
+                if (!$data['categoryid']) {
+                    $created = $this->create_custom_profile_field_category(['name' => 'Testing']);
+                    $data['categoryid'] = $created->id;
+                }
+            }
+        }
+
+        // Pick sort order if necessary.
+        if (!array_key_exists('sortorder', $data)) {
+            $data['sortorder'] = (int)$DB->get_field_sql(
+                    'SELECT MAX(sortorder) FROM {user_info_field} WHERE categoryid = ?',
+                    [$data['categoryid']]) + 1;
+        }
+
+        // Defaults for other values.
+        $defaults = [
+            'description' => '',
+            'descriptionformat' => 0,
+            'required' => 0,
+            'locked' => 0,
+            'visible' => PROFILE_VISIBLE_ALL,
+            'forceunique' => 0,
+            'signup' => 0,
+            'defaultdata' => '',
+            'defaultdataformat' => 0,
+            'param1' => '',
+            'param2' => '',
+            'param3' => '',
+            'param4' => '',
+            'param5' => ''
+        ];
+
+        // Type-specific defaults for other values.
+        $typedefaults = [
+            'text' => [
+                'param1' => 30,
+                'param2' => 2048
+            ],
+            'menu' => [
+                'param1' => "Yes\nNo",
+                'defaultdata' => 'No'
+            ],
+            'datetime' => [
+                'param1' => '2010',
+                'param2' => '2015',
+                'param3' => 1
+            ],
+            'checkbox' => [
+                'defaultdata' => 0
+            ]
+        ];
+        foreach ($typedefaults[$data['datatype']] ?? [] as $field => $value) {
+            $defaults[$field] = $value;
+        }
+
+        foreach ($defaults as $field => $value) {
+            if (!array_key_exists($field, $data)) {
+                $data[$field] = $value;
+            }
+        }
+
+        $data['id'] = $DB->insert_record('user_info_field', $data);
+        return (object)$data;
+    }
+
+    /**
      * Create a new user, and enrol them in the specified course as the supplied role.
      *
      * @param   \stdClass   $course The course to enrol in
@@ -1227,4 +1412,29 @@ EOD;
 
         return $DB->get_record('user_lastaccess', ['id' => $recordid], '*', MUST_EXIST);
     }
+
+    /**
+     * Gets a default generator for a given component.
+     *
+     * @param string $component The component name, e.g. 'mod_forum' or 'core_question'.
+     * @param string $classname The name of the class missing from the generators file.
+     * @return component_generator_base The generator.
+     */
+    protected function get_default_plugin_generator(string $component, ?string $classname = null) {
+        [$type, $plugin] = core_component::normalize_component($component);
+
+        switch ($type) {
+            case 'block':
+                return new default_block_generator($this, $plugin);
+        }
+
+        if (is_null($classname)) {
+            throw new coding_exception("Component {$component} does not support " .
+                "generators yet. Missing tests/generator/lib.php.");
+        }
+
+        throw new coding_exception("Component {$component} does not support " .
+            "data generators yet. Class {$classname} not found.");
+    }
+
 }

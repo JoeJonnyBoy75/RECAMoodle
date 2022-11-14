@@ -14,13 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Privacy manager unit tests.
- *
- * @package     core_privacy
- * @copyright   2018 Jake Dallimore <jrhdallimore@gmail.com>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace core_privacy;
+
+use core_privacy\local\request\writer;
+use core_privacy\local\request\approved_contextlist;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
@@ -31,9 +28,6 @@ require_once($CFG->dirroot . '/privacy/tests/fixtures/mock_mod_with_user_data_pr
 require_once($CFG->dirroot . '/privacy/tests/fixtures/provider_a.php');
 require_once($CFG->dirroot . '/privacy/tests/fixtures/provider_throwing_exception.php');
 
-use \core_privacy\local\request\writer;
-use \core_privacy\local\request\approved_contextlist;
-
 /**
  * Privacy manager unit tests.
  *
@@ -41,11 +35,11 @@ use \core_privacy\local\request\approved_contextlist;
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @coversDefaultClass \core_privacy\manager
  */
-class privacy_manager_testcase extends advanced_testcase {
+class manager_test extends \advanced_testcase {
     /**
      * Test tearDown.
      */
-    public function tearDown() {
+    public function tearDown(): void {
         \core_privacy\local\request\writer::reset();
     }
 
@@ -57,7 +51,7 @@ class privacy_manager_testcase extends advanced_testcase {
      */
     protected function get_mock_manager_with_core_components($componentnames) {
         $mock = $this->getMockBuilder(\core_privacy\manager::class)
-            ->setMethods(['get_component_list'])
+            ->onlyMethods(['get_component_list'])
             ->getMock();
         $mock->expects($this->any())
             ->method('get_component_list')
@@ -188,7 +182,7 @@ class privacy_manager_testcase extends advanced_testcase {
         // Create an approved contextlist.
         $approvedcontextlistcollection = new \core_privacy\local\request\contextlist_collection(10);
         foreach ($contextlistcollection->get_contextlists() as $contextlist) {
-            $approvedcontextlist = new approved_contextlist(new stdClass(), $contextlist->get_component(),
+            $approvedcontextlist = new approved_contextlist(new \stdClass(), $contextlist->get_component(),
                 $contextlist->get_contextids());
             $approvedcontextlistcollection->add_contextlist($approvedcontextlist);
         }
@@ -203,7 +197,7 @@ class privacy_manager_testcase extends advanced_testcase {
         $this->assertEquals('mydescription', $prefs->mykey->description);
 
         // Verify an exception is thrown if trying to pass in a collection of non-approved_contextlist items.
-        $this->expectException(moodle_exception::class);
+        $this->expectException(\moodle_exception::class);
         $mockman->export_user_data($contextlistcollection);
     }
 
@@ -234,7 +228,7 @@ class privacy_manager_testcase extends advanced_testcase {
         $this->assertNull($mockman->delete_data_for_user($approvedcontextlistcollection));
 
         // Verify an exception is thrown if trying to pass in a collection of non-approved_contextlist items.
-        $this->expectException(moodle_exception::class);
+        $this->expectException(\moodle_exception::class);
         $mockman->delete_data_for_user($contextlistcollection);
     }
 
@@ -336,7 +330,7 @@ class privacy_manager_testcase extends advanced_testcase {
         $mockman = $this->get_mock_manager_with_core_components(['mod_component_broken', 'mod_component_a']);
 
         $observer = $this->getMockBuilder(\core_privacy\manager_observer::class)
-            ->setMethods(['handle_component_failure'])
+            ->onlyMethods(['handle_component_failure'])
             ->getMock();
         $mockman->set_observer($observer);
 
@@ -374,7 +368,7 @@ class privacy_manager_testcase extends advanced_testcase {
         $contextid = $context->id;
 
         $observer = $this->getMockBuilder(\core_privacy\manager_observer::class)
-            ->setMethods(['handle_component_failure'])
+            ->onlyMethods(['handle_component_failure'])
             ->getMock();
         $mockman->set_observer($observer);
 
@@ -409,7 +403,7 @@ class privacy_manager_testcase extends advanced_testcase {
         $contextid = $context->id;
 
         $observer = $this->getMockBuilder(\core_privacy\manager_observer::class)
-            ->setMethods(['handle_component_failure'])
+            ->onlyMethods(['handle_component_failure'])
             ->getMock();
         $mockman->set_observer($observer);
 
@@ -443,7 +437,7 @@ class privacy_manager_testcase extends advanced_testcase {
         $context = \context_system::instance();
 
         $observer = $this->getMockBuilder(\core_privacy\manager_observer::class)
-            ->setMethods(['handle_component_failure'])
+            ->onlyMethods(['handle_component_failure'])
             ->getMock();
         $mockman->set_observer($observer);
 
@@ -473,7 +467,7 @@ class privacy_manager_testcase extends advanced_testcase {
         $context = \context_system::instance();
 
         $observer = $this->getMockBuilder(\core_privacy\manager_observer::class)
-            ->setMethods(['handle_component_failure'])
+            ->onlyMethods(['handle_component_failure'])
             ->getMock();
         $mockman->set_observer($observer);
 
@@ -491,7 +485,7 @@ class privacy_manager_testcase extends advanced_testcase {
         $metadata = $mockman->get_metadata_for_components();
         $this->assertDebuggingCalled();
 
-        $this->assertInternalType('array', $metadata);
+        $this->assertIsArray($metadata);
         $this->assertCount(1, $metadata);
     }
 }

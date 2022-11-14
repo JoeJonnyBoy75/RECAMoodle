@@ -1,0 +1,51 @@
+<div class="inner-container p-4 col-lg-12 col-sm-12 mb-4 mt-1 course-purchase">
+        <div>
+          <div class="instructor_pricing_widget">
+            {{#rnrshortdesign}}{{{rnrshortdesign}}}{{/rnrshortdesign}}
+            {{#hascost}}
+            <div class="price">
+              <span class="price-tag">{{#str}}price, theme_remui{{/str}} </span>
+              <span>{{courseprice}} </span><small>{{currency}}</small>
+            </div>
+            {{/hascost}}
+            <div class="w-100 button-wrapper">
+              <a href="#" class="cart_btnss">{{buttontext}}</a>
+            </div>
+            <div class="wdm-buy-access text-secondary">{{subtitletext}}</div>
+            <ul class="noliststyle price_quere_list">
+              
+              {{#courseduration}}
+              <li>
+                <div class="wdm-course-details-item">
+                  <i class="fa fa-play" aria-hidden="true"></i> {{courseduration}}
+                </div>
+              </li>
+              {{/courseduration}}
+
+              {{#enrolledstudents}}
+              <li>
+                <div class="wdm-course-details-item">
+                  <i class="fa fa-user" aria-hidden="true"></i> {{enrolledstudents}}
+                </div>
+              </li>
+              {{/enrolledstudents}}
+
+              {{#totaldownloadable}}
+              <li>
+                <div class="wdm-course-details-item">
+                  <i class="fa fa-download" aria-hidden="true"></i> {{totaldownloadable}} 
+                </div>
+              </li>
+              {{/totaldownloadable}}
+
+              {{#totalassignments}}
+              <li>
+                <div class="wdm-course-details-item">
+                  <i class="fa fa-bolt" aria-hidden="true"></i>{{totalassignments}}
+                </div>
+              </li>
+              {{/totalassignments}}
+            </ul>
+          </div>
+        </div>  
+      </div>

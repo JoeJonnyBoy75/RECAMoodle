@@ -33,7 +33,7 @@ require_once($CFG->dirroot. '/course/format/lib.php');
  * @copyright  2012 Marina Glancy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class format_social extends format_base {
+class format_social extends core_courseformat\base {
 
     /**
      * The URL to use for the specified course
@@ -131,4 +131,19 @@ class format_social extends format_base {
         // Return everything (nothing to hide).
         return $this->get_format_options();
     }
+
+    /**
+     * Returns the information about the ajax support in the given source format.
+     *
+     * The returned object's property (boolean)capable indicates that
+     * the course format supports Moodle course ajax features.
+     *
+     * @return stdClass
+     */
+    public function supports_ajax() {
+        $ajaxsupport = new stdClass();
+        $ajaxsupport->capable = true;
+        return $ajaxsupport;
+    }
+
 }

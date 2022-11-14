@@ -14,17 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * PHPUnit data generator tests
- *
- * @package    mod_quiz
- * @category   phpunit
- * @copyright  2012 Matt Petro
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-defined('MOODLE_INTERNAL') || die();
-
+namespace mod_quiz;
 
 /**
  * PHPUnit data generator testcase
@@ -34,7 +24,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2012 Matt Petro
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_quiz_generator_testcase extends advanced_testcase {
+class generator_test extends \advanced_testcase {
     public function test_generator() {
         global $DB, $SITE;
 
@@ -49,7 +39,8 @@ class mod_quiz_generator_testcase extends advanced_testcase {
 
         $generator->create_instance(array('course'=>$SITE->id));
         $generator->create_instance(array('course'=>$SITE->id));
-        $quiz = $generator->create_instance(array('course'=>$SITE->id));
+        $createtime = time();
+        $quiz = $generator->create_instance(array('course' => $SITE->id, 'timecreated' => 0));
         $this->assertEquals(3, $DB->count_records('quiz'));
 
         $cm = get_coursemodule_from_instance('quiz', $quiz->id);
@@ -57,7 +48,10 @@ class mod_quiz_generator_testcase extends advanced_testcase {
         $this->assertEquals('quiz', $cm->modname);
         $this->assertEquals($SITE->id, $cm->course);
 
-        $context = context_module::instance($cm->id);
+        $context = \context_module::instance($cm->id);
         $this->assertEquals($quiz->cmid, $context->instanceid);
+
+        $this->assertEqualsWithDelta($createtime,
+                $DB->get_field('quiz', 'timecreated', ['id' => $cm->instance]), 2);
     }
 }

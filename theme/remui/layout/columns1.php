@@ -19,7 +19,7 @@
  *
  * @package   theme_remui
  * @copyright 2016 Damyon Wiese
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -30,8 +30,18 @@ $bodyattributes = $OUTPUT->body_attributes([]);
 $templatecontext = [
     'sitename' => format_string($SITE->shortname, true, ['context' => context_course::instance(SITEID), "escape" => false]),
     'output' => $OUTPUT,
-    'bodyattributes' => $bodyattributes
+    'bodyattributes' => $bodyattributes,
 ];
+
+if (empty($PAGE->layout_options['noactivityheader'])) {
+    $header = $PAGE->activityheader;
+    $renderer = $PAGE->get_renderer('core');
+    $templatecontext['headercontent'] = $header->export_for_template($renderer);
+}
+
+if (get_config('theme_remui', 'icondesign') != 'default') {
+    $templatecontext['icondesign'] = true;
+}
 
 echo $OUTPUT->render_from_template('theme_remui/columns1', $templatecontext);
 

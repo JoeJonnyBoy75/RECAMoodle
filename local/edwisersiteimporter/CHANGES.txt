@@ -1,0 +1,15 @@
+Change Log:
+===========
+
+Version 4.0.0
+=============
+
+Tweak - Removed Importer link from theme selector. Now importer is available in Edwiser RemUI theme settings.
+
+Version 1.0.0
+=============
+
+The initial version of Edwiser Demo Importer
+
+Feature - Import homepage templates provided by Edwiser.
+Feature - Import courses provided by Edwiser.

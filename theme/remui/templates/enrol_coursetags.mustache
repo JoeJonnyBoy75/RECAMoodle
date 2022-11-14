@@ -1,0 +1,20 @@
+<!-- Last element will have margin zero-->
+<div class="inner-container p-4 w-100 mb-0 course-tags">
+  <div class="blog_tag_widget">
+    <h4 class="title">{{#str}}tags, theme_remui{{/str}}</h4>
+    <div class="tag-wrapper w-100">
+      {{#hastags}}
+        <ul class="noliststyle tag_list">
+          {{#tags}}
+            <li class="list-inline-item mr-0">
+              <a href="{{{url}}}" class=" s20" title="{{tagname}}">{{{tagname}}}</a>
+            </li>
+          {{/tags}}
+        </ul>
+      {{/hastags}}
+      {{#notags}}
+        {{notags}}
+      {{/notags}}
+    </div>
+  </div>
+</div>

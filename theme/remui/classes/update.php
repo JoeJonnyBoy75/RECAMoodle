@@ -13,11 +13,10 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
 /**
  * Edwiser RemUI
  * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -32,9 +31,8 @@ require_once($CFG->dirroot . '/theme/remui/classes/controller/LicenseController.
 define('REMUI_PLUGINS_LIST', "https://edwiser.org/edwiserupdates.json");
 define('PLUGIN_UPDATE', "https://edwiser.org/wp-json/remui-plugins-update");
 
-use theme_remui\controller\LicenseController;
 use core_plugin_manager;
-use theme_remui\utility;
+use moodle_exception;
 use Michelf\MarkDown;
 use core_component;
 use html_writer;
@@ -42,13 +40,11 @@ use ZipArchive;
 use moodle_url;
 use Exception;
 use stdClass;
-use pix_icon;
-use cache;
 use curl;
 
 /**
  * RemUI one click update class
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class update {
@@ -72,17 +68,24 @@ class update {
     public $refresh = false;
 
     /**
-     * License controller object
+     * Cache object
      * @var null
      */
+    public static $cache = null;
 
-    public static $licensecontroller = null;
+    /**
+     * Cache file url
+     *
+     * @var string
+     */
+    public static $cacheurl = null;
 
     /**
      * Check whether update is supported
      * @return bool True if update supported
      */
     public function update_supported() {
+        return false;
         $supported = false;
         if (toolbox::get_plugin_config(EDD_LICENSE_STATUS) == 'valid') {
             $supported = true;
@@ -95,10 +98,56 @@ class update {
      * @param boolean $refresh Refresh update information
      */
     public function __construct($refresh = false) {
-        if ($refresh) {
-            $cache = cache::make('theme_remui', 'updates');
-            $cache->purge();
+        global $CFG;
+        self::$cacheurl = $CFG->dataroot . '/temp/theme_remui_update';
+        $transient = get_config('theme_remui', 'plugin_update_transient');
+
+        if ($refresh || $transient < time()) {
+            self::$cache = null;
+            file_put_contents(self::$cacheurl, serialize(false));
+            set_config('plugin_update_transient', time() + (7 * 24 * 60 * 60), 'theme_remui');
         }
+    }
+
+    /**
+     * Get value from cache
+     * @param  string $key Key to fetch from cache
+     * @return mix      Value from cache
+     */
+    private function cache_get($key) {
+        if (self::$cache == null) {
+            self::$cache = unserialize(file_get_contents(self::$cacheurl));
+            if (self::$cache == false) {
+                $this->cache_set($key, false);
+            }
+        }
+
+        $value = false;
+
+        if (!isset(self::$cache->$key)) {
+            $this->cache_set($key, $value);
+        } else {
+            $value = self::$cache->$key;
+        }
+        return $value;
+    }
+
+    /**
+     * Set value in cache
+     * @param  string $key   Key to set in cache
+     * @param  mix    $value Value to set in cache
+     */
+    private function cache_set($key, $value) {
+        if (self::$cache == null) {
+            self::$cache = unserialize(file_get_contents(self::$cacheurl));
+            if (self::$cache == false) {
+                self::$cache = new stdClass;
+            }
+        }
+
+        self::$cache->$key = $value;
+
+        file_put_contents(self::$cacheurl, serialize(self::$cache));
     }
 
     /**
@@ -110,14 +159,30 @@ class update {
         if (!$this->update_supported()) {
             return [];
         }
-        $cache = cache::make('theme_remui', 'updates');
-        $plugins = $cache->get('plugins');
+        $plugins = $this->cache_get('plugins');
         if (!$plugins) {
             try {
-                $plugins = utility::url_get_contents(REMUI_PLUGINS_LIST);
+
+                $arrcontextoptions = array(
+                    "ssl" => array(
+                        "verify_peer" => false,
+                        "verify_peer_name" => false,
+                    ),
+                );
+
+                $plugins = file_get_contents(
+                    REMUI_PLUGINS_LIST,
+                    false,
+                    stream_context_create($arrcontextoptions)
+                );
+
                 if (is_string($plugins)) {
                     $plugins = json_decode($plugins);
+                } else if (!is_array($plugins)) {
+                    $this->errors[] = get_string('invalidjsonfile', 'theme_remui');
+                    return false;
                 }
+
             } catch (Exception $ex) {
                 return false;
             }
@@ -160,6 +225,12 @@ class update {
             if (!is_null($plug) && $component != $plug) {
                 continue;
             }
+
+            // Skip edwiser form event plugins.
+            if (stripos($component, 'edwiserformevents_') !== false) {
+                continue;
+            }
+
             list($plugintype, $pluginname) = core_component::normalize_component($component);
 
             // Check whether plugin is installed or not.
@@ -183,14 +254,17 @@ class update {
                     continue;
                 }
 
-                // Get license key for the product
+                // Get license key for the product.
                 $sql = "SELECT value
                             FROM {config_plugins}
                             WHERE plugin = ?
                             AND name LIKE '%license_key%'";
-                $license = $DB->get_field_sql($sql, array($component));
+                $license = $DB->get_field_sql($sql, array($component), IGNORE_MULTIPLE);
 
                 $options['url'] = $plugin->purchaseurl;
+                if ($license == false) {
+                    $license = 'null';
+                }
                 $options['license'] = $license;
 
                 $this->set_edwiser_plugin($plugintype, $pluginname, $options);
@@ -467,7 +541,7 @@ class update {
                 unlink($path);
                 continue;
             }
-            $plug = $plugins[$component];
+            $plug = (array) $plugins[$component];
             $type = explode('_', $component)[0];
             $name = substr($component, strlen($type) + 1);
             if (isset($plug['parent'])) {
@@ -520,21 +594,20 @@ class update {
     /**
      * Get plugin obejct to show in the plugins table
      *
-     * @param object  $pluginman plugin manager
      * @param object  $pluginfo  plugin information object
      * @param bool    $edwiser   is current plugin is edwiser or other
      *
      * @return stdClass             plugin object ofr mustache
      */
-    private function get_plugin_object($pluginman, $pluginfo, $updateinfo) {
+    private function get_plugin_object($pluginfo, $updateinfo) {
         global $PAGE, $OUTPUT, $CFG;
+
         $plugin = new stdClass;
         $plugin->type = $pluginfo->type;
         $plugin->name = $pluginfo->name;
         $plugin->component = $pluginfo->type . '_' . $pluginfo->name;
         $plugin->class = 'type-' . $plugin->type . ' name-' . $plugin->component;
         $status = $pluginfo->get_status();
-        $plugin->class .= ' status-'.$status;
         if ($PAGE->theme->resolve_image_location('icon', $plugin->component, null)) {
             $plugin->icon = $OUTPUT->pix_icon('icon', '', $plugin->component, array('class' => 'icon pluginicon'));
         }
@@ -545,24 +618,35 @@ class update {
         $plugin->versiondb = $pluginfo->versiondb;
         if ($status === core_plugin_manager::PLUGIN_STATUS_MISSING) {
             $msg = html_writer::div(get_string('status_missing', 'core_plugin'), 'statusmsg label label-important');
-        } else if ($status === core_plugin_manager::PLUGIN_STATUS_NEW) {
-            $msg = html_writer::div(get_string('status_new', 'core_plugin'), 'statusmsg label label-success');
+        } else if ($status === core_plugin_manager::PLUGIN_STATUS_DELETE) {
+            $msg = html_writer::div(get_string('status_delete', 'core_plugin'), 'statusmsg label label-important');
+        } else if ($status === core_plugin_manager::PLUGIN_STATUS_DOWNGRADE) {
+            $msg = html_writer::div(get_string('status_downgrade', 'core_plugin'), 'statusmsg label label-important');
         } else {
             $msg = '';
         }
         $plugin->msg = $msg;
 
-        $update = (object) [
-            'has' => false,
-            'html' => ''
-        ];
+        if (isset($updateinfo->error)) {
+            $plugin->error = $updateinfo->error;
+            return $plugin;
+        }
+
+        if (!is_number($updateinfo->release)) {
+            if (version_compare($updateinfo->release, $plugin->release) <= 0) {
+                $plugin->uptodate = true;
+                return $plugin;
+            }
+            $plugin->update = $updateinfo->release;
+        } else if ($updateinfo->version <= $plugin->versiondb) {
+            $plugin->uptodate = true;
+            return $plugin;
+        } else {
+            $plugin->update = $updateinfo->version;
+        }
 
         if (isset($updateinfo->changelog)) {
             $plugin->changelog = $updateinfo->changelog;
-        }
-
-        if (isset($updateinfo->release)) {
-            $plugin->update = $updateinfo->release;
         }
 
         if (empty($updateinfo->msg)) {
@@ -584,32 +668,50 @@ class update {
     /**
      * Check for all installed edwiser plugins
      *
+     * @param array $pluginlist Plugins list
+     * @param array $errors Errors list
+     *
      * @return object plugins list for mustache
      */
-    public function generate_template_context($pluginlist) {
-        if (!$this->update_supported()) {
-            return [];
+    public function generate_template_context($pluginlist, $errors) {
+        if ($errors == false) {
+            $errors = [];
         }
-        $plugins = new stdClass;
+        if (!$this->update_supported()) {
+            return [[], $errors];
+        }
+
         $plugins = [];
+
+        if (isset($pluginlist['code']) && $pluginlist['code'] == 'rest_no_route') {
+            $errors[] = get_string('updatedown', 'theme_remui', $pluginlist['message']);
+            return array($plugins, $errors);
+        }
         $pluginman = core_plugin_manager::instance();
         $plugininfo = $pluginman->get_plugins();
         $index = 0;
+
         foreach ($plugininfo as $type => $plugs) {
             foreach (array_values($plugs) as $pluginfo) {
                 $component = $pluginfo->type . '_' . $pluginfo->name;
-                if (!isset($pluginlist[$component]) || !(isset($pluginlist[$component]->package))) {
+                if (!isset($pluginlist[$component])) {
                     continue;
                 }
+
+                // Skip edwiser form event plugins.
+                if (stripos($component, 'edwiserformevents_') !== false) {
+                    continue;
+                }
+
                 $plugin = $this->get_plugin_object(
-                    $pluginman,
                     $pluginfo,
-                    $pluginlist[$component]
+                    (object) $pluginlist[$component]
                 );
                 $plugins[$index++] = $plugin;
             }
         }
-        return $plugins;
+
+        return [$plugins, $errors];
     }
 
     /**
@@ -621,47 +723,104 @@ class update {
         if (!$this->update_supported()) {
             return [false, false, false];
         }
-        $cache = cache::make('theme_remui', 'updates');
-        $plugins = $cache->get('plugins');
-        $errors = $cache->get('errors') || [];
-        $lastcheck = $cache->get('lastcheck');
+        $plugins = $this->cache_get('plugins');
+        $errors = $this->cache_get('errors') || [];
+        $lastcheck = $this->cache_get('lastcheck');
         if ($plugins == false) {
             $this->plugins = [];
             $this->prepare_edwiser_plugins_update();
 
-            $curl = new curl();
-            $response = $curl->post(
-                PLUGIN_UPDATE . '/check-update',
-                array(
-                    'plugins' => json_encode($this->plugins),
-                    'url' => urlencode($CFG->wwwroot)
-                )
-            );
-            $plugins = json_decode($response, true);
-            if ($plugins == false) {
-                return [false, false, false];
-            }
-            foreach ($plugins as $component => $plugin) {
-                if (!empty($plugin['update'])) {
-                    $plugins = $this->extract_update_details($plugins, $plugin);
+            if (!empty($this->plugins)) {
+                $curl = new curl();
+
+                $response = $curl->post(
+                    PLUGIN_UPDATE . '/check-update',
+                    array(
+                        'plugins' => json_encode($this->plugins),
+                        'url' => urlencode($CFG->wwwroot)
+                    )
+                );
+
+                $plugins = json_decode($response, true);
+
+                if ($plugins == false) {
+                    return [false, false, false];
+                }
+
+                foreach ($plugins as $component => $plugin) {
+                    if (isset($plugin->message)) {
+                        continue;
+                    }
+                    if (!empty($plugin['update'])) {
+                        $plugins = $this->extract_update_details($plugins, $plugin);
+                    }
                 }
             }
+
             $errors = $this->errors;
             $lastcheck = time();
-            $cache->set('plugins', $plugins);
-            $cache->set('errors', $errors);
-            $cache->set('lastcheck', $lastcheck);
-        }
-        $has = false;
-        foreach ($plugins as $component => $plugin) {
-            if (!empty($plugin->package)) {
-                $has = true;
-            }
-        }
-        if (!$has) {
-            $plugins = [];
+            $this->cache_set('plugins', $plugins);
+            $this->cache_set('errors', $errors);
+            $this->cache_set('lastcheck', $lastcheck);
         }
         return [$plugins, $errors, $lastcheck];
+    }
+
+    /**
+     * Return true if any edwiser plugin has update.
+     *
+     * @return boolean
+     */
+    public function check_plugins_update() {
+        if (!$this->update_supported()) {
+            return false;
+        }
+
+        // Fetch update details.
+        list($plugins, $errors) = $this->fetch_plugins_update();
+
+        // Return false if there is error in updates.
+        if ($errors !== false || (is_array($errors) && count($errors) > 0)) {
+            return false;
+        }
+
+        // Return false if plugins list is empty.
+        if ($plugins === false || (is_array($plugins) && count($plugins) == 0)) {
+            return false;
+        }
+
+        // Skip if update fetching has error.
+        if (isset($plugins['code']) && $plugins['code'] == 'rest_no_route') {
+            return false;
+        }
+
+        $pluginman = core_plugin_manager::instance();
+        $plugininfo = $pluginman->get_plugins();
+
+        foreach ($plugininfo as $type => $plugs) {
+            foreach (array_values($plugs) as $pluginfo) {
+                $component = $pluginfo->type . '_' . $pluginfo->name;
+                if (!isset($plugins[$component])) {
+                    continue;
+                }
+
+                // Skip edwiser form event plugins.
+                if (stripos($component, 'edwiserformevents_') !== false) {
+                    continue;
+                }
+
+                $plugin = $this->get_plugin_object(
+                    $pluginfo,
+                    (object) $plugins[$component]
+                );
+
+                // Return true if plugin has update.
+                if (isset($plugin->install)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -672,7 +831,7 @@ class update {
     public function get_update_details() {
         global $PAGE;
         list($plugins, $errors, $lastcheck) = $this->fetch_plugins_update();
-        $plugins = $this->generate_template_context($plugins);
+        list($plugins, $errors) = $this->generate_template_context($plugins, $errors);
         return [
             'refresh-update' => new moodle_url($PAGE->url, array(
                 'activetab' => 'informationcenter',
@@ -899,7 +1058,11 @@ class update {
      * @param null|moodle_url $cancel URL for the cancel link, defaults to the current page
      * @return string HTML
      */
-    public function plugins_management_confirm_buttons(moodle_url $continue = null, moodle_url $download = null, moodle_url $cancel = null) {
+    public function plugins_management_confirm_buttons(
+        moodle_url $continue = null,
+        moodle_url $download = null,
+        moodle_url $cancel = null
+    ) {
         global $OUTPUT;
 
         $out = html_writer::start_div('plugins-management-confirm-buttons');
@@ -1026,7 +1189,7 @@ class update {
         $temp = make_request_directory();
         $zips = $this->verify_zip($pluginman, $zip, $temp, $plugin->component);
         if (count($zips) == 1) {
-            $zips[$zipfile] = $zips[0];
+            $zips[$zip] = $zips[0];
             unset($zips[0]);
         } else {
             unlink($zip);
@@ -1046,7 +1209,7 @@ class update {
                 unlink($zipfile);
                 continue;
             }
-            // Force download
+            // Force download.
             send_file($zipfile, $plugin->component . '.zip', null , 0, false, true);
         }
     }

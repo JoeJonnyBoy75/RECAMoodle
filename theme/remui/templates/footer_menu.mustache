@@ -1,0 +1,8 @@
+<div class="p-2 footer-menu {{^hasmenu}}invisible{{/hasmenu}} menu-{{orientation}}">
+    <h4 class="card-title mt-1 font-weight-normal font-size-18">{{{ title }}}</h4>
+    <div class="footer-menu-list">
+        {{#menu}}
+            <a target="_blank" href="{{address}}">{{text}}</a>
+        {{/menu}}
+    </div>
+</div>

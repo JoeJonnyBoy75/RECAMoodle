@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * mod_h5pactivity manager tests
- *
- * @package    mod_h5pactivity
- * @category   test
- * @copyright  2020 Ferran Recio <ferran@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 
 namespace mod_h5pactivity\local;
 use context_module;
@@ -31,11 +23,12 @@ use stdClass;
  * Manager tests class for mod_h5pactivity.
  *
  * @package    mod_h5pactivity
+ * @covers     \mod_h5pactivity\local\manager
  * @category   test
  * @copyright  2020 Ferran Recio <ferran@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class manager_testcase extends \advanced_testcase {
+class manager_test extends \advanced_testcase {
 
     /**
      * Test for static create methods.
@@ -530,7 +523,7 @@ class manager_testcase extends \advanced_testcase {
     }
 
     /**
-     * Test static count_attempts.
+     * Test static count_attempts of one user.
      */
     public function test_count_attempts() {
 
@@ -558,6 +551,190 @@ class manager_testcase extends \advanced_testcase {
         $this->assertEquals(0, $manager->count_attempts($user1->id));
         $this->assertEquals(3, $manager->count_attempts($user2->id));
         $this->assertEquals(3, $manager->count_attempts($user3->id));
+    }
+
+    /**
+     * Test static count_attempts of all active participants.
+     *
+     * @dataProvider count_attempts_all_data
+     * @param bool $canview if the student role has mod_h5pactivity/view capability
+     * @param bool $cansubmit if the student role has mod_h5pactivity/submit capability
+     * @param bool $extrarole if an extra role without submit capability is required
+     * @param int $result the expected result
+     */
+    public function test_count_attempts_all(bool $canview, bool $cansubmit, bool $extrarole, int $result) {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $activity = $this->getDataGenerator()->create_module(
+            'h5pactivity',
+            ['course' => $course]
+        );
+
+        $manager = manager::create_from_instance($activity);
+
+        $roleid = $DB->get_field('role', 'id', ['shortname' => 'student']);
+
+        $newcap = ($canview) ? CAP_ALLOW : CAP_PROHIBIT;
+        role_change_permission($roleid, $manager->get_context(), 'mod/h5pactivity:view', $newcap);
+
+        $newcap = ($cansubmit) ? CAP_ALLOW : CAP_PROHIBIT;
+        role_change_permission($roleid, $manager->get_context(), 'mod/h5pactivity:submit', $newcap);
+
+        // Teacher with review capability and attempts (should not be listed).
+        if ($extrarole) {
+            $user1 = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
+            $this->generate_fake_attempts($activity, $user1, 1);
+        }
+
+        // Student with attempts.
+        $user2 = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $this->generate_fake_attempts($activity, $user2, 1);
+
+        // Another student with attempts.
+        $user3 = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $this->generate_fake_attempts($activity, $user3, 1);
+
+        $this->assertEquals($result, $manager->count_attempts());
+    }
+
+    /**
+     * Data provider for test_count_attempts_all.
+     *
+     * @return array
+     */
+    public function count_attempts_all_data(): array {
+        return [
+            'Students with both view and submit capability' => [true, true, false, 6],
+            'Students without view but with submit capability' => [false, true, false, 0],
+            'Students with view but without submit capability' => [true, false, false, 6],
+            'Students without both view and submit capability' => [false, false, false, 0],
+            'Students with both view and submit capability and extra role' => [true, true, true, 6],
+            'Students without view but with submit capability and extra role' => [false, true, true, 0],
+            'Students with view but without submit capability and extra role' => [true, false, true, 6],
+            'Students without both view and submit capability and extra role' => [false, false, true, 0],
+        ];
+    }
+
+    /**
+     * Test static test_get_active_users_join of all active participants.
+     *
+     * Most method scenarios are tested in test_count_attempts_all so we only
+     * need to test the with $allpotentialusers true and false.
+     *
+     * @dataProvider get_active_users_join_data
+     * @param bool $allpotentialusers if the join should return all potential users or only the submitted ones.
+     * @param int $result the expected result
+     */
+    public function test_get_active_users_join(bool $allpotentialusers, int $result) {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $activity = $this->getDataGenerator()->create_module(
+            'h5pactivity',
+            ['course' => $course]
+        );
+
+        $manager = manager::create_from_instance($activity);
+
+        $user1 = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
+        $this->generate_fake_attempts($activity, $user1, 1);
+
+        // Student with attempts.
+        $user2 = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $this->generate_fake_attempts($activity, $user2, 1);
+
+        // 2 more students without attempts.
+        $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $this->getDataGenerator()->create_and_enrol($course, 'student');
+
+        $usersjoin = $manager->get_active_users_join($allpotentialusers);
+
+        // Final SQL.
+        $num = $DB->count_records_sql(
+            "SELECT COUNT(DISTINCT u.id)
+               FROM {user} u $usersjoin->joins
+              WHERE $usersjoin->wheres",
+            array_merge($usersjoin->params)
+        );
+
+        $this->assertEquals($result, $num);
+    }
+
+    /**
+     * Data provider for test_get_active_users_join.
+     *
+     * @return array
+     */
+    public function get_active_users_join_data(): array {
+        return [
+            'All potential users' => [
+                'allpotentialusers' => true,
+                'result' => 3,
+            ],
+            'Users with attempts' => [
+                'allpotentialusers' => false,
+                'result' => 1,
+            ],
+        ];
+    }
+
+    /**
+     * Test active users joins returns appropriate results for groups
+     */
+    public function test_get_active_users_join_groupmode(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course(['groupmode' => SEPARATEGROUPS, 'groupmodeforce' => 1]);
+
+        // Teacher/user one in group one.
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
+        $userone = $this->getDataGenerator()->create_and_enrol($course, 'student');
+
+        $groupone = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $this->getDataGenerator()->create_group_member(['groupid' => $groupone->id, 'userid' => $teacher->id]);
+        $this->getDataGenerator()->create_group_member(['groupid' => $groupone->id, 'userid' => $userone->id]);
+
+        // User two in group two.
+        $usertwo = $this->getDataGenerator()->create_and_enrol($course, 'student');
+
+        $grouptwo = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $this->getDataGenerator()->create_group_member(['groupid' => $grouptwo->id, 'userid' => $usertwo->id]);
+
+        $activity = $this->getDataGenerator()->create_module('h5pactivity', ['course' => $course]);
+        $manager = manager::create_from_instance($activity);
+
+        // Admin user can view all participants.
+        $usersjoin = $manager->get_active_users_join(true, 0);
+        $users = $DB->get_fieldset_sql("SELECT u.username FROM {user} u {$usersjoin->joins} WHERE {$usersjoin->wheres}",
+            $usersjoin->params);
+
+        $this->assertEqualsCanonicalizing([$teacher->username, $userone->username, $usertwo->username], $users);
+
+        // Switch to teacher, who cannot view all participants.
+        $this->setUser($teacher);
+
+        $usersjoin = $manager->get_active_users_join(true, 0);
+        $users = $DB->get_fieldset_sql("SELECT u.username FROM {user} u {$usersjoin->joins} WHERE {$usersjoin->wheres}",
+            $usersjoin->params);
+
+        $this->assertEmpty($users);
+
+        // Teacher can view participants inside group.
+        $usersjoin = $manager->get_active_users_join(true, $groupone->id);
+        $users = $DB->get_fieldset_sql("SELECT u.username FROM {user} u {$usersjoin->joins} WHERE {$usersjoin->wheres}",
+            $usersjoin->params);
+
+        $this->assertEqualsCanonicalizing([$teacher->username, $userone->username], $users);
     }
 
     /**

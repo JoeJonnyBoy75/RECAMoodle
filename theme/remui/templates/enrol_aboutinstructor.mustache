@@ -1,0 +1,16 @@
+
+{{#hasinstructors}}
+<div class="inner-container p-4 w-100 mb-4 about-instructor">
+  <h4 class="title">{{#str}}aboutinstructor, theme_remui{{/str}}</h4>
+  <div class="all-instructors">
+      {{#list}}
+        {{> theme_remui/enrol_instructor}}
+      {{/list}}
+  </div>
+  {{#showmore}}
+  <div class="row hidden">
+    {{#str}}showmore, theme_remui{{/str}} >>
+  </div>
+  {{/showmore}}
+</div>
+{{/hasinstructors}}

@@ -66,6 +66,8 @@ $string['activate'] = 'Activate';
 $string['activatetoadddescription'] = 'You will need to activate this tool before you can add a description.';
 $string['active'] = 'Active';
 $string['activity'] = 'Activity';
+$string['add_ltiadv'] = 'Add LTI Advantage';
+$string['add_ltilegacy'] = 'Add Legacy LTI';
 $string['addnewapp'] = 'Enable external application';
 $string['addserver'] = 'Add new trusted server';
 $string['addtype'] = 'Add preconfigured tool';
@@ -108,8 +110,10 @@ $string['configtoolurl'] = 'Default remote tool URL';
 $string['configtypes'] = 'Enable LTI applications';
 $string['configured'] = 'Configured';
 $string['confirmtoolactivation'] = 'Are you sure you would like to activate this tool?';
-$string['contentitem'] = 'Content-Item Message';
-$string['contentitem_help'] = 'If ticked, the option \'Select content\' will be available when adding an external tool.';
+$string['contentitem_deeplinking'] = 'Supports Deep Linking (Content-Item Message)';
+$string['contentitem_deeplinking_help'] = 'If ticked, the option \'Select content\' will be available when adding an external tool.';
+$string['contentitem_multiple_description'] = 'The following items will be added to your course:';
+$string['contentitem_multiple_graded'] = 'Graded activity (Maximum grade: {$a})';
 $string['course_tool_types'] = 'Course tools';
 $string['courseactivitiesorresources'] = 'Course activities or resources';
 $string['courseid'] = 'Course ID number';
@@ -141,6 +145,7 @@ real estate to the tool, and others provide a more integrated feel with the Mood
         Depending on the browser, it will open in a new tab or a popup window.
         It is possible that browsers will prevent the new window from opening.';
 $string['delegate'] = 'Delegate to teacher';
+$string['delegate_tool'] = 'As specified in Deep Linking definition or Delegate to teacher';
 $string['delete'] = 'Delete';
 $string['delete_confirmation'] = 'Are you sure you want to delete this preconfigured tool?';
 $string['deletetype'] = 'Delete preconfigured tool';
@@ -161,6 +166,15 @@ $string['domain_mismatch'] = 'Tool URL\'s domain does not match tool configurati
 $string['donot'] = 'Do not send';
 $string['donotaccept'] = 'Do not accept';
 $string['donotallow'] = 'Do not allow';
+$string['dynreg_update_text'] = 'There are existing tools attached to the registration\'s domain. Do you want to update an already installed
+external tool or create a new external tool?';
+$string['dynreg_update_warn_dupdomain'] = 'It is not recommended to have multiple external tools under the same domain.';
+$string['dynreg_update_name'] = 'Tool name';
+$string['dynreg_update_url'] = 'Base URL';
+$string['dynreg_update_version'] = 'LTI version';
+$string['dynreg_update_notools'] = 'No tools in context.';
+$string['dynreg_update_btn_update'] = 'Update';
+$string['dynreg_update_btn_new'] = 'Register as a new external tool';
 $string['duplicateregurl'] = 'This registration URL is already in use';
 $string['editdescription'] = 'Click here to give this tool a description';
 $string['edittype'] = 'Edit preconfigured tool';
@@ -593,3 +607,8 @@ $string['organizationid'] = 'Organisation ID';
 $string['organizationid_help'] = 'A unique identifier for this Moodle instance. Typically, the DNS name of the organisation is used.
 
 If this field is left blank, the host name of this Moodle site will be used as the default value.';
+
+// Deprecated since Moodle 3.10.
+$string['contentitem'] = 'Content-Item Message';
+$string['contentitem_help'] = 'If ticked, the option \'Select content\' will be available when adding an external tool.';
+

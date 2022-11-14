@@ -1,4 +1,4 @@
-define('theme_remui/settings', ['jquery'], function($) {
+define('theme_remui/settings', ['jquery', 'core_form/changechecker'], function($, FormChangeChecker) {
 
     /**
      * Toggle visibility of element
@@ -67,6 +67,12 @@ define('theme_remui/settings', ['jquery'], function($) {
         Object.keys(remuisettings).forEach(function(name) {
             check_settings(name, remuisettings[name], false);
             $('#id_s_theme_remui_' + name).trigger('change');
+        });
+
+        // Settings update on change.
+        $(`#id_s_theme_remui_frontpagechooser`).change(function() {
+            FormChangeChecker.disableAllChecks();
+            this.form.submit();
         });
     }
     return {

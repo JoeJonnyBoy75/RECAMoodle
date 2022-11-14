@@ -20,7 +20,7 @@
  * Handle shortanswer, numerical and various multichoice subquestions
  * @package   theme_remui
  * @copyright 2010 Pierre Pichet
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -28,14 +28,14 @@ namespace theme_remui\output\qtype_multianswer;
 
 defined('MOODLE_INTERNAL') || die();
 
-use html_writer;
+require_once($CFG->dirroot . '/question/type/multianswer/renderer.php');
 
-require_once($CFG->dirroot . '/question/type/shortanswer/renderer.php');
+use html_writer;
 
 /**
  * Render an embedded multiple-choice question horizontally.
  *
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class multichoice_horizontal_renderer extends \qtype_multianswer_multichoice_horizontal_renderer {

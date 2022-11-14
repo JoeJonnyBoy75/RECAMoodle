@@ -102,12 +102,19 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core_admin\local\settings\linkable_settings_page;
+
 defined('MOODLE_INTERNAL') || die();
 
 /// Add libraries
 require_once($CFG->libdir.'/ddllib.php');
 require_once($CFG->libdir.'/xmlize.php');
 require_once($CFG->libdir.'/messagelib.php');
+
+// Add classes, traits, and interfaces which should be autoloaded.
+// The autoloader is configured late in setup.php, after ABORT_AFTER_CONFIG.
+// This is also required where the setup system is not included at all.
+require_once($CFG->dirroot.'/'.$CFG->admin.'/classes/local/settings/linkable_settings_page.php');
 
 define('INSECURE_DATAROOT_WARNING', 1);
 define('INSECURE_DATAROOT_ERROR', 2);
@@ -209,6 +216,7 @@ function uninstall_plugin($type, $name) {
     $DB->delete_records('event', ['component' => $component]);
 
     // Delete scheduled tasks.
+    $DB->delete_records('task_adhoc', ['component' => $component]);
     $DB->delete_records('task_scheduled', array('component' => $component));
 
     // Delete Inbound Message datakeys.
@@ -628,7 +636,7 @@ function is_dataroot_insecure($fetchtest=false) {
  * Enables CLI maintenance mode by creating new dataroot/climaintenance.html file.
  */
 function enable_cli_maintenance_mode() {
-    global $CFG;
+    global $CFG, $SITE;
 
     if (file_exists("$CFG->dataroot/climaintenance.html")) {
         unlink("$CFG->dataroot/climaintenance.html");
@@ -645,7 +653,8 @@ function enable_cli_maintenance_mode() {
     } else {
         $data = get_string('sitemaintenance', 'admin');
         $data = bootstrap_renderer::early_error_content($data, null, null, null);
-        $data = bootstrap_renderer::plain_page(get_string('sitemaintenance', 'admin'), $data);
+        $data = bootstrap_renderer::plain_page(get_string('sitemaintenancetitle', 'admin',
+            format_string($SITE->fullname, true, ['context' => context_system::instance()])), $data);
     }
 
     file_put_contents("$CFG->dataroot/climaintenance.html", $data);
@@ -768,7 +777,7 @@ interface parentable_part_of_admin_tree extends part_of_admin_tree {
  *
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_category implements parentable_part_of_admin_tree {
+class admin_category implements parentable_part_of_admin_tree, linkable_settings_page {
 
     /** @var part_of_admin_tree[] An array of part_of_admin_tree objects that are this object's children */
     protected $children;
@@ -807,6 +816,20 @@ class admin_category implements parentable_part_of_admin_tree {
         $this->name        = $name;
         $this->visiblename = $visiblename;
         $this->hidden      = $hidden;
+    }
+
+    /**
+     * Get the URL to view this settings page.
+     *
+     * @return moodle_url
+     */
+    public function get_settings_page_url(): moodle_url {
+        return new moodle_url(
+            '/admin/category.php',
+            [
+                'category' => $this->name,
+            ]
+        );
     }
 
     /**
@@ -1190,7 +1213,7 @@ class admin_root extends admin_category {
  *
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_externalpage implements part_of_admin_tree {
+class admin_externalpage implements part_of_admin_tree, linkable_settings_page {
 
     /** @var string An internal name for this external page. Must be unique amongst ALL part_of_admin_tree objects */
     public $name;
@@ -1201,7 +1224,7 @@ class admin_externalpage implements part_of_admin_tree {
     /** @var string The external URL that we should link to when someone requests this external page. */
     public $url;
 
-    /** @var string The role capability/permission a user must have to access this external page. */
+    /** @var array The role capability/permission a user must have to access this external page. */
     public $req_capability;
 
     /** @var object The context in which capability/permission should be checked, default is site context. */
@@ -1238,6 +1261,15 @@ class admin_externalpage implements part_of_admin_tree {
         }
         $this->hidden = $hidden;
         $this->context = $context;
+    }
+
+    /**
+     * Get the URL to view this settings page.
+     *
+     * @return moodle_url
+     */
+    public function get_settings_page_url(): moodle_url {
+        return new moodle_url($this->url);
     }
 
     /**
@@ -1411,7 +1443,7 @@ class admin_settingdependency {
  *
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_settingpage implements part_of_admin_tree {
+class admin_settingpage implements part_of_admin_tree, linkable_settings_page {
 
     /** @var string An internal name for this external page. Must be unique amongst ALL part_of_admin_tree objects */
     public $name;
@@ -1425,7 +1457,7 @@ class admin_settingpage implements part_of_admin_tree {
     /** @var admin_settingdependency[] list of settings to hide when certain conditions are met */
     protected $dependencies = [];
 
-    /** @var string The role capability/permission a user must have to access this external page. */
+    /** @var array The role capability/permission a user must have to access this external page. */
     public $req_capability;
 
     /** @var object The context in which capability/permission should be checked, default is site context. */
@@ -1461,6 +1493,20 @@ class admin_settingpage implements part_of_admin_tree {
         }
         $this->hidden      = $hidden;
         $this->context     = $context;
+    }
+
+    /**
+     * Get the URL to view this page.
+     *
+     * @return moodle_url
+     */
+    public function get_settings_page_url(): moodle_url {
+        return new moodle_url(
+            '/admin/settings.php',
+            [
+                'section' => $this->name,
+            ]
+        );
     }
 
     /**
@@ -1759,6 +1805,27 @@ abstract class admin_setting {
      */
     public function set_required_flag_options($enabled, $default) {
         $this->set_flag_options($enabled, $default, 'required', new lang_string('required', 'core_admin'));
+    }
+
+    /**
+     * Is this option forced in config.php?
+     *
+     * @return bool
+     */
+    public function is_readonly(): bool {
+        global $CFG;
+
+        if (empty($this->plugin)) {
+            if (array_key_exists($this->name, $CFG->config_php_settings)) {
+                return true;
+            }
+        } else {
+            if (array_key_exists($this->plugin, $CFG->forced_plugin_settings)
+                and array_key_exists($this->name, $CFG->forced_plugin_settings[$this->plugin])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -2460,6 +2527,7 @@ class admin_setting_configtext extends admin_setting {
             'name' => $this->get_full_name(),
             'value' => $data,
             'forceltr' => $this->get_force_ltr(),
+            'readonly' => $this->is_readonly(),
         ];
         $element = $OUTPUT->render_from_template('core_admin/setting_configtext', $context);
 
@@ -2568,6 +2636,7 @@ class admin_setting_configtextarea extends admin_setting_configtext {
             'name' => $this->get_full_name(),
             'value' => $data,
             'forceltr' => $this->get_force_ltr(),
+            'readonly' => $this->is_readonly(),
         ];
         $element = $OUTPUT->render_from_template('core_admin/setting_configtextarea', $context);
 
@@ -2664,25 +2733,15 @@ class admin_setting_configpasswordunmask extends admin_setting_configtext {
      * @return  string              Rendered HTML
      */
     public function output_html($data, $query='') {
-        global $OUTPUT, $CFG;
-        $forced = false;
-        if (empty($this->plugin)) {
-            if (array_key_exists($this->name, $CFG->config_php_settings)) {
-                $forced = true;
-            }
-        } else {
-            if (array_key_exists($this->plugin, $CFG->forced_plugin_settings)
-                and array_key_exists($this->name, $CFG->forced_plugin_settings[$this->plugin])) {
-                $forced = true;
-            }
-        }
+        global $OUTPUT;
+
         $context = (object) [
             'id' => $this->get_id(),
             'name' => $this->get_full_name(),
             'size' => $this->size,
-            'value' => $forced ? null : $data,
+            'value' => $this->is_readonly() ? null : $data,
             'forceltr' => $this->get_force_ltr(),
-            'forced' => $forced
+            'readonly' => $this->is_readonly(),
         ];
         $element = $OUTPUT->render_from_template('core_admin/setting_configpasswordunmask', $context);
         return format_admin_setting($this, $this->visiblename, $element, $this->description, true, '', null, $query);
@@ -2708,6 +2767,58 @@ class admin_setting_configpasswordunmask_with_advanced extends admin_setting_con
     public function __construct($name, $visiblename, $description, $defaultsetting) {
         parent::__construct($name, $visiblename, $description, $defaultsetting['value']);
         $this->set_advanced_flag_options(admin_setting_flag::ENABLED, !empty($defaultsetting['adv']));
+    }
+}
+
+/**
+ * Admin setting class for encrypted values using secure encryption.
+ *
+ * @copyright 2019 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class admin_setting_encryptedpassword extends admin_setting {
+
+    /**
+     * Constructor. Same as parent except that the default value is always an empty string.
+     *
+     * @param string $name Internal name used in config table
+     * @param string $visiblename Name shown on form
+     * @param string $description Description that appears below field
+     */
+    public function __construct(string $name, string $visiblename, string $description) {
+        parent::__construct($name, $visiblename, $description, '');
+    }
+
+    public function get_setting() {
+        return $this->config_read($this->name);
+    }
+
+    public function write_setting($data) {
+        $data = trim($data);
+        if ($data === '') {
+            // Value can really be set to nothing.
+            $savedata = '';
+        } else {
+            // Encrypt value before saving it.
+            $savedata = \core\encryption::encrypt($data);
+        }
+        return ($this->config_write($this->name, $savedata) ? '' : get_string('errorsetting', 'admin'));
+    }
+
+    public function output_html($data, $query='') {
+        global $OUTPUT;
+
+        $default = $this->get_defaultsetting();
+        $context = (object) [
+            'id' => $this->get_id(),
+            'name' => $this->get_full_name(),
+            'set' => $data !== '',
+            'novalue' => $this->get_setting() === null
+        ];
+        $element = $OUTPUT->render_from_template('core_admin/setting_encryptedpassword', $context);
+
+        return format_admin_setting($this, $this->visiblename, $element, $this->description,
+                true, '', $default, $query);
     }
 }
 
@@ -2787,7 +2898,7 @@ class admin_setting_configfile extends admin_setting_configtext {
             'value' => $data,
             'showvalidity' => !empty($data),
             'valid' => $data && file_exists($data),
-            'readonly' => !empty($CFG->preventexecpath),
+            'readonly' => !empty($CFG->preventexecpath) || $this->is_readonly(),
             'forceltr' => $this->get_force_ltr(),
         ];
 
@@ -2972,6 +3083,7 @@ class admin_setting_configcheckbox extends admin_setting {
             'no' => $this->no,
             'value' => $this->yes,
             'checked' => (string) $data === $this->yes,
+            'readonly' => $this->is_readonly(),
         ];
 
         $default = $this->get_defaultsetting();
@@ -3000,34 +3112,46 @@ class admin_setting_configcheckbox extends admin_setting {
 class admin_setting_configmulticheckbox extends admin_setting {
     /** @var array Array of choices value=>label */
     public $choices;
+    /** @var callable|null Loader function for choices */
+    protected $choiceloader = null;
 
     /**
      * Constructor: uses parent::__construct
+     *
+     * The $choices parameter may be either an array of $value => $label format,
+     * e.g. [1 => get_string('yes')], or a callback function which takes no parameters and
+     * returns an array in that format.
      *
      * @param string $name unique ascii name, either 'mysetting' for settings that in config, or 'myplugin/mysetting' for ones in config_plugins.
      * @param string $visiblename localised
      * @param string $description long localised info
      * @param array $defaultsetting array of selected
-     * @param array $choices array of $value=>$label for each checkbox
+     * @param array|callable $choices array of $value => $label for each checkbox, or a callback
      */
     public function __construct($name, $visiblename, $description, $defaultsetting, $choices) {
-        $this->choices = $choices;
+        if (is_array($choices)) {
+            $this->choices = $choices;
+        }
+        if (is_callable($choices)) {
+            $this->choiceloader = $choices;
+        }
         parent::__construct($name, $visiblename, $description, $defaultsetting);
     }
 
     /**
-     * This public function may be used in ancestors for lazy loading of choices
+     * This function may be used in ancestors for lazy loading of choices
      *
-     * @todo Check if this function is still required content commented out only returns true
+     * Override this method if loading of choices is expensive, such
+     * as when it requires multiple db requests.
+     *
      * @return bool true if loaded, false if error
      */
     public function load_choices() {
-        /*
-        if (is_array($this->choices)) {
-            return true;
+        if ($this->choiceloader) {
+            if (!is_array($this->choices)) {
+                $this->choices = call_user_func($this->choiceloader);
+            }
         }
-        .... load choices here
-        */
         return true;
     }
 
@@ -3232,14 +3356,22 @@ class admin_setting_configselect extends admin_setting {
     public $choices;
     /** @var array Array of choices grouped using optgroups */
     public $optgroups;
+    /** @var callable|null Loader function for choices */
+    protected $choiceloader = null;
+    /** @var callable|null Validation function */
+    protected $validatefunction = null;
 
     /**
-     * Constructor
+     * Constructor.
+     *
+     * If you want to lazy-load the choices, pass a callback function that returns a choice
+     * array for the $choices parameter.
+     *
      * @param string $name unique ascii name, either 'mysetting' for settings that in config, or 'myplugin/mysetting' for ones in config_plugins.
      * @param string $visiblename localised
      * @param string $description long localised info
      * @param string|int $defaultsetting
-     * @param array $choices array of $value=>$label for each selection
+     * @param array|callable|null $choices array of $value=>$label for each selection, or callback
      */
     public function __construct($name, $visiblename, $description, $defaultsetting, $choices) {
         // Look for optgroup and single options.
@@ -3254,8 +3386,24 @@ class admin_setting_configselect extends admin_setting {
                 }
             }
         }
+        if (is_callable($choices)) {
+            $this->choiceloader = $choices;
+        }
 
         parent::__construct($name, $visiblename, $description, $defaultsetting);
+    }
+
+    /**
+     * Sets a validate function.
+     *
+     * The callback will be passed one parameter, the new setting value, and should return either
+     * an empty string '' if the value is OK, or an error message if not.
+     *
+     * @param callable|null $validatefunction Validate function or null to clear
+     * @since Moodle 3.10
+     */
+    public function set_validate_function(?callable $validatefunction = null) {
+        $this->validatefunction = $validatefunction;
     }
 
     /**
@@ -3267,12 +3415,12 @@ class admin_setting_configselect extends admin_setting {
      * @return bool true if loaded, false if error
      */
     public function load_choices() {
-        /*
-        if (is_array($this->choices)) {
+        if ($this->choiceloader) {
+            if (!is_array($this->choices)) {
+                $this->choices = call_user_func($this->choiceloader);
+            }
             return true;
         }
-        .... load choices here
-        */
         return true;
     }
 
@@ -3323,7 +3471,30 @@ class admin_setting_configselect extends admin_setting {
             return ''; // ignore it
         }
 
+        // Validate the new setting.
+        $error = $this->validate_setting($data);
+        if ($error) {
+            return $error;
+        }
+
         return ($this->config_write($this->name, $data) ? '' : get_string('errorsetting', 'admin'));
+    }
+
+    /**
+     * Validate the setting. This uses the callback function if provided; subclasses could override
+     * to carry out validation directly in the class.
+     *
+     * @param string $data New value being set
+     * @return string Empty string if valid, or error message text
+     * @since Moodle 3.10
+     */
+    protected function validate_setting(string $data): string {
+        // If validation function is specified, call it now.
+        if ($this->validatefunction) {
+            return call_user_func($this->validatefunction, $data);
+        } else {
+            return '';
+        }
     }
 
     /**
@@ -3416,13 +3587,13 @@ class admin_setting_configselect extends admin_setting {
             ];
         }
         $context->options = $options;
+        $context->readonly = $this->is_readonly();
 
         $element = $OUTPUT->render_from_template($template, $context);
 
         return format_admin_setting($this, $this->visiblename, $element, $this->description, true, $warning, $defaultinfo, $query);
     }
 }
-
 
 /**
  * Select multiple items from list
@@ -3574,6 +3745,7 @@ class admin_setting_configmultiselect extends admin_setting_configselect {
             ];
         }
         $context->options = $options;
+        $context->readonly = $this->is_readonly();
 
         if (is_null($default)) {
             $defaultinfo = NULL;
@@ -3664,6 +3836,7 @@ class admin_setting_configtime extends admin_setting {
         $context = (object) [
             'id' => $this->get_id(),
             'name' => $this->get_full_name(),
+            'readonly' => $this->is_readonly(),
             'hours' => array_map(function($i) use ($data) {
                 return [
                     'value' => $i,
@@ -3699,6 +3872,8 @@ class admin_setting_configduration extends admin_setting {
 
     /** @var int default duration unit */
     protected $defaultunit;
+    /** @var callable|null Validation function */
+    protected $validatefunction = null;
 
     /**
      * Constructor
@@ -3720,6 +3895,39 @@ class admin_setting_configduration extends admin_setting {
             $this->defaultunit = 86400;
         }
         parent::__construct($name, $visiblename, $description, $defaultsetting);
+    }
+
+    /**
+     * Sets a validate function.
+     *
+     * The callback will be passed one parameter, the new setting value, and should return either
+     * an empty string '' if the value is OK, or an error message if not.
+     *
+     * @param callable|null $validatefunction Validate function or null to clear
+     * @since Moodle 3.10
+     */
+    public function set_validate_function(?callable $validatefunction = null) {
+        $this->validatefunction = $validatefunction;
+    }
+
+    /**
+     * Validate the setting. This uses the callback function if provided; subclasses could override
+     * to carry out validation directly in the class.
+     *
+     * @param int $data New value being set
+     * @return string Empty string if valid, or error message text
+     * @since Moodle 3.10
+     */
+    protected function validate_setting(int $data): string {
+        // If validation function is specified, call it now.
+        if ($this->validatefunction) {
+            return call_user_func($this->validatefunction, $data);
+        } else {
+            if ($data < 0) {
+                return get_string('errorsetting', 'admin');
+            }
+            return '';
+        }
     }
 
     /**
@@ -3802,9 +4010,14 @@ class admin_setting_configduration extends admin_setting {
             return '';
         }
 
-        $seconds = (int)($data['v']*$data['u']);
-        if ($seconds < 0) {
-            return get_string('errorsetting', 'admin');
+        $unit = (int)$data['u'];
+        $value = (int)$data['v'];
+        $seconds = $value * $unit;
+
+        // Validate the new setting.
+        $error = $this->validate_setting($seconds);
+        if ($error) {
+            return $error;
         }
 
         $result = $this->config_write($this->name, $seconds);
@@ -3838,6 +4051,7 @@ class admin_setting_configduration extends admin_setting {
             'id' => $this->get_id(),
             'name' => $this->get_full_name(),
             'value' => $data['v'],
+            'readonly' => $this->is_readonly(),
             'options' => array_map(function($unit) use ($units, $data, $defaultunit) {
                 return [
                     'value' => $unit,
@@ -4145,7 +4359,8 @@ class admin_setting_users_with_capability extends admin_setting_configmultiselec
                     'This is unexpected, and a problem because there is no way to pass these ' .
                     'parameters to get_users_by_capability. See MDL-34657.');
         }
-        $userfields = 'u.id, u.username, ' . get_all_user_name_fields(true, 'u');
+        $userfieldsapi = \core_user\fields::for_name();
+        $userfields = 'u.id, u.username, ' . $userfieldsapi->get_sql('u', false, '', '', false)->selects;
         $users = get_users_by_capability(context_system::instance(), $this->capability, $userfields, $sort);
         $this->choices = array(
             '$@NONE@$' => get_string('nobody'),
@@ -4325,7 +4540,7 @@ class admin_setting_sitesetselect extends admin_setting_configselect {
         if ($SITE->id == $COURSE->id) {
             $COURSE = $SITE;
         }
-        format_base::reset_course_cache($SITE->id);
+        core_courseformat\base::reset_course_cache($SITE->id);
 
         return '';
 
@@ -4536,7 +4751,7 @@ class admin_setting_sitesetcheckbox extends admin_setting_configcheckbox {
         if ($SITE->id == $COURSE->id) {
             $COURSE = $SITE;
         }
-        format_base::reset_course_cache($SITE->id);
+        core_courseformat\base::reset_course_cache($SITE->id);
 
         return '';
     }
@@ -4618,12 +4833,35 @@ class admin_setting_sitesettext extends admin_setting_configtext {
         if ($SITE->id == $COURSE->id) {
             $COURSE = $SITE;
         }
-        format_base::reset_course_cache($SITE->id);
+        core_courseformat\base::reset_course_cache($SITE->id);
 
         return '';
     }
 }
 
+
+/**
+ * This type of field should be used for mandatory config settings.
+ *
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class admin_setting_requiredtext extends admin_setting_configtext {
+
+    /**
+     * Validate data before storage.
+     *
+     * @param string $data The string to be validated.
+     * @return bool|string true for success or error string if invalid.
+     */
+    public function validate($data) {
+        $cleaned = clean_param($data, PARAM_TEXT);
+        if ($cleaned === '') {
+            return get_string('required');
+        }
+
+        return parent::validate($data);
+    }
+}
 
 /**
  * Special text editor for site description.
@@ -4670,7 +4908,7 @@ class admin_setting_special_frontpagedesc extends admin_setting_confightmleditor
         if ($SITE->id == $COURSE->id) {
             $COURSE = $SITE;
         }
-        format_base::reset_course_cache($SITE->id);
+        core_courseformat\base::reset_course_cache($SITE->id);
 
         return '';
     }
@@ -4888,6 +5126,36 @@ class admin_setting_langlist extends admin_setting_configtext {
     }
 
     /**
+     * Validate that each language identifier exists on the site
+     *
+     * @param string $data
+     * @return bool|string True if validation successful, otherwise error string
+     */
+    public function validate($data) {
+        $parentcheck = parent::validate($data);
+        if ($parentcheck !== true) {
+            return $parentcheck;
+        }
+
+        if ($data === '') {
+            return true;
+        }
+
+        // Normalize language identifiers.
+        $langcodes = array_map('trim', explode(',', $data));
+        foreach ($langcodes as $langcode) {
+            // If the langcode contains optional alias, split it out.
+            [$langcode, ] = preg_split('/\s*\|\s*/', $langcode, 2);
+
+            if (!get_string_manager()->translation_exists($langcode)) {
+                return get_string('invalidlanguagecode', 'error', $langcode);
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Save the new setting
      *
      * @param string $data The new setting
@@ -4897,6 +5165,66 @@ class admin_setting_langlist extends admin_setting_configtext {
         $return = parent::write_setting($data);
         get_string_manager()->reset_caches();
         return $return;
+    }
+}
+
+
+/**
+ * Allows to specify comma separated list of known country codes.
+ *
+ * This is a simple subclass of the plain input text field with added validation so that all the codes are actually
+ * known codes.
+ *
+ * @package     core
+ * @category    admin
+ * @copyright   2020 David Mudrák <david@moodle.com>
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class admin_setting_countrycodes extends admin_setting_configtext {
+
+    /**
+     * Construct the instance of the setting.
+     *
+     * @param string $name Name of the admin setting such as 'allcountrycodes' or 'myplugin/countries'.
+     * @param lang_string|string $visiblename Language string with the field label text.
+     * @param lang_string|string $description Language string with the field description text.
+     * @param string $defaultsetting Default value of the setting.
+     * @param int $size Input text field size.
+     */
+    public function __construct($name, $visiblename, $description, $defaultsetting = '', $size = null) {
+        parent::__construct($name, $visiblename, $description, $defaultsetting, '/^(?:\w+(?:,\w+)*)?$/', $size);
+    }
+
+    /**
+     * Validate the setting value before storing it.
+     *
+     * The value is first validated through custom regex so that it is a word consisting of letters, numbers or underscore; or
+     * a comma separated list of such words.
+     *
+     * @param string $data Value inserted into the setting field.
+     * @return bool|string True if the value is OK, error string otherwise.
+     */
+    public function validate($data) {
+
+        $parentcheck = parent::validate($data);
+
+        if ($parentcheck !== true) {
+            return $parentcheck;
+        }
+
+        if ($data === '') {
+            return true;
+        }
+
+        $allcountries = get_string_manager()->get_list_of_countries(true);
+
+        foreach (explode(',', $data) as $code) {
+            if (!isset($allcountries[$code])) {
+                return get_string('invalidcountrycode', 'core_error', $code);
+            }
+        }
+
+        return true;
     }
 }
 
@@ -4961,12 +5289,12 @@ class admin_settings_num_course_sections extends admin_setting_configselect {
  *
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_settings_coursecat_select extends admin_setting_configselect {
+class admin_settings_coursecat_select extends admin_setting_configselect_autocomplete {
     /**
      * Calls parent::__construct with specific arguments
      */
-    public function __construct($name, $visiblename, $description, $defaultsetting) {
-        parent::__construct($name, $visiblename, $description, $defaultsetting, NULL);
+    public function __construct($name, $visiblename, $description, $defaultsetting = 1) {
+        parent::__construct($name, $visiblename, $description, $defaultsetting, $choices = null);
     }
 
     /**
@@ -4975,12 +5303,10 @@ class admin_settings_coursecat_select extends admin_setting_configselect {
      * @return bool
      */
     public function load_choices() {
-        global $CFG;
-        require_once($CFG->dirroot.'/course/lib.php');
         if (is_array($this->choices)) {
             return true;
         }
-        $this->choices = make_categories_options();
+        $this->choices = core_course_category::make_categories_list('', 0, ' / ');
         return true;
     }
 }
@@ -5389,6 +5715,54 @@ class admin_setting_configcheckbox_with_lock extends admin_setting_configcheckbo
 
 }
 
+/**
+ * Autocomplete as you type form element.
+ *
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class admin_setting_configselect_autocomplete extends admin_setting_configselect {
+    /** @var boolean $tags Should we allow typing new entries to the field? */
+    protected $tags = false;
+    /** @var string $ajax Name of an AMD module to send/process ajax requests. */
+    protected $ajax = '';
+    /** @var string $placeholder Placeholder text for an empty list. */
+    protected $placeholder = '';
+    /** @var bool $casesensitive Whether the search has to be case-sensitive. */
+    protected $casesensitive = false;
+    /** @var bool $showsuggestions Show suggestions by default - but this can be turned off. */
+    protected $showsuggestions = true;
+    /** @var string $noselectionstring String that is shown when there are no selections. */
+    protected $noselectionstring = '';
+
+    /**
+     * Returns XHTML select field and wrapping div(s)
+     *
+     * @see output_select_html()
+     *
+     * @param string $data the option to show as selected
+     * @param string $query
+     * @return string XHTML field and wrapping div
+     */
+    public function output_html($data, $query='') {
+        global $PAGE;
+
+        $html = parent::output_html($data, $query);
+
+        if ($html === '') {
+            return $html;
+        }
+
+        $this->placeholder = get_string('search');
+
+        $params = array('#' . $this->get_id(), $this->tags, $this->ajax,
+            $this->placeholder, $this->casesensitive, $this->showsuggestions, $this->noselectionstring);
+
+        // Load autocomplete wrapper for select2 library.
+        $PAGE->requires->js_call_amd('core/form-autocomplete', 'enhance', $params);
+
+        return $html;
+    }
+}
 
 /**
  * Dropdown menu with an advanced checkbox, that controls a additional $name.'_adv' setting.
@@ -6019,7 +6393,7 @@ class admin_setting_special_registerauth extends admin_setting_configselect {
         $this->choices = array();
         $this->choices[''] = get_string('disable');
 
-        $authsenabled = get_enabled_auth_plugins(true);
+        $authsenabled = get_enabled_auth_plugins();
 
         foreach ($authsenabled as $auth) {
             $authplugin = get_auth_plugin($auth);
@@ -6443,32 +6817,6 @@ class admin_page_managemessageoutputs extends admin_externalpage {
 }
 
 /**
- * Default message outputs configuration
- *
- * @deprecated since Moodle 3.7 MDL-64495. Please use admin_page_managemessageoutputs instead.
- * @todo       MDL-64866 This will be deleted in Moodle 4.1.
- *
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class admin_page_defaultmessageoutputs extends admin_page_managemessageoutputs {
-    /**
-     * Calls parent::__construct with specific arguments
-     *
-     * @deprecated since Moodle 3.7 MDL-64495. Please use admin_page_managemessageoutputs instead.
-     * @todo       MDL-64866 This will be deleted in Moodle 4.1.
-     */
-    public function __construct() {
-        global $CFG;
-
-        debugging('admin_page_defaultmessageoutputs class is deprecated. Please use admin_page_managemessageoutputs instead.',
-            DEBUG_DEVELOPER);
-
-        admin_externalpage::__construct('defaultmessageoutputs', get_string('defaultmessageoutputs', 'message'), new moodle_url('/message/defaultoutputs.php'));
-    }
-}
-
-
-/**
  * Manage question behaviours page
  *
  * @copyright  2011 The Open University
@@ -6792,6 +7140,11 @@ class admin_setting_manageauths extends admin_setting {
         }
 
         $return = $OUTPUT->heading(get_string('actauthhdr', 'auth'), 3, 'main');
+        if (in_array('mnet', $authsenabled)) {
+            $notify = new \core\output\notification(get_string('xmlrpcmnetauthenticationenabled', 'admin'),
+                \core\output\notification::NOTIFY_WARNING);
+            $return .= $OUTPUT->render($notify);
+        }
         $return .= $OUTPUT->box_start('generalbox authsui');
 
         $table = new html_table();
@@ -7256,12 +7609,12 @@ class admin_setting_manageantiviruses extends admin_setting {
  *
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @deprecated since Moodle 3.9 MDL-45184. Please use \tool_licensemanager\manager instead.
- * @todo MDL-45184 This class will be deleted in Moodle 4.3.
+ * @todo MDL-45184 This class will be deleted in Moodle 4.1.
  */
 class admin_setting_managelicenses extends admin_setting {
     /**
      * @deprecated since Moodle 3.9 MDL-45184. Please use \tool_licensemanager\manager instead.
-     * @todo MDL-45184 This class will be deleted in Moodle 4.3
+     * @todo MDL-45184 This class will be deleted in Moodle 4.1
      */
     public function __construct() {
         global $ADMIN;
@@ -7283,7 +7636,7 @@ class admin_setting_managelicenses extends admin_setting {
      * Always returns true, does nothing
      *
      * @deprecated since Moodle 3.9 MDL-45184.
-     * @todo MDL-45184 This method will be deleted in Moodle 4.3
+     * @todo MDL-45184 This method will be deleted in Moodle 4.1
      *
      * @return true
      */
@@ -7298,7 +7651,7 @@ class admin_setting_managelicenses extends admin_setting {
      * Always returns true, does nothing
      *
      * @deprecated since Moodle 3.9 MDL-45184.
-     * @todo MDL-45184 This method will be deleted in Moodle 4.3
+     * @todo MDL-45184 This method will be deleted in Moodle 4.1
      *
      * @return true
      */
@@ -7313,7 +7666,7 @@ class admin_setting_managelicenses extends admin_setting {
      * Always returns '', does not write anything
      *
      * @deprecated since Moodle 3.9 MDL-45184.
-     * @todo MDL-45184 This method will be deleted in Moodle 4.3
+     * @todo MDL-45184 This method will be deleted in Moodle 4.1
      *
      * @return string Always returns ''
      */
@@ -7329,7 +7682,7 @@ class admin_setting_managelicenses extends admin_setting {
      * Builds the XHTML to display the control
      *
      * @deprecated since Moodle 3.9 MDL-45184. Please use \tool_licensemanager\manager instead.
-     * @todo MDL-45184 This method will be deleted in Moodle 4.3
+     * @todo MDL-45184 This method will be deleted in Moodle 4.1
      *
      * @param string $data Unused
      * @param string $query
@@ -7587,6 +7940,7 @@ class admin_setting_managecustomfields extends admin_setting {
 
             if ($field->is_enabled()) {
                 $strfieldname = $field->displayname;
+                $class = '';
                 $hideshow = html_writer::link($url->out(false, array('action' => 'disable')),
                         $OUTPUT->pix_icon('t/hide', $txt->disable, 'moodle', array('class' => 'iconsmall')));
             } else {
@@ -7604,6 +7958,7 @@ class admin_setting_managecustomfields extends admin_setting {
                 $uninstall = html_writer::link($uninstallurl, $txt->uninstall);
             }
             $row = new html_table_row(array($strfieldname, $hideshow, $uninstall, $settings));
+            $row->attributes['class'] = $class;
             $table->data[] = $row;
         }
         $return .= html_writer::table($table);
@@ -8451,10 +8806,11 @@ function admin_externalpage_setup($section, $extrabutton = '', array $extraurlpa
     $adminroot = admin_get_root(false, false); // settings not required for external pages
     $extpage = $adminroot->locate($section, true);
 
+    $hassiteconfig = has_capability('moodle/site:config', context_system::instance());
     if (empty($extpage) or !($extpage instanceof admin_externalpage)) {
         // The requested section isn't in the admin tree
         // It could be because the user has inadequate capapbilities or because the section doesn't exist
-        if (!has_capability('moodle/site:config', context_system::instance())) {
+        if (!$hassiteconfig) {
             // The requested section could depend on a different capability
             // but most likely the user has inadequate capabilities
             print_error('accessdenied', 'admin');
@@ -8511,7 +8867,7 @@ function admin_externalpage_setup($section, $extrabutton = '', array $extraurlpa
 
     $visiblepathtosection = array_reverse($extpage->visiblepath);
 
-    if ($PAGE->user_allowed_editing()) {
+    if ($PAGE->user_allowed_editing() && !$PAGE->theme->haseditswitch) {
         if ($PAGE->user_is_editing()) {
             $caption = get_string('blockseditoff');
             $url = new moodle_url($PAGE->url, array('adminedit'=>'0', 'sesskey'=>sesskey()));
@@ -8524,6 +8880,13 @@ function admin_externalpage_setup($section, $extrabutton = '', array $extraurlpa
 
     $PAGE->set_title("$SITE->shortname: " . implode(": ", $visiblepathtosection));
     $PAGE->set_heading($SITE->fullname);
+
+    if ($hassiteconfig) {
+        $PAGE->add_header_action($OUTPUT->render_from_template('core_admin/header_search_input', [
+            'action' => new moodle_url('/admin/search.php'),
+            'query' => $PAGE->url->get_param('query'),
+        ]));
+    }
 
     // prevent caching in nav block
     $PAGE->navigation->clear_cache();
@@ -8977,11 +9340,16 @@ function any_new_admin_settings($node) {
  * @param string $column name
  * @return bool success or fail
  */
-function db_should_replace($table, $column = ''): bool {
+function db_should_replace($table, $column = '', $additionalskiptables = ''): bool {
 
-    // TODO: this is horrible hack, we should do whitelisting and each plugin should be responsible for proper replacing...
+    // TODO: this is horrible hack, we should have a hook and each plugin should be responsible for proper replacing...
     $skiptables = ['config', 'config_plugins', 'filter_config', 'sessions',
         'events_queue', 'repository_instance_config', 'block_instances', 'files'];
+
+    // Additional skip tables.
+    if (!empty($additionalskiptables)) {
+        $skiptables = array_merge($skiptables, explode(',', str_replace(' ', '',  $additionalskiptables)));
+    }
 
     // Don't process these.
     if (in_array($table, $skiptables)) {
@@ -9011,7 +9379,7 @@ function db_should_replace($table, $column = ''): bool {
  * @param string $replace string to replace
  * @return bool success or fail
  */
-function db_replace($search, $replace) {
+function db_replace($search, $replace, $additionalskiptables = '') {
     global $DB, $CFG, $OUTPUT;
 
     // Turn off time limits, sometimes upgrades can be slow.
@@ -9022,7 +9390,7 @@ function db_replace($search, $replace) {
     }
     foreach ($tables as $table) {
 
-        if (!db_should_replace($table)) {
+        if (!db_should_replace($table, '', $additionalskiptables)) {
             continue;
         }
 
@@ -9478,33 +9846,8 @@ class admin_setting_enablemobileservice extends admin_setting_configcheckbox {
 
              // Allow rest:use capability for authenticated user.
              $this->set_protocol_cap(true);
-
          } else {
-             //disable web service system if no other services are enabled
-             $otherenabledservices = $DB->get_records_select('external_services',
-                     'enabled = :enabled AND (shortname != :shortname OR shortname IS NULL)', array('enabled' => 1,
-                         'shortname' => MOODLE_OFFICIAL_MOBILE_SERVICE));
-             if (empty($otherenabledservices)) {
-                 set_config('enablewebservices', false);
-
-                 // Also disable REST server.
-                 $activeprotocols = empty($CFG->webserviceprotocols) ? array() : explode(',', $CFG->webserviceprotocols);
-
-                 $protocolkey = array_search('rest', $activeprotocols);
-                 if ($protocolkey !== false) {
-                    unset($activeprotocols[$protocolkey]);
-                    $updateprotocol = true;
-                 }
-
-                 if ($updateprotocol) {
-                    set_config('webserviceprotocols', implode(',', $activeprotocols));
-                 }
-
-                 // Disallow rest:use capability for authenticated user.
-                 $this->set_protocol_cap(false);
-             }
-
-             //disable the mobile service
+             // Disable the mobile service.
              $mobileservice = $webservicemanager->get_external_service_by_shortname(MOODLE_OFFICIAL_MOBILE_SERVICE);
              $mobileservice->enabled = 0;
              $webservicemanager->update_external_service($mobileservice);
@@ -9845,7 +10188,7 @@ class admin_setting_webservicesoverview extends admin_setting {
 
         /// 8. Create token for the specific user
         $row = array();
-        $url = new moodle_url("/admin/webservice/tokens.php?sesskey=" . sesskey() . "&action=create");
+        $url = new moodle_url('/admin/webservice/tokens.php', ['action' => 'create']);
         $row[0] = "8. " . html_writer::tag('a', get_string('createtokenforuser', 'webservice'),
                         array('href' => $url));
         $row[1] = "";
@@ -10054,16 +10397,21 @@ class admin_setting_managewebserviceprotocols extends admin_setting {
         $strversion = get_string('version');
 
         $protocols_available = core_component::get_plugin_list('webservice');
-        $active_protocols = empty($CFG->webserviceprotocols) ? array() : explode(',', $CFG->webserviceprotocols);
+        $activeprotocols = empty($CFG->webserviceprotocols) ? array() : explode(',', $CFG->webserviceprotocols);
         ksort($protocols_available);
 
-        foreach ($active_protocols as $key=>$protocol) {
+        foreach ($activeprotocols as $key => $protocol) {
             if (empty($protocols_available[$protocol])) {
-                unset($active_protocols[$key]);
+                unset($activeprotocols[$key]);
             }
         }
 
         $return = $OUTPUT->heading(get_string('actwebserviceshhdr', 'webservice'), 3, 'main');
+        if (in_array('xmlrpc', $activeprotocols)) {
+            $notify = new \core\output\notification(get_string('xmlrpcwebserviceenabled', 'admin'),
+                \core\output\notification::NOTIFY_WARNING);
+            $return .= $OUTPUT->render($notify);
+        }
         $return .= $OUTPUT->box_start('generalbox webservicesui');
 
         $table = new html_table();
@@ -10085,7 +10433,7 @@ class admin_setting_managewebserviceprotocols extends admin_setting {
             $version = isset($plugin->version) ? $plugin->version : '';
 
             // hide/show link
-            if (in_array($protocol, $active_protocols)) {
+            if (in_array($protocol, $activeprotocols)) {
                 $hideshow = "<a href=\"$url&amp;action=disable&amp;webservice=$protocol\">";
                 $hideshow .= $OUTPUT->pix_icon('t/hide', $strdisable) . '</a>';
                 $displayname = "<span>$name</span>";
@@ -10112,91 +10460,6 @@ class admin_setting_managewebserviceprotocols extends admin_setting {
         return highlight($query, $return);
     }
 }
-
-
-/**
- * Special class for web service token administration.
- *
- * @author Jerome Mouneyrac
- */
-class admin_setting_managewebservicetokens extends admin_setting {
-
-    /**
-     * Calls parent::__construct with specific arguments
-     */
-    public function __construct() {
-        $this->nosave = true;
-        parent::__construct('webservicestokenui', get_string('managetokens', 'webservice'), '', '');
-    }
-
-    /**
-     * Always returns true, does nothing
-     *
-     * @return true
-     */
-    public function get_setting() {
-        return true;
-    }
-
-    /**
-     * Always returns true, does nothing
-     *
-     * @return true
-     */
-    public function get_defaultsetting() {
-        return true;
-    }
-
-    /**
-     * Always returns '', does not write anything
-     *
-     * @return string Always returns ''
-     */
-    public function write_setting($data) {
-    // do not write any setting
-        return '';
-    }
-
-    /**
-     * Builds the XHTML to display the control
-     *
-     * @param string $data Unused
-     * @param string $query
-     * @return string
-     */
-    public function output_html($data, $query='') {
-        global $CFG, $OUTPUT;
-
-        require_once($CFG->dirroot . '/webservice/classes/token_table.php');
-        $baseurl = new moodle_url('/' . $CFG->admin . '/settings.php?section=webservicetokens');
-
-        $return = $OUTPUT->box_start('generalbox webservicestokenui');
-
-        if (has_capability('moodle/webservice:managealltokens', context_system::instance())) {
-            $return .= \html_writer::div(get_string('onlyseecreatedtokens', 'webservice'));
-        }
-
-        $table = new \webservice\token_table('webservicetokens');
-        $table->define_baseurl($baseurl);
-        $table->attributes['class'] = 'admintable generaltable'; // Any need changing?
-        $table->data  = array();
-        ob_start();
-        $table->out(10, false);
-        $tablehtml = ob_get_contents();
-        ob_end_clean();
-        $return .= $tablehtml;
-
-        $tokenpageurl = "$CFG->wwwroot/$CFG->admin/webservice/tokens.php?sesskey=" . sesskey();
-
-        $return .= $OUTPUT->box_end();
-        // add a token to the table
-        $return .= "<a href=\"".$tokenpageurl."&amp;action=create\">";
-        $return .= get_string('add')."</a>";
-
-        return highlight($query, $return);
-    }
-}
-
 
 /**
  * Colour picker
@@ -10349,7 +10612,8 @@ class admin_setting_configcolourpicker extends admin_setting {
             'value' => $data,
             'icon' => $icon->export_for_template($OUTPUT),
             'haspreviewconfig' => !empty($this->previewconfig),
-            'forceltr' => $this->get_force_ltr()
+            'forceltr' => $this->get_force_ltr(),
+            'readonly' => $this->is_readonly(),
         ];
 
         $element = $OUTPUT->render_from_template('core_admin/setting_configcolourpicker', $context);
@@ -10961,7 +11225,7 @@ class admin_setting_searchsetupinfo extends admin_setting {
      * @return string
      */
     public function output_html($data, $query='') {
-        global $CFG, $OUTPUT;
+        global $CFG, $OUTPUT, $ADMIN;
 
         $return = '';
         $brtag = html_writer::empty_tag('br');
@@ -11023,9 +11287,13 @@ class admin_setting_searchsetupinfo extends admin_setting {
             $row[0] = '3. ' . get_string('setupsearchengine', 'admin');
             $row[1] = html_writer::tag('span', get_string('no'), array('class' => 'badge badge-danger'));
         } else {
-            $url = new moodle_url('/admin/settings.php?section=search' . $CFG->searchengine);
-            $row[0] = '3. ' . html_writer::tag('a', get_string('setupsearchengine', 'admin'),
-                            array('href' => $url));
+            if ($ADMIN->locate('search' . $CFG->searchengine)) {
+                $url = new moodle_url('/admin/settings.php?section=search' . $CFG->searchengine);
+                $row[0] = '3. ' . html_writer::link($url, get_string('setupsearchengine', 'core_admin'));
+            } else {
+                $row[0] = '3. ' . get_string('setupsearchengine', 'core_admin');
+            }
+
             // Check the engine status.
             $searchengine = \core_search\manager::search_engine_instance();
             try {
@@ -11061,6 +11329,18 @@ class admin_setting_searchsetupinfo extends admin_setting {
                         array('href' => $url));
         $status = html_writer::tag('span', get_string('no'), array('class' => 'badge badge-danger'));
         if (\core_search\manager::is_global_search_enabled()) {
+            $status = html_writer::tag('span', get_string('yes'), array('class' => 'badge badge-success'));
+        }
+        $row[1] = $status;
+        $table->data[] = $row;
+
+        // Replace front page search.
+        $row = array();
+        $url = new moodle_url("/admin/search.php?query=searchincludeallcourses");
+        $row[0] = '6. ' . html_writer::tag('a', get_string('replacefrontsearch', 'admin'),
+                                           array('href' => $url));
+        $status = html_writer::tag('span', get_string('no'), array('class' => 'badge badge-danger'));
+        if (\core_search\manager::can_replace_course_search()) {
             $status = html_writer::tag('span', get_string('yes'), array('class' => 'badge badge-success'));
         }
         $row[1] = $status;
@@ -11176,16 +11456,22 @@ class admin_setting_filetypes extends admin_setting_configtext {
      * @return bool|string True if ok, the string if error found
      */
     public function validate($data) {
-
-        // No need to call parent's validation here as we are PARAM_RAW.
-
-        if ($this->util->is_whitelisted($data, $this->onlytypes)) {
-            return true;
-
-        } else {
-            $troublemakers = $this->util->get_not_whitelisted($data, $this->onlytypes);
-            return get_string('filetypesnotwhitelisted', 'core_form', implode(' ', $troublemakers));
+        $parentcheck = parent::validate($data);
+        if ($parentcheck !== true) {
+            return $parentcheck;
         }
+
+        // Check for unknown file types.
+        if ($unknown = $this->util->get_unknown_file_types($data)) {
+            return get_string('filetypesunknown', 'core_form', implode(', ', $unknown));
+        }
+
+        // Check for disallowed file types.
+        if ($notlisted = $this->util->get_not_listed($data, $this->onlytypes)) {
+            return get_string('filetypesnotallowed', 'core_form', implode(', ', $notlisted));
+        }
+
+        return true;
     }
 
     /**

@@ -21,6 +21,9 @@ Feature: Default value for the textarea custom field can contain images
     And the following "custom field categories" exist:
       | name              | component   | area   | itemid |
       | Category for test | core_course | course | 0      |
+    And the following "blocks" exist:
+      | blockname     | contextlevel | reference | pagetypepattern | defaultregion |
+      | private_files | System       | 1         | my-index        | side-post     |
     # Upload an image into the private files.
     And I log in as "admin"
     And I follow "Manage private files"
@@ -35,14 +38,14 @@ Feature: Default value for the textarea custom field can contain images
       | Default value | v       |
     # Embed the image into Default value.
     And I select the text in the "Default value" Atto editor
-    And I click on "Insert or edit image" "button" in the "//*[@data-fieldtype='editor']/*[descendant::*[@id='id_configdata_defaultvalue_editoreditable']]" "xpath_element"
+    And I click on "Insert or edit image" "button" in the "Default value" "form_row"
     And I click on "Browse repositories..." "button"
     And I click on "Private files" "link" in the ".fp-repo-area" "css_element"
     And I click on "gd-logo.png" "link"
     And I click on "Select this file" "button"
     And I set the field "Describe this image for someone who cannot see it" to "Example"
     And I click on "Save image" "button"
-    And I press "Save changes"
+    And I click on "Save changes" "button" in the "Adding a new Text area" "dialogue"
     And I log out
 
   Scenario: For the courses that existed before the custom field was created the default value is displayed
@@ -53,9 +56,9 @@ Feature: Default value for the textarea custom field can contain images
      # Teacher will see the image when editing existing course.
     And I log in as "teacher"
     And I am on "Course 1" course homepage
-    And I navigate to "Edit settings" in current page administration
+    And I navigate to "Settings" in current page administration
     And I expand all fieldsets
-    Then "//*[@id='id_customfield_testfield_editoreditable']//img[contains(@src, 'draftfile.php') and contains(@src, '/gd-logo.png') and @alt='Example']" "xpath_element" should exist
+    Then "//img[contains(@src, 'draftfile.php') and contains(@src, '/gd-logo.png') and @alt='Example']" "xpath_element" should exist in the "Test field" "form_row"
     # Save the course without changing the default value.
     And I press "Save and display"
     And I log out
@@ -72,7 +75,7 @@ Feature: Default value for the textarea custom field can contain images
       | Course full name      | Course 2     |
       | Course short name     | C2           |
     And I expand all fieldsets
-    Then "//*[@id='id_customfield_testfield_editoreditable']//img[contains(@src, 'draftfile.php') and contains(@src, '/gd-logo.png') and @alt='Example']" "xpath_element" should exist
+    Then "//img[contains(@src, 'draftfile.php') and contains(@src, '/gd-logo.png') and @alt='Example']" "xpath_element" should exist in the "Test field" "form_row"
     And I press "Save and display"
     And I log out
     # Now the same image is displayed as "value" and not as "defaultvalue".

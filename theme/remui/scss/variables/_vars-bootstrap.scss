@@ -208,16 +208,16 @@ $black: $color-black;
 
 $grays: () !default;
 $grays: map-merge((
-  "100": $gray-100,
-  "200": $gray-200,
-  "300": $gray-300,
-  "400": $gray-400,
-  "500": $gray-500,
-  "600": $gray-600,
-  "700": $gray-700,
-  "800": $gray-800,
-  "900": $gray-900
-), $grays);
+    "100": $gray-100,
+    "200": $gray-200,
+    "300": $gray-300,
+    "400": $gray-400,
+    "500": $gray-500,
+    "600": $gray-600,
+    "700": $gray-700,
+    "800": $gray-800,
+    "900": $gray-900
+    ), $grays);
 
 $blue   : $color-blue;
 $indigo : $color-indigo;
@@ -232,20 +232,20 @@ $cyan   : $color-cyan;
 
 $colors: () !default;
 $colors: map-merge((
-  "blue":       $blue,
-  "indigo":     $indigo,
-  "purple":     $purple,
-  "pink":       $pink,
-  "red":        $red,
-  "orange":     $orange,
-  "yellow":     $yellow,
-  "green":      $green,
-  "teal":       $teal,
-  "cyan":       $cyan,
-  "white":      $white,
-  "gray":       $gray-400,
-  "gray-dark":  $gray-500
-), $colors);
+    "blue":       $blue,
+    "indigo":     $indigo,
+    "purple":     $purple,
+    "pink":       $pink,
+    "red":        $red,
+    "orange":     $orange,
+    "yellow":     $yellow,
+    "green":      $green,
+    "teal":       $teal,
+    "cyan":       $cyan,
+    "white":      $white,
+    "gray":       $gray-400,
+    "gray-dark":  $gray-500
+    ), $colors);
 
 $primary   : $color-primary-600;
 $secondary : $color-blue-grey-600;
@@ -258,15 +258,15 @@ $dark      : $gray-800;
 
 $theme-colors: () !default;
 $theme-colors: map-merge((
-  "primary":    $primary,
-  "secondary":  $secondary,
-  "success":    $success,
-  "info":       $info,
-  "warning":    $warning,
-  "danger":     $danger,
-  "light":      $light,
-  "dark":       $dark
-), $theme-colors);
+    "primary":    $primary,
+    "secondary":  $secondary,
+    "success":    $success,
+    "info":       $info,
+    "warning":    $warning,
+    "danger":     $danger,
+    "light":      $light,
+    "dark":       $dark
+    ), $theme-colors);
 // stylelint-enable
 
 // Set a specific jump point for requesting color jumps
@@ -384,25 +384,25 @@ $enable-print-styles      : true;
 // You can add more entries to the $spacers map, should you need more variation.
 
 // stylelint-disable
-$spacer: pxToRem(16px) !default;
+$spacer: pxtorem(16px) !default;
 $spacers: () !default;
 $spacers: map-merge((
-  0: 0,
-  1: ($spacer * .25),
-  2: ($spacer * .5),
-  3: $spacer,
-  4: ($spacer * 1.5),
-  5: ($spacer * 3)
-), $spacers);
+    0: 0,
+    1: ($spacer * .25),
+    2: ($spacer * .5),
+    3: $spacer,
+    4: ($spacer * 1.5),
+    5: ($spacer * 3)
+    ), $spacers);
 
 // This variable affects the `.h-*` and `.w-*` classes.
 $sizes: () !default;
 $sizes: map-merge((
-  25: 25%,
-  50: 50%,
-  75: 75%,
-  100: 100%
-), $sizes);
+    25: 25%,
+    50: 50%,
+    75: 75%,
+    100: 100%
+    ), $sizes);
 // stylelint-enable
 
 // Body
@@ -443,19 +443,20 @@ $border-color-base : $border-color;
 // adapting to different screen sizes, for use in media queries.
 //
 $grid-breakpoints: (
-  // Extra small screen / phone
-  xs: 0,
-  // Small screen / phone
-  sm: 480px,
-  // Medium screen / tablet
-  md: 768px,
-  // Large screen / desktop
-  lg: 992px,
-  // Extra large screen / desktop
-  xl: 1200px,
-  // Extra large screen / wide desktop
-  xxl: 1600px
+    // Extra small screen / phone
+    xs: 0,
+    // Small screen / phone
+    sm: 480px,
+    // Medium screen / tablet
+    md: 768px,
+    // Large screen / desktop
+    lg: 992px,
+    // Extra large screen / desktop
+    xl: 1200px,
+    // Extra large screen / wide desktop
+    xxl: 1600px
 );
+
 @include _assert-ascending($grid-breakpoints, "$grid-breakpoints");
 @include _assert-starts-at-zero($grid-breakpoints);
 
@@ -464,12 +465,13 @@ $grid-breakpoints: (
 // Define the maximum width of `.container` for different screen sizes.
 //
 $container-max-widths: (
-  sm: 606px,
-  md: 750px,
-  lg: 970px,
-  xl: 1170px,
-  xxl: 1340px
+    sm: 606px,
+    md: 750px,
+    lg: 970px,
+    xl: 1170px,
+    xxl: 1340px
 );
+
 @include _assert-ascending($container-max-widths, "$container-max-widths");
 
 // 30 + or - ?
@@ -485,12 +487,12 @@ $container-max-widths: (
 //
 //** Number of columns in the grid.
 $grid-columns              : 12;
-$grid-gutter-width         : pxToRem(30px);
-$grid-lg-gutter-width      : pxToRem(50px);
+$grid-gutter-width         : pxtorem(30px);
+$grid-lg-gutter-width      : pxtorem(50px);
 
 //** Padding between columns. Gets divided in half for the left and right.
-// $grid-gutter-width-base : pxToRem(30px);
-// $grid-lg-gutter-width   : pxToRem(50px);
+// $grid-gutter-width-base : pxtorem(30px);
+// $grid-lg-gutter-width   : pxtorem(50px);
 
 // $grid-gutter-widths: (
 //   xs: $grid-gutter-width-base,
@@ -520,31 +522,31 @@ $font-size-root            : 14px;
 // stylelint-enable value-keyword-case
 
 // $font-size-base         : 1rem;
-$font-size-base            : pxToRem(14px);
-$font-size-lg              : pxToRem(18px);// ~18px
-$font-size-sm              : pxToRem(12px);// ~12px
-$font-size-xs              : pxToRem(10px) !default;// ~10px  v4b remove it;
+$font-size-base            : pxtorem(14px);
+$font-size-lg              : pxtorem(18px);// ~18px
+$font-size-sm              : pxtorem(12px);// ~12px
+$font-size-xs              : pxtorem(10px) !default;// ~10px  v4b remove it;
 $font-size-large           : $font-size-lg;// ~18px for v3 plugin
 $font-size-small           : $font-size-sm;// ~12px for v3 plugin
 
 // --v4a--start
-// $font-size-h1:               pxToRem(36px);// ~36px
-// $font-size-h2:               pxToRem(30px);// ~30px
-// $font-size-h3:               pxToRem(24px);// ~24px
-// $font-size-h4:               pxToRem(18px);// ~18px
-// $font-size-h5:               pxToRem(14px);
-// $font-size-h6:               pxToRem(12px);// ~12px
+// $font-size-h1:               pxtorem(36px);// ~36px
+// $font-size-h2:               pxtorem(30px);// ~30px
+// $font-size-h3:               pxtorem(24px);// ~24px
+// $font-size-h4:               pxtorem(18px);// ~18px
+// $font-size-h5:               pxtorem(14px);
+// $font-size-h6:               pxtorem(12px);// ~12px
 // --v4a--end
 
 // --v4b1--start
-$h1-font-size            : pxToRem(36px);// ~36px
-$h2-font-size            : pxToRem(30px);// ~30px
-$h3-font-size            : pxToRem(24px);// ~24px
-$h4-font-size            : pxToRem(18px);// ~18px
-$h5-font-size            : pxToRem(14px);
-$h6-font-size            : pxToRem(12px);// ~12px
+$h1-font-size            : pxtorem(36px);// ~36px
+$h2-font-size            : pxtorem(30px);// ~30px
+$h3-font-size            : pxtorem(24px);// ~24px
+$h4-font-size            : pxtorem(18px);// ~18px
+$h5-font-size            : pxtorem(14px);
+$h6-font-size            : pxtorem(12px);// ~12px
 // --v4b2--start
-$font-size-icon          : pxToRem(16px);
+$font-size-icon          : pxtorem(16px);
 $font-weight-override    : false;
 $font-weight-light       : 300;
 $font-weight-normal      : 400;
@@ -564,7 +566,7 @@ $line-height-computed    : round((14px * $line-height-base)); // font-size 14px~
 $headings-margin-bottom  : ($spacer / 2);
 $headings-font-family    : $font-family-base;
 // $headings-font-weight : $font-weight-light;
-$headings-line-height    : 1.2 ;
+$headings-line-height    : 1.2;
 $headings-color          : $title-color;
 $headings-text-shadow    : rgba($black, .15) 0 0 1px;
 $headings-small-color    : $prompt-color;
@@ -573,7 +575,7 @@ $headings-small-color    : $prompt-color;
 // Type
 // ====
 //
-$lead-font-size          : pxToRem(20px);
+$lead-font-size          : pxtorem(20px);
 $lead-font-weight        : 300;
 $small-font-size         : 80%;
 $text-muted              : $gray-400;
@@ -629,21 +631,21 @@ $icon-alt-active-color : $gray-700;
 // ==========
 // Define common padding and border radius sizes and more. Values based on 14px text and 1.428 line-height (~20px to start).
 //
-$padding-base-vertical    : pxToRem(6px);
-$padding-base-horizontal  : pxToRem(14px);
-$padding-large-vertical   : pxToRem(10px);
-$padding-large-horizontal : pxToRem(18px);
-$padding-small-vertical   : pxToRem(6px);
-$padding-small-horizontal : pxToRem(12px);
-$padding-xs-vertical      : pxToRem(1px);
-$padding-xs-horizontal    : pxToRem(5px);
+$padding-base-vertical    : pxtorem(6px);
+$padding-base-horizontal  : pxtorem(14px);
+$padding-large-vertical   : pxtorem(10px);
+$padding-large-horizontal : pxtorem(18px);
+$padding-small-vertical   : pxtorem(6px);
+$padding-small-horizontal : pxtorem(12px);
+$padding-xs-vertical      : pxtorem(1px);
+$padding-xs-horizontal    : pxtorem(5px);
 $line-height-large        : $line-height-lg; // for v3 plugin
 $line-height-small        : $line-height-sm; // for v3 plugin
 $line-height-lg           : (4 / 3); // extra decimals for Win 8.1 Chrome
 $line-height-sm           : 1.5;
-$border-radius            : pxToRem(3px); // ~3px
-$border-radius-lg         : pxToRem(4px); // ~4px
-$border-radius-sm         : pxToRem(2px); // ~2px
+$border-radius            : pxtorem(3px); // ~3px
+$border-radius-lg         : pxtorem(4px); // ~4px
+$border-radius-sm         : pxtorem(2px); // ~2px
 $border-radius-base       : $border-radius; // for v3 plugin
 $border-radius-large      : $border-radius-lg; // for v3 plugin
 $border-radius-small      : $border-radius-sm; // for v3 plugin
@@ -654,8 +656,8 @@ $component-active-color      : $inverse; // v4: $white
 $component-active-bg         : $active-color-base;
 
 // Width of the `border` for generating carets that indicator dropdowns.
-$caret-width                 : pxToRem(4px);
-$caret-width-lg              : pxToRem(5px);// --fish--v4a6-remove it;
+$caret-width                 : pxtorem(4px);
+$caret-width-lg              : pxtorem(5px);// --fish--v4a6-remove it;
 $caret-width-base            : $caret-width;
 $caret-width-large           : $caret-width-lg;
 
@@ -680,11 +682,11 @@ $dl-horizontal-offset        : $component-offset-horizontal;
 // Customizes the `.table` component with basic values, each used across all table variations.
 //
 // Padding for `<th>`s and `<td>`s.
-$table-cell-padding           : pxToRem(8px); // ~8px
-$table-cell-padding-sm        : pxToRem(5px);
+$table-cell-padding           : pxtorem(8px); // ~8px
+$table-cell-padding-sm        : pxtorem(5px);
 
 // Padding for cells in `.table-condensed`.
-$table-condensed-cell-padding : pxToRem(5px); // ~5px
+$table-condensed-cell-padding : pxtorem(5px); // ~5px
 
 // Default background color used for all tables.
 $table-bg                     : transparent;
@@ -705,8 +707,6 @@ $table-dark-hover-bg          : rgba($white, .075);
 $table-dark-border-color      : lighten($gray-900, 7.5%);
 $table-dark-color             : $body-bg;
 
-
-
 // Buttons + Forms
 // ===============
 // Shared variables that are reassigned to `$input-` and `$btn-` specific variables.
@@ -715,7 +715,7 @@ $input-btn-padding-x        : $padding-base-horizontal;
 $input-btn-padding-y        : $padding-base-vertical;
 $input-btn-line-height      : $line-height-base;
 
-$input-btn-focus-width      : pxToRem(2px);
+$input-btn-focus-width      : pxtorem(2px);
 $input-btn-focus-color      : rgba($brand-primary, .25);
 $input-btn-focus-box-shadow : 0 0 0 $input-btn-focus-width $input-btn-focus-color;
 
@@ -814,9 +814,9 @@ $btn-dark-active-bg        : $brand-dark-active;
 $btn-dark-active-border    : $btn-dark-active-bg;
 
 $btn-link-disabled-color   : $gray-400;
-$btn-block-spacing-y       : pxToRem(8px);//5px;
+$btn-block-spacing-y       : pxtorem(8px);//5px;
 
-// $btn-toolbar-margin:             pxToRem(8px);//5px;
+// $btn-toolbar-margin:             pxtorem(8px);//5px;
 
 // $split-btn-dropdown-toggle-padding-x:     8px;
 // $split-btn-lg-dropdown-toggle-padding-x: 12px;
@@ -860,7 +860,7 @@ $input-border-radius-sm   : $border-radius-sm;
 
 $input-focus-bg           : $input-bg;
 $input-focus-border-color : $brand-primary;
-$input-focus-box-shadow   : $input-box-shadow, 0 0 8px rgba(102, 175, 233, .6)s;//v4beta2 removeit
+$input-focus-box-shadow   : $input-box-shadow, 0 0 8px rgba(102, 175, 233, .6);//v4beta2 removeit
 $input-focus-color        : $input-color;
 $input-focus-width        : $input-btn-focus-width;
 $input-focus-box-shadow   : $input-btn-focus-box-shadow;
@@ -871,7 +871,7 @@ $input-border-radius-small : $border-radius-sm;
 
 $input-height-border   : $input-border-width * 2;
 $input-height-inner    : ($font-size-base * $input-btn-line-height) + ($input-btn-padding-y * 2);
-$input-height          : calc(#{$input-height-inner} + #{$input-height-border});
+// $input-height          : calc(#{$input-height-inner} + #{$input-height-border});
 $input-height-inner-sm : ($font-size-sm * $input-btn-line-height-sm) + ($input-btn-padding-y-sm * 2);
 $input-height-sm       : calc(#{$input-height-inner-sm} + #{$input-height-border});
 $input-height-inner-lg : ($font-size-sm * $input-btn-line-height-lg) + ($input-btn-padding-y-lg * 2);
@@ -879,27 +879,27 @@ $input-height-lg       : calc(#{$input-height-inner-lg} + #{$input-height-border
 
 // for v3 plugin && rc-- starts
 //** Default `.form-control` height
-$input-height-base  : (pxToRem($line-height-computed) + ($input-btn-padding-y * 2) + pxToRem($input-height-border));//($line-height-computed + ($input-padding-y * 2) + 2);
+$input-height-base  : (pxtorem($line-height-computed) + ($input-btn-padding-y * 2) + pxtorem($input-height-border));//($line-height-computed + ($input-padding-y * 2) + 2);
 //** Large `.form-control` height
-$input-height-large : (pxToRem(ceil(17.5px * $line-height-large)) + ($padding-large-vertical * 2) + pxToRem($input-height-border));//(ceil(17.5px * $line-height-large) + ($padding-large-vertical * 2) + 2);
+$input-height-large : (pxtorem(ceil(17.5px * $line-height-large)) + ($padding-large-vertical * 2) + pxtorem($input-height-border));//(ceil(17.5px * $line-height-large) + ($padding-large-vertical * 2) + 2);
 //** Small `.form-control` height
-$input-height-small : (pxToRem(floor(11.9px * $line-height-small)) + ($padding-small-vertical * 2) + pxToRem($input-height-border));//(floor(11.9px * $line-height-small) + ($padding-small-vertical * 2) + 2);
-$input-height       : (pxToRem($line-height-computed) + ($input-btn-padding-y * 2) + pxToRem($input-height-border));
-$input-height-lg    : (($font-size-lg * $input-btn-line-height-lg) + ($input-btn-padding-y-lg * 2) + pxToRem($input-height-border));
-$input-height-sm    : (($font-size-sm * $input-btn-line-height-sm) + ($input-btn-padding-y-sm * 2) + pxToRem($input-height-border));
+$input-height-small : (pxtorem(floor(11.9px * $line-height-small)) + ($padding-small-vertical * 2) + pxtorem($input-height-border));//(floor(11.9px * $line-height-small) + ($padding-small-vertical * 2) + 2);
+$input-height       : (pxtorem($line-height-computed) + ($input-btn-padding-y * 2) + pxtorem($input-height-border));
+$input-height-lg    : (($font-size-lg * $input-btn-line-height-lg) + ($input-btn-padding-y-lg * 2) + pxtorem($input-height-border));
+$input-height-sm    : (($font-size-sm * $input-btn-line-height-sm) + ($input-btn-padding-y-sm * 2) + pxtorem($input-height-border));
 // && rc-- end
 
 $input-transition                 : border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-$form-text-margin-top             : pxToRem(4px);
-// $form-check-margin-bottom      : pxToRem(8px);
-$form-check-input-gutter          : pxToRem(20px);
-$form-check-input-margin-y        : 4px;//pxToRem(4px);
-$form-check-input-margin-x        : 4px;//pxToRem(4px);
-$form-check-inline-margin-x       : pxToRem(12px);
+$form-text-margin-top             : pxtorem(4px);
+// $form-check-margin-bottom      : pxtorem(8px);
+$form-check-input-gutter          : pxtorem(20px);
+$form-check-input-margin-y        : 4px;//pxtorem(4px);
+$form-check-input-margin-x        : 4px;//pxtorem(4px);
+$form-check-inline-margin-x       : pxtorem(12px);
 $form-check-inline-input-margin-x : .3125rem;
 
 //** `.form-group` margin
-$form-group-margin-bottom       : pxToRem(20px); // ~20px
+$form-group-margin-bottom       : pxtorem(20px); // ~20px
 $legend-color                   : inherit;
 $legend-border-color            : transparent;
 
@@ -1008,14 +1008,14 @@ $form-feedback-invalid-color : $brand-danger;
 $dropdown-min-width           : 160px;
 $dropdown-padding-y           : 5px;
 // $dropdown-margin-top       : 5px; // 2px
-$dropdown-spacer              : 5px; // v4b1 rename from $dropdown-margin-top
+// $dropdown-spacer              : 5px; // v4b1 rename from $dropdown-margin-top
 $dropdown-bg                  : #fff;
 $dropdown-border-color        : $border-color-base;
 $dropdown-border-radius       : $border-radius;
 $dropdown-border-width        : $border-width;
 $dropdown-divider-bg          : $divider-color-base;
-$dropdown-box-shadow          : 0 3px 12px rgba($black, .05); // 0 6px 12px rgba($black,.175)
-$dropdown-border              : $dropdown-border-color; // v4b removed
+$dropdown-box-shadow : 0 3px 12px rgba($black, .05); // 0 6px 12px rgba($black,.175)
+$dropdown-border : $dropdown-border-color; // v4b removed
 
 //** Dropdown menu `border-color` **for IE8**.// for v3 plugin
 $dropdown-fallback-border     : #ccc; // v4a6 && v4b removed
@@ -1032,8 +1032,8 @@ $dropdown-link-active-bg      : $bg-color-base;//$component-active-bg;
 
 //** Disabled dropdown menu item background color.
 $dropdown-link-disabled-color : $disabled-color-base;
-$dropdown-item-padding-x      : pxToRem(15px);
-$dropdown-item-padding-y      : pxToRem(8px);
+// $dropdown-item-padding-x      : pxtorem(15px);
+// $dropdown-item-padding-y      : pxtorem(8px);
 
 // $dropdown-link-padding     : $dropdown-item-padding-x $dropdown-item-padding-y;  // v4a6 && v4b change to $dropdown-item-padding-x,-y //for v3 pulgins
 $dropdown-item-border-radius  : $border-radius !default; // rc--
@@ -1071,11 +1071,11 @@ $zindex-modal-bg          : 1600;// v4a6-rename zindex-modal-backdrop
 $zindex-modal-backdrop    : 1600;// v4a6-add
 $zindex-navbar-fixed      : 1500;// v4a6-remove or rename
 $zindex-navbar-sticky     : $zindex-navbar-fixed;// v4a6-remove or rename
-$zindex-fixed             : 1500; // v4a6-add
+// $zindex-fixed             : 1500; // v4a6-add
 // $zindex-sticky            : $zindex-fixed; // v4a6-add
 $zindex-menubar           : 1400;// v4a6-remove
 $zindex-overlay           : 1300;// v4a6-remove
-$zindex-dropdown          : 1200;
+// $zindex-dropdown          : 1200;
 $zindex-navbar            : 1200;
 $zindex-dropdown-backdrop : 1000;
 $zindex-header            : 1100;
@@ -1090,16 +1090,16 @@ $zindex-modal-background  : $zindex-modal-bg;// for v3
 // ====
 // nav & nav-tab & nav-pills
 //
-$nav-item-margin                         : 2px  !default; // .2rem
+$nav-item-margin                         : 2px !default; // .2rem
 $nav-item-inline-spacer                  : 1rem !default;
 
 // v4a & v4b add
-$nav-link-padding-y                      : pxToRem(10px);
-$nav-link-padding-x                      : pxToRem(20px);
+$nav-link-padding-y                      : pxtorem(10px);
+$nav-link-padding-x                      : pxtorem(20px);
 
 // rc--
 $nav-padding-vertical                    : $nav-link-padding-y !default;
-$nav-link-padding                        : $nav-link-padding-y $nav-link-padding-x  !default;
+$nav-link-padding                        : $nav-link-padding-y $nav-link-padding-x !default;
 $nav-link-hover-bg                       : $bg-color-base !default;
 
 $nav-link-disabled-color                 : $gray-400;
@@ -1139,7 +1139,7 @@ $nav-pills-link-active-bg                : $brand-primary; // liulin
 $navbar-height        : 66px;
 $navbar-border-radius : $border-radius;
 $navbar-padding-x     : ($grid-gutter-width / 2);
-$navbar-padding-y     : ((pxToRem($navbar-height) - pxToRem($line-height-computed)) / 2);
+$navbar-padding-y     : ((pxtorem($navbar-height) - pxtorem($line-height-computed)) / 2);
 
 $navbar-nav-link-padding-x:         .5rem;
 
@@ -1173,9 +1173,9 @@ $navbar-light-toggler-icon-bg          : str-replace(url("data:image/svg+xml;cha
 $navbar-light-toggler-border           : rgba($black, .1);// v4a6-newadd
 $navbar-light-toggler-border-color     : $navbar-light-toggler-border;
 
-$navbar-collapse-max-height      : pxToRem(340px);
-$navbar-brand-padding-horizontal : pxToRem(20px);
-$navbar-brand-logo-height        : pxToRem(32px);
+$navbar-collapse-max-height      : pxtorem(340px);
+$navbar-brand-padding-horizontal : pxtorem(20px);
+$navbar-brand-logo-height        : pxtorem(32px);
 
 $navbar-default-color  : $text-color;
 $navbar-default-bg     : $inverse;
@@ -1226,18 +1226,18 @@ $navbar-inverse-toggle-icon-bar-bg  : $inverse;
 $navbar-inverse-toggle-border-color : transparent;
 
 // Navbar Small
-$navbar-small-height           : pxToRem(66px);
-$navbar-small-padding-vertical : (($navbar-small-height - pxToRem($line-height-computed)) / 2);
+$navbar-small-height           : pxtorem(66px);
+$navbar-small-padding-vertical : (($navbar-small-height - pxtorem($line-height-computed)) / 2);
 
 
 // Pagination
 // ==========
 //
-$pagination-padding-x             : pxToRem(15px);
-$pagination-padding-y             : pxToRem(9px);
-$pagination-padding-x-sm          : pxToRem(11px);
+$pagination-padding-x             : pxtorem(15px);
+$pagination-padding-y             : pxtorem(9px);
+$pagination-padding-x-sm          : pxtorem(11px);
 $pagination-padding-y-sm          : $padding-small-vertical;
-$pagination-padding-x-lg          : pxToRem(17px);
+$pagination-padding-x-lg          : pxtorem(17px);
 $pagination-padding-y-lg          : $padding-large-vertical;
 
 $pagination-line-height           : $line-height-base;
@@ -1268,7 +1268,7 @@ $pagination-disabled-border-color : $border-color-base;
 // Jumbotron
 // =========
 //
-$jumbotron-padding           : pxToRem(20px);
+$jumbotron-padding           : pxtorem(20px);
 $jumbotron-bg                : $gray-200;
 
 // rc--
@@ -1321,8 +1321,8 @@ $state-dark-border-color    : $state-dark-border;
 // Cards
 // =====
 //
-$card-spacer-x                 : pxToRem(20px);
-$card-spacer-y                 : pxToRem(12px);
+$card-spacer-x                 : pxtorem(20px);
+$card-spacer-y                 : pxtorem(12px);
 $card-border-width             : 1px;
 $card-border-radius            : $border-radius;
 $card-border-color             : $border-color-base;
@@ -1331,23 +1331,23 @@ $card-inner-border-radius      : calc(#{$card-border-radius} - #{$card-border-wi
 $card-cap-bg                   : $gray-100;
 $card-bg                       : #fff;
 $card-link-hover-color         : #fff; // rc --
-$card-img-overlay-padding      : pxToRem(20px);//20px 1.25*16
+$card-img-overlay-padding      : pxtorem(20px);//20px 1.25*16
 
-$card-group-margin             : pxToRem(10px);//.625rem;
+$card-group-margin             : pxtorem(10px);//.625rem;
 $card-deck-margin              : $card-group-margin;//.625rem;
 
 $card-columns-count            : 3;
-$card-columns-gap              : pxToRem(20px);//1.25rem;
+$card-columns-gap              : pxtorem(20px);//1.25rem;
 $card-columns-margin           : $card-spacer-y;
-$card-columns-sm-up-column-gap : pxToRem(20px);//1.25rem; // v4a6-rename to $card-columns-gap
+$card-columns-sm-up-column-gap : pxtorem(20px);//1.25rem; // v4a6-rename to $card-columns-gap
 
 // card spacer size
-$card-sm-spacer-x : pxToRem(15px);
+$card-sm-spacer-x : pxtorem(15px);
 $card-sm-spacer-y : $card-spacer-y;
-$card-md-spacer-x : pxToRem(25px);
-$card-md-spacer-y : pxToRem(30px);
-$card-lg-spacer-x : pxToRem(30px);
-$card-lg-spacer-y : pxToRem(30px);
+$card-md-spacer-x : pxtorem(25px);
+$card-md-spacer-y : pxtorem(30px);
+$card-lg-spacer-x : pxtorem(30px);
+$card-lg-spacer-y : pxtorem(30px);
 
 
 // Tooltips
@@ -1605,8 +1605,8 @@ $figure-caption-color     : $gray-300;//v4a6 newadd
 // ===========
 //
 // v3 & rc --
-$breadcrumb-padding-vertical   : pxToRem(8px);
-$breadcrumb-padding-horizontal : pxToRem(10px);
+$breadcrumb-padding-vertical   : pxtorem(8px);
+$breadcrumb-padding-horizontal : pxtorem(10px);
 $breadcrumb-padding-y          : .75rem;
 $breadcrumb-padding-x          : 1rem;
 $breadcrumb-item-padding       : .5rem;
@@ -1732,3 +1732,6 @@ $print-body-min-width:              map-get($grid-breakpoints, "lg");
 
 // Modal Transform Variable
 $modal-show-transform: translate(0, 0);
+
+$message-send-bg: $brand-primary;
+$message-received-bg: $gray-300;

@@ -7,7 +7,7 @@
 .form-control {
   display: block;
   width: 100%;
-  height: $input-height;
+  // height: $input-height;
   padding: $input-padding-y $input-padding-x;
   font-family: $input-font-family;
   @include font-size($input-font-size);
@@ -22,7 +22,7 @@
   @include border-radius($input-border-radius, 0);
 
   // @include box-shadow($input-box-shadow);
-  // @include transition($input-transition);
+  @include transition($input-transition);
 
   // Unstyle the caret on `<select>`s in IE10+.
   &::-ms-expand {
@@ -37,7 +37,7 @@
   }
 
   // Customize the `:focus` state to imitate native WebKit styles.
-  @include form-control-focus($ignore-warning: true);
+  // @include form-control-focus($ignore-warning: true);
 
   // Placeholder
   &::placeholder {

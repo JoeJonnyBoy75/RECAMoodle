@@ -96,22 +96,16 @@ class management implements renderable, templatable {
                 $fieldarray['shortname'] = $field->get('shortname');
                 $fieldarray['movetitle'] = get_string('movefield', 'core_customfield', $fieldname);
 
-                $fieldarray['editfieldurl'] = (new \moodle_url('/customfield/edit.php', [
-                        'id' => $fieldarray['id'],
-                ]))->out(false);
-
                 $categoryarray['fields'][] = $fieldarray;
             }
 
             $menu = new \action_menu();
-            $menu->set_alignment(\action_menu::BL, \action_menu::BL);
             $menu->set_menu_trigger(get_string('createnewcustomfield', 'core_customfield'));
 
-            $baseaddfieldurl = new \moodle_url('/customfield/edit.php',
-                    array('action' => 'editfield', 'categoryid' => $category->get('id')));
             foreach ($fieldtypes as $type => $fieldname) {
-                $addfieldurl = new \moodle_url($baseaddfieldurl, array('type' => $type));
-                $action = new \action_menu_link_secondary($addfieldurl, null, $fieldname);
+                $action = new \action_menu_link_secondary(new \moodle_url('#'), null, $fieldname,
+                    ['data-role' => 'addfield', 'data-categoryid' => $category->get('id'), 'data-type' => $type,
+                        'data-typename' => $fieldname]);
                 $menu->add($action);
             }
             $menu->attributes['class'] .= ' float-left mr-1';

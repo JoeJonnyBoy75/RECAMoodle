@@ -19,7 +19,7 @@
 
     Admin time setting template.
 
-    remui 2 column layout template.
+    Boost 2 column layout template.
 
     Context variables required for this template:
     * sitename - The name of the site
@@ -48,46 +48,67 @@
         "hasregionmainsettingsmenu": false
     }
 }}
-{{> theme_remui/common_start }}
+{{> theme_remui/head }}
 
-<section id="region-main" {{#hasblocks}}class="has-blocks mb-3"{{/hasblocks}} aria-label="{{#str}}content{{/str}}">
-    <div class="card card-body">
-        {{#hasregionmainsettingsmenu}}
-            <div class="region_main_settings_menu_proxy"></div>
-        {{/hasregionmainsettingsmenu}}
-        {{{ output.course_content_header }}}
-        {{{ output.main_content }}}
-        {{{ output.activity_navigation }}}
-        {{{ output.course_content_footer }}}
-    </div> 
-</section>
+<body {{{ bodyattributes }}}>
+{{> core/local/toast/wrapper}}
 
-{{> theme_remui/common_end }}
+<div id="page-wrapper" class="d-print-block">
+
+    {{{ output.standard_top_of_body_html }}}
+
+    {{> theme_remui/navbar }}
+
+    <div id="page" class="container-fluid d-print-block">
+        {{{ output.full_header }}}
+            {{#secondarymoremenu}}
+                <div class="secondary-navigation">
+                    {{> core/moremenu}}
+                </div>
+            {{/secondarymoremenu}}
+        <div id="page-content" class="row pb-3 d-print-block">
+            <div id="region-main-box" class="col-12">
+                {{#hasregionmainsettingsmenu}}
+                <div id="region-main-settings-menu" class="d-print-none {{#hasblocks}}has-blocks{{/hasblocks}}">
+                    <div> {{{ regionmainsettingsmenu }}} </div>
+                </div>
+                {{/hasregionmainsettingsmenu}}
+                <section id="region-main" {{#hasblocks}}class="has-blocks mb-3"{{/hasblocks}} aria-label="{{#str}}content{{/str}}">
+
+                    {{#hasregionmainsettingsmenu}}
+                        <div class="region_main_settings_menu_proxy"></div>
+                    {{/hasregionmainsettingsmenu}}
+                    {{{ output.course_content_header }}}
+                    {{#headercontent}}
+                        {{> core/activity_header }}
+                    {{/headercontent}}
+                    {{#overflow}}
+                        {{> core/url_select}}
+                    {{/overflow}}
+                    {{{ output.main_content }}}
+                    {{{ output.activity_navigation }}}
+                    {{{ output.course_content_footer }}}
+
+                </section>
+                {{#hasblocks}}
+                <section data-region="blocks-column" class="d-print-none" aria-label="{{#str}}blocks{{/str}}">
+                    {{{ addblockbutton }}}
+                    {{{ sidepreblocks }}}
+                </section>
+                {{/hasblocks}}
+            </div>
+        </div>
+    </div>
+    {{{ output.standard_after_main_region_html }}}
+    {{> theme_remui/footer }}
+</div>
+
+</body>
+</html>
 {{#js}}
-require(['theme_remui/loader', 'theme_remui/jquery-floatingscroll'], function () {
-  Breakpoints();
-  jQuery(".path-grade-report-grader #region-main>.card").floatingScroll();
-  // Grade table scrolling problem issue
-    jQuery(document).ready(function () {
-        jQuery('#page-grade-report-grader-index div.card.card-body').scroll(function() {
-            var scrollPercentage = this.scrollLeft;
-            if (scrollPercentage == 0) {
-                scrollPercentage = 1;
-            } else {
-                scrollPercentage = parseInt(scrollPercentage) - 25;
-            }
-
-            jQuery('#page-grade-report-grader-index div.floater.sideonly').each(function() {
-                if (!jQuery(this).hasClass('floating')) {
-                    jQuery(this).addClass('floating');
-                    jQuery(this).css('margin','0');
-                }
-                if (scrollPercentage == 1) {
-                    jQuery(this).removeClass('floating');
-                }
-                jQuery(this).css({left : scrollPercentage+"px",  position:'absolute'});
-            });
-        });
-    });
+M.util.js_pending('theme_remui/loader');
+require(['theme_remui/loader', 'theme_remui/drawer'], function(Loader, Drawer) {
+    Drawer.init();
+    M.util.js_complete('theme_remui/loader');
 });
 {{/js}}

@@ -17,9 +17,11 @@
 /**
  * Edwiser RemUI
  * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+defined('MOODLE_INTERNAL') || die;
 
 $observers = array(
     array(
@@ -61,5 +63,10 @@ $observers = array(
     array(
         'eventname'   => '\core\event\user_loggedin',
         'callback'    => 'theme_remui\controller\EventsController::user_loggedin_event',
+    ),
+    array(
+        'eventname'   => '\core\event\course_module_deleted',
+        'callback'    => 'theme_remui\controller\EventsController::course_updation_event',
     )
 );
+

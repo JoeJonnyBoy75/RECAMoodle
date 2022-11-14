@@ -1,0 +1,16 @@
+<div id="fitem_id_{{name}}" class="form-group row fitem">
+    <div class="col-md-3 pr-5">
+        <label class="col-form-label d-inline " for="id_{{name}}">
+            {{label}}
+        </label>
+        {{{help}}}
+    </div>
+    <div class="textarea-reset btn" title="{{#str}}resetdesc, theme_remui{{/str}}" data-default="{{default}}">
+        <i class="fa fa-undo"></i>
+    </div>
+    <div class="col-md-9 form-inline felement" data-fieldtype="textarea">
+        <textarea name="{{name}}" id="id_{{name}}" class="form-control " {{{options}}}>{{{default}}}</textarea>
+        <div class="form-control-feedback invalid-feedback" id="id_error_{{name}}">
+        </div>
+    </div>
+</div>

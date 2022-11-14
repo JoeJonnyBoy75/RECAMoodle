@@ -35,14 +35,14 @@
 }}
 <div
         id="message-index-{{uniqid}}"
-        class="message-app main bg-light border flex-row"
+        class="message-app main bg-light border flex-row mt-4"
         aria-expanded="false"
         aria-hidden="true"
         data-region="message-index"
         role="region"
 >
     <div class="container-fluid p-0">
-        <div class="row-fluid h-100 no-gutters m-0 p-0">
+        <div class="row h-100 no-gutters m-0 p-0">
             <div class="col-md-4 col-sm-12 d-flex flex-column">
                 <div class="border-right h-100">
                     <div class="panel-header-container" data-region="panel-header-container">
@@ -78,13 +78,13 @@
 </div>
 {{#js}}
     require(['jquery', 'core_message/message_drawer'], function($, MessageDrawer) {
-    var root = $('#message-index-{{uniqid}}');
-    MessageDrawer.init(root, '{{uniqid}}', true, {{{route}}});
-    $(document).on('click', '.message-app .list-group-item-action, a[data-route="view-contacts"], a[data-route="view-settings"]' , function () {
-        $('.wdm-msg-description').addClass('show');
-    });
-    $(document).on('click', '.message-app a[data-route-back]', function () {
-        $('.wdm-msg-description').removeClass('show');
-    });
+        var root = $('#message-index-{{uniqid}}');
+        MessageDrawer.init(root, '{{uniqid}}', true, {{{route}}});
+        $(document).on('click', '.message-app .list-group-item-action, a[data-route="view-contacts"], a[data-route="view-settings"]' , function () {
+            $('.wdm-msg-description').addClass('show');
+        });
+        $(document).on('click', '.message-app a[data-route-back]', function () {
+            $('.wdm-msg-description').removeClass('show');
+        });
     });
 {{/js}}

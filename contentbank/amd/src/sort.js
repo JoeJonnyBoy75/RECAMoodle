@@ -17,7 +17,6 @@
  * Content bank UI actions.
  *
  * @module     core_contentbank/sort
- * @package    core_contentbank
  * @copyright  2020 Bas Brands <bas@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -35,7 +34,7 @@ import Notification from 'core/notification';
  */
 export const init = () => {
     const contentBank = document.querySelector(selectors.regions.contentbank);
-    Prefetch.prefetchStrings('contentbank', ['contentname', 'lastmodified', 'size', 'type']);
+    Prefetch.prefetchStrings('contentbank', ['contentname', 'uses', 'lastmodified', 'size', 'type', 'author']);
     Prefetch.prefetchStrings('moodle', ['sortbyx', 'sortbyxreverse']);
     registerListenerEvents(contentBank);
 };
@@ -48,56 +47,106 @@ export const init = () => {
  */
 const registerListenerEvents = (contentBank) => {
 
-    // The search.
-    const fileArea = document.querySelector(selectors.regions.filearea);
-    const shownItems = fileArea.querySelectorAll(selectors.elements.listitem);
+    contentBank.addEventListener('click', e => {
+        const viewList = contentBank.querySelector(selectors.actions.viewlist);
+        const viewGrid = contentBank.querySelector(selectors.actions.viewgrid);
+        const fileArea = contentBank.querySelector(selectors.regions.filearea);
+        const shownItems = fileArea.querySelectorAll(selectors.elements.listitem);
 
-    // The view buttons.
-    const viewGrid = contentBank.querySelector(selectors.actions.viewgrid);
-    const viewList = contentBank.querySelector(selectors.actions.viewlist);
+        // View as Grid button.
+        if (e.target.closest(selectors.actions.viewgrid)) {
+            contentBank.classList.remove('view-list');
+            contentBank.classList.add('view-grid');
+            if (fileArea && shownItems) {
+                fileArea.setAttribute('role', 'list');
+                shownItems.forEach(listItem => {
+                    listItem.setAttribute('role', 'listitem');
+                    listItem.querySelectorAll(selectors.elements.cell).forEach(cell => cell.removeAttribute('role'));
+                });
 
-    viewGrid.addEventListener('click', () => {
-        contentBank.classList.remove('view-list');
-        contentBank.classList.add('view-grid');
-        viewGrid.classList.add('active');
-        viewList.classList.remove('active');
-        setViewListPreference(false);
-    });
+                const heading = fileArea.querySelector(selectors.elements.heading);
+                heading.removeAttribute('role');
+                heading.querySelectorAll(selectors.elements.cell).forEach(cell => cell.removeAttribute('role'));
+            }
+            viewGrid.classList.add('active');
+            viewList.classList.remove('active');
+            setViewListPreference(false);
 
-    viewList.addEventListener('click', () => {
-        contentBank.classList.remove('view-grid');
-        contentBank.classList.add('view-list');
-        viewList.classList.add('active');
-        viewGrid.classList.remove('active');
-        setViewListPreference(true);
-    });
+            return;
+        }
 
-    // Sort by file name alphabetical
-    const sortByName = contentBank.querySelector(selectors.actions.sortname);
-    sortByName.addEventListener('click', () => {
-        const ascending = updateSortButtons(contentBank, sortByName);
-        updateSortOrder(fileArea, shownItems, 'data-file', ascending);
-    });
+        // View as List button.
+        if (e.target.closest(selectors.actions.viewlist)) {
+            contentBank.classList.remove('view-grid');
+            contentBank.classList.add('view-list');
+            if (fileArea && shownItems) {
+                fileArea.setAttribute('role', 'table');
+                shownItems.forEach(listItem => {
+                    listItem.setAttribute('role', 'row');
+                    listItem.querySelectorAll(selectors.elements.cell).forEach(cell => cell.setAttribute('role', 'cell'));
+                });
 
-    // Sort by date.
-    const sortByDate = contentBank.querySelector(selectors.actions.sortdate);
-    sortByDate.addEventListener('click', () => {
-        const ascending = updateSortButtons(contentBank, sortByDate);
-        updateSortOrder(fileArea, shownItems, 'data-timemodified', ascending);
-    });
+                const heading = fileArea.querySelector(selectors.elements.heading);
+                heading.setAttribute('role', 'row');
+                heading.querySelectorAll(selectors.elements.cell).forEach(cell => cell.setAttribute('role', 'columnheader'));
+            }
+            viewList.classList.add('active');
+            viewGrid.classList.remove('active');
+            setViewListPreference(true);
 
-    // Sort by size.
-    const sortBySize = contentBank.querySelector(selectors.actions.sortsize);
-    sortBySize.addEventListener('click', () => {
-        const ascending = updateSortButtons(contentBank, sortBySize);
-        updateSortOrder(fileArea, shownItems, 'data-bytes', ascending);
-    });
+            return;
+        }
 
-    // Sort by type
-    const sortByType = contentBank.querySelector(selectors.actions.sorttype);
-    sortByType.addEventListener('click', () => {
-        const ascending = updateSortButtons(contentBank, sortByType);
-        updateSortOrder(fileArea, shownItems, 'data-type', ascending);
+        if (fileArea && shownItems) {
+
+            // Sort by file name alphabetical
+            const sortByName = e.target.closest(selectors.actions.sortname);
+            if (sortByName) {
+                const ascending = updateSortButtons(contentBank, sortByName);
+                updateSortOrder(fileArea, shownItems, 'data-file', ascending);
+                return;
+            }
+
+            // Sort by uses.
+            const sortByUses = e.target.closest(selectors.actions.sortuses);
+            if (sortByUses) {
+                const ascending = updateSortButtons(contentBank, sortByUses);
+                updateSortOrder(fileArea, shownItems, 'data-uses', ascending);
+                return;
+            }
+
+            // Sort by date.
+            const sortByDate = e.target.closest(selectors.actions.sortdate);
+            if (sortByDate) {
+                const ascending = updateSortButtons(contentBank, sortByDate);
+                updateSortOrder(fileArea, shownItems, 'data-timemodified', ascending);
+                return;
+            }
+
+            // Sort by size.
+            const sortBySize = e.target.closest(selectors.actions.sortsize);
+            if (sortBySize) {
+                const ascending = updateSortButtons(contentBank, sortBySize);
+                updateSortOrder(fileArea, shownItems, 'data-bytes', ascending);
+                return;
+            }
+
+            // Sort by type.
+            const sortByType = e.target.closest(selectors.actions.sorttype);
+            if (sortByType) {
+                const ascending = updateSortButtons(contentBank, sortByType);
+                updateSortOrder(fileArea, shownItems, 'data-type', ascending);
+                return;
+            }
+
+            // Sort by author.
+            const sortByAuthor = e.target.closest(selectors.actions.sortauthor);
+            if (sortByAuthor) {
+                const ascending = updateSortButtons(contentBank, sortByAuthor);
+                updateSortOrder(fileArea, shownItems, 'data-author', ascending);
+            }
+            return;
+        }
     });
 };
 
@@ -147,6 +196,8 @@ const updateSortButtons = (contentBank, sortButton) => {
             button.classList.remove('dir-desc');
             button.classList.add('dir-none');
 
+            button.closest(selectors.elements.cell).setAttribute('aria-sort', 'none');
+
             updateButtonTitle(button, false);
         }
     });
@@ -156,13 +207,16 @@ const updateSortButtons = (contentBank, sortButton) => {
     if (sortButton.classList.contains('dir-none')) {
         sortButton.classList.remove('dir-none');
         sortButton.classList.add('dir-asc');
+        sortButton.closest(selectors.elements.cell).setAttribute('aria-sort', 'ascending');
     } else if (sortButton.classList.contains('dir-asc')) {
         sortButton.classList.remove('dir-asc');
         sortButton.classList.add('dir-desc');
+        sortButton.closest(selectors.elements.cell).setAttribute('aria-sort', 'descending');
         ascending = false;
     } else if (sortButton.classList.contains('dir-desc')) {
         sortButton.classList.remove('dir-desc');
         sortButton.classList.add('dir-asc');
+        sortButton.closest(selectors.elements.cell).setAttribute('aria-sort', 'ascending');
     }
 
     updateButtonTitle(sortButton, ascending);
@@ -199,8 +253,8 @@ const updateButtonTitle = (button, ascending) => {
  * @method updateSortOrder
  * @param {HTMLElement} fileArea the Dom container for the itemlist
  * @param {Array} itemList Nodelist of Dom elements
- * @param {String} attribute, the attribut to sort on
- * @param {Bool} ascending, Sort Ascending
+ * @param {String} attribute the attribut to sort on
+ * @param {Bool} ascending Sort Ascending
  */
 const updateSortOrder = (fileArea, itemList, attribute, ascending) => {
     const sortList = [].slice.call(itemList).sort(function(a, b) {

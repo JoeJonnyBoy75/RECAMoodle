@@ -14,13 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * External completion functions unit tests
- *
- * @package    core_completion
- * @copyright  2017 Marina Glancy
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace core_completion;
+
+use core_completion_bulkedit_form;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -34,7 +30,7 @@ require_once($CFG->libdir . '/completionlib.php');
  * @copyright  2017 Marina Glancy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_completion_bulk_update_testcase extends advanced_testcase {
+class bulk_update_test extends \advanced_testcase {
 
     /**
      * Provider for test_bulk_form_submit_single
@@ -80,7 +76,7 @@ class core_completion_bulk_update_testcase extends advanced_testcase {
             'lti-2' => ['lti', ['completion' => COMPLETION_TRACKING_MANUAL]],
             'page-1' => ['page', ['completion' => COMPLETION_TRACKING_AUTOMATIC, 'completionview' => 1]],
             'page-2' => ['page', ['completion' => COMPLETION_TRACKING_MANUAL]],
-            'quiz-1' => ['quiz', ['completion' => COMPLETION_TRACKING_AUTOMATIC, 'completionpass' => 1]],
+            'quiz-1' => ['quiz', ['completion' => COMPLETION_TRACKING_AUTOMATIC, 'completionpassgrade' => 1]],
             'quiz-2' => ['quiz', ['completion' => COMPLETION_TRACKING_MANUAL]],
             'resource-1' => ['resource', ['completion' => COMPLETION_TRACKING_AUTOMATIC, 'completionview' => 1]],
             'resource-2' => ['resource', ['completion' => COMPLETION_TRACKING_MANUAL]],
@@ -130,7 +126,7 @@ class core_completion_bulk_update_testcase extends advanced_testcase {
         }
 
         // Apply completion rules to the modules.
-        $manager = new core_completion\manager($course->id);
+        $manager = new manager($course->id);
         $manager->apply_completion($data, $form->has_custom_completion_rules());
 
         // Make sure either course_modules or instance table was respectfully updated.
@@ -245,7 +241,7 @@ class core_completion_bulk_update_testcase extends advanced_testcase {
         }
 
         // Apply completion rules to the modules.
-        $manager = new core_completion\manager($course->id);
+        $manager = new manager($course->id);
         $manager->apply_completion($data, $form->has_custom_completion_rules());
 
         // Make sure either course_modules or instance table was respectfully updated.

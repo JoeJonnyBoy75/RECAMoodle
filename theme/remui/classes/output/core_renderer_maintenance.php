@@ -17,7 +17,7 @@
 /**
  * Edwiser RemUI
  * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -124,7 +124,7 @@ class core_renderer_maintenance extends core_renderer {
      * @param string $tag
      * @return string
      */
-    public function blocks($region, $classes = array(), $tag = 'aside') {
+    public function blocks($region, $classes = array(), $tag = 'aside', $fakeblocksonly = false) {
         return '';
     }
 
@@ -134,7 +134,7 @@ class core_renderer_maintenance extends core_renderer {
      * @param string $region
      * @return string
      */
-    public function blocks_for_region($region) {
+    public function blocks_for_region($region, $fakeblocksonly = false) {
         return '';
     }
 

@@ -14,18 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Tests for class customfield_textarea
- *
- * @package    customfield_textarea
- * @copyright  2019 Marina Glancy
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace customfield_textarea;
 
-defined('MOODLE_INTERNAL') || die();
-
-use customfield_textarea\field_controller;
-use customfield_textarea\data_controller;
+use core_customfield_generator;
+use core_customfield_test_instance_form;
 
 /**
  * Functional test for customfield_textarea
@@ -34,7 +26,7 @@ use customfield_textarea\data_controller;
  * @copyright  2019 Marina Glancy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class customfield_textarea_plugin_testcase extends advanced_testcase {
+class plugin_test extends \advanced_testcase {
 
     /** @var stdClass[]  */
     private $courses = [];
@@ -48,7 +40,7 @@ class customfield_textarea_plugin_testcase extends advanced_testcase {
     /**
      * Tests set up.
      */
-    public function setUp() {
+    public function setUp(): void {
         $this->resetAfterTest();
 
         $this->cfcat = $this->get_generator()->create_category();
@@ -105,15 +97,16 @@ class customfield_textarea_plugin_testcase extends advanced_testcase {
      * Create a configuration form and submit it with the same values as in the field
      */
     public function test_config_form() {
+        $this->setAdminUser();
         $submitdata = (array)$this->cfields[3]->to_record();
         $submitdata['configdata'] = $this->cfields[3]->get('configdata');
 
-        \core_customfield\field_config_form::mock_submit($submitdata, []);
-        $handler = $this->cfcat->get_handler();
-        $form = $handler->get_field_config_form($this->cfields[3]);
+        $submitdata = \core_customfield\field_config_form::mock_ajax_submit($submitdata);
+        $form = new \core_customfield\field_config_form(null, null, 'post', '', null, true,
+            $submitdata, true);
+        $form->set_data_for_dynamic_submission();
         $this->assertTrue($form->is_validated());
-        $data = $form->get_data();
-        $handler->save_field_configuration($this->cfields[3], $data);
+        $form->process_dynamic_submission();
     }
 
     /**
@@ -146,6 +139,41 @@ class customfield_textarea_plugin_testcase extends advanced_testcase {
     }
 
     /**
+     * Test that instance form save empties the field content for blank values
+     */
+    public function test_instance_form_save_clear(): void {
+        global $CFG;
+
+        require_once("{$CFG->dirroot}/customfield/tests/fixtures/test_instance_form.php");
+
+        $this->setAdminUser();
+
+        $handler = $this->cfcat->get_handler();
+
+        // Set our custom field to a known value.
+        $submitdata = (array) $this->courses[1] + [
+            'customfield_myfield1_editor' => ['text' => 'I can see it in your eyes', 'format' => FORMAT_HTML],
+            'customfield_myfield2_editor' => ['text' => 'I can see it in your smile', 'format' => FORMAT_HTML],
+        ];
+
+        core_customfield_test_instance_form::mock_submit($submitdata, []);
+        $form = new core_customfield_test_instance_form('post', ['handler' => $handler, 'instance' => $this->courses[1]]);
+        $handler->instance_form_save($form->get_data());
+
+        $this->assertEquals($submitdata['customfield_myfield1_editor']['text'],
+            \core_customfield\data_controller::create($this->cfdata[1]->get('id'))->export_value());
+
+        // Now empty our non-required field.
+        $submitdata['customfield_myfield1_editor']['text'] = '';
+
+        core_customfield_test_instance_form::mock_submit($submitdata, []);
+        $form = new core_customfield_test_instance_form('post', ['handler' => $handler, 'instance' => $this->courses[1]]);
+        $handler->instance_form_save($form->get_data());
+
+        $this->assertEmpty(\core_customfield\data_controller::create($this->cfdata[1]->get('id'))->export_value());
+    }
+
+    /**
      * Test for data_controller::get_value and export_value
      */
     public function test_get_export_value() {
@@ -153,7 +181,7 @@ class customfield_textarea_plugin_testcase extends advanced_testcase {
         $this->assertEquals('<div class="text_to_html">Value1</div>', $this->cfdata[1]->export_value());
 
         // Field without data but with a default value.
-        $d = core_customfield\data_controller::create(0, null, $this->cfields[3]);
+        $d = \core_customfield\data_controller::create(0, null, $this->cfields[3]);
         $this->assertEquals('Value3', $d->get_value());
         $this->assertEquals('<div class="text_to_html">Value3</div>', $d->export_value());
     }

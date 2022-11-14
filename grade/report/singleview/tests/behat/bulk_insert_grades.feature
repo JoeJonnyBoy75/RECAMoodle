@@ -30,56 +30,48 @@ Feature: We can bulk insert grades for students in a course
       | assign | C1 | a4 | Test assignment four | Submit nothing!    |
 
   Scenario: I can bulk insert grades and check their override flags for grade view.
-    Given I log in as "teacher1"
-    And I am on "Course 1" course homepage
-    And I follow "Test assignment one"
-    And I navigate to "View all submissions" in current page administration
+    Given I am on the "Test assignment one" "assign activity" page logged in as teacher1
+    And I follow "View all submissions"
     And I click on "Grade" "link" in the "Student 1" "table_row"
     And I set the following fields to these values:
       | Grade out of 100 | 50 |
     And I press "Save changes"
-    And I press "OK"
     And I am on "Course 1" course homepage
     And I navigate to "View > Grader report" in the course gradebook
     And I follow "Single view for Test assignment one"
-    Then the field "Grade for james (Student) 1" matches value "50.00"
-    And the field "Override for james (Student) 1" matches value "0"
+    Then the field "Grade for Student 1" matches value "50.00"
+    And the field "Override for Student 1" matches value "0"
     And I set the field "Perform bulk insert" to "1"
     And I set the field "Insert value" to "1.0"
     And I press "Save"
-    And I press "Continue"
-    And the field "Grade for james (Student) 1" matches value "50.00"
-    And the field "Override for james (Student) 1" matches value "0"
-    And the field "Grade for holly (Student) 2" matches value "1.00"
-    And the field "Override for holly (Student) 2" matches value "1"
-    And the field "Grade for anna (Student) 3" matches value "1.00"
-    And the field "Override for anna (Student) 3" matches value "1"
-    And the field "Grade for zac (Student) 4" matches value "1.00"
-    And the field "Override for zac (Student) 4" matches value "1"
+    And the field "Grade for Student 1" matches value "50.00"
+    And the field "Override for Student 1" matches value "0"
+    And the field "Grade for Student 2" matches value "1.00"
+    And the field "Override for Student 2" matches value "1"
+    And the field "Grade for Student 3" matches value "1.00"
+    And the field "Override for Student 3" matches value "1"
+    And the field "Grade for Student 4" matches value "1.00"
+    And the field "Override for Student 4" matches value "1"
     And I set the field "For" to "All grades"
     And I set the field "Perform bulk insert" to "1"
     And I set the field "Insert value" to "2.0"
     And I press "Save"
-    And I press "Continue"
-    And the field "Grade for james (Student) 1" matches value "2.00"
-    And the field "Override for james (Student) 1" matches value "1"
-    And the field "Grade for holly (Student) 2" matches value "2.00"
-    And the field "Override for holly (Student) 2" matches value "1"
-    And the field "Grade for anna (Student) 3" matches value "2.00"
-    And the field "Override for anna (Student) 3" matches value "1"
-    And the field "Grade for zac (Student) 4" matches value "2.00"
-    And the field "Override for zac (Student) 4" matches value "1"
+    And the field "Grade for Student 1" matches value "2.00"
+    And the field "Override for Student 1" matches value "1"
+    And the field "Grade for Student 2" matches value "2.00"
+    And the field "Override for Student 2" matches value "1"
+    And the field "Grade for Student 3" matches value "2.00"
+    And the field "Override for Student 3" matches value "1"
+    And the field "Grade for Student 4" matches value "2.00"
+    And the field "Override for Student 4" matches value "1"
 
   Scenario: I can bulk insert grades and check their override flags for user view.
-    Given I log in as "teacher1"
-    And I am on "Course 1" course homepage
-    And I follow "Test assignment two"
-    And I navigate to "View all submissions" in current page administration
+    Given I am on the "Test assignment two" "assign activity" page logged in as teacher1
+    And I follow "View all submissions"
     And I click on "Grade" "link" in the "Student 1" "table_row"
     And I set the following fields to these values:
       | Grade out of 100 | 50 |
     And I press "Save changes"
-    And I press "OK"
     And I am on "Course 1" course homepage
     And I navigate to "View > Grader report" in the course gradebook
     # And I click on "input[title='Dock Navigation block']" "css_element"
@@ -92,7 +84,6 @@ Feature: We can bulk insert grades for students in a course
     And I set the field "Perform bulk insert" to "1"
     And I set the field "Insert value" to "1.0"
     And I press "Save"
-    And I press "Continue"
     And the field "Grade for Test assignment two" matches value "50.00"
     And the field "Override for Test assignment two" matches value "0"
     And the field "Grade for Test assignment one" matches value "1.00"
@@ -103,15 +94,14 @@ Feature: We can bulk insert grades for students in a course
     And the field "Override for Test assignment four" matches value "1"
 
   Scenario: I can not update grades if the value is out of bounds.
-    Given I log in as "teacher1"
-    And I am on "Course 1" course homepage
+    Given I am on the "Course 1" course page logged in as teacher1
     And I navigate to "View > Grader report" in the course gradebook
     And I follow "Single view for Test assignment one"
     And I set the field "Perform bulk insert" to "1"
     When I set the field "Insert value" to "-1"
     And I press "Save"
-    Then I should see "The grade entered for Test assignment one for james (Student) 1 is less than the minimum allowed"
-    And I should see "The grade entered for Test assignment one for holly (Student) 2 is less than the minimum allowed"
-    And I should see "The grade entered for Test assignment one for anna (Student) 3 is less than the minimum allowed"
-    And I should see "The grade entered for Test assignment one for zac (Student) 4 is less than the minimum allowed"
+    Then I should see "The grade entered for Test assignment one for Student 1 is less than the minimum allowed"
+    And I should see "The grade entered for Test assignment one for Student 2 is less than the minimum allowed"
+    And I should see "The grade entered for Test assignment one for Student 3 is less than the minimum allowed"
+    And I should see "The grade entered for Test assignment one for Student 4 is less than the minimum allowed"
     And I should see "Grades were set for 0 items"

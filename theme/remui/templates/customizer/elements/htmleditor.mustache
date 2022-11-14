@@ -1,0 +1,22 @@
+<div id="fitem_id_{{name}}" class="form-group row fitem">
+    <div class="col-md-3 pr-5">
+        <label class="col-form-label d-inline " for="id_{{name}}">
+            {{label}}
+        </label>
+        {{{help}}}
+        <i class="btn fa fa-expand"></i>
+    </div>
+    <div class="htmleditor-reset btn" title="{{#str}}resetdesc, theme_remui{{/str}}" data-default="{{default}}">
+        <i class="fa fa-undo"></i>
+    </div>
+    <div class="col-md-9 form-inline felement" data-fieldtype="htmleditor">
+        <textarea name="{{name}}" id="id_{{name}}" class="form-control " {{{options}}}>{{{default}}}</textarea>
+        <div class="form-control-feedback invalid-feedback" id="id_error_{{name}}">
+        </div>
+    </div>
+</div>
+{{#js}}
+require(['theme_remui/customizer/utils'], function(utils) {
+    utils.htmlEditorExpand('{{name}}');
+});
+{{/js}}

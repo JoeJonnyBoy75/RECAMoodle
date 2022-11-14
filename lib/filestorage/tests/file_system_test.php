@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Unit tests for file_system.
- *
- * @package   core_files
- * @category  phpunit
- * @copyright 2017 Andrew Nicols <andrew@nicols.co.uk>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace core;
+
+use file_archive;
+use file_packer;
+use file_system;
+use file_system_filedir;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -31,19 +29,19 @@ require_once($CFG->libdir . '/filestorage/file_system.php');
 /**
  * Unit tests for file_system.
  *
- * @package   core_files
- * @category  phpunit
+ * @package   core
+ * @category  test
  * @copyright 2017 Andrew Nicols <andrew@nicols.co.uk>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass file_system
+ * @coversDefaultClass \file_system
  */
-class core_files_file_system_testcase extends advanced_testcase {
+class file_system_test extends \advanced_testcase {
 
-    public function setUp() {
+    public function setUp(): void {
         get_file_storage(true);
     }
 
-    public function tearDown() {
+    public function tearDown(): void {
         get_file_storage(true);
     }
 
@@ -70,14 +68,14 @@ class core_files_file_system_testcase extends advanced_testcase {
      *                  If no methods are specified, only abstract functions are mocked.
      * @return stored_file
      */
-    protected function get_stored_file($filecontent, $filename = null, $mockedmethods = null) {
-        $contenthash = file_storage::hash_from_string($filecontent);
+    protected function get_stored_file($filecontent, $filename = null, $mockedmethods = []) {
+        $contenthash = \file_storage::hash_from_string($filecontent);
         if (empty($filename)) {
             $filename = $contenthash;
         }
 
-        $file = $this->getMockBuilder(stored_file::class)
-            ->setMethods($mockedmethods)
+        $file = $this->getMockBuilder(\stored_file::class)
+            ->onlyMethods($mockedmethods)
             ->setConstructorArgs([
                 get_file_storage(),
                 (object) [
@@ -100,7 +98,7 @@ class core_files_file_system_testcase extends advanced_testcase {
      */
     protected function get_testable_mock($mockedmethods = []) {
         $fs = $this->getMockBuilder(file_system::class)
-            ->setMethods($mockedmethods)
+            ->onlyMethods($mockedmethods)
             ->getMockForAbstractClass();
 
         return $fs;
@@ -111,7 +109,7 @@ class core_files_file_system_testcase extends advanced_testcase {
      *
      */
     public function test_not_cloneable() {
-        $reflection = new ReflectionClass('file_system');
+        $reflection = new \ReflectionClass('file_system');
         $this->assertFalse($reflection->isCloneable());
     }
 
@@ -239,7 +237,7 @@ class core_files_file_system_testcase extends advanced_testcase {
         ]);
         $fs->expects($this->once())
             ->method('get_local_path_from_hash')
-            ->with($this->equalTo(file_storage::hash_from_string($filecontent)), $this->equalTo($fetch))
+            ->with($this->equalTo(\file_storage::hash_from_string($filecontent)), $this->equalTo($fetch))
             ->willReturn($filepath);
 
         $file = $this->get_stored_file($filecontent);
@@ -266,7 +264,7 @@ class core_files_file_system_testcase extends advanced_testcase {
 
         $fs->expects($this->once())
             ->method('get_remote_path_from_hash')
-            ->with($this->equalTo(file_storage::hash_from_string($filecontent)), $this->equalTo(false))
+            ->with($this->equalTo(\file_storage::hash_from_string($filecontent)), $this->equalTo(false))
             ->willReturn($filepath);
 
         $file = $this->get_stored_file($filecontent);
@@ -288,7 +286,7 @@ class core_files_file_system_testcase extends advanced_testcase {
      */
     public function test_is_file_readable_locally_by_hash() {
         $filecontent = 'example content';
-        $contenthash = file_storage::hash_from_string($filecontent);
+        $contenthash = \file_storage::hash_from_string($filecontent);
         $filepath = __FILE__;
 
         $fs = $this->get_testable_mock([
@@ -309,7 +307,7 @@ class core_files_file_system_testcase extends advanced_testcase {
      */
     public function test_is_file_readable_locally_by_hash_empty() {
         $filecontent = '';
-        $contenthash = file_storage::hash_from_string($filecontent);
+        $contenthash = \file_storage::hash_from_string($filecontent);
 
         $fs = $this->get_testable_mock([
             'get_local_path_from_hash',
@@ -328,7 +326,7 @@ class core_files_file_system_testcase extends advanced_testcase {
      */
     public function test_is_file_readable_remotely_by_hash() {
         $filecontent = 'example content';
-        $contenthash = file_storage::hash_from_string($filecontent);
+        $contenthash = \file_storage::hash_from_string($filecontent);
 
         $fs = $this->get_testable_mock([
             'get_remote_path_from_hash',
@@ -348,7 +346,7 @@ class core_files_file_system_testcase extends advanced_testcase {
      */
     public function test_is_file_readable_remotely_by_hash_empty() {
         $filecontent = '';
-        $contenthash = file_storage::hash_from_string($filecontent);
+        $contenthash = \file_storage::hash_from_string($filecontent);
 
         $fs = $this->get_testable_mock([
             'get_remote_path_from_hash',
@@ -367,7 +365,7 @@ class core_files_file_system_testcase extends advanced_testcase {
      */
     public function test_is_file_readable_remotely_by_hash_not_found() {
         $filecontent = 'example content';
-        $contenthash = file_storage::hash_from_string($filecontent);
+        $contenthash = \file_storage::hash_from_string($filecontent);
 
         $fs = $this->get_testable_mock([
             'get_remote_path_from_hash',
@@ -493,9 +491,9 @@ class core_files_file_system_testcase extends advanced_testcase {
      */
     public function test_is_file_removable_empty() {
         $filecontent = '';
-        $contenthash = file_storage::hash_from_string($filecontent);
+        $contenthash = \file_storage::hash_from_string($filecontent);
 
-        $method = new ReflectionMethod(file_system::class, 'is_file_removable');
+        $method = new \ReflectionMethod(file_system::class, 'is_file_removable');
         $method->setAccessible(true);
         $result = $method->invokeArgs(null, [$contenthash]);
         $this->assertFalse($result);
@@ -511,14 +509,14 @@ class core_files_file_system_testcase extends advanced_testcase {
         global $DB;
 
         $filecontent = 'example content';
-        $contenthash = file_storage::hash_from_string($filecontent);
+        $contenthash = \file_storage::hash_from_string($filecontent);
 
         $DB = $this->getMockBuilder(\moodle_database::class)
-            ->setMethods(['record_exists'])
+            ->onlyMethods(['record_exists'])
             ->getMockForAbstractClass();
         $DB->method('record_exists')->willReturn(true);
 
-        $method = new ReflectionMethod(file_system::class, 'is_file_removable');
+        $method = new \ReflectionMethod(file_system::class, 'is_file_removable');
         $method->setAccessible(true);
         $result = $method->invokeArgs(null, [$contenthash]);
 
@@ -535,14 +533,14 @@ class core_files_file_system_testcase extends advanced_testcase {
         global $DB;
 
         $filecontent = 'example content';
-        $contenthash = file_storage::hash_from_string($filecontent);
+        $contenthash = \file_storage::hash_from_string($filecontent);
 
         $DB = $this->getMockBuilder(\moodle_database::class)
-            ->setMethods(['record_exists'])
+            ->onlyMethods(['record_exists'])
             ->getMockForAbstractClass();
         $DB->method('record_exists')->willReturn(false);
 
-        $method = new ReflectionMethod(file_system::class, 'is_file_removable');
+        $method = new \ReflectionMethod(file_system::class, 'is_file_removable');
         $method->setAccessible(true);
         $result = $method->invokeArgs(null, [$contenthash]);
 
@@ -615,7 +613,7 @@ class core_files_file_system_testcase extends advanced_testcase {
             ->willReturn(__FILE__);
 
         $packer = $this->getMockBuilder(file_packer::class)
-            ->setMethods(['list_files'])
+            ->onlyMethods(['list_files'])
             ->getMockForAbstractClass();
 
         $packer->expects($this->once())
@@ -648,7 +646,7 @@ class core_files_file_system_testcase extends advanced_testcase {
             ->willReturn(__FILE__);
 
         $packer = $this->getMockBuilder(file_packer::class)
-            ->setMethods(['extract_to_pathname'])
+            ->onlyMethods(['extract_to_pathname'])
             ->getMockForAbstractClass();
 
         $packer->expects($this->once())
@@ -681,7 +679,7 @@ class core_files_file_system_testcase extends advanced_testcase {
             ->willReturn(__FILE__);
 
         $packer = $this->getMockBuilder(file_packer::class)
-            ->setMethods(['extract_to_storage'])
+            ->onlyMethods(['extract_to_storage'])
             ->getMockForAbstractClass();
 
         $packer->expects($this->once())
@@ -720,7 +718,7 @@ class core_files_file_system_testcase extends advanced_testcase {
             ->willReturn(__FILE__);
 
         $archive = $this->getMockBuilder(file_archive::class)
-            ->setMethods([
+            ->onlyMethods([
                 'add_directory',
                 'add_file_from_pathname',
             ])
@@ -757,7 +755,7 @@ class core_files_file_system_testcase extends advanced_testcase {
             ->willReturn($filepath);
 
         $archive = $this->getMockBuilder(file_archive::class)
-            ->setMethods([
+            ->onlyMethods([
                 'add_directory',
                 'add_file_from_pathname',
             ])
@@ -911,7 +909,7 @@ class core_files_file_system_testcase extends advanced_testcase {
         // Get the filesystem mock.
         $fs = $this->get_testable_mock();
 
-        $method = new ReflectionMethod(file_system::class, 'get_imageinfo_from_path');
+        $method = new \ReflectionMethod(file_system::class, 'get_imageinfo_from_path');
         $method->setAccessible(true);
         $result = $method->invokeArgs($fs, [$filepath]);
 
@@ -933,7 +931,90 @@ class core_files_file_system_testcase extends advanced_testcase {
         // Get the filesystem mock.
         $fs = $this->get_testable_mock();
 
-        $method = new ReflectionMethod(file_system::class, 'get_imageinfo_from_path');
+        $method = new \ReflectionMethod(file_system::class, 'get_imageinfo_from_path');
+        $method->setAccessible(true);
+        $result = $method->invokeArgs($fs, [$filepath]);
+
+        $this->assertFalse($result);
+    }
+
+    /**
+     * Test that get_imageinfo_from_path returns an appropriate response
+     * for an svg image with viewbox attribute.
+     */
+    public function test_get_imageinfo_from_path_svg_viewbox() {
+        $filepath = __DIR__ . '/fixtures/testimage_viewbox.svg';
+
+        // Get the filesystem mock.
+        $fs = $this->get_testable_mock();
+
+        $method = new \ReflectionMethod(file_system::class, 'get_imageinfo_from_path');
+        $method->setAccessible(true);
+        $result = $method->invokeArgs($fs, [$filepath]);
+
+        $this->assertArrayHasKey('width', $result);
+        $this->assertArrayHasKey('height', $result);
+        $this->assertArrayHasKey('mimetype', $result);
+        $this->assertEquals(100, $result['width']);
+        $this->assertEquals(100, $result['height']);
+        $this->assertStringContainsString('image/svg', $result['mimetype']);
+    }
+
+    /**
+     * Test that get_imageinfo_from_path returns an appropriate response
+     * for an svg image with width and height attributes.
+     */
+    public function test_get_imageinfo_from_path_svg_with_width_height() {
+        $filepath = __DIR__ . '/fixtures/testimage_width_height.svg';
+
+        // Get the filesystem mock.
+        $fs = $this->get_testable_mock();
+
+        $method = new \ReflectionMethod(file_system::class, 'get_imageinfo_from_path');
+        $method->setAccessible(true);
+        $result = $method->invokeArgs($fs, [$filepath]);
+
+        $this->assertArrayHasKey('width', $result);
+        $this->assertArrayHasKey('height', $result);
+        $this->assertArrayHasKey('mimetype', $result);
+        $this->assertEquals(100, $result['width']);
+        $this->assertEquals(100, $result['height']);
+        $this->assertStringContainsString('image/svg', $result['mimetype']);
+    }
+
+    /**
+     * Test that get_imageinfo_from_path returns an appropriate response
+     * for an svg image without attributes.
+     */
+    public function test_get_imageinfo_from_path_svg_without_attribute() {
+        $filepath = __DIR__ . '/fixtures/testimage.svg';
+
+        // Get the filesystem mock.
+        $fs = $this->get_testable_mock();
+
+        $method = new \ReflectionMethod(file_system::class, 'get_imageinfo_from_path');
+        $method->setAccessible(true);
+        $result = $method->invokeArgs($fs, [$filepath]);
+
+        $this->assertArrayHasKey('width', $result);
+        $this->assertArrayHasKey('height', $result);
+        $this->assertArrayHasKey('mimetype', $result);
+        $this->assertEquals(800, $result['width']);
+        $this->assertEquals(600, $result['height']);
+        $this->assertStringContainsString('image/svg', $result['mimetype']);
+    }
+
+    /**
+     * Test that get_imageinfo_from_path returns an appropriate response
+     * for a file which is not an correct svg.
+     */
+    public function test_get_imageinfo_from_path_svg_invalid() {
+        $filepath = __DIR__ . '/fixtures/testimage_error.svg';
+
+        // Get the filesystem mock.
+        $fs = $this->get_testable_mock();
+
+        $method = new \ReflectionMethod(file_system::class, 'get_imageinfo_from_path');
         $method->setAccessible(true);
         $result = $method->invokeArgs($fs, [$filepath]);
 
@@ -974,7 +1055,7 @@ class core_files_file_system_testcase extends advanced_testcase {
             ->willReturn(__DIR__ . "/fixtures/test.tgz");
 
         // Note: We are unable to determine the mode in which the $fh was opened.
-        $fh = $fs->get_content_file_handle($file, stored_file::FILE_HANDLE_GZOPEN);
+        $fh = $fs->get_content_file_handle($file, \stored_file::FILE_HANDLE_GZOPEN);
         $this->assertTrue(is_resource($fh));
         gzclose($fh);
     }
@@ -1006,7 +1087,7 @@ class core_files_file_system_testcase extends advanced_testcase {
         $filepath = '/path/to/file/not/currently/on/disk';
         $filecontent = 'example content';
         $filename = 'test.jpg';
-        $contenthash = file_storage::hash_from_string($filecontent);
+        $contenthash = \file_storage::hash_from_string($filecontent);
 
         $fs = $this->get_testable_mock(['get_remote_path_from_hash']);
         $fs->method('get_remote_path_from_hash')->willReturn($filepath);
@@ -1023,7 +1104,7 @@ class core_files_file_system_testcase extends advanced_testcase {
      */
     public function test_mimetype_from_hash_using_file_content() {
         $filecontent = 'example content';
-        $contenthash = file_storage::hash_from_string($filecontent);
+        $contenthash = \file_storage::hash_from_string($filecontent);
         $filename = 'example';
 
         $filepath = __DIR__ . "/fixtures/testimage.jpg";
@@ -1043,7 +1124,7 @@ class core_files_file_system_testcase extends advanced_testcase {
     public function test_mimetype_from_hash_using_file_content_remote() {
         $filepath = '/path/to/file/not/currently/on/disk';
         $filecontent = 'example content';
-        $contenthash = file_storage::hash_from_string($filecontent);
+        $contenthash = \file_storage::hash_from_string($filecontent);
         $filename = 'example';
 
         $filepath = __DIR__ . "/fixtures/testimage.jpg";

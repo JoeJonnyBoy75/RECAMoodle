@@ -39,7 +39,7 @@
     <div class="dropdown-menu" role="menu" id="drop-down-menu-{{uniqid}}" aria-labelledby="drop-down-{{uniqid}}">
         {{#children}}
             {{^divider}}
-                <a class="dropdown-item" role="menuitem" href="{{{url}}}" {{#title}}title="{{{title}}}"{{/title}}>{{{text}}}</a>
+                <a class="dropdown-item" role="menuitem" href="{{{url}}}" {{#title}}title="{{{title}}}"{{/title}} {{#attributes}}{{key}}="{{value}}" {{/attributes}}>{{{text}}}</a>
             {{/divider}}
             {{#divider}}
                 <div class="dropdown-divider" role="presentation"></div>
@@ -50,7 +50,7 @@
 {{/haschildren}}
 {{^haschildren}}
 <li class="nav-item">
-    <a class="nav-item nav-link" href="{{{url}}}" {{#title}}title="{{{title}}}"{{/title}}>{{{text}}}</a>
+    <a class="nav-link" href="{{{url}}}" {{#title}}title="{{{title}}}"{{/title}}>{{{text}}}</a>
 </li>
 {{/haschildren}}
 {{/divider}}

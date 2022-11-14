@@ -32,40 +32,54 @@
 {{> theme_remui/head }}
 
 <body {{{ bodyattributes }}}>
+{{> core/local/toast/wrapper}}
 
 <div id="page-wrapper">
 
     {{{ output.standard_top_of_body_html }}}
 
-    <div id="page" class="container-fluid mt-0">
+    <div id="page" class="container-fluid {{loginlayout}}">
         <div id="page-content" class="row">
             <div id="region-main-box" class="col-12">
-                <section id="region-main" class="col-12" aria-label="{{#str}}content{{/str}}">
-                    {{{ output.course_content_header }}}
+                <section id="region-main" class="col-12 h-100" aria-label="{{#str}}content{{/str}}">
+                <div class="login-wrapper">
+                    <div class="login-container">
                     {{{ output.main_content }}}
-                    {{{ output.course_content_footer }}}
+                    </div>
+                </div>
+                {{#hasdesc}}
+                <div class="login-desc">
+                    {{#logopos}}
+                        {{# output.should_display_navbar_logo }}
+                            <a class="login-brand-wrapper login-{{logoorsitename}}" href="#" aria-label="{{ sitename }} - {{#str}}brandname, theme_remui{{/str}}">
+                                <img src="{{ logourl }}" class="login-brand-logo logo">
+                                <img src="{{ logominiurl }}" class="login-brand-logo logomini">
+                                <span class="login-brand-logo icononly"><i class="fa fa-{{siteicon}}"></i> {{{ sitename }}}</span>
+                                <span class="login-brand-logo font-weight-bold iconsitename">
+                                    <i class="fa fa-{{siteicon}}"></i>&nbsp;
+                                    {{{ sitename }}}
+                                </span>
+                            </a>
+                        {{/ output.should_display_navbar_logo }}
+                        {{^ output.should_display_navbar_logo }}
+                            {{{ sitename }}}
+                        {{/ output.should_display_navbar_logo }}
+                    {{/logopos}}
+                    {{{sitedesc}}}
+                </div>
+                {{/hasdesc}}
                 </section>
             </div>
         </div>
     </div>
-    <footer id="page-footer" class="py-3 ">
-        <div class="container">
-            <div id="course-footer">{{{ output.course_footer }}}</div>
-
-            {{# output.page_doc_link }}
-                <p class="helplink">{{{ output.page_doc_link }}}</p>
-            {{/ output.page_doc_link }}
-
-            {{{ output.login_info }}}
-            {{{ output.home_link }}}
-            {{{ output.standard_footer_html }}}
-            {{{ output.standard_end_of_body_html }}}
-        </div>
-    </footer>
+    {{> theme_remui/footer }}
 </div>
 
 </body>
 </html>
 {{#js}}
-require(['theme_remui/loader']);
+M.util.js_pending('theme_remui/loader');
+require(['theme_remui/loader'], function() {
+  M.util.js_complete('theme_remui/loader');
+});
 {{/js}}

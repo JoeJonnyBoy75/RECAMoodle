@@ -39,10 +39,10 @@ $string['mysitenotfound'] = 'You have never logged into OneDrive before. You mus
 $string['oauth2serviceslink'] = '<a href="{$a}" title="Link to OAuth 2 services configuration">OAuth 2 services configuration</a>';
 $string['owner'] = 'Owned by: {$a}';
 $string['pluginname'] = 'Microsoft OneDrive';
-$string['removetempaccesstask'] = 'Remove temporary write access from controlled links.';
+$string['removetempaccesstask'] = 'Remove temporary write access from controlled links';
 $string['searchfor'] = 'Search for {$a}';
 $string['servicenotenabled'] = 'Access not configured.';
-$string['skydrivefilesexist'] = 'Files found in the Microsoft SkyDrive repository. This repository has been deprecated by Microsoft, however the files may be imported to the Microsoft OneDrive repository.';
+$string['skydrivefilesexist'] = 'The Microsoft SkyDrive repository is enabled but it has been deprecated. Please ensure you migrate files from SkyDrive to the OneDrive repository as soon as possible. In Moodle 4.4 it will no longer be possible.';
 $string['skydrivefilesimported'] = 'All files were imported from the Microsoft SkyDrive repository.';
 $string['skydrivefilesnotimported'] = 'Some files could not be imported from the Microsoft SkyDrive repository.';
 $string['onedrive:view'] = 'View OneDrive repository';

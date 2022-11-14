@@ -15,25 +15,36 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Edwiser RemUI
- * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * A drawer based layout for the boost theme.
+ *
+ * @package   theme_boost
+ * @copyright 2021 Bas Brands
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
+
 require_once('common.php');
 require_once($CFG->libdir . "/badgeslib.php");
 
-global $USER, $DB;
+
+global $USER, $DB, $OUTPUT, $CFG;
+
+$id             = optional_param('id', 0, PARAM_INT); // User id.
+$courseid       = optional_param('course', SITEID, PARAM_INT); // course id (defaults to Site).
+
+$id = $id ? $id : $USER->id;
+
+$user = $DB->get_record('user', array('id' => $id), '*', MUST_EXIST);
+$course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 
 use theme_remui\usercontroller as usercontroller;
 
 // Get user's object from page url.
-$uid = optional_param('id', $USER->id, PARAM_INT);
-$userobject = $DB->get_record('user', array('id' => $uid));
+$userobject = $DB->get_record('user', array('id' => $id));
 
-$context = context_user::instance($uid, MUST_EXIST);
+$context = context_user::instance($id, MUST_EXIST);
 if (user_can_view_profile($userobject, null, $context)) {
     $countries = get_string_manager()->get_list_of_countries();
     // Get the list of all country.
@@ -72,10 +83,15 @@ if (user_can_view_profile($userobject, null, $context)) {
                 $userobject->$key = 'locked';
             }
         }
-    }
 
+        $userfield = str_replace("field_lock_", "", $key);
+
+        if ($lockfield == 'unlockedifempty' && isset($userobject->$userfield) && ($userobject->$userfield !== "")) {
+            $userobject->$key = 'locked';
+        }
+    }
     $templatecontext['user'] = $userobject;
-    $templatecontext['user']->profilepicture = \theme_remui\utility::get_user_picture($userobject, 200);
+    $templatecontext['user']->profilepicture = $OUTPUT->user_picture($userobject, array('size' => 100));
     $templatecontext['user']->forumpostcount = usercontroller::get_user_forum_post_count($userobject);
     $templatecontext['user']->blogpostcount  = usercontroller::get_user_blog_post_count($userobject);
     $templatecontext['user']->contactscount  = usercontroller::get_user_contacts_count($userobject);
@@ -124,11 +140,49 @@ if (user_can_view_profile($userobject, null, $context)) {
     if (!empty($userobject->country)) {
         $country = get_string($userobject->country, 'countries');
     }
-    $templatecontext['user']->location  = $userobject->address.$userobject->city.$country;
-    $templatecontext['user']->instidept = $userobject->department.$userobject->institution;
-    if (!empty($templatecontext['user']->location) || !empty($templatecontext['user']->instidept)) {
+
+    $usercontext = context_user::instance($user->id, MUST_EXIST);
+    $systemcontext = context_system::instance();
+    $courseorusercontext = !empty($course) ? context_course::instance($course->id) : $usercontext;
+
+    // Contact details.
+
+    if (has_capability('moodle/user:viewhiddendetails', $courseorusercontext)) {
+        $hiddenfields = array();
+    } else {
+        $hiddenfields = array_flip(explode(',', $CFG->hiddenuserfields));
+    }
+
+    $canviewuseridentity = has_capability('moodle/site:viewuseridentity', $courseorusercontext);
+    if ($canviewuseridentity) {
+        $identityfields = array_flip(explode(',', $CFG->showuseridentity));
+    } else {
+        $identityfields = array();
+    }
+
+    $templatecontext['user']->location = "";
+    if (isset($identityfields['address']) && $user->address) {
+        $templatecontext['user']->location .= $user->address;
+    }
+    if (!isset($hiddenfields['city']) && $user->city) {
+        $templatecontext['user']->location .= " ". $user->city;
+    }
+    if (!isset($hiddenfields['country']) && $user->country) {
+        $templatecontext['user']->location .= " ".$user->country;
+    }
+
+    $templatecontext['user']->instidept = "";
+    if (isset($identityfields['department']) && $user->department) {
+        $templatecontext['user']->instidept .= $user->department;
+    }
+    if (isset($identityfields['institution']) && $user->institution) {
+        $templatecontext['user']->instidept .= $user->institution;
+    }
+
+    if ($templatecontext['user']->location !== "" || $templatecontext['user']->instidept !== "") {
         $aboutme = true;
     }
+
     $templatecontext['user']->aboutme = $aboutme;
 
     // Courses tab data.
@@ -136,6 +190,7 @@ if (user_can_view_profile($userobject, null, $context)) {
     $templatecontext['user']->hascourses = (count($usercourses)) ? true : false;
     $templatecontext['user']->courses = $usercourses;
 }
+
 echo $OUTPUT->render_from_template('theme_remui/mypublic', $templatecontext);
 
 $PAGE->requires->strings_for_js(array(

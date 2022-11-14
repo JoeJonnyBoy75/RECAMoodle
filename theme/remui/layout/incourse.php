@@ -17,30 +17,15 @@
 /**
  * Edwiser RemUI
  * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 require_once('common.php');
 
-// Prepare activity sidebar context.
-global $COURSE, $PAGE;
-$isactivitypage = false;
-if (isset($PAGE->cm->id) && $COURSE->id != 1 && $COURSE->format != 'singleactivity') {
-    $isactivitypage = true;
-}
-$templatecontext['isactivitypage'] = $isactivitypage;
-$templatecontext['courseurl'] = course_get_url($COURSE->id);
-$templatecontext['activitysections'] = \theme_remui_coursehandler::get_activity_list();
+global $PAGE;
 
-$flatnavigation = $PAGE->flatnav;
-foreach ($flatnavigation as $navs) {
-    if ($navs->key === 'addblock') {
-        $templatecontext['addblock'] = $navs;
-        break;
-    }
-}
 if (isset($templatecontext['focusdata']['enabled']) && $templatecontext['focusdata']['enabled']) {
     if (isset($PAGE->cm->id)) {
         list(
@@ -56,4 +41,8 @@ if (isset($templatecontext['focusdata']['enabled']) && $templatecontext['focusda
         ) = \theme_remui\utility::get_focus_mode_sections($COURSE);
     }
 }
+
+$eh = new \theme_remui\EnrolmentPageHandler();
+$templatecontext = $eh->generate_enrolment_page_context($templatecontext);
+
 echo $OUTPUT->render_from_template('theme_remui/incourse', $templatecontext);

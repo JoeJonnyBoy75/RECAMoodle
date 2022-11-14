@@ -1,0 +1,23 @@
+/**
+ * Grader report.
+ */
+.path-grade-report-grader {
+    .gradeparent {
+        overflow-x: auto;
+        tr .cell,
+        .floater .cell {
+            background-color: $white;
+        }
+    }
+}
+
+#gradetreeform {
+    #grade_edit_tree_table {
+        .weightoverride[type="checkbox"] {
+            margin-right: 5px;
+        }
+    }
+}
+.path-grade-report-grader .gradeparent th.header {
+    left: 1px;
+}

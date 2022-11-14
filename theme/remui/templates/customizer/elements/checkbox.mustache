@@ -1,0 +1,15 @@
+<div id="fitem_id_{{name}}" class="form-group row fitem">
+    <label class="d-inline font-weight-600 mr-1" for="id_{{name}}">
+        {{label}}
+    </label>
+    {{{help}}}
+    <div class="checkbox-reset btn" title="{{#str}}resetdesc, theme_remui{{/str}}" data-default="{{default}}">
+        <i class="fa fa-undo"></i>
+    </div>
+    <div class="custom-control custom-switch" data-fieldtype="checkbox">
+        <input type="checkbox" class="custom-control-input" name="{{name}}" id="id_{{name}}" value="{{value}}" {{{options}}}>
+        <label class="custom-control-label" for="id_{{name}}"></label>
+    </div>
+    <div class="form-control-feedback invalid-feedback" id="id_error_{{name}}">
+    </div>
+</div>

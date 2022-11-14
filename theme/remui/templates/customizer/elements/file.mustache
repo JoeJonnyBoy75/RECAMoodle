@@ -1,0 +1,18 @@
+<div id="fitem_id_{{name}}" class="form-group row fitem">
+    <div class="col-md-3 pr-5">
+        <label class="col-form-label d-inline " for="id_{{name}}">
+            {{label}}
+        </label>
+        {{{help}}}
+    </div>
+    <div class="col-md-9 form-inline felement" data-fieldtype="float" id="yui_3_17_2_1_1606564568615_1166">
+        {{#description}}
+            <div class="mb-2">
+                <span>{{{description}}}</span>
+            </div>
+        {{/description}}
+        {{{content}}}
+        <div class="form-control-feedback invalid-feedback" id="id_error_{{name}}">
+        </div>
+    </div>
+</div>

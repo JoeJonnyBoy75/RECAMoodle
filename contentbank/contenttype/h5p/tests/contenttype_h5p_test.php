@@ -14,14 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Test for H5P content bank plugin.
- *
- * @package    contenttype_h5p
- * @category   test
- * @copyright  2020 Amaia Anabitarte <amaia@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace contenttype_h5p;
 
 /**
  * Test for H5P content bank plugin.
@@ -32,7 +25,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @coversDefaultClass \contenttype_h5p\contenttype
  */
-class contenttype_h5p_contenttype_plugin_testcase extends advanced_testcase {
+class contenttype_h5p_test extends \advanced_testcase {
 
     /**
      * Test the behaviour of delete_content().
@@ -41,7 +34,7 @@ class contenttype_h5p_contenttype_plugin_testcase extends advanced_testcase {
         global $CFG, $USER, $DB;
 
         $this->resetAfterTest();
-        $systemcontext = context_system::instance();
+        $systemcontext = \context_system::instance();
 
         // Create users.
         $roleid = $DB->get_field('role', 'id', array('shortname' => 'manager'));
@@ -115,9 +108,9 @@ class contenttype_h5p_contenttype_plugin_testcase extends advanced_testcase {
         global $CFG;
 
         $this->resetAfterTest();
-        $systemcontext = context_system::instance();
+        $systemcontext = \context_system::instance();
         $this->setAdminUser();
-        $contenttype = new contenttype_h5p\contenttype($systemcontext);
+        $contenttype = new contenttype($systemcontext);
 
         // Add an H5P fill the blanks file to the content bank.
         $filepath = $CFG->dirroot . '/h5p/tests/fixtures/filltheblanks.h5p';
@@ -135,7 +128,7 @@ class contenttype_h5p_contenttype_plugin_testcase extends advanced_testcase {
         // Because we don't know specific H5P content type yet.
         $defaulticon = $contenttype->get_icon($filltheblanks);
         $this->assertEquals($defaulticon, $contenttype->get_icon($findethewords));
-        $this->assertContains('h5p', $defaulticon);
+        $this->assertStringContainsString('h5p', $defaulticon);
 
         // Deploy one of the contents though the player to create the H5P DB entries and know specific content type.
         $h5pplayer = new \core_h5p\player($findethewords->get_file_url(), new \stdClass(), true);
@@ -145,6 +138,42 @@ class contenttype_h5p_contenttype_plugin_testcase extends advanced_testcase {
         // Once the H5P has been deployed, we know the specific H5P content type, so the icon returned is not default one.
         $findicon = $contenttype->get_icon($findethewords);
         $this->assertNotEquals($defaulticon, $findicon);
-        $this->assertContains('find', $findicon, '', true);
+        $this->assertStringContainsStringIgnoringCase('find', $findicon);
+    }
+
+    /**
+     * Tests get_download_url result.
+     *
+     * @covers ::get_download_url
+     */
+    public function test_get_download_url() {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $systemcontext = \context_system::instance();
+        $this->setAdminUser();
+        $contenttype = new contenttype($systemcontext);
+
+        // Add an H5P fill the blanks file to the content bank.
+        $filename = 'filltheblanks.h5p';
+        $filepath = $CFG->dirroot . '/h5p/tests/fixtures/' . $filename;
+        $generator = $this->getDataGenerator()->get_plugin_generator('core_contentbank');
+        $contents = $generator->generate_contentbank_data('contenttype_h5p', 1, 0, $systemcontext, true, $filepath);
+        $filltheblanks = array_shift($contents);
+
+        // Check before deploying the URL is returned OK.
+        $url1 = $contenttype->get_download_url($filltheblanks);
+        $this->assertNotEmpty($url1);
+        $this->assertStringContainsString($filename, $url1);
+
+        // Deploy the contents though the player to create the H5P DB entries and know specific content type.
+        $h5pplayer = new \core_h5p\player($filltheblanks->get_file_url(), new \stdClass(), true);
+        $h5pplayer->add_assets_to_page();
+        $h5pplayer->output();
+
+        // Once the H5P has been deployed, the URL is still the same.
+        $url2 = $contenttype->get_download_url($filltheblanks);
+        $this->assertNotEmpty($url2);
+        $this->assertEquals($url1, $url2);
     }
 }

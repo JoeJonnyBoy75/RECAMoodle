@@ -17,169 +17,150 @@
 {{!
     Page footer.
 }}
-<footer id="page-footer" class="py-3 bg-primary">
+<footer id="page-footer" class="">
+
     <div class="floating-buttons page-settings" data-html2canvas-ignore>
-        <button id="gotop" type="button" class=" btn btn-floating btn-primary {{#hasblock}}hasblock{{/hasblock}} d-none align-items-center justify-content-center" data-toggle="tooltip" data-original-title="Go Top" data-placement="left" data-trigger="hover">
+        <button id="gotop" type="button" class=" btn btn-floating btn-primary {{#hasblock}}hasblock{{/hasblock}} d-none align-items-center justify-content-center" data-toggle="tooltip" data-original-title="{{#str}}gotop, theme_remui{{/str}}" data-placement="left" data-trigger="hover" aria-label="Go To Top" role="button">
             <i class="fa fa-chevron-up" aria-hidden="true"></i>
         </button>
+        {{#addablock}}{{{addablock}}}{{/addablock}}
+
         {{#focusdata.enabled}}
-            <button id="focusmodebutton" type="button" class="btn {{focusdata.btnbg}} btn-floating align-items-center justify-content-center d-flex" data-toggle="tooltip" data-original-title="Focus Mode" data-placement="left" data-trigger="hover">
+            <button id="focusmodebutton" type="button" class="btn {{focusdata.btnbg}} btn-floating align-items-center justify-content-center d-flex" data-toggle="tooltip" data-original-title="{{#str}}focusmode, theme_remui{{/str}}" data-placement="left" data-trigger="hover" aria-label="Toggle Focus Mode" role="Button" aria-pressed="false" >
                 <i class="fa {{focusdata.btnicon}}" aria-hidden="true"></i>
             </button>
         {{/focusdata.enabled}}
         {{#floating_buttons}}
             {{{floating_buttons}}}
         {{/floating_buttons}}
-    </div>
-    {{# footerdata }}
-    <div class="container-fluid">
-        <div class="container">
-            <div class="row m-0 p-0">
-                {{# sections }}
-                <div class="{{ classes }} text-xs-center">
-                    <div class="p-2">
-                        <h4 class="card-title mt-1 text-white font-weight-normal font-size-18">{{{ title }}}</h4>
-                        <div class="card-text text-white">{{{ content }}}</div>
-                    </div>
-                </div>
-                {{/ sections }}
 
-                {{# social }}
-                <div class="{{ classes }} text-xs-center">
-                    <div class="py-2 px-1">
-                        <h4 class="card-title mt-1 text-white font-weight-normal font-size-18">{{# str }} followus, theme_remui {{/ str }}</h4>
-                        <p class="card-text">
-                            {{# facebook }}
-                                <a href="{{ facebook }}" class="btn btn-icon btn-round social-facebook m-1"><i class="icon fa fa-facebook" aria-hidden="true"></i></a>
-                            {{/ facebook }}
-                            {{# twitter }}
-                                <a href="{{ twitter }}" class="btn btn-icon btn-round social-twitter m-1"><i class="icon fa fa-twitter" aria-hidden="true"></i></a>
-                            {{/ twitter }}
-                            {{# quora }}
-                                <a href="{{ quora }}" target="_blank" class="btn btn-icon btn-round social-pinterest"><i class="icon fa fa-quora" aria-hidden="true"></i></a>
-                            {{/ quora }}
-                            {{# linkedin }}
-                                <a href="{{ linkedin }}" class="btn btn-icon btn-round social-linkedin m-1"><i class="icon fa fa-linkedin" aria-hidden="true"></i></a>
-                            {{/ linkedin }}
-                            {{# gplus }}
-                                <a href="{{ gplus }}" class="btn btn-icon btn-round social-google-plus m-1"><i class="icon fa fa-google-plus" aria-hidden="true"></i></a>
-                            {{/ gplus }}
-                            {{# instagram }}
-                                <a href="{{ instagram }}" class="btn btn-icon btn-round social-instagram m-1"><i class="icon fa fa-instagram" aria-hidden="true"></i></a>
-                            {{/ instagram }}
-                            {{# youtube }}
-                                <a href="{{ youtube }}" class="btn btn-icon btn-round social-youtube m-1"><i class="icon fa fa-youtube" aria-hidden="true"></i></a>
-                            {{/ youtube }}
-                            {{# pinterest }}
-                                <a href="{{ pinterest }}" class="btn btn-icon btn-round social-pinterest m-1"><i class="icon fa fa-pinterest" aria-hidden="true"></i></a>
-                            {{/ pinterest }}
-                        </p>
-                    </div>
-                </div>
-                {{/ social }}
-            </div>
+        <div data-region="footer-container-popover">
+            <button class="btn btn-floating bg-secondary icon-no-margin" data-action="footer-popover" data-placement="left" data-trigger="hover" aria-label="{{#str}}showfooter, theme_boost{{/str}}">
+                {{#pix}}e/question, core{{/pix}}
+            </button>
         </div>
 
-        <div class="footer-bottom row mx-3 px-0 py-2">
-            <div class="site-footer-legal pt-2 col-md-6">
-                <nav class="nav navbar-nav d-none" aria-label="{{#str}}custommenu, admin{{/str}}">
-                    {{# output.custom_menu_flat }}
-                        <ul class="list-unstyled pt-3">
-                            {{> theme_remui/custom_menu_footer }}
-                        </ul>
-                    {{/ output.custom_menu_flat }}
-                </nav>
-                <a href="{{ bottomlink }}">{{{ bottomtext }}}</a>
-            </div>
-            <div class="site-footer-right pt-2 col-md-6 text-right">
-                {{# poweredby }}
-                    <a href="https://edwiser.org/remui/" rel="nofollow" target="_blank" >{{# str }} poweredby, theme_remui {{/ str }}</a>
-                {{/ poweredby }}
-                {{{ output.login_info }}}
-                <div class="tool_usertours-resettourcontainer"></div>
+    </div>
+
+    <div class="footer-content-popover container" data-region="footer-content-popover">
+        <div class="bg-primary">
+            {{# output.has_popover_links }}
+                <div class="footer-section border-bottom remui-fs-custom">
+                    {{#output.edw_feedback_and_support}}
+                        <div>{{{output.edw_feedback_and_support}}}</div>
+                    {{/output.edw_feedback_and_support}}
+
+                    {{# output.page_doc_link }}
+                        <div>{{{ output.page_doc_link }}}</div>
+                    {{/ output.page_doc_link }}
+
+                    {{# output.services_support_link }}
+                        <div>{{{ output.services_support_link }}}</div>
+                    {{/ output.services_support_link }}
+
+                    {{# output.supportemail }}
+                        <div>{{{ output.supportemail }}}</div>
+                    {{/ output.supportemail }}
+                </div>
+            {{/ output.has_popover_links }}
+            <div class="footer-section p-3 border-bottom">
+                <div class="logininfo mb-3">
+                    {{{ output.login_info }}}
+                </div>
+                <div class="tool_usertours-resettourcontainer">
+                </div>
+
                 {{{ output.standard_footer_html }}}
+                {{{ output.standard_end_of_body_html }}}
+
+                {{#output.edwiser_check_faq}}   
+                    <div>{{{output.edwiser_check_faq}}}</div>
+                {{/output.edwiser_check_faq}}
+            </div>
+            <div class="footer-section p-3">
+
+                {{#footerdata.poweredby}}
+                        <div>
+                            {{# str }}poweredby, theme_remui {{/ str }}
+                            {{#footerdata.isadmin}}
+                            <a href="https://edwiser.org/remui/" rel="nofollow" target="_blank" >
+                                {{#str}}pluginname, theme_remui{{/str}}
+                            </a>
+                            {{/footerdata.isadmin}}
+                            {{^footerdata.isadmin}}
+                                {{#str}}pluginname, theme_remui{{/str}}
+                            {{/footerdata.isadmin}}
+
+                        </div>
+                {{/footerdata.poweredby}}
+                {{^footerdata.poweredby}}
+                    <div>{{#str}}poweredbymoodle, core{{/str}}</div>
+                {{/footerdata.poweredby}}
+
+                {{#output.moodle_release}}
+                    <div>
+                        {{#str}}version, core{{/str}} {{{ output.moodle_release }}}
+                    </div>
+                {{/output.moodle_release}}
             </div>
         </div>
-        <div id="course-footer">{{{ output.course_footer }}}</div>
-        {{{ output.standard_end_of_body_html }}}
     </div>
-    <div class="exitbutton" style="display: none;"><a href="#"></a></div>
-    {{/ footerdata }}
+    <div class="footer-content-debugging footer-dark">
+        {{! <div class="container-fluid footer-dark-inner footer-popover">}}
+        <div class="container-fluid footer-dark-inner">
+            {{#footerdata}} {{> theme_remui/footer_sections}} {{/footerdata}}
+            
+            {{> theme_remui/footer_legal}}
+            
+            {{{ output.debug_footer_html }}}
+
+            {{#footerdata.footercopyrights}}
+                <div class="secondary-footer-copyright {{^footercopyrightsshow}}d-none{{/footercopyrightsshow}}"
+                {{#attributes}}
+                    {{{.}}}
+                {{/attributes}}>
+                    {{{content}}}
+                </div>
+            {{/footerdata.footercopyrights}}
+        </div>
+    </div>
 </footer>
-<script type="text/javascript">
-    if (!String.prototype.endsWith) {
-        String.prototype.endsWith = function(search, this_len) {
-            if (this_len === undefined || this_len > this.length) {
-                this_len = this.length;
-            }
-            return this.substring(this_len - search.length, this_len) === search;
-        };
-    }
-    require(['jquery'], function($) {
-        $("#section-1").before($(".opencloseallwrapper").detach());
-        $(".course-open-all").on("click", function() {
-            //$(".course-content *[data-toggle='collapse'][aria-expanded=false]").click();
-            $(".course-content .toggle-section.fa-angle-up.down").click();
-            return false;
+{{#js}}
+require(['theme_remui/footer-popover'], function(FooterPopover) {
+    FooterPopover.init();
+});
+
+{{# cansendfeedback }}
+require(['theme_remui/feedback'], function(){
+    $(document).ready(function(){
+
+        $.feedback({
+            ajaxURL: 'theme_remui_handle_bug_feedback_report', // external api method
+            html2canvasURL: '{{canvasurl}}',
+            initialBox: false,
+            highlightElement: true,
+            postHTML: false,
+            strokeStyle: '#62a8ea',
+            lineJoin: 'round',
+            tpl: {
+                description:'<div id="feedback-welcome"><div class="feedback-logo">{{# str }} sendfeedback, theme_remui {{/ str }}</div>{{# str }} descriptionmodal_text1, theme_remui {{/ str }}<textarea class="form-control" id="feedback-note-tmp"></textarea>{{# str }} descriptionmodal_text2, theme_remui {{/ str }}<button id="feedback-welcome-next" class="feedback-next-btn btn btn-primary">{{# str }} feedbackmodal_next, theme_remui {{/ str }}</button><div id="feedback-welcome-error">{{# str }} emptydescription_error, theme_remui {{/ str }}</div><div class="feedback-wizard-close"></div></div>',
+                
+                highlighter:'<div id="feedback-loading-icon" data-html2canvas-ignore="true"><img src="{{feedback_loading_image}}" alt="Loading..." /></div><div id="feedback-highlighter"><div class="feedback-logo">{{# str }} sendfeedback, theme_remui {{/ str }}</div><p>{{# str }} highlightmodal_text1, theme_remui {{/ str }}</p><div class="markup-buttons"><div class="blackout-wrap"><button class="feedback-setblackout feedback-active"><div class="ico"></div><span>{{# str }} blackout_button, theme_remui {{/ str }}</span></button><label class="lower tooltiptext">{{# str }} blackout_button_tooltip, theme_remui {{/ str }}</label></div><div class="highlight-wrap"><button class="feedback-sethighlight"><div class="ico"></div><span>{{# str }} highlight_button, theme_remui {{/ str }}</span></button><label class="tooltiptext">{{# str }} highlight_button_tooltip, theme_remui {{/ str }}</label></div></div><div class="feedback-buttons"> <button id="feedback-skiphighlighter-next" class="feedback-next-btn btn btn-link ml-2 w-auto"><span>{{# str }} feedbackmodal_skipnext, theme_remui {{/ str }}</span></button><button id="feedback-highlighter-next" class="feedback-next-btn btn btn-primary w-auto"><span>{{# str }} feedbackmodal_next, theme_remui {{/ str }}</span></button><button id="feedback-highlighter-back" class="feedback-back-btn btn btn-secondary"><span>{{# str }} feedbackmodal_previous, theme_remui {{/ str }}</span></button></div><div class="feedback-wizard-close"></div></div>',
+                
+                overview:'<div id="feedback-overview"><div class="feedback-logo">{{# str }} sendfeedback, theme_remui {{/ str }}</div><div id="feedback-overview-description"><div id="feedback_person_email_id"><h3>{{# str }} feedback_email_heading, theme_remui {{/ str }}</h3><input class="form-control" type="email" id="feedback_person_email_id_field" value="{{feedbacksender_emailid}}" /></div><div id="feedback-overview-description-text"><h3>{{# str }} description_heading, theme_remui {{/ str }}</h3><p class="mt-20 dataoverview">{{# str }}feebdack_datacollected_desc, theme_remui {{/ str }}</p></div></div><div id="feedback-overview-screenshot"><h3>{{# str }} feedback_screenshot, theme_remui {{/ str }}</h3></div><div class="feedback-buttons"><button id="feedback-submit" class="feedback-submit-btn feedback-btn-blue">{{# str }} feedbackmodal_submit, theme_remui {{/ str }}</button><button id="feedback-overview-back" class="feedback-back-btn btn btn-secondary">{{# str }} feedbackmodal_previous, theme_remui {{/ str }}</button></div><div id="feedback-overview-error">{{# str }} emptydescription_error, theme_remui {{/ str }}</div><div id="feedback-email-error" style="display: none;">{{# str }} incorrectemail_error, theme_remui {{/ str }}</div><div class="feedback-wizard-close"></div></div>',
+                
+                submitLoading:'<div id="feedback-submit-loading"><div class="feedback-logo">{{# str }} sendfeedback, theme_remui {{/ str }}</div><p>{{# str }} submit_loading, theme_remui {{/ str }}</p></div>',
+                submitSuccess:  '<div id="feedback-submit-success"><div class="feedback-logo">{{# str }} sendfeedback, theme_remui {{/ str }}</div><p>{{# str }} submit_success, theme_remui {{/ str }}</p></p><button class="feedback-close-btn feedback-btn-blue">{{# str }} feedbackmodal_ok, theme_remui {{/ str }}</button><div class="feedback-wizard-close"></div></div>',
+                submitError:'<div id="feedback-submit-error"><div class="feedback-logo">{{# str }} sendfeedback, theme_remui {{/ str }}</div><p>{{# str }} submit_error, theme_remui {{/ str }}</p><button class="feedback-close-btn feedback-btn-blue">{{# str }} feedbackmodal_ok, theme_remui {{/ str }}</button><div class="feedback-wizard-close"></div></div>'
+            },
+            feedbackButton: '.send-remui-feedback',
+            onTrigger: function(){
+                $('.btn-floating[data-action="footer-popover"]').click();
+            },
+            onClose: function() { window.location.reload(); }
         });
-        $(".course-close-all").on("click", function() {
-            //$(".course-content *[data-toggle='collapse'][aria-expanded=true]").click();
-            $(".course-content .toggle-section.fa-angle-up").not(".down").click();
-            return false;
-        });
-        // Attempt to highlight the correct current course row.
-        var potentialIcons = $(".course-content .activity img.icon");
-            if (potentialIcons.length > 0) {
-            var i;
-            for (i=0; i < potentialIcons.length; i++) {
-                if (potentialIcons[i].src.endsWith("completion-auto-y")) {
-                    continue;
-                }
-                break;
-            }
-            //console.log("i", i);
-            $(potentialIcons[i]).parent().parent().parent().parent().parent().parent().css("background-color", "#deecf9");
-        }
-        // Update the user menu items.
-        var usermenuDashboard = $(".usermenu .dropdown-item:contains('Dashboard')");
-        usermenuDashboard.attr("href", "/course/index.php?mycourses=1");
-        usermenuDashboard.html(usermenuDashboard.html().replace(/Dashboard/g, "My Courses"));
-        var usermenuProfile = $(".usermenu .dropdown-item:contains('Dashboard')");
-        // Make the new here links open in new windows.
-        $(".nav-link:contains('New Here')").parent().find(".dropdown-item").attr("target", "_blank")
-        // Return to Course Home, populate with correct URL.
-        //$(".course-exitbutton").attr("href", $(".back-to-course a").attr("href"));
-        //$(".course-exitbutton").on("click", function() { window.location.href = $(".backtocourse").parentsUntil("a").parent().attr("href")); /* $(".backtocourse").parentsUntil("a").parent().click(); */ });
-        $(".course-exitbutton").attr("href", $(".backtocourse").parentsUntil("a").parent().attr("href"));
-        // For Flash courses
-        $(".exitbutton a").attr("href", $(".backtocourse").parent().parent().parent().attr("href"));
     });
-    // Make the homepage link go to where we really want it, rename it to RECA.ca
-    var elems = document.querySelectorAll("#nav-drawer .list-group [data-key='home']");
-    for (var i=0; i < elems.length; i++) {
-        elems[i].href = "//www.reca.ca";
-        elems[i].target = "_blank";
-    }
-    var elems = document.querySelectorAll("#nav-drawer .list-group [data-key='home'] .media-body");
-    for (var i=0; i < elems.length; i++) {
-        elems[i].innerHTML = "RECA.ca";
-    }
-    // Hide the left menu nagivation dashboard link.
-    var elems = document.querySelectorAll("#nav-drawer .list-group [data-key='myhome']");
-    for (var i=0; i < elems.length; i++) {
-        elems[i].style.display = "none";
-    }
-    var elems = document.querySelectorAll("#nav-drawer .list-group [data-key='privatefiles']");
-    for (var i=0; i < elems.length; i++) {
-        elems[i].style.display = "none";
-    }
-    var elems = document.querySelectorAll("#nav-drawer .list-group [data-key='contentbank']");
-    for (var i=0; i < elems.length; i++) {
-        elems[i].style.display = "none";
-    }
-    // Hide the left menu nagivation calendar link.
-    var elems = document.querySelectorAll("#nav-drawer .list-group [data-key='calendar']");
-    for (var i=0; i < elems.length; i++) {
-        elems[i].style.display = "none";
-    }
-    </script>
+});
+{{/ cansendfeedback }}
+
+{{/js}}

@@ -17,7 +17,7 @@
 /**
  * Edwiser RemUI
  * @package    theme_remui
- * @copyright  (c) 2018 WisdmLabs (https://wisdmlabs.com/)
+ * @copyright  (c) 2022 WisdmLabs (https://wisdmlabs.com/)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui\controller;
@@ -26,13 +26,45 @@ defined('MOODLE_INTERNAL') || die();
 
 use Exception;
 use cache;
+use curl;
 use theme_remui\update;
 use \theme_remui\utility;
 use \theme_remui\toolbox;
 
+// Here License Controller has already defined the constants.
+// But on Setup Wizard we need it on RemUI controller
+// If we have it on remUI Controller only, License Controller throws error
+// and if We keep it on both files... we get error..saying already  defined constants.
+// To avoid this ... Checking only first constant as they are all going to be defined at once..
+// If not only then define them again.
+if (! defined("PLUGINSHORTNAME")) {
+    // Plugins short name appears on the License Menu Page.
+    define('PLUGINSHORTNAME', 'Edwiser RemUI');
+    // This slug is used to store the data in db.
+    // License is checked using two options viz edd_<slug>_license_key and edd_<slug>_license_status.
+    define('PLUGINSLUG', 'remui');
+    // Current Version of the plugin. This should be similar to Version tag mentioned in Plugin headers.
+    define('PLUGINVERSION', '3.3.0');
+    // Under this Name product should be created on WisdmLabs Site.
+    define('PLUGINNAME', 'Edwiser RemUI');
+    // Url where program pings to check if update is available and license validity.
+    define('STOREURL', 'https://edwiser.org/check-update');
+    // Author Name.
+    define('AUTHORNAME', 'WisdmLabs');
+
+    define('EDD_LICENSE_ACTION', 'licenseactionperformed');
+    define('EDD_LICENSE_KEY', 'edd_' . PLUGINSLUG . '_license_key');
+    define('EDD_LICENSE_DATA', 'edd_' . PLUGINSLUG . '_license_data');
+    define('EDD_PURCHASE_FROM', 'edd_' . PLUGINSLUG . '_purchase_from');
+    define('EDD_LICENSE_STATUS', 'edd_' . PLUGINSLUG . '_license_status');
+    define('EDD_LICENSE_ACTIVATE', 'edd_' . PLUGINSLUG . '_license_activate');
+    define('EDD_LICENSE_DEACTIVATE', 'edd_' . PLUGINSLUG . '_license_deactivate');
+    define('WDM_LICENSE_TRANS', 'wdm_' . PLUGINSLUG . '_license_trans');
+    define('WDM_LICENSE_PRODUCTSITE', 'wdm_' . PLUGINSLUG . '_product_site');
+}
 /**
  * Managing licensing using RemUIController if it purchased from Edwiser.
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class RemUIController {
@@ -61,6 +93,7 @@ class RemUIController {
         $licensedata = $this->request_license_data('activate_license', $this->licensekey);
 
         $this->process_response_data($licensedata);
+        return $licensedata;
     }
 
     /**
@@ -73,36 +106,33 @@ class RemUIController {
     public function request_license_data($action, $licensekey) {
         global $CFG;
         // Get cURL resource.
-        $curl = curl_init();
+        $curl = new curl();
 
-        curl_setopt_array($curl, array(
-            CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_URL => STOREURL,
-            CURLOPT_POST => 1,
-            CURLOPT_USERAGENT => $_SERVER['HTTP_USER_AGENT'] . ' - ' . $CFG->wwwroot,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_POSTFIELDS => array(
-                'edd_action' => $action,
-                'license' => $licensekey,
-                'item_name' => urlencode(PLUGINNAME),
-                'current_version' => PLUGINVERSION,
-                'url' => urlencode($CFG->wwwroot),
-            )
-        ));
+        $curl->setopt([
+            'CURLOPT_RETURNTRANSFER' => 1,
+            'CURLOPT_URL' => STOREURL,
+            'CURLOPT_POST' => 1,
+            'CURLOPT_USERAGENT' => $_SERVER['HTTP_USER_AGENT'] . ' - ' . $CFG->wwwroot,
+            'CURLOPT_TIMEOUT' => 30,
+            'CURLOPT_SSL_VERIFYPEER' => false
+        ]);
 
         // Since edwiser.org dose not accept request from the IPv6 address to solve that problem,
         // Try to send request using IPv4 address.
         if (defined('CURLOPT_IPRESOLVE') && defined('CURL_IPRESOLVE_V4')) {
-            curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+            $curl->setopt(['CURLOPT_IPRESOLVE' => CURL_IPRESOLVE_V4]);
         }
 
         // Send the request & save response to $resp.
-        $resp = curl_exec($curl);
-        $responsecode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $resp = $curl->post(STOREURL, array(
+            'edd_action' => $action,
+            'license' => $licensekey,
+            'item_name' => urlencode(PLUGINNAME),
+            'current_version' => PLUGINVERSION,
+            'url' => urlencode($CFG->wwwroot),
+        ));
 
-        // Close request to clear up some resources.
-        curl_close($curl);
+        $responsecode = $curl->info['http_code'];
 
         try {
             $licensedata = json_decode($resp);
@@ -208,7 +238,7 @@ class RemUIController {
         // Check license trans is  expired.
         if ($transvar) {
             $transvar = unserialize($transvar);
-            if (is_array($transvar) && time() > $transvar[1] && $transvar[1] > 0) {
+            if (is_array($transvar) && time() > $transvar[1] && $transvar[1] >= 0) {
                 $transexpired = true;
             }
         } else {
@@ -252,6 +282,7 @@ class RemUIController {
                 WDM_LICENSE_TRANS,
                 serialize(array($licensedata->license, 0))
             );
+            return $licensedata;
         }
     }
 
@@ -267,8 +298,7 @@ class RemUIController {
             return '';
         }
         $update = new update();
-        list($plugins, $errors) = $update->fetch_plugins_update();
-        if (($errors === false || count($errors) == 0) && ($plugins !== false && count($plugins) > 0)) {
+        if ($update->check_plugins_update()) {
             return 'available';
         }
         return '';

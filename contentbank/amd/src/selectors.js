@@ -17,7 +17,6 @@
  * Define all of the selectors we will be using on the contentbank interface.
  *
  * @module     core_contentbank/selectors
- * @package    core_contentbank
  * @copyright  2020 Sara Arjona <sara@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -42,20 +41,22 @@ export default {
     },
     actions: {
         search: getDataSelector('action', 'searchcontent'),
-        clearSearch: getDataSelector('action', 'clearsearchcontent'),
+        clearSearch: getDataSelector('action', 'clearsearch'),
         viewgrid: getDataSelector('action', 'viewgrid'),
         viewlist: getDataSelector('action', 'viewlist'),
         sortname: getDataSelector('action', 'sortname'),
+        sortuses: getDataSelector('action', 'sortuses'),
         sortdate: getDataSelector('action', 'sortdate'),
         sortsize: getDataSelector('action', 'sortsize'),
-        sorttype: getDataSelector('action', 'sorttype')
+        sorttype: getDataSelector('action', 'sorttype'),
+        sortauthor: getDataSelector('action', 'sortauthor'),
     },
     elements: {
         listitem: '.cb-listitem',
+        heading: '.cb-heading',
+        cell: '.cb-column',
         cbnavbarbreadcrumb: '.cb-navbar-breadbrumb',
         cbnavbartotalsearch: '.cb-navbar-totalsearch',
-        clearsearch: '.input-group-append .clear-icon',
-        searchicon: '.input-group-append .search-icon',
         searchinput: '#searchinput',
         sortbutton: '.cb-btnsort'
     },

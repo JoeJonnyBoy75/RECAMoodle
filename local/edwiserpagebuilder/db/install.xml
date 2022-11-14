@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/edwiserpagebuilder/db" VERSION="2019091100" COMMENT="XMLDB file for Edwiser Page Builder"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd">
+    <TABLES>
+        <TABLE NAME="edw_page_blocks" COMMENT="Edwiser Page Builder blocks table">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="title" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Block title"/>
+                <FIELD NAME="label" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Label to be shown to users"/>
+                <FIELD NAME="thumbnail" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Thumbnail Image url"/>
+                <FIELD NAME="content" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Block Content"/>
+                <FIELD NAME="version" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Block Version"/>
+                <FIELD NAME="updateavailable" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="Update Available (1/0)"/>
+                <FIELD NAME="visible" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="Block visible (1/0)"/>
+                <FIELD NAME="type" DEFAULT="block" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Block is block or page"/>
+                <FIELD NAME="categories" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Block is related to which page"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Unique key for the table."/>
+            </KEYS>
+        </TABLE>
+        <TABLE NAME="edw_page_block_layouts" COMMENT="Edwiser Page Builder blocks card layouts table">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="title" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Card layout title"/>
+                <FIELD NAME="belongsto" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Block title"/>
+                <FIELD NAME="label" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Label to be shown to users"/>
+                <FIELD NAME="thumbnail" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Thumbnail Image url"/>
+                <FIELD NAME="content" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Block Content"/>
+                <FIELD NAME="version" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Block Version"/>
+                <FIELD NAME="updateavailable" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="Update Available (1/0)"/>
+                <FIELD NAME="visible" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="Block visible (1/0)"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Unique key for the table."/>
+            </KEYS>
+        </TABLE>
+    </TABLES>
+</XMLDB>

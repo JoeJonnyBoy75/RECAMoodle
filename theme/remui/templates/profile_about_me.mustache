@@ -1,0 +1,138 @@
+<section>
+  <div class="container py-5">
+    <div class="row">
+      <div class="col-lg-4">
+        <div class="card mb-4">
+          <div class="card-body text-center">
+            {{{profilepicture}}}
+            
+            <h4 class="my-3">{{ firstname }} {{ lastname }}</h4>
+            
+            {{# usercanmanage }}
+                {{^ notcurrentuser }}
+                    <p class="profile-job">{{# str }} administrator, theme_remui {{/ str }}</p>
+                {{/ notcurrentuser }}
+            {{/ usercanmanage }}
+
+            <p class="text-muted mb-1 ellipsis ellipsis-3">{{description}}</p>
+            
+            <!--
+            <div class="profile-social">
+              <a class="icon fa fa-skype" target="_blank" href="{{ skype }}"></a>
+              <a class="icon fa fa-yahoo" target="_blank" href="{{ yahoo }}"></a>
+              <a class="icon fa fa-windows" target="_blank" href="{{ msn }}"></a>
+            </div>
+            -->
+
+            {{# url }}
+            <a role="button" href="{{ url }}" target="_blank" class="btn btn-primary">
+                {{# str }} webpage, theme_remui {{/ str }}
+            </a>
+            {{/ url }}
+
+            <div class="d-flex justify-content-center mb-2 extra-buttons-container">
+
+            </div>
+          </div>
+          <div class="card-footer">
+            <div class="row no-space text-center">
+              <div class="col">
+                <strong class="profile-stat-count">{{ contactscount }}</strong>
+                <span>{{# str }} contacts, theme_remui {{/ str }}</span>
+              </div>
+              <div class="col">
+                <strong class="profile-stat-count">{{ forumpostcount }}</strong>
+                <span>{{# str }} discussions, theme_remui {{/ str }}</span>
+              </div>
+              {{# blogpostcount }}
+              <div class="col">
+                <strong class="profile-stat-count">{{ blogpostcount }}</strong>
+                <span>{{# str }} blogentries, theme_remui {{/ str }}</span>
+              </div>
+              {{/ blogpostcount }}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-8">
+        <div class="card mb-4">
+          <div class="card-body">
+            <div class="row">
+              <div class="col-sm-3">
+                <p class="mb-0">{{#str}}fullname, theme_remui{{/str}}</p>
+              </div>
+              <div class="col-sm-9">
+                <p class="text-muted mb-0">{{ firstname }} {{ lastname }}</p>
+              </div>
+            </div>
+            <hr>
+            <div class="row">
+              <div class="col-sm-3">
+                <p class="mb-0">{{# str }} email, moodle {{/ str }}</p>
+              </div>
+              <div class="col-sm-9">
+                <p class="text-muted mb-0">{{email}}</p>
+              </div>
+            </div>
+            <hr>
+            <div class="row">
+              <div class="col-sm-3">
+                <p class="mb-0">{{# str }} sitephone, core_hub {{/ str }}</p>
+              </div>
+              <div class="col-sm-9">
+                <p class="text-muted mb-0">{{#phone1}}{{phone1}}{{/phone1}}{{^phone1}}-{{/phone1}}</p>
+              </div>
+            </div>
+            <hr>
+            <div class="row">
+              <div class="col-sm-3">
+                <p class="mb-0">{{# str }} department, moodle {{/ str }}</p>
+              </div>
+              <div class="col-sm-9">
+                <p class="text-muted mb-0">{{#department}}{{ department }} {{ institution }}{{/department}}{{^department}}-{{/department}}</p>
+              </div>
+            </div>
+            <hr>
+            <div class="row">
+              <div class="col-sm-3">
+                <p class="mb-0">{{# str }} address, moodle {{/ str }}</p>
+              </div>
+              <div class="col-sm-9">
+                <p class="text-muted mb-0">{{#location}}{{location}} {{/location}}{{^location}}-{{/location}}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card mb-4">
+          <div class="card-body">
+            <p class="mb-4">{{# str }} interests, moodle {{/ str }}
+            </p>
+            {{# hasinterests }}
+              {{# interests }}
+                  <a href="{{{config.wwwroot}}}/tag/index.php?id={{id}}" class="badge badge-info">{{ rawname }}
+                  </a>
+              {{/ interests }}
+            {{/ hasinterests }}
+          </div>
+        </div>
+        {{# hasbadges }}
+        <div class="card mb-4 mb-md-0 badges-container">
+          <div class="card-body">
+            <p class="mb-4">{{# str }} badges, moodle {{/ str }}
+            </p>
+            <ul class="p-0 pt-3 badge-grid">
+                {{# badges}}
+                    <li>
+                        <img src="{{ imageurl }}" alt="{{ name }}" />
+                        <a href="{{ link }}" class="text-center d-block font-weight-400 mt-10 blue-grey-500 font-size-14 font-weight-100" data-toggle="tooltip" title="{{ name }}" data-placement="bottom">{{ name }}</a>
+                    </li>
+                {{/ badges}}
+            </ul>
+          </div>
+        </div>
+        {{/ hasbadges }}
+      </div>
+    </div>
+  </div>
+</section>

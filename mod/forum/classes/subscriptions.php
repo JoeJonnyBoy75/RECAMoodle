@@ -393,7 +393,8 @@ class subscriptions {
         global $CFG, $DB;
 
         if (empty($fields)) {
-            $allnames = get_all_user_name_fields(true, 'u');
+            $userfieldsapi = \core_user\fields::for_name();
+            $allnames = $userfieldsapi->get_sql('u', false, '', '', false)->selects;
             $fields ="u.id,
                       u.username,
                       $allnames,
@@ -850,7 +851,7 @@ class subscriptions {
             // User does not have permission to unsubscribe from this discussion at all.
             $discussionsubscribe = true;
         } else {
-            if (isset($discussion) && \mod_forum\subscriptions::is_subscribed($USER->id, $forum, $discussionid, $cm)) {
+            if (isset($discussionid) && self::is_subscribed($USER->id, $forum, $discussionid, $cm)) {
                 // User is subscribed to the discussion - continue the subscription.
                 $discussionsubscribe = true;
             } else if (!isset($discussionid) && \mod_forum\subscriptions::is_subscribed($USER->id, $forum, null, $cm)) {

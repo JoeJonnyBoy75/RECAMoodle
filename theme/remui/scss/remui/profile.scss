@@ -1,0 +1,156 @@
+.page-context-header {
+    display: flex;
+    // align-items: center;
+    margin: 10px 0;
+
+    // .page-header-headings {
+    //     margin-bottom: 0;
+    //     margin-left: 10px;
+    // }
+    .page-header-headings h1 {
+        margin: 0;
+    }
+    .header-button-group {
+        padding: 3px;
+    }
+    #message-user-button,
+    #toggle-contact-button {
+        .icon {
+            margin-right: 5px;
+        }
+    }
+
+}
+#page-user-profile {
+    #page-header {
+        .page-context-header {
+            display: none;
+        }
+    }
+
+    #aboutme {
+        > section {
+            .row {
+                .col-lg-4 {
+                    padding-left: 0;
+                }
+                .col-lg-8 {
+                    padding-right: 0;
+                }
+            }    
+        }
+    }
+
+    div[role="main"] {
+        padding: 0 !important;
+        margin-top: 2rem;
+    }
+    .userprofile {
+        .description {
+            display: none;
+        }
+    }
+    .nav-tabs .nav-link{
+        padding-right: 0;
+        padding-left: 0;
+        margin-left: 25px;
+        &[href="#userprefs"] {
+            padding-left: 10px;
+            margin-left: 15px;
+        }
+        &:not(.active) {
+            color: #cdd2d4!important;
+        }
+        &.active{
+            border-width: 2px!important;
+            &[href="#userprefs"] {
+
+                border-width: 3px!important;
+            }
+        }
+    }
+    .profile-tabs {
+        padding: 15px 15px;
+    }
+    .header-button-group a {
+        margin-bottom: 0.175rem;
+        .icon {
+            margin-right: 5px;
+        }
+    }
+    .badge-grid {
+        list-style: none;
+        display: grid;
+        grid-gap: 10px;
+        grid-template-columns: repeat(auto-fit, minmax(20%, 1fr));
+        @include media-breakpoint-down(sm) {
+            grid-template-columns: repeat(auto-fit, minmax(40%, 1fr));
+        }
+    }
+}
+
+
+/*Profile Card Design*/
+.profile-cards-wrapper {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-gap: 30px;
+    .course-card {
+        box-shadow: 0.03rem 0.1rem 0.3rem #e7e7e7;
+        border-radius: 1rem;
+        font-family: roboto, sans-serif;
+        .first-half {
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            border-top-left-radius: 1rem;
+            border-bottom-left-radius: 1rem;
+            @include media-breakpoint-down(sm) {
+                height: 100px;
+                min-width: 100%;
+                border-bottom-right-radius: 1rem;
+                border-top-right-radius: 1rem;
+            }
+        }
+        .course-info {
+            @include media-breakpoint-down(sm) {
+                min-width: 100%;
+            }
+            .cat-name {
+                margin-bottom: 5px;
+                font-size: 12px;
+                font-family: sans-serif;
+                color: #ccc;
+                letter-spacing: 1px;
+            }
+            .course-title {
+                color: #626060;
+                letter-spacing: 1px;
+                font-weight: 700;
+            }
+            .course-desc {
+                font-size: 14px;
+                font-family: sans-serif;
+                letter-spacing: 0.5px;
+                color: #817c7c;
+            }
+            .btn {
+                background: #2B275F;
+                color: white;
+                text-transform: capitalize;
+            }
+            .course-footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: end;
+                .progress {
+                    height: 0.3rem;
+                }
+                .progress-wrapper {
+                    min-width: 50%;
+                }
+            }
+        }
+    }
+}
+

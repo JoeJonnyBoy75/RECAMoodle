@@ -16,14 +16,13 @@
 /**
  * Contain the logic for a drawer.
  *
- * @package    theme_remui
+ * @module theme_remui/drawer
  * @copyright  2016 Damyon Wiese
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-"use strict";
-define(['jquery', 'core/custom_interaction_events', 'core/log', 'core/pubsub'], function($, CustomEvents, Log, PubSub) {
+define(['jquery', 'core/custom_interaction_events', 'core/log', 'core/pubsub', 'core/aria'],
+     function($, CustomEvents, Log, PubSub, Aria) {
 
-    window.drawerInitialized = false;
     var SELECTORS = {
         TOGGLE_REGION: '[data-region="drawer-toggle"]',
         TOGGLE_ACTION: '[data-action="toggle-drawer"]',
@@ -38,8 +37,6 @@ define(['jquery', 'core/custom_interaction_events', 'core/log', 'core/pubsub'], 
 
     /**
      * Constructor for the Drawer.
-     *
-     * @param {object} root The root jQuery element for the modal
      */
     var Drawer = function() {
 
@@ -51,6 +48,8 @@ define(['jquery', 'core/custom_interaction_events', 'core/log', 'core/pubsub'], 
         }
         $(SELECTORS.TOGGLE_REGION).each(function(index, ele) {
             var trigger = $(ele).find(SELECTORS.TOGGLE_ACTION);
+            var drawerid = trigger.attr('aria-controls');
+            var drawer = $(document.getElementById(drawerid));
             var hidden = trigger.attr('aria-expanded') == 'false';
             var side = trigger.attr('data-side');
             var body = $(SELECTORS.BODY);
@@ -59,13 +58,15 @@ define(['jquery', 'core/custom_interaction_events', 'core/log', 'core/pubsub'], 
                 M.util.set_user_preference(preference, 'false');
             }
 
+            drawer.on('mousewheel DOMMouseScroll', this.preventPageScroll);
+
             if (!hidden) {
                 body.addClass('drawer-open-' + side);
                 trigger.attr('aria-expanded', 'true');
             } else {
                 trigger.attr('aria-expanded', 'false');
             }
-        });
+        }.bind(this));
 
         this.registerEventListeners();
         if (small) {
@@ -84,7 +85,7 @@ define(['jquery', 'core/custom_interaction_events', 'core/log', 'core/pubsub'], 
 
             trigger.attr('aria-expanded', 'false');
             body.removeClass('drawer-open-' + side);
-            drawer.attr('aria-hidden', 'true');
+            Aria.hide(drawer.get());
             drawer.addClass('closed');
             if (!small) {
                 M.util.set_user_preference(preference, 'false');
@@ -114,7 +115,7 @@ define(['jquery', 'core/custom_interaction_events', 'core/log', 'core/pubsub'], 
         if (!open) {
             // Open.
             trigger.attr('aria-expanded', 'true');
-            drawer.attr('aria-hidden', 'false');
+            Aria.unhide(drawer.get());
             drawer.focus();
             body.addClass('drawer-open-' + side);
             drawer.removeClass('closed');
@@ -125,8 +126,13 @@ define(['jquery', 'core/custom_interaction_events', 'core/log', 'core/pubsub'], 
             // Close.
             body.removeClass('drawer-open-' + side);
             trigger.attr('aria-expanded', 'false');
-            drawer.attr('aria-hidden', 'true');
-            drawer.addClass('closed');
+            drawer.addClass('closed').delay(500).queue(function() {
+                // Ensure that during the delay, the drawer wasn't re-opened.
+                if ($(this).hasClass('closed')) {
+                    Aria.hide(this);
+                }
+                $(this).dequeue();
+            });
             if (!small) {
                 M.util.set_user_preference(preference, 'false');
             }
@@ -179,18 +185,15 @@ define(['jquery', 'core/custom_interaction_events', 'core/log', 'core/pubsub'], 
         // to either an open or closed state.
         $(SELECTORS.DRAWER).on('webkitTransitionEnd msTransitionEnd transitionend', function(e) {
             var drawer = $(e.target).closest(SELECTORS.DRAWER);
-            var open = drawer.attr('aria-hidden') == 'false';
+            // Note: aria-hidden is either present, or absent. It should not be set to false.
+            var open = !!drawer.attr('aria-hidden');
             PubSub.publish('nav-drawer-toggle-end', open);
         });
     };
 
     return {
         'init': function() {
-            if (window.drawerInitialized == false) {
-                window.drawerInitialized = true;
-                return new Drawer();
-            }
-            return false;
+            return new Drawer();
         }
     };
 });

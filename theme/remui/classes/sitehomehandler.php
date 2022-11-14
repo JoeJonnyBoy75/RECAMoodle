@@ -18,7 +18,7 @@
  * Defines the cache usage
  *
  * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui;
@@ -185,5 +185,39 @@ class sitehomehandler {
             $blogentry->link = $CFG->wwwroot.'/blog/index.php?entryid='.$blogentry->id;
         }
         return $blogentries;
+    }
+
+    public static function get_aboutus_data() {
+        $displayaboutus = \theme_remui\toolbox::get_setting('frontpageblockdisplay');
+
+        if ($displayaboutus == 1) {
+            return false;
+        }
+
+        $context['aboutus_layout'] = ($displayaboutus == 2) ? 'inrow' : "incol";
+
+        $enablesectionbutton = \theme_remui\toolbox::get_setting('enablesectionbutton');
+
+        $context['aboutus_heading'] = format_text(\theme_remui\toolbox::get_setting('frontpageblockheading'));
+        $context['aboutus_desc'] = format_text(\theme_remui\toolbox::get_setting('frontpageblockdesc'));
+        $context['aboutus_spots'] = [];
+
+        for ($i = 1; $i <= 4; $i++) {
+            $section = [
+                'heading' => format_text(\theme_remui\toolbox::get_setting('frontpageblocksection'. $i)),
+                'description' => format_text(\theme_remui\toolbox::get_setting('frontpageblockdescriptionsection'. $i)),
+                'icon' => \theme_remui\toolbox::get_setting('frontpageblockiconsection'. $i),
+                'image' => \theme_remui\toolbox::setting_file_url('frontpageblockimage'. $i, 'frontpageblockimage'. $i)
+            ];
+
+            if ($enablesectionbutton) {
+                $section['button'] = \theme_remui\toolbox::get_setting('sectionbuttontext'. $i);
+                $section['link']   = \theme_remui\toolbox::get_setting('sectionbuttonlink'. $i);
+            }
+
+            $context['aboutus_spots'][] = $section;
+        }
+
+        return $context;
     }
 }

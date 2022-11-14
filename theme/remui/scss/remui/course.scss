@@ -13,21 +13,21 @@
             position: relative;
         }
         .section_availability {
-            padding: 0px 15px;
+            padding: 0 15px;
         }
         .sectionname {
             font-size: 16px;
             a {
-                color: #526069 !important;
+                color: $text-color !important;
                 font-weight: normal;
             }
         }
         li.section ul {
             // padding: 0;
             padding-inline-start: 20px;
-            li.activity {
-                padding: .3em;
-            }
+            // li.activity {
+            //     padding: .3em;
+            // }
         }
         #completionprogressid {
             display: none;
@@ -41,9 +41,6 @@
             }
         }
     }
-    #section-0 {
-        background-color: #e4e4e4 !important;
-    }
     .course-stats .stats-title {
         text-transform: uppercase;
         font-size: .85rem;
@@ -56,7 +53,7 @@
             padding: 10px;
             background: #e0e0e0;
             border-radius: 5px;
-            margin: 5px 0px !important;
+            margin: 5px 0 !important;
             li {
                 list-style: none !important;
             }
@@ -101,7 +98,7 @@
             height: 1.8em;
             min-width: 1.8em;
             text-align: center;
-            color: #526069;
+            color: $text-color;
             border-width: 1px;
             border-color: #e4eaec;
             border-style: solid;
@@ -132,7 +129,7 @@
 }
 @media (max-width:480px) {
     .initialbargroups  {
-        width: 100%;        
+        width: 100%;
         .pagination {
             width: 100%;
         }
@@ -168,9 +165,9 @@
 }
 
 // Edwiser RemUI Course Format.
-#page-course-view-remuiformat.pagelayout-course .remui-format-list #section-0 {
-    background-color: #f1f4f5 !important;
-}
+// #page-course-view-remuiformat.pagelayout-course .remui-format-list #section-0 {
+//     background-color: #f1f4f5 !important;
+// }
 
 #page-course-view-remuiformat.pagelayout-course {
     ul.general-single-card-container {
@@ -186,7 +183,7 @@
 }
 
 #page-course-view-remuiformat.editing ul.remui-format-list h4.sectionname {
-    padding: 10px 0px !important;
+    padding: 10px 0 !important;
     clear: none !important;
 }
 
@@ -195,15 +192,15 @@
     @extend .p-3;
 }
 // Course Page Bullets padding issue
-.pagelayout-course, .pagelayout-incourse {
-    #page-content {
-        .generalbox {
-            ul {
-                padding-left: 2rem !important;
-            }
-        }
-    }
-}
+// .pagelayout-course, .pagelayout-incourse {
+//     #page-content {
+//         .generalbox {
+//             ul {
+//                 padding-left: 2rem !important;
+//             }
+//         }
+//     }
+// }
 
 // Competency Icons Problem
 div[data-region="coursecompetencyactivities"] .list-inline li.list-inline-item {
@@ -211,10 +208,90 @@ div[data-region="coursecompetencyactivities"] .list-inline li.list-inline-item {
     vertical-align: top;
     text-align: center;
 }
+dd[data-region="coursecompetencyactivities"] .list-inline li.list-inline-item {
+    width: 75px;
+    vertical-align: top;
+    text-align: center;
+}
+
+
+
 .list-group-item {
     &.activity {
         .dimmed_text {
             padding: 16px 32px;
         }
+    }
+}
+
+body.pagelayout-incourse {
+    .moodle-actionmenu {
+        .dropdown-menu .dropdown-item {
+            margin: 0;
+            padding: 0.3rem 1rem;
+        }
+    }
+}
+
+/*This css is for profile page visit from participants page - for profile image*/
+.path-course-view.pagelayout-standard {
+    .userprofile {
+        .page-header-image {
+            display: block !important;
+        }
+        .breadcrumb {
+            display:none;
+        }
+    }
+}
+
+.format-ludic #ludic-main-container .ludic-container .section {
+    .no-ludic-event.inventory-container{
+        display: flex;
+        align-items: center;
+        height: 100%;
+        width: auto;
+    }
+    .avatar.inventory-container .owned-items {
+        max-width: 600px;
+        left: 0;
+        right: 0;
+        margin: auto;
+        display: flex;
+    }
+}
+// Scrom Package Exit Button issue.
+#page-mod-scorm-player {
+    &.focusmode {
+        #page-header {
+            display: block!important;
+            .mr-2 {
+                visibility: hidden;
+            }
+        }
+    }
+    .page-header-actionss {
+        max-height: ($input-btn-padding-y * 2) + $input-btn-line-height;
+    }
+}
+
+#page-course-view-topics {
+    #section-0 {
+        [data-toggletype="manual:mark-done"]:not(:hover) {
+            background: #ccc;
+        }
+    }
+}
+
+.filter-dates-popover {
+    width: 100%;
+    max-width: 47em;
+    @include media-breakpoint-down(sm) {
+        max-width: 95vw;
+        left: -50px !important;
+        .popover-body {
+            padding: 5px !important;
+        }
+
     }
 }

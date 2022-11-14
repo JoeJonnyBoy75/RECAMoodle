@@ -18,18 +18,20 @@ if (empty($CFG->enablecalendarexport)) {
 $checkuserid = !empty($userid) && $user = $DB->get_record('user', array('id' => $userid), 'id,password');
 //allowing for fallback check of old url - MDL-27542
 $checkusername = !empty($username) && $user = $DB->get_record('user', array('username' => $username), 'id,password');
-if (!$checkuserid && !$checkusername) {
+if ((!$checkuserid && !$checkusername) || !$user) {
     //No such user
     die('Invalid authentication');
 }
 
 //Check authentication token
-$authuserid = !empty($userid) && $authtoken == sha1($userid . $user->password . $CFG->calendar_exportsalt);
+$authuserid = !empty($userid) && $authtoken == calendar_get_export_token($user);
 //allowing for fallback check of old url - MDL-27542
 $authusername = !empty($username) && $authtoken == sha1($username . $user->password . $CFG->calendar_exportsalt);
 if (!$authuserid && !$authusername) {
     die('Invalid authentication');
 }
+
+$PAGE->set_context(context_system::instance());
 
 // Get the calendar type we are using.
 $calendartype = \core_calendar\type_factory::get_calendar_instance();
@@ -44,7 +46,7 @@ $allowedwhat = ['all', 'user', 'groups', 'courses', 'categories'];
 $allowedtime = ['weeknow', 'weeknext', 'monthnow', 'monthnext', 'recentupcoming', 'custom'];
 
 if (!empty($generateurl)) {
-    $authtoken = sha1($user->id . $user->password . $CFG->calendar_exportsalt);
+    $authtoken = calendar_get_export_token($user);
     $params = array();
     $params['preset_what'] = $what;
     $params['preset_time'] = $time;

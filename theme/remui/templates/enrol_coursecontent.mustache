@@ -1,0 +1,51 @@
+<div class="inner-container p-4 col-lg-12 col-sm-12 mb-4 course-main-content">
+  <div class="course-content">
+    <div class="cs_row_three" >
+        <div class="cc_headers d-flex justify-content-between">
+          <h4 class="title">{{#str}}coursecontent, theme_remui{{/str}}</h4>
+          <ul class="course_schdule float-right">
+            
+            {{#course}}
+            <li class="list-inline-item">
+              {{#str}}startdate, theme_remui{{/str}}: {{startdate}}
+            </li>
+            {{/course}}
+
+            {{#category}}
+            <li class="list-inline-item">
+              {{#str}}category, theme_remui{{/str}}:<a href="{{url}}"> {{{name}}}
+              </a>
+            </li>
+            {{/category}}
+          </ul>
+        </div>
+        <br>
+        <div class="accordion-wrapper">
+          <div class="panel-group" id="exampleAccordionDefault" aria-multiselectable="true" role="tablist">
+            {{#sections}}
+              <div class="panel">
+                <div class="panel-heading" id="defaultHeading_{{index}}" role="tab">
+                  <a class="panel-title d-flex justify-content-between align-items-center {{^sectionactive}}collapsed{{/sectionactive}}" data-toggle="collapse" href="#collapseDefault_{{index}}" data-parent="#exampleAccordionDefault" aria-expanded="false" aria-controls="collapseDefault_{{index}}">
+                  <h4 class="m-0">{{{name}}}</h4>
+                  {{#hasactivity}}
+                  <i class="fa fa-angle-down rotate-icon"></i>
+                  {{/hasactivity}}
+                  </a>
+                </div>
+                <div class="panel-collapse collapse {{#sectionactive}}show{{/sectionactive}}" id="collapseDefault_{{index}}" aria-labelledby="defaultHeading_{{index}}" role="tabpanel" style="">
+                  <div class="panel-body p-0">
+                    <ul class="list-group ">
+                      {{#activities}}
+                        <li class="list-group-item">
+                          <img src="{{icon}}" class="activityicon mr-2" alt="{{name}}" role="presentation" aria-hidden="true">{{{name}}}</li>
+                      {{/activities}}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            {{/sections}}
+          </div>
+        </div>
+    </div>
+  </div>  
+</div>

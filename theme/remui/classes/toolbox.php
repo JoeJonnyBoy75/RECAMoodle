@@ -17,7 +17,7 @@
 /**
  * This is built using the bootstrapbase template to allow for new theme's using Moodle's new Bootstrap theme engine
  * @package   theme_remui
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace theme_remui;
@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 define("THEMEREMUI", "theme_remui");
 /**
  * This is built using the bootstrapbase template to allow for new theme's using.
- * @copyright (c) 2020 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
+ * @copyright (c) 2022 WisdmLabs (https://wisdmlabs.com/) <support@wisdmlabs.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class toolbox {
@@ -347,5 +347,180 @@ class toolbox {
         foreach ($confignames as $value) {
             unset_config($value, THEMEREMUI);
         }
+    }
+
+    public static function get_form_style_data($config = null) {
+
+        $activeprimarycolor = get_config('theme_remui', 'sitecolorhex');
+        if (!$activeprimarycolor) {
+            $activeprimarycolor = '#62A8EA';
+        }
+        $hexrgb = explode("#", $activeprimarycolor)[1];
+
+        $sum = hexdec(substr($hexrgb, 0, 2)) + hexdec(substr($hexrgb, 2, 2)) + hexdec(substr($hexrgb, 4, 2));
+
+        if ( $sum > 600 ) {
+            $activeprimarycolor = "#62a8ea";
+        }
+
+        $mainbordercolor = '#ddd';
+        $formsdesign1 = [
+            '100%', // conf:edw-input-text-width
+            '#fff', // conf:edw-input-text-bgcolor
+            '#495057', // conf:edw-input-text-textcolor
+            $mainbordercolor, // conf:edwf-bordercolor
+            '1px', // conf:edwf-borderwidth-top
+            '1px', // conf:edwf-borderwidth-right
+            '1px', // conf:edwf-borderwidth-bottom
+            '1px', // conf:edwf-borderwidth-left
+            '20px', // conf:edwf-borderrad-bl
+            '20px', // conf:edwf-borderrad-br
+            '20px', // conf:edwf-borderrad-tl
+            '20px', // conf:edwf-borderrad-tr
+            'auto', // conf:edwf-input-text-height
+            '14px', // conf:edwf-input-text-fontsize
+            '0', // conf:edwf-shadow-hoffset
+            '1px', // conf:edwf-shadow-voffset
+            '4px', // conf:edwf-shadow-blur
+            '0', // conf:edwf-shadow-spread
+            '#00000017', // conf:edwf-shadow-color
+            '.375rem', // conf:edwf-pad-top
+            '30px', // conf:edwf-pad-right
+            '.375rem', // conf:edwf-pad-bottom
+            '20px', // conf:edwf-pad-left
+            '1px', // conf:edwf-checkbox-borderwidth
+            $mainbordercolor, // conf:edwf-checkbox-bordercolor
+            '#62a8ea', // conf:edwf-checkbox-backcolor
+            '1px', // conf:edwf-atto-borderwidth
+            $mainbordercolor, // conf:edwf-atto-bordercolor
+            'initial', // conf:edwf-btn-vpad
+            'initial', // conf:edwf-btn-hpad
+            '15px', // conf:edwf-btn-fontsize
+            '.215rem', // conf:edwf-btn-borderrad
+            '2px solid '.$activeprimarycolor, // conf:edwf-input-focus-tborder
+            '2px solid '.$activeprimarycolor, // conf:edwf-input-focus-bborder
+            '2px solid '.$activeprimarycolor, // conf:edwf-input-focus-lborder
+            '2px solid '.$activeprimarycolor, // conf:edwf-input-focus-rborder
+            'none', // conf:edwf-input-focus-shadow
+            '', // conf:edwf-fieldset-background-color,
+            '1px solid #f5f5f5', // conf:edwf-fieldset-border
+            '0 0.125rem 0.25rem #00000013', // conf:edwf-fieldset-box-shadow
+            '1px solid #e9e7e7', // conf:edwf-fieldset-ftoggler-b-bottom
+            '0 0 1rem 0' // conf:edwf-fieldset-margin
+        ];
+
+        $mainbordercolor = '#afc6dc';
+        $formsdesign3 = [
+            '100%', // conf:edw-input-text-width
+            '#f5f3f36e', // conf:edw-input-text-bgcolor
+            '#495057', // conf:edw-input-text-textcolor
+            $mainbordercolor, // conf:edwf-bordercolor
+            '0', // conf:edwf-borderwidth-top
+            '0', // conf:edwf-borderwidth-right
+            '1px', // conf:edwf-borderwidth-bottom
+            '0', // conf:edwf-borderwidth-left
+            '0', // conf:edwf-borderrad-bl
+            '0', // conf:edwf-borderrad-br
+            '0', // conf:edwf-borderrad-tl
+            '0', // conf:edwf-borderrad-tr
+            '48px', // conf:edwf-input-text-height
+            '15px', // conf:edwf-input-text-fontsize
+            '0', // conf:edwf-shadow-hoffset
+            '0', // conf:edwf-shadow-voffset
+            '0', // conf:edwf-shadow-blur
+            '0', // conf:edwf-shadow-spread
+            '#fff', // conf:edwf-shadow-color
+            '.375rem', // conf:edwf-pad-top
+            '2rem', // conf:edwf-pad-right
+            '.375rem', // conf:edwf-pad-bottom
+            '.75rem', // conf:edwf-pad-left
+            '1px', // conf:edwf-checkbox-borderwidth
+            $mainbordercolor, // conf:edwf-checkbox-bordercolor
+            $mainbordercolor, // conf:edwf-checkbox-backcolor
+            '1px', // conf:edwf-atto-borderwidth
+            $mainbordercolor, // conf:edwf-atto-bordercolor
+            '1.05rem', // conf:edwf-btn-vpad
+            '0.65rem', // conf:edwf-btn-hpad
+            '15px', // conf:edwf-btn-fontsize
+            '0', // conf:edwf-btn-borderrad
+            'none', // conf:edwf-input-focus-tborder
+            '2px solid '.$activeprimarycolor, // conf:edwf-input-focus-bborder
+            'none', // conf:edwf-input-focus-lborder
+            'none', // conf:edwf-input-focus-rborder
+            'none', // conf:edwf-input-focus-shadow
+            '', // conf:edwf-fieldset-background-color
+            '', // conf:edwf-fieldset-border,
+            '0 0.2rem 0.8rem #00000026', // conf:edwf-fieldset-box-shadow
+            'none', // conf:edwf-fieldset-ftoggler-b-bottom
+            '0 0 1rem 0' // conf:edwf-fieldset-margin
+        ];
+
+        $tag = [
+            '"[[conf:edw-input-text-width]]"',
+            '"[[conf:edw-input-text-bgcolor]]"',
+            '"[[conf:edw-input-text-textcolor]]"',
+            '"[[conf:edwf-bordercolor]]"',
+            '"[[conf:edwf-borderwidth-top]]"',
+            '"[[conf:edwf-borderwidth-right]]"',
+            '"[[conf:edwf-borderwidth-bottom]]"',
+            '"[[conf:edwf-borderwidth-left]]"',
+            '"[[conf:edwf-borderrad-bl]]"',
+            '"[[conf:edwf-borderrad-br]]"',
+            '"[[conf:edwf-borderrad-tl]]"',
+            '"[[conf:edwf-borderrad-tr]]"',
+            '"[[conf:edwf-input-text-height]]"',
+            '"[[conf:edwf-input-text-fontsize]]"',
+            '"[[conf:edwf-shadow-hoffset]]"',
+            '"[[conf:edwf-shadow-voffset]]"',
+            '"[[conf:edwf-shadow-blur]]"',
+            '"[[conf:edwf-shadow-spread]]"',
+            '"[[conf:edwf-shadow-color]]"',
+            '"[[conf:edwf-pad-top]]"',
+            '"[[conf:edwf-pad-right]]"',
+            '"[[conf:edwf-pad-bottom]]"',
+            '"[[conf:edwf-pad-left]]"',
+            '"[[conf:edwf-checkbox-borderwidth]]"',
+            '"[[conf:edwf-checkbox-bordercolor]]"',
+            '"[[conf:edwf-checkbox-backcolor]]"',
+            '"[[conf:edwf-atto-borderwidth]]"',
+            '"[[conf:edwf-atto-bordercolor]]"',
+            '"[[conf:edwf-btn-vpad]]"',
+            '"[[conf:edwf-btn-hpad]]"',
+            '"[[conf:edwf-btn-fontsize]]"',
+            '"[[conf:edwf-btn-borderrad]]"',
+            '"[[conf:edwf-input-focus-tborder]]"',
+            '"[[conf:edwf-input-focus-bborder]]"',
+            '"[[conf:edwf-input-focus-lborder]]"',
+            '"[[conf:edwf-input-focus-rborder]]"',
+            '"[[conf:edwf-input-focus-shadow]]"',
+            '"[[conf:edwf-fieldset-background-color]]"',
+            '"[[conf:edwf-fieldset-border]]"',
+            '"[[conf:edwf-fieldset-box-shadow]]"',
+            '"[[conf:edwf-fieldset-ftoggler-b-bottom]]"',
+            '"[[conf:edwf-fieldset-margin]]"',
+        ];
+        if ($config == null) {
+            // We will return whole array, if no specific config is required.
+            return array(
+                $tag,
+                array(
+                    'formsdesign1' => $formsdesign1,
+                    'formsdesign3' => $formsdesign3
+                )
+            );
+        }
+        return array($tag, $$config);
+    }
+
+    public static function replace_form_styling($css) {
+
+        $config = get_config(THEMEREMUI, 'formselementdesign');
+        if ($config == 'default') {
+            return $css;
+        }
+
+        list($tag, $config) = self::get_form_style_data($config);
+
+        return str_replace($tag, $config, $css);
     }
 }

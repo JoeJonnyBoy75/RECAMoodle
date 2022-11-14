@@ -1,0 +1,143 @@
+#region-bottom-blocks,
+#region-top-blocks {
+    .block_edwiserratingreview {
+        #reviewarea {
+            .ratings-block-wrapper {
+                display: flex !important;
+                margin-bottom: 30px;
+
+                @media only screen and (min-width: 800px) {
+                    .avg-rating-stat {
+                        flex: 1 1 20%;
+                    }
+
+                    .avg-rating-progress {
+                        flex: 1 1 80%;
+                    }
+                }
+
+                @media only screen and (max-width: 800px) {
+                    flex-direction: column-reverse;
+                }
+            }
+
+            .progress-wrapper {
+                display: flex;
+                align-items: center;
+
+                .progress {
+                    @media only screen and (min-width: 800px) {
+                        flex: 1 1 80%;
+                        margin-right: 30px;
+                    }
+
+                    @media only screen and (max-width: 800px) {
+                        flex: 1 1 60%;
+                        margin-right: 10px;
+                    }
+                }
+
+                .stars {
+                    @media only screen and (min-width: 800px) {
+                        flex: 1 1 20%;
+                    }
+
+                    @media only screen and (max-width: 800px) {
+                        flex: 1 1 40%;
+                    }
+                }
+            }
+
+            .reviewheader {
+                display: flex;
+                justify-content: space-between;
+
+                .reviewselector {
+                    max-width: max-content;
+                    padding: 0.5rem 1rem 0.5rem 0.5rem;
+                }
+                @media only screen and (min-width: 800px) {
+                    .inner-flex {
+                        display: flex;
+                    }
+                }
+            }
+
+        }
+    }
+
+
+}
+
+#page-blocks-edwiserratingreview-view,
+#page-blocks-edwiserratingreview-admin {
+    #page-wrapper #topofscroll div.secondary-navigation {
+        display: none;
+    }
+
+}
+
+.rating-stars-input {
+    display:flex;
+    justify-content: flex-end;
+    flex-direction: row-reverse;
+
+    i.star-icon {
+        margin-right: 3px;
+        color: #dedcdc;
+        font-size: 20px;
+    }
+
+    input[name="rating"] {
+        &:checked ~ label, 
+        &:hover ~ label {
+          color: $rating-primary-color;
+          i.star-icon {
+            color: $rating-primary-color;
+          }
+        }
+    }
+}
+
+#block-region-side-pre {
+    .block_edwiserratingreview {
+        #reviewarea {
+            .ratings-block-wrapper {
+                display: flex;
+                flex-direction: column-reverse;
+            }
+
+            .progress-wrapper {
+                display: flex;
+                align-items: center;
+
+                .progress {
+                    flex: 1 1 60%;
+                    margin-right: 10px;
+                }
+
+                .stars {
+                    flex: 1 1 25%;
+                }
+            }
+        }
+    }
+}
+
+.dataTables_wrapper {
+    .row:nth-child(2) {
+        overflow-x: auto;
+    }
+    table.dataTable thead th, table.dataTable thead td {
+        padding: 10px 18px;
+    }
+    table.dataTable tbody th, table.dataTable tbody td {
+        padding: 8px 10px;
+    }
+    table.dataTable.stripe tbody tr.odd, table.dataTable.display tbody tr.odd {
+        background-color: #f9f9f9;
+    }
+    table.dataTable.display tbody tr:hover>.sorting_1, table.dataTable.order-column.hover tbody tr:hover>.sorting_1 {
+        background-color: #eaeaea;
+    }
+}

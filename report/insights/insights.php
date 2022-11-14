@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core\report_helper;
+
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
@@ -116,7 +118,9 @@ if (!$model->get_target()->link_insights_report()) {
 }
 
 $insightinfo = new stdClass();
-$insightinfo->contextname = $context->get_context_name();
+// Don't show prefix for course-level context.
+$withprefix = $context->contextlevel <> CONTEXT_COURSE;
+$insightinfo->contextname = $context->get_context_name($withprefix);
 $insightinfo->insightname = $model->get_target()->get_name();
 
 if (!$model->is_enabled()) {
@@ -152,7 +156,14 @@ if ($model->get_analyser()::one_sample_per_analysable()) {
         redirect($redirecturl);
     }
 }
+
 echo $OUTPUT->header();
+
+if ($course) {
+    // Print selected drop down.
+    $pluginname = get_string('pluginname', 'report_insights');
+    report_helper::print_report_selector($pluginname);
+}
 
 $renderable = new \report_insights\output\insights_list($model, $context, $othermodels, $page, $perpage);
 echo $renderer->render($renderable);

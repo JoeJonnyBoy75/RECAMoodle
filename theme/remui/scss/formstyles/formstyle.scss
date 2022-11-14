@@ -1,0 +1,339 @@
+
+.edw-custom-selector {
+    display: inline-block;
+    // width: '[[conf:edw-input-text-width]]' !important;
+    height:'[[conf:edwf-input-text-height]]';
+    padding: '[[conf:edwf-pad-top]]' '[[conf:edwf-pad-right]]' '[[conf:edwf-pad-bottom]]' '[[conf:edwf-pad-left]]';
+    font-weight: 400;
+    line-height: 1.5;
+    font-size: '[[conf:edwf-input-text-fontsize]]';
+    color: '[[conf:edw-input-text-textcolor]]';
+    vertical-align: middle;
+    background-color: '[[conf:edw-input-text-bgcolor]]';
+    
+    border-top: '[[conf:edwf-borderwidth-top]]' solid '[[conf:edwf-bordercolor]]';
+    border-right: '[[conf:edwf-borderwidth-right]]' solid '[[conf:edwf-bordercolor]]';
+    border-bottom: '[[conf:edwf-borderwidth-bottom]]' solid '[[conf:edwf-bordercolor]]';
+    border-left: '[[conf:edwf-borderwidth-left]]' solid '[[conf:edwf-bordercolor]]';
+
+    border-bottom-left-radius: '[[conf:edwf-borderrad-bl]]';
+    border-bottom-right-radius: '[[conf:edwf-borderrad-br]]';
+    border-top-left-radius: '[[conf:edwf-borderrad-tl]]';
+    border-top-right-radius: '[[conf:edwf-borderrad-tr]]';
+
+    box-shadow: '[[conf:edwf-shadow-hoffset]]' '[[conf:edwf-shadow-voffset]]' '[[conf:edwf-shadow-blur]]' '[[conf:edwf-shadow-spread]]' '[[conf:edwf-shadow-color]]';
+
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    &:focus {
+        box-shadow: '[[conf:edwf-input-focus-shadow]]';
+        border-top: '[[conf:edwf-input-focus-tborder]]';
+        border-bottom: '[[conf:edwf-input-focus-bborder]]';
+        border-left: '[[conf:edwf-input-focus-lborder]]';
+        border-right: '[[conf:edwf-input-focus-rborder]]';
+    }
+}
+
+body:not(.default-formstyle):not(#page-local-edwiserpagebuilder-editor) {
+    #page {
+        div:not(.edwiserform-root-container) {
+
+            fieldset {
+                &.collapsible {
+                    box-shadow: '[[conf:edwf-fieldset-box-shadow]]';
+                    border-bottom-left-radius: '[[conf:edwf-borderrad-bl]]';
+                    border-bottom-right-radius: '[[conf:edwf-borderrad-br]]';
+                    legend {
+                        border-top-left-radius: '[[conf:edwf-borderrad-tl]]';
+                        border-top-right-radius: '[[conf:edwf-borderrad-tr]]';
+                        background: '[[conf:edwf-fieldset-background-color]]';
+                        border-bottom: '[[conf:edwf-fieldset-ftoggler-b-bottom]]';
+                    }
+                    &> .fcontainer {
+                        border-bottom-left-radius: '[[conf:edwf-borderrad-bl]]';
+                        border-bottom-right-radius: '[[conf:edwf-borderrad-br]]';
+                        border: '[[conf:edwf-fieldset-border]]';
+                    }
+                    &.collapsed {
+                        border-bottom-left-radius: calc('[[conf:edwf-borderrad-bl]]' + 10px);
+                        border-bottom-right-radius: calc('[[conf:edwf-borderrad-br]]' + 10px);
+                        legend {
+                            border-bottom-left-radius: '[[conf:edwf-borderrad-bl]]';
+                            border-bottom-right-radius: '[[conf:edwf-borderrad-br]]';
+                            border-top-left-radius: '[[conf:edwf-borderrad-tl]]';
+                            border-top-right-radius: '[[conf:edwf-borderrad-tr]]';
+
+                            background: '[[conf:edwf-fieldset-background-color]]';
+                            border: none;
+                        }   
+                    }
+                }
+                margin: '[[conf:edwf-fieldset-margin]]';
+            }
+            .collapsible-actions {
+                margin-bottom: 10px;
+            }
+            .felement {
+                &[data-fieldtype="modgrade"] {
+                    border-bottom-left-radius: '[[conf:edwf-borderrad-bl]]';
+                    border-bottom-right-radius: '[[conf:edwf-borderrad-br]]';
+                    border-top-left-radius: '[[conf:edwf-borderrad-tl]]';
+                    border-top-right-radius: '[[conf:edwf-borderrad-tr]]';
+                }
+                input[type="text"], .form-control, .custom-select {
+                    width: '[[conf:edw-input-text-width]]';
+                    min-height: '[[conf:edwf-input-text-height]]';
+                    &[data-passwordunmask="edit"] {
+                        width: initial !important;
+                    }
+                }
+                [data-passwordunmask="wrapper"] {
+                    [data-passwordunmask="editor"] {
+                        input{
+                            width: initial !important;        
+                        }
+                    }
+                }
+            }
+            .form-check {
+                input[type="checkbox"] {
+                    &+ span {
+                        margin-left: 5px;
+                    } 
+                }
+            }
+            input[type="text"], .form-control {
+                background-color: '[[conf:edw-input-text-bgcolor]]';
+                color: '[[conf:edw-input-text-textcolor]]';
+                
+                border-top: '[[conf:edwf-borderwidth-top]]' solid '[[conf:edwf-bordercolor]]';
+                border-right: '[[conf:edwf-borderwidth-right]]' solid '[[conf:edwf-bordercolor]]';
+                border-bottom: '[[conf:edwf-borderwidth-bottom]]' solid '[[conf:edwf-bordercolor]]';
+                border-left: '[[conf:edwf-borderwidth-left]]' solid '[[conf:edwf-bordercolor]]';
+
+                &:not(.editor_atto_content) {
+                    border-bottom-left-radius: '[[conf:edwf-borderrad-bl]]' !important;
+                    border-bottom-right-radius: '[[conf:edwf-borderrad-br]]'!important;
+                    border-top-left-radius: '[[conf:edwf-borderrad-tl]]'!important;
+                    border-top-right-radius: '[[conf:edwf-borderrad-tr]]'!important;
+                }
+                
+                min-height: '[[conf:edwf-input-text-height]]';
+                font-size: '[[conf:edwf-input-text-fontsize]]';
+                
+                box-shadow: '[[conf:edwf-shadow-hoffset]]' '[[conf:edwf-shadow-voffset]]' '[[conf:edwf-shadow-blur]]' '[[conf:edwf-shadow-spread]]' '[[conf:edwf-shadow-color]]';
+
+                padding: '[[conf:edwf-pad-top]]' '[[conf:edwf-pad-right]]' '[[conf:edwf-pad-bottom]]' '[[conf:edwf-pad-left]]';
+
+                &::-webkit-scrollbar-track {
+                    background: transparent;
+                    margin: '[[conf:edwf-borderrad-bl]]';
+                }
+
+                &:focus {
+                    background-color: #fff;
+
+                    border-top: '[[conf:edwf-input-focus-tborder]]';
+                    border-bottom: '[[conf:edwf-input-focus-bborder]]';
+                    border-left: '[[conf:edwf-input-focus-lborder]]';
+                    border-right: '[[conf:edwf-input-focus-rborder]]';
+
+                    box-shadow: '[[conf:edwf-input-focus-shadow]]';
+                    outline: 0;
+                }
+                &[disabled] {
+                    color: #cad2db;
+                }
+            }
+
+            textarea.form-control {
+                padding: '[[conf:edwf-pad-top]]' '[[conf:edwf-pad-right]]' '[[conf:edwf-pad-bottom]]' '[[conf:edwf-pad-left]]';
+                &::-webkit-scrollbar-track {
+                    background: transparent;
+                    margin: '[[conf:edwf-borderrad-bl]]';
+                }
+            }
+            
+            div:not(.fdate_time_selector){
+                .custom-select {
+                    @extend .edw-custom-selector;
+                }
+            }
+            // checkbox styling
+
+            input[type="checkbox"]:checked {
+                width: 20px;
+                height: 20px;
+                border: '[[conf:edwf-checkbox-borderwidth]]' solid '[[conf:edwf-checkbox-bordercolor]]';
+                background-color: '[[conf:edwf-checkbox-backcolor]]';
+            }
+            input[type="checkbox"] {
+                width: 20px;
+                height: 20px;
+                border: '[[conf:edwf-checkbox-borderwidth]]' solid '[[conf:edwf-checkbox-bordercolor]]';
+                justify-content: center;
+                align-items: center;
+                appearance: none;
+                display: inline-flex;
+            }
+            .efb-switch input[type="checkbox"] {
+                display: none !important;
+            }
+            .checkbox {
+                .form-check {
+                    label {
+                        margin: 0.2rem 0.5rem;
+                    }
+                }
+            }
+            
+            #categoryquestions {
+                .checkbox {
+                   padding-right: 20px;
+                }
+                .creatorname {
+                    padding-left: 1rem;
+                }
+            }
+
+            input[type="checkbox"], .custom-control-input {
+                &:after {
+                    content: '\2714';
+                    font-size: 16px;
+                    color: #fff;
+                    width: 20px;
+                    height: 20px;
+                    justify-content: center;
+                    align-items: center;
+                    display: flex;
+                }
+                &:checked {
+                    &:after {
+                        content: '\2714';
+                        font-size: 16px;
+                        color: #fff;
+                        width: 20px;
+                        height: 20px;
+                        justify-content: center;
+                        align-items: center;
+                        display: flex;
+                    }
+                }
+                
+            }
+
+            .custom-control {
+                &.custom-checkbox {
+                    .custom-control-input:checked~.custom-control-label::after {
+                        background-image: none;
+                    }
+                    .custom-control-input {
+                        opacity: 1;
+                        z-index: 1 !important;
+                    }
+                    .custom-control-label {
+                        &:before,:after {
+                            display: none;
+                        }
+                    }
+                }
+            }
+
+            .checkbox-inline {
+                display: inline-flex;
+                input[type="checkbox"] {
+                    margin-right: 5px;
+                }
+            }
+            .form-inline {
+                .form-check, .form-check-inline {
+                    display: inline-flex !important;
+                }
+            }
+
+            // Atto editor styling 
+            .editor_atto {
+                div.editor_atto_toolbar {
+                    border: '[[conf:edwf-atto-borderwidth]]' solid '[[conf:edwf-atto-bordercolor]]';
+                    
+                    border-top-left-radius: '[[conf:edwf-borderrad-tl]]';
+                    border-top-right-radius: '[[conf:edwf-borderrad-tr]]';
+                }
+                div.editor_atto_content_wrap, .editor_atto_content {
+                    border-bottom-left-radius: '[[conf:edwf-borderrad-bl]]';
+                    border-bottom-right-radius: '[[conf:edwf-borderrad-br]]';
+                }
+                &:focus {
+                    div.editor_atto_toolbar {
+                        border-top: '[[conf:edwf-input-focus-tborder]]';
+                        border-bottom: '[[conf:edwf-input-focus-bborder]]';
+                        border-left: '[[conf:edwf-input-focus-lborder]]';
+                        border-right: '[[conf:edwf-input-focus-rborder]]';
+                    }
+                }
+            }
+
+            // File Manager 
+            .filemanager {
+                .fp-content {
+                    border-top: '[[conf:edwf-borderwidth-top]]' solid '[[conf:edwf-bordercolor]]';
+                    border-right: '[[conf:edwf-borderwidth-right]]' solid '[[conf:edwf-bordercolor]]';
+                    border-bottom: '[[conf:edwf-borderwidth-bottom]]' solid '[[conf:edwf-bordercolor]]';
+                    border-left: '[[conf:edwf-borderwidth-left]]' solid '[[conf:edwf-bordercolor]]';      
+
+                    box-shadow: '[[conf:edwf-shadow-hoffset]]' '[[conf:edwf-shadow-voffset]]' '[[conf:edwf-shadow-blur]]' '[[conf:edwf-shadow-spread]]' '[[conf:edwf-shadow-color]]';
+
+                    // border-top-left-radius: '[[conf:edwf-borderrad-tl]]';
+                    // border-top-right-radius: '[[conf:edwf-borderrad-tr]]';
+                    border-bottom-left-radius: '[[conf:edwf-borderrad-bl]]';
+                    border-bottom-right-radius: '[[conf:edwf-borderrad-br]]';
+                }
+                .fp-navbar {
+                    border-top-left-radius: '[[conf:edwf-borderrad-tl]]';
+                    border-top-right-radius: '[[conf:edwf-borderrad-tr]]';
+                    padding: 10px;
+                }
+                .filemanager-container {
+                    border-bottom-left-radius: '[[conf:edwf-borderrad-bl]]';
+                    border-bottom-right-radius: '[[conf:edwf-borderrad-br]]';
+                }
+                .filemanager-container {
+                    border-top: '[[conf:edwf-borderwidth-top]]' solid '[[conf:edwf-bordercolor]]';
+                    border-right: '[[conf:edwf-borderwidth-right]]' solid '[[conf:edwf-bordercolor]]';
+                    border-bottom: '[[conf:edwf-borderwidth-bottom]]' solid '[[conf:edwf-bordercolor]]';
+                    border-left: '[[conf:edwf-borderwidth-left]]' solid '[[conf:edwf-bordercolor]]';   
+
+                    box-shadow: '[[conf:edwf-shadow-hoffset]]' '[[conf:edwf-shadow-voffset]]' '[[conf:edwf-shadow-blur]]' '[[conf:edwf-shadow-spread]]' '[[conf:edwf-shadow-color]]';   
+                }
+                .fm-empty-container {
+                    border-color: '[[conf:edwf-bordercolor]]';            
+                }
+            }
+
+            // Button Styles 
+            .is-invalid { 
+                border-top: '[[conf:edwf-borderwidth-top]]' solid red !important;
+                border-right: '[[conf:edwf-borderwidth-right]]' solid red !important;
+                border-bottom: '[[conf:edwf-borderwidth-bottom]]' solid red !important;
+                border-left: '[[conf:edwf-borderwidth-left]]' solid red !important;
+            }
+        }
+    }
+    
+    .btn:not(.block-add):not(.qnbutton) {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .mod_bigbluebuttonbn_recordings_table {
+        .yui3-datatable-paginator-group {
+            input {
+                min-width: 70px;
+            }
+        }
+    }
+    select[name="eg-qb-table_length"] {
+        min-width: 70px;
+    }
+}

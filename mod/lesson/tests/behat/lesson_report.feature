@@ -16,14 +16,11 @@ Feature: In a lesson activity, teachers can review student attempts
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And the following "activities" exist:
+      | activity   | name             | intro | course | section | idnumber    | retake |
+      | lesson     | Test lesson name | Test  | C1     | 1       | lesson1     | 1      |
     And I log in as "teacher1"
-    And I am on "Course 1" course homepage with editing mode on
-    And I add a "Lesson" to section "1"
-    And I set the following fields to these values:
-      | Name | Test lesson name |
-      | Description | Test lesson description |
-      | Re-takes allowed | Yes |
-    And I press "Save and return to course"
+    And I am on "Course 1" course homepage
     And I follow "Test lesson name"
 
   Scenario: View student attempts in a lesson containing both content and question pages
@@ -103,7 +100,7 @@ Feature: In a lesson activity, teachers can review student attempts
     Then I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I follow "Test lesson name"
-    And I follow "Reports"
+    And I navigate to "Reports" in current page administration
     And I should see "Student 1"
     And I should see "100%"
     And I should see "High score"
@@ -161,7 +158,7 @@ Feature: In a lesson activity, teachers can review student attempts
     Then I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I follow "Test lesson name"
-    And I follow "Reports"
+    And I navigate to "Reports" in current page administration
     And I should see "Student 1"
     And I should not see "High score"
     And I should not see "Average score"

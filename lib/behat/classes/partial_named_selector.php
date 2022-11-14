@@ -52,7 +52,7 @@ class behat_partial_named_selector extends \Behat\Mink\Selector\PartialNamedSele
             $this->registerReplacement($from, implode(' or ', $tos));
         }
 
-        $this->registerReplacement('%iconMatch%', "(contains(concat(' ', @class, ' '), ' icon ') or name() = 'img')");
+        $this->registerReplacement('%iconMatch%', "(contains(concat(' ', @class, ' '), ' icon ') or self::img)");
         $this->registerReplacement('%imgAltMatch%', './/*[%iconMatch% and (%altMatch% or %titleMatch%)]');
         parent::__construct();
     }
@@ -86,6 +86,7 @@ class behat_partial_named_selector extends \Behat\Mink\Selector\PartialNamedSele
      */
     protected static $allowedselectors = array(
         'activity' => 'activity',
+        'badge' => 'badge',
         'block' => 'block',
         'button' => 'button',
         'checkbox' => 'checkbox',
@@ -107,6 +108,7 @@ class behat_partial_named_selector extends \Behat\Mink\Selector\PartialNamedSele
         'link' => 'link',
         'link_or_button' => 'link_or_button',
         'list_item' => 'list_item',
+        'menuitem' => 'menuitem',
         'optgroup' => 'optgroup',
         'option' => 'option',
         'question' => 'question',
@@ -135,7 +137,10 @@ class behat_partial_named_selector extends \Behat\Mink\Selector\PartialNamedSele
      */
     protected static $moodleselectors = array(
         'activity' => <<<XPATH
-.//li[contains(concat(' ', normalize-space(@class), ' '), ' activity ')][normalize-space(.) = %locator% ]
+.//li[contains(concat(' ', normalize-space(@class), ' '), ' activity ')][descendant::*[contains(normalize-space(.), %locator%)]]
+XPATH
+        , 'badge' => <<<XPATH
+.//span[(contains(@class, 'badge')) and text()[contains(., %locator%)]]
 XPATH
         , 'block' => <<<XPATH
 .//*[@data-block][contains(concat(' ', normalize-space(@class), ' '), concat(' ', %locator%, ' ')) or
@@ -144,6 +149,7 @@ XPATH
 XPATH
         , 'dialogue' => <<<XPATH
 .//div[contains(concat(' ', normalize-space(@class), ' '), ' moodle-dialogue ') and
+    not(contains(concat(' ', normalize-space(@class), ' '), ' moodle-dialogue-hidden ')) and
     normalize-space(descendant::div[
         contains(concat(' ', normalize-space(@class), ' '), ' moodle-dialogue-hd ')
         ]) = %locator%] |
@@ -197,6 +203,9 @@ XPATH
         , 'list_item' => <<<XPATH
 .//li[contains(normalize-space(.), %locator%) and not(.//li[contains(normalize-space(.), %locator%)])]
 XPATH
+        , 'menuitem' => <<<XPATH
+.//*[@role='menuitem'][%titleMatch% or %ariaLabelMatch% or text()[contains(., %locator%)]]
+XPATH
         , 'question' => <<<XPATH
 .//div[contains(concat(' ', normalize-space(@class), ' '), ' que ')]
     [contains(div[@class='content']/div[contains(concat(' ', normalize-space(@class), ' '), ' formulation ')], %locator%)]
@@ -226,7 +235,7 @@ XPATH
     /ancestor::*[contains(concat(' ', @class, ' '), ' fitem ')]
 XPATH
         , 'autocomplete_selection' => <<<XPATH
-.//div[contains(concat(' ', normalize-space(@class), ' '), concat(' ', 'form-autocomplete-selection', ' '))]/span[@role='listitem'][contains(normalize-space(.), %locator%)]
+.//div[contains(concat(' ', normalize-space(@class), ' '), concat(' ', 'form-autocomplete-selection', ' '))]/span[@role='option'][contains(normalize-space(.), %locator%)]
 XPATH
         , 'autocomplete_suggestions' => <<<XPATH
 .//ul[contains(concat(' ', normalize-space(@class), ' '), concat(' ', 'form-autocomplete-suggestions', ' '))]/li[@role='option'][contains(normalize-space(.), %locator%)]
@@ -235,7 +244,7 @@ XPATH
 .//descendant::input[@id = //label[contains(normalize-space(string(.)), %locator%)]/@for]/ancestor::*[@data-fieldtype = 'autocomplete']
 XPATH
         , 'iframe' => <<<XPATH
-.//iframe[contains(concat(' ', normalize-space(@class), ' '), %locator% )]
+.//iframe[(%idOrNameMatch% or (contains(concat(' ', normalize-space(@class), ' '), %locator% )))]
 XPATH
     );
 
@@ -262,6 +271,14 @@ XPATH
 .//*[@data-passwordunmask='wrapper']
     /descendant::input[@id = %locator% or @id = //label[contains(normalize-space(string(.)), %locator%)]/@for]
 XPATH
+        ,
+             'inplaceeditable' => <<<XPATH
+.//descendant::span[@data-inplaceeditable][descendant::a[%titleMatch%]]
+XPATH
+        ,
+            'date_time' => <<<XPATH
+.//fieldset[(%idMatch% or ./legend[%exactTagTextMatch%]) and (@data-fieldtype='date' or @data-fieldtype='date_time')]
+XPATH
         ],
     ];
 
@@ -278,6 +295,12 @@ XPATH
         ],
         '%ariaLabelMatch%' => [
             'moodle' => 'contains(./@aria-label, %locator%)',
+        ],
+        '%exactTagTextMatch%' => [
+            // This is based upon the upstream tagTextMatch but performs an exact match rather than a loose match using
+            // contains().
+            // If possible we should only use exact matches for any new form fields that we add.
+            'moodle' => 'normalize-space(text())=%locator%',
         ],
     ];
 

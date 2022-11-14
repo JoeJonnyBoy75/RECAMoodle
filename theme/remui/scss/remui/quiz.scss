@@ -1,37 +1,21 @@
-#page-mod-quiz-attempt {
-    #region-main > .card {
-        background: transparent;
-    }
-}
+
 .qnbutton {
-    @extend .btn;
-    @extend .btn-icon;
-    @extend .btn-sm;
 
-    line-height: 2rem !important;
-    height: 2rem !important;
-    font-size: 0.8rem !important;
-    color: white !important;
-
-    .thispage, .thispageholder {
-        border: none !important;
+    .thispage,
+    .thispageholder {
+        border-color: transparent !important;
     }
 
-    &.flagged {
-        .thispageholder {
-    //         background-image: url([[pix:theme|flag]]) !important;
-            background-position-y: -4px !important;
-    //         background-repeat: repeat-x !important;
-        }
-    }
-
-    .trafficlight, .accesshide {
-        display: none !important;
-    }
-
-    &.notyetanswered, &.notanswered, &.invalidanswer {
+    &.notyetanswered,
+    &.notanswered,
+    &.invalidanswer {
         background-color: #e4eaec !important;
         color: black !important;
+        
+        .thispage,
+        .thispageholder {
+            border-color: $color-grey-400 !important;
+        }
     }
 
     &.answersaved {
@@ -57,84 +41,4 @@
     &.complete {
         background-color: #47b8c6 !important;
     }
-}
-#quiz-timer {
-    margin: 15px;
-    text-align: center;
-    background: #d2d6de;
-    padding: 5px;
-    display: none;
-    border-radius: 2px;
-
-    @include media-breakpoint-up(md) {
-        display: none !important;
-    }
-}
-.quiztimer {
-    height: 80px;
-    width: 230px;
-    border-radius: 5px;
-    background: #FFFFFF;
-}
-.time_circles {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
-/**
- * This is all the elements used to house all text used
- * in time circles
- **/
-.time_circles > div {
-    position: absolute;
-    text-align: center;
-}
-/**
- * Titles (Days, Hours, etc)
- **/
-.time_circles > div > h4 {
-    margin: 0;
-    padding: 0;
-    text-align: center;
-    text-transform: uppercase;
-    line-height: 1;
-}
-
-table.quizreviewsummary th.cell, table.quizreviewsummary td.cell {
-    background: white;
-    color: initial;
-    vertical-align: middle;
-    border-color: #f1f4f5;
-}
-#page-mod-quiz-edit {
-    ul.slots li.section li.activity {
-        margin: 25px 0px;
-    }
-    .section-heading form input {
-        display: inline-block !important;
-    }
-    .mod_quiz-edit-top-controls {
-        .selectmultiplecommand + [role="toolbar"] {
-            width: unset;
-            height: unset;
-            text-align: left;
-            background: unset;
-            padding: unset;
-        }
-    }
-    .last-add-menu {
-        height: 4em;
-    }
-}
-#mod_quiz_preflight_form #fgroup_id_buttonar {
-    padding: 10px !important;
-}
-
-// Make the quiz time sticky in right sidebar.
-#page-mod-quiz-attempt .page-aside #mod_quiz_navblock .card-body .othernav{
-    position: sticky;
-    top: 0px;
-    z-index: 2;
-    padding-bottom: 10px;
-    background: #fff;
 }
