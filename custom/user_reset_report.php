@@ -149,12 +149,20 @@ foreach ($sections as $i => $section) {
                 }
 
                 foreach ($modinfo->sections[$i] as $cmid) {
+//echo '<br>CMID: ' . $cmid . "<br>";
                     $mod = $modinfo->cms[$cmid];
+//echo '<pre>';
+//print_r($modinfo->sections[$i]);
+//echo '</pre>';
+//echo "<br><br>";
                     if (empty($mod->uservisible)) {
+//echo 'EMPTY MOD USER VISIBLE!!!<br><br><br>';
                         continue;
                     }
 
+//echo $mod->modname . ':' . $mod->instance . '<br><br>';
                     $instance = $DB->get_record("$mod->modname", array("id"=>$mod->instance));
+//print_r($instance);
                     $libfile = "$CFG->dirroot/mod/$mod->modname/lib.php";
 
                     if (file_exists($libfile)) {

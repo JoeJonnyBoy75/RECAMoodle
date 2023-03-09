@@ -46,7 +46,7 @@ foreach ($modinfo->get_section_info_all() as $sectionidx=>$sectioninfo) {
 	echo '<tr><td><strong>' . $sectioninfo->name . '</strong></td><td>&nbsp;</td>';
 	echo '<td>';
 	if (count($scormcms) > 0) {
-		echo ' <a target="_blank" href="set_grade_student_scorm.php?pass=section&user=' . $userid . '&course=' . $courseid . '&cms=' . implode($scormcms, ',') . '">Pass User In Section</a>';
+		echo ' <a target="_blank" href="set_grade_student_scorm.php?pass=section&user=' . $userid . '&course=' . $courseid . '&cms=' . implode(',', $scormcms) . '">Pass User In Section</a>';
 	}
 	echo '</td></tr>';
 	echo "\n";

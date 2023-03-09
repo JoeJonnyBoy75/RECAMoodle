@@ -163,4 +163,9 @@ require(['theme_remui/feedback'], function(){
 });
 {{/ cansendfeedback }}
 
+// JCA customizations
+require(['jquery'], function($) {
+    $(".course-exitbutton").attr("href", $("#page-navbar .breadcrumb-item:first a").attr("href"));
+});
+ 
 {{/js}}
